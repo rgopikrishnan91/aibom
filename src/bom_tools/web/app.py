@@ -4,6 +4,7 @@ Supports both AI Model BOM and Data BOM generation
 """
 
 from flask import Flask, render_template, request, jsonify, send_file
+from werkzeug.utils import secure_filename
 import os
 import json
 from datetime import datetime
@@ -192,7 +193,9 @@ def index():
 def find_links():
     """Run link fallback and return found links immediately, before full BOM generation."""
     try:
-        data = request.json
+        data = request.get_json(silent=True)
+        if not data or not isinstance(data, dict):
+            return jsonify({'status': 'error', 'message': 'Request must be JSON'}), 400
         bom_type = data.get('bom_type', 'ai').strip().lower()
         repo_id = data.get('repo_id', '').strip() or None
         hf_repo_id = data.get('hf_repo_id', '').strip() or repo_id or None
@@ -264,7 +267,9 @@ def get_config():
 def process():
     """Handle processing request for both AI and Data BOMs"""
     try:
-        data = request.json
+        data = request.get_json(silent=True)
+        if not data or not isinstance(data, dict):
+            return jsonify({'status': 'error', 'message': 'Request must be JSON'}), 400
         bom_type = data.get('bom_type', 'ai').strip().lower()
         
         # Get processing options
@@ -473,8 +478,11 @@ def process():
 def download(filename):
     """Download the generated JSON file"""
     try:
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        return send_file(file_path, as_attachment=True, download_name=filename)
+        safe_name = secure_filename(filename)
+        if not safe_name:
+            return jsonify({'status': 'error', 'message': 'Invalid filename'}), 400
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], safe_name)
+        return send_file(file_path, as_attachment=True, download_name=safe_name)
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 404
 
@@ -490,7 +498,9 @@ if __name__ == '__main__':
     print("="*70 + "\n")
     
     # Run Flask app
-    app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)
+    host = os.getenv('BOM_HOST', '127.0.0.1')
+    port = int(os.getenv('BOM_PORT', '5000'))
+    app.run(host=host, port=port, debug=False, threaded=True)
 
 
 def main():
@@ -505,4 +515,6 @@ def main():
     print("="*70 + "\n")
     
     # Run Flask app
-    app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)
+    host = os.getenv('BOM_HOST', '127.0.0.1')
+    port = int(os.getenv('BOM_PORT', '5000'))
+    app.run(host=host, port=port, debug=False, threaded=True)

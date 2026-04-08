@@ -1,0 +1,1281 @@
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-9.0.3, pluggy-1.6.0 -- /usr/local/bin/python
+cachedir: .pytest_cache
+rootdir: /home/user/aibom
+configfile: pyproject.toml
+plugins: langsmith-0.7.27, cov-7.1.0, anyio-4.13.0
+collecting ... collected 11 items
+
+tests/test_link_fallback.py::TestLinkFallbackFinder::test_initialization_without_api_key PASSED [  9%]
+tests/test_link_fallback.py::TestLinkFallbackFinder::test_is_valid_url PASSED [ 18%]
+tests/test_openrouter_integration.py::test_conflict_detection_bert_domain SKIPPED [ 27%]
+tests/test_openrouter_integration.py::test_answer_generation_bert_domain SKIPPED [ 36%]
+tests/test_pipeline_features.py::test_json_output_is_triplet_based_and_serializable PASSED [ 45%]
+tests/test_pipeline_features.py::test_internal_domain_conflict_same_source PASSED [ 54%]
+tests/test_pipeline_features.py::test_external_domain_conflict_arxiv_wins PASSED [ 63%]
+tests/test_processors.py::TestAIBOMProcessor::test_initialization FAILED [ 72%]
+tests/test_processors.py::TestAIBOMProcessor::test_generate_model_id FAILED [ 81%]
+tests/test_processors.py::TestDATABOMProcessor::test_initialization FAILED [ 90%]
+tests/test_processors.py::TestDATABOMProcessor::test_generate_dataset_id FAILED [100%]
+
+=================================== FAILURES ===================================
+____________________ TestAIBOMProcessor.test_initialization ____________________
+
+self = <tests.test_processors.TestAIBOMProcessor object at 0x7fa3a8d395d0>
+
+    def test_initialization(self):
+        """Test processor initialization"""
+>       processor = AIBOMProcessor(
+            model="gpt-4o",
+            mode="rag",
+            use_case="complete"
+        )
+
+tests/test_processors.py:13: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <bom_tools.core.processors.AIBOMProcessor object at 0x7fa3a8d0afd0>
+model = 'gpt-4o', mode = 'rag', llm_provider = 'openai', ollama_base_url = None
+questions_config = None, use_case = 'complete', embedding_provider = 'local'
+embedding_model = 'BAAI/bge-small-en-v1.5'
+
+    def __init__(self, model: str = "gpt-4o", mode: str = "rag", llm_provider: str = "openai",
+                 ollama_base_url: str = None, questions_config: Dict[str, Dict] = None, use_case: str = 'complete',
+                 embedding_provider: str = "local", embedding_model: str = "BAAI/bge-small-en-v1.5"):
+        """Initialize processing system based on mode
+    
+        Args:
+            embedding_provider: 'local' (default, free HuggingFace) or 'openai'
+            embedding_model: Model for local embeddings (only used if embedding_provider='local')
+        """
+        self.mode = mode
+        self.model = model
+        self.llm_provider = llm_provider
+        self.ollama_base_url = ollama_base_url
+        self.questions_config = questions_config if questions_config is not None else FIXED_QUESTIONS_AI
+        self.use_case = use_case
+        self.embedding_provider = embedding_provider
+        self.embedding_model = embedding_model
+    
+        if mode == 'rag':
+>           self.processor = AgenticRAG(
+                model=model,
+                llm_provider=llm_provider,
+                ollama_base_url=ollama_base_url,
+                questions=self.questions_config,
+                bom_type='ai',
+                embedding_provider=embedding_provider,
+                embedding_model=embedding_model
+            )
+
+src/bom_tools/core/processors.py:150: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <bom_tools.core.agentic_rag.AgenticRAG object at 0x7fa3a96e3a50>
+model = 'gpt-4o', temperature = 0, llm_provider = 'openai'
+ollama_base_url = None
+questions = {'autonomyType': {'description': 'Indicates if the system is fully automated or a human is involved in any of the deci...face', 'github'], 'question': 'Records a hyperparameter used to build the AI model contained in the AI package.'}, ...}
+bom_type = 'ai', embedding_provider = 'local'
+embedding_model = 'BAAI/bge-small-en-v1.5'
+
+    def __init__(self, model: str = "gpt-4o", temperature: float = 0, llm_provider: str = "openai", ollama_base_url: str = None, questions: Optional[Dict[str, Dict]] = None, bom_type: str = 'ai', embedding_provider: str = "local", embedding_model: str = "BAAI/bge-small-en-v1.5"):
+        """Initialize the RAG system with LLM and embeddings
+    
+        Args:
+            model: Model name (e.g., 'gpt-4o' for OpenAI, 'llama3:70b' for Ollama)
+            temperature: Temperature for generation
+            llm_provider: 'openai' or 'ollama'
+            ollama_base_url: Base URL for Ollama server (only used if llm_provider='ollama')
+            questions: Optional subset of FIXED_QUESTIONS to answer in this run
+            bom_type: 'ai' or 'data' - determines which question set to use if questions not provided
+            embedding_provider: 'local' (default, HuggingFace) or 'openai' - provider for embeddings
+            embedding_model: Model name for embeddings (default: 'BAAI/bge-small-en-v1.5')
+                            Other good options: 'sentence-transformers/all-mpnet-base-v2' (higher quality),
+                                                'BAAI/bge-small-en-v1.5' (good balance)
+        """
+>       self.llm = create_llm(model, temperature, llm_provider, ollama_base_url)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/bom_tools/core/agentic_rag.py:526: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+model = 'gpt-4o', temperature = 0, llm_provider = 'openai'
+ollama_base_url = None
+
+    def create_llm(model: str, temperature: float = 0, llm_provider: str = "openai", ollama_base_url: str = None):
+        """
+        Create an LLM instance based on the provider.
+    
+        Args:
+            model: Model name (e.g., 'gpt-4o' for OpenAI, 'llama3:70b' for Ollama,
+                   'qwen/qwen-2.5-72b-instruct' for OpenRouter)
+            temperature: Temperature for generation
+            llm_provider: 'openai', 'ollama', or 'openrouter'
+            ollama_base_url: Base URL for Ollama server (defaults to env var or localhost)
+    
+        Returns:
+            LLM instance compatible with LangChain
+        """
+        if llm_provider == "ollama":
+            if ollama_base_url is None:
+                ollama_base_url = os.getenv('OLLAMA_BASE_URL', 'http://10.218.163.118:11434/v1/')
+            # ChatOpenAI is compatible with Ollama's OpenAI-compatible API
+            return ChatOpenAI(
+                model=model,
+                temperature=temperature,
+                base_url=ollama_base_url,
+                api_key="ollama"  # Required but ignored by Ollama
+            )
+        elif llm_provider == "openrouter":
+            openrouter_base_url = os.getenv('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1')
+            openrouter_api_key = os.getenv('OPENROUTER_API_KEY') or os.getenv('My_OPENROUTER_API_KEY')
+            if not openrouter_api_key:
+                raise ValueError("OPENROUTER_API_KEY or My_OPENROUTER_API_KEY must be set in environment")
+            return ChatOpenAI(
+                model=model,
+                temperature=temperature,
+                base_url=openrouter_base_url,
+                api_key=openrouter_api_key,
+                default_headers={
+                    "HTTP-Referer": os.getenv('OPENROUTER_SITE_NAME', 'BOM_Tools'),
+                    "X-Title": "BOM_Tools"
+                }
+            )
+        else:
+            # Default to OpenAI
+>           return ChatOpenAI(model=model, temperature=temperature)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/bom_tools/core/agentic_rag.py:63: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = ChatOpenAI(profile={'name': 'GPT-4o', 'release_date': '2024-05-13', 'last_updated': '2024-08-06', 'open_weights': Fals...ge_tool_message': True, 'tool_choice': True}, model_name='gpt-4o', temperature=0.0, model_kwargs={}, stream_usage=True)
+args = (), kwargs = {'model': 'gpt-4o', 'temperature': 0}
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """"""  # noqa: D419  # Intentional blank docstring
+>       super().__init__(*args, **kwargs)
+
+/usr/local/lib/python3.11/dist-packages/langchain_core/load/serializable.py:118: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = ChatOpenAI(profile={'name': 'GPT-4o', 'release_date': '2024-05-13', 'last_updated': '2024-08-06', 'open_weights': Fals...ge_tool_message': True, 'tool_choice': True}, model_name='gpt-4o', temperature=0.0, model_kwargs={}, stream_usage=True)
+
+    @model_validator(mode="after")
+    def validate_environment(self) -> Self:
+        """Validate that api key and python package exists in environment."""
+        if self.n is not None and self.n < 1:
+            msg = "n must be at least 1."
+            raise ValueError(msg)
+        if self.n is not None and self.n > 1 and self.streaming:
+            msg = "n must be 1 when streaming."
+            raise ValueError(msg)
+    
+        # Check OPENAI_ORGANIZATION for backwards compatibility.
+        self.openai_organization = (
+            self.openai_organization
+            or os.getenv("OPENAI_ORG_ID")
+            or os.getenv("OPENAI_ORGANIZATION")
+        )
+        self.openai_api_base = self.openai_api_base or os.getenv("OPENAI_API_BASE")
+    
+        # Enable stream_usage by default if using default base URL and client
+        if (
+            all(
+                getattr(self, key, None) is None
+                for key in (
+                    "stream_usage",
+                    "openai_proxy",
+                    "openai_api_base",
+                    "base_url",
+                    "client",
+                    "root_client",
+                    "async_client",
+                    "root_async_client",
+                    "http_client",
+                    "http_async_client",
+                )
+            )
+            and "OPENAI_BASE_URL" not in os.environ
+        ):
+            self.stream_usage = True
+    
+        # Resolve API key from SecretStr or Callable
+        sync_api_key_value: str | Callable[[], str] | None = None
+        async_api_key_value: str | Callable[[], Awaitable[str]] | None = None
+    
+        if self.openai_api_key is not None:
+            # Because OpenAI and AsyncOpenAI clients support either sync or async
+            # callables for the API key, we need to resolve separate values here.
+            sync_api_key_value, async_api_key_value = _resolve_sync_and_async_api_keys(
+                self.openai_api_key
+            )
+    
+        client_params: dict = {
+            "organization": self.openai_organization,
+            "base_url": self.openai_api_base,
+            "timeout": self.request_timeout,
+            "default_headers": self.default_headers,
+            "default_query": self.default_query,
+        }
+        if self.max_retries is not None:
+            client_params["max_retries"] = self.max_retries
+    
+        if self.openai_proxy and (self.http_client or self.http_async_client):
+            openai_proxy = self.openai_proxy
+            http_client = self.http_client
+            http_async_client = self.http_async_client
+            msg = (
+                "Cannot specify 'openai_proxy' if one of "
+                "'http_client'/'http_async_client' is already specified. Received:\n"
+                f"{openai_proxy=}\n{http_client=}\n{http_async_client=}"
+            )
+            raise ValueError(msg)
+        if not self.client:
+            if sync_api_key_value is None:
+                # No valid sync API key, leave client as None and raise informative
+                # error on invocation.
+                self.client = None
+                self.root_client = None
+            else:
+                if self.openai_proxy and not self.http_client:
+                    try:
+                        import httpx
+                    except ImportError as e:
+                        msg = (
+                            "Could not import httpx python package. "
+                            "Please install it with `pip install httpx`."
+                        )
+                        raise ImportError(msg) from e
+                    self.http_client = httpx.Client(
+                        proxy=self.openai_proxy, verify=global_ssl_context
+                    )
+                sync_specific = {
+                    "http_client": self.http_client
+                    or _get_default_httpx_client(
+                        self.openai_api_base, self.request_timeout
+                    ),
+                    "api_key": sync_api_key_value,
+                }
+                self.root_client = openai.OpenAI(**client_params, **sync_specific)  # type: ignore[arg-type]
+                self.client = self.root_client.chat.completions
+        if not self.async_client:
+            if self.openai_proxy and not self.http_async_client:
+                try:
+                    import httpx
+                except ImportError as e:
+                    msg = (
+                        "Could not import httpx python package. "
+                        "Please install it with `pip install httpx`."
+                    )
+                    raise ImportError(msg) from e
+                self.http_async_client = httpx.AsyncClient(
+                    proxy=self.openai_proxy, verify=global_ssl_context
+                )
+            async_specific = {
+                "http_client": self.http_async_client
+                or _get_default_async_httpx_client(
+                    self.openai_api_base, self.request_timeout
+                ),
+                "api_key": async_api_key_value,
+            }
+>           self.root_async_client = openai.AsyncOpenAI(
+                **client_params,
+                **async_specific,  # type: ignore[arg-type]
+            )
+
+/usr/local/lib/python3.11/dist-packages/langchain_openai/chat_models/base.py:1090: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <openai.AsyncOpenAI object at 0x7fa3a8d0b490>
+
+    def __init__(
+        self,
+        *,
+        api_key: str | Callable[[], Awaitable[str]] | None = None,
+        organization: str | None = None,
+        project: str | None = None,
+        webhook_secret: str | None = None,
+        base_url: str | httpx.URL | None = None,
+        websocket_base_url: str | httpx.URL | None = None,
+        timeout: float | Timeout | None | NotGiven = not_given,
+        max_retries: int = DEFAULT_MAX_RETRIES,
+        default_headers: Mapping[str, str] | None = None,
+        default_query: Mapping[str, object] | None = None,
+        # Configure a custom httpx client.
+        # We provide a `DefaultAsyncHttpxClient` class that you can pass to retain the default values we use for `limits`, `timeout` & `follow_redirects`.
+        # See the [httpx documentation](https://www.python-httpx.org/api/#asyncclient) for more details.
+        http_client: httpx.AsyncClient | None = None,
+        # Enable or disable schema validation for data returned by the API.
+        # When enabled an error APIResponseValidationError is raised
+        # if the API responds with invalid data for the expected schema.
+        #
+        # This parameter may be removed or changed in the future.
+        # If you rely on this feature, please open a GitHub issue
+        # outlining your use-case to help us decide if it should be
+        # part of our public interface in the future.
+        _strict_response_validation: bool = False,
+    ) -> None:
+        """Construct a new async AsyncOpenAI client instance.
+    
+        This automatically infers the following arguments from their corresponding environment variables if they are not provided:
+        - `api_key` from `OPENAI_API_KEY`
+        - `organization` from `OPENAI_ORG_ID`
+        - `project` from `OPENAI_PROJECT_ID`
+        - `webhook_secret` from `OPENAI_WEBHOOK_SECRET`
+        """
+        if api_key is None:
+            api_key = os.environ.get("OPENAI_API_KEY")
+        if api_key is None:
+>           raise OpenAIError(
+                "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
+            )
+E           openai.OpenAIError: The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable
+
+/usr/local/lib/python3.11/dist-packages/openai/_client.py:514: OpenAIError
+__________________ TestAIBOMProcessor.test_generate_model_id ___________________
+
+self = <tests.test_processors.TestAIBOMProcessor object at 0x7fa3a8d39910>
+
+    def test_generate_model_id(self):
+        """Test model ID generation"""
+>       processor = AIBOMProcessor()
+                    ^^^^^^^^^^^^^^^^
+
+tests/test_processors.py:24: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <bom_tools.core.processors.AIBOMProcessor object at 0x7fa3a8c62e90>
+model = 'gpt-4o', mode = 'rag', llm_provider = 'openai', ollama_base_url = None
+questions_config = None, use_case = 'complete', embedding_provider = 'local'
+embedding_model = 'BAAI/bge-small-en-v1.5'
+
+    def __init__(self, model: str = "gpt-4o", mode: str = "rag", llm_provider: str = "openai",
+                 ollama_base_url: str = None, questions_config: Dict[str, Dict] = None, use_case: str = 'complete',
+                 embedding_provider: str = "local", embedding_model: str = "BAAI/bge-small-en-v1.5"):
+        """Initialize processing system based on mode
+    
+        Args:
+            embedding_provider: 'local' (default, free HuggingFace) or 'openai'
+            embedding_model: Model for local embeddings (only used if embedding_provider='local')
+        """
+        self.mode = mode
+        self.model = model
+        self.llm_provider = llm_provider
+        self.ollama_base_url = ollama_base_url
+        self.questions_config = questions_config if questions_config is not None else FIXED_QUESTIONS_AI
+        self.use_case = use_case
+        self.embedding_provider = embedding_provider
+        self.embedding_model = embedding_model
+    
+        if mode == 'rag':
+>           self.processor = AgenticRAG(
+                model=model,
+                llm_provider=llm_provider,
+                ollama_base_url=ollama_base_url,
+                questions=self.questions_config,
+                bom_type='ai',
+                embedding_provider=embedding_provider,
+                embedding_model=embedding_model
+            )
+
+src/bom_tools/core/processors.py:150: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <bom_tools.core.agentic_rag.AgenticRAG object at 0x7fa3a8c62ed0>
+model = 'gpt-4o', temperature = 0, llm_provider = 'openai'
+ollama_base_url = None
+questions = {'autonomyType': {'description': 'Indicates if the system is fully automated or a human is involved in any of the deci...face', 'github'], 'question': 'Records a hyperparameter used to build the AI model contained in the AI package.'}, ...}
+bom_type = 'ai', embedding_provider = 'local'
+embedding_model = 'BAAI/bge-small-en-v1.5'
+
+    def __init__(self, model: str = "gpt-4o", temperature: float = 0, llm_provider: str = "openai", ollama_base_url: str = None, questions: Optional[Dict[str, Dict]] = None, bom_type: str = 'ai', embedding_provider: str = "local", embedding_model: str = "BAAI/bge-small-en-v1.5"):
+        """Initialize the RAG system with LLM and embeddings
+    
+        Args:
+            model: Model name (e.g., 'gpt-4o' for OpenAI, 'llama3:70b' for Ollama)
+            temperature: Temperature for generation
+            llm_provider: 'openai' or 'ollama'
+            ollama_base_url: Base URL for Ollama server (only used if llm_provider='ollama')
+            questions: Optional subset of FIXED_QUESTIONS to answer in this run
+            bom_type: 'ai' or 'data' - determines which question set to use if questions not provided
+            embedding_provider: 'local' (default, HuggingFace) or 'openai' - provider for embeddings
+            embedding_model: Model name for embeddings (default: 'BAAI/bge-small-en-v1.5')
+                            Other good options: 'sentence-transformers/all-mpnet-base-v2' (higher quality),
+                                                'BAAI/bge-small-en-v1.5' (good balance)
+        """
+>       self.llm = create_llm(model, temperature, llm_provider, ollama_base_url)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/bom_tools/core/agentic_rag.py:526: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+model = 'gpt-4o', temperature = 0, llm_provider = 'openai'
+ollama_base_url = None
+
+    def create_llm(model: str, temperature: float = 0, llm_provider: str = "openai", ollama_base_url: str = None):
+        """
+        Create an LLM instance based on the provider.
+    
+        Args:
+            model: Model name (e.g., 'gpt-4o' for OpenAI, 'llama3:70b' for Ollama,
+                   'qwen/qwen-2.5-72b-instruct' for OpenRouter)
+            temperature: Temperature for generation
+            llm_provider: 'openai', 'ollama', or 'openrouter'
+            ollama_base_url: Base URL for Ollama server (defaults to env var or localhost)
+    
+        Returns:
+            LLM instance compatible with LangChain
+        """
+        if llm_provider == "ollama":
+            if ollama_base_url is None:
+                ollama_base_url = os.getenv('OLLAMA_BASE_URL', 'http://10.218.163.118:11434/v1/')
+            # ChatOpenAI is compatible with Ollama's OpenAI-compatible API
+            return ChatOpenAI(
+                model=model,
+                temperature=temperature,
+                base_url=ollama_base_url,
+                api_key="ollama"  # Required but ignored by Ollama
+            )
+        elif llm_provider == "openrouter":
+            openrouter_base_url = os.getenv('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1')
+            openrouter_api_key = os.getenv('OPENROUTER_API_KEY') or os.getenv('My_OPENROUTER_API_KEY')
+            if not openrouter_api_key:
+                raise ValueError("OPENROUTER_API_KEY or My_OPENROUTER_API_KEY must be set in environment")
+            return ChatOpenAI(
+                model=model,
+                temperature=temperature,
+                base_url=openrouter_base_url,
+                api_key=openrouter_api_key,
+                default_headers={
+                    "HTTP-Referer": os.getenv('OPENROUTER_SITE_NAME', 'BOM_Tools'),
+                    "X-Title": "BOM_Tools"
+                }
+            )
+        else:
+            # Default to OpenAI
+>           return ChatOpenAI(model=model, temperature=temperature)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/bom_tools/core/agentic_rag.py:63: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = ChatOpenAI(profile={'name': 'GPT-4o', 'release_date': '2024-05-13', 'last_updated': '2024-08-06', 'open_weights': Fals...ge_tool_message': True, 'tool_choice': True}, model_name='gpt-4o', temperature=0.0, model_kwargs={}, stream_usage=True)
+args = (), kwargs = {'model': 'gpt-4o', 'temperature': 0}
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """"""  # noqa: D419  # Intentional blank docstring
+>       super().__init__(*args, **kwargs)
+
+/usr/local/lib/python3.11/dist-packages/langchain_core/load/serializable.py:118: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = ChatOpenAI(profile={'name': 'GPT-4o', 'release_date': '2024-05-13', 'last_updated': '2024-08-06', 'open_weights': Fals...ge_tool_message': True, 'tool_choice': True}, model_name='gpt-4o', temperature=0.0, model_kwargs={}, stream_usage=True)
+
+    @model_validator(mode="after")
+    def validate_environment(self) -> Self:
+        """Validate that api key and python package exists in environment."""
+        if self.n is not None and self.n < 1:
+            msg = "n must be at least 1."
+            raise ValueError(msg)
+        if self.n is not None and self.n > 1 and self.streaming:
+            msg = "n must be 1 when streaming."
+            raise ValueError(msg)
+    
+        # Check OPENAI_ORGANIZATION for backwards compatibility.
+        self.openai_organization = (
+            self.openai_organization
+            or os.getenv("OPENAI_ORG_ID")
+            or os.getenv("OPENAI_ORGANIZATION")
+        )
+        self.openai_api_base = self.openai_api_base or os.getenv("OPENAI_API_BASE")
+    
+        # Enable stream_usage by default if using default base URL and client
+        if (
+            all(
+                getattr(self, key, None) is None
+                for key in (
+                    "stream_usage",
+                    "openai_proxy",
+                    "openai_api_base",
+                    "base_url",
+                    "client",
+                    "root_client",
+                    "async_client",
+                    "root_async_client",
+                    "http_client",
+                    "http_async_client",
+                )
+            )
+            and "OPENAI_BASE_URL" not in os.environ
+        ):
+            self.stream_usage = True
+    
+        # Resolve API key from SecretStr or Callable
+        sync_api_key_value: str | Callable[[], str] | None = None
+        async_api_key_value: str | Callable[[], Awaitable[str]] | None = None
+    
+        if self.openai_api_key is not None:
+            # Because OpenAI and AsyncOpenAI clients support either sync or async
+            # callables for the API key, we need to resolve separate values here.
+            sync_api_key_value, async_api_key_value = _resolve_sync_and_async_api_keys(
+                self.openai_api_key
+            )
+    
+        client_params: dict = {
+            "organization": self.openai_organization,
+            "base_url": self.openai_api_base,
+            "timeout": self.request_timeout,
+            "default_headers": self.default_headers,
+            "default_query": self.default_query,
+        }
+        if self.max_retries is not None:
+            client_params["max_retries"] = self.max_retries
+    
+        if self.openai_proxy and (self.http_client or self.http_async_client):
+            openai_proxy = self.openai_proxy
+            http_client = self.http_client
+            http_async_client = self.http_async_client
+            msg = (
+                "Cannot specify 'openai_proxy' if one of "
+                "'http_client'/'http_async_client' is already specified. Received:\n"
+                f"{openai_proxy=}\n{http_client=}\n{http_async_client=}"
+            )
+            raise ValueError(msg)
+        if not self.client:
+            if sync_api_key_value is None:
+                # No valid sync API key, leave client as None and raise informative
+                # error on invocation.
+                self.client = None
+                self.root_client = None
+            else:
+                if self.openai_proxy and not self.http_client:
+                    try:
+                        import httpx
+                    except ImportError as e:
+                        msg = (
+                            "Could not import httpx python package. "
+                            "Please install it with `pip install httpx`."
+                        )
+                        raise ImportError(msg) from e
+                    self.http_client = httpx.Client(
+                        proxy=self.openai_proxy, verify=global_ssl_context
+                    )
+                sync_specific = {
+                    "http_client": self.http_client
+                    or _get_default_httpx_client(
+                        self.openai_api_base, self.request_timeout
+                    ),
+                    "api_key": sync_api_key_value,
+                }
+                self.root_client = openai.OpenAI(**client_params, **sync_specific)  # type: ignore[arg-type]
+                self.client = self.root_client.chat.completions
+        if not self.async_client:
+            if self.openai_proxy and not self.http_async_client:
+                try:
+                    import httpx
+                except ImportError as e:
+                    msg = (
+                        "Could not import httpx python package. "
+                        "Please install it with `pip install httpx`."
+                    )
+                    raise ImportError(msg) from e
+                self.http_async_client = httpx.AsyncClient(
+                    proxy=self.openai_proxy, verify=global_ssl_context
+                )
+            async_specific = {
+                "http_client": self.http_async_client
+                or _get_default_async_httpx_client(
+                    self.openai_api_base, self.request_timeout
+                ),
+                "api_key": async_api_key_value,
+            }
+>           self.root_async_client = openai.AsyncOpenAI(
+                **client_params,
+                **async_specific,  # type: ignore[arg-type]
+            )
+
+/usr/local/lib/python3.11/dist-packages/langchain_openai/chat_models/base.py:1090: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <openai.AsyncOpenAI object at 0x7fa3a8c62d10>
+
+    def __init__(
+        self,
+        *,
+        api_key: str | Callable[[], Awaitable[str]] | None = None,
+        organization: str | None = None,
+        project: str | None = None,
+        webhook_secret: str | None = None,
+        base_url: str | httpx.URL | None = None,
+        websocket_base_url: str | httpx.URL | None = None,
+        timeout: float | Timeout | None | NotGiven = not_given,
+        max_retries: int = DEFAULT_MAX_RETRIES,
+        default_headers: Mapping[str, str] | None = None,
+        default_query: Mapping[str, object] | None = None,
+        # Configure a custom httpx client.
+        # We provide a `DefaultAsyncHttpxClient` class that you can pass to retain the default values we use for `limits`, `timeout` & `follow_redirects`.
+        # See the [httpx documentation](https://www.python-httpx.org/api/#asyncclient) for more details.
+        http_client: httpx.AsyncClient | None = None,
+        # Enable or disable schema validation for data returned by the API.
+        # When enabled an error APIResponseValidationError is raised
+        # if the API responds with invalid data for the expected schema.
+        #
+        # This parameter may be removed or changed in the future.
+        # If you rely on this feature, please open a GitHub issue
+        # outlining your use-case to help us decide if it should be
+        # part of our public interface in the future.
+        _strict_response_validation: bool = False,
+    ) -> None:
+        """Construct a new async AsyncOpenAI client instance.
+    
+        This automatically infers the following arguments from their corresponding environment variables if they are not provided:
+        - `api_key` from `OPENAI_API_KEY`
+        - `organization` from `OPENAI_ORG_ID`
+        - `project` from `OPENAI_PROJECT_ID`
+        - `webhook_secret` from `OPENAI_WEBHOOK_SECRET`
+        """
+        if api_key is None:
+            api_key = os.environ.get("OPENAI_API_KEY")
+        if api_key is None:
+>           raise OpenAIError(
+                "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
+            )
+E           openai.OpenAIError: The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable
+
+/usr/local/lib/python3.11/dist-packages/openai/_client.py:514: OpenAIError
+___________________ TestDATABOMProcessor.test_initialization ___________________
+
+self = <tests.test_processors.TestDATABOMProcessor object at 0x7fa3a8d39dd0>
+
+    def test_initialization(self):
+        """Test processor initialization"""
+>       processor = DATABOMProcessor(
+            model="gpt-4o",
+            mode="direct",
+            use_case="safety"
+        )
+
+tests/test_processors.py:46: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <bom_tools.core.processors.DATABOMProcessor object at 0x7fa3a96d7810>
+model = 'gpt-4o', mode = 'direct', llm_provider = 'openai'
+ollama_base_url = None, questions_config = None, use_case = 'safety'
+embedding_provider = 'local', embedding_model = 'BAAI/bge-small-en-v1.5'
+
+    def __init__(self, model: str = "gpt-4o", mode: str = "rag", llm_provider: str = "openai",
+                 ollama_base_url: str = None, questions_config: Dict[str, Dict] = None, use_case: str = 'complete',
+                 embedding_provider: str = "local", embedding_model: str = "BAAI/bge-small-en-v1.5"):
+        """Initialize processing system based on mode
+    
+        Args:
+            embedding_provider: 'local' (default, free HuggingFace) or 'openai'
+            embedding_model: Model for local embeddings (only used if embedding_provider='local')
+        """
+        self.mode = mode
+        self.model = model
+        self.llm_provider = llm_provider
+        self.ollama_base_url = ollama_base_url
+        self.questions_config = questions_config if questions_config is not None else FIXED_QUESTIONS_DATA
+        self.use_case = use_case
+        self.embedding_provider = embedding_provider
+        self.embedding_model = embedding_model
+    
+        if mode == 'rag':
+            self.processor = AgenticRAG(
+                model=model,
+                llm_provider=llm_provider,
+                ollama_base_url=ollama_base_url,
+                questions=self.questions_config,
+                bom_type='data',
+                embedding_provider=embedding_provider,
+                embedding_model=embedding_model
+            )
+            print(f"✓ Initialized DATABOMProcessor in RAG mode with model: {model}")
+        else:
+>           self.processor = DirectLLM(
+                model=model,
+                llm_provider=llm_provider,
+                ollama_base_url=ollama_base_url,
+                questions=self.questions_config,
+                bom_type='data'
+            )
+
+src/bom_tools/core/processors.py:392: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <bom_tools.core.agentic_rag.DirectLLM object at 0x7fa3aa815190>
+model = 'gpt-4o', temperature = 0, llm_provider = 'openai'
+ollama_base_url = None
+questions = {'anonymizationMethodUsed': {'description': 'A free-form text that describes the methods used to anonymize the dataset...'], 'question': 'What is the preprocessing steps that were applied to the raw data to create the given dataset.'}, ...}
+bom_type = 'data'
+
+    def __init__(self, model: str = "gpt-4o", temperature: float = 0, llm_provider: str = "openai", ollama_base_url: str = None, questions: Optional[Dict[str, Dict]] = None, bom_type: str = 'ai'):
+        """Initialize the Direct LLM system
+    
+        Args:
+            model: Model name (e.g., 'gpt-4o' for OpenAI, 'llama3:70b' for Ollama)
+            temperature: Temperature for generation
+            llm_provider: 'openai' or 'ollama'
+            ollama_base_url: Base URL for Ollama server (only used if llm_provider='ollama')
+            questions: Optional subset of FIXED_QUESTIONS to answer in this run
+            bom_type: 'ai' or 'data' - determines which question set to use if questions not provided
+        """
+>       self.llm = create_llm(model, temperature, llm_provider, ollama_base_url)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/bom_tools/core/agentic_rag.py:1306: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+model = 'gpt-4o', temperature = 0, llm_provider = 'openai'
+ollama_base_url = None
+
+    def create_llm(model: str, temperature: float = 0, llm_provider: str = "openai", ollama_base_url: str = None):
+        """
+        Create an LLM instance based on the provider.
+    
+        Args:
+            model: Model name (e.g., 'gpt-4o' for OpenAI, 'llama3:70b' for Ollama,
+                   'qwen/qwen-2.5-72b-instruct' for OpenRouter)
+            temperature: Temperature for generation
+            llm_provider: 'openai', 'ollama', or 'openrouter'
+            ollama_base_url: Base URL for Ollama server (defaults to env var or localhost)
+    
+        Returns:
+            LLM instance compatible with LangChain
+        """
+        if llm_provider == "ollama":
+            if ollama_base_url is None:
+                ollama_base_url = os.getenv('OLLAMA_BASE_URL', 'http://10.218.163.118:11434/v1/')
+            # ChatOpenAI is compatible with Ollama's OpenAI-compatible API
+            return ChatOpenAI(
+                model=model,
+                temperature=temperature,
+                base_url=ollama_base_url,
+                api_key="ollama"  # Required but ignored by Ollama
+            )
+        elif llm_provider == "openrouter":
+            openrouter_base_url = os.getenv('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1')
+            openrouter_api_key = os.getenv('OPENROUTER_API_KEY') or os.getenv('My_OPENROUTER_API_KEY')
+            if not openrouter_api_key:
+                raise ValueError("OPENROUTER_API_KEY or My_OPENROUTER_API_KEY must be set in environment")
+            return ChatOpenAI(
+                model=model,
+                temperature=temperature,
+                base_url=openrouter_base_url,
+                api_key=openrouter_api_key,
+                default_headers={
+                    "HTTP-Referer": os.getenv('OPENROUTER_SITE_NAME', 'BOM_Tools'),
+                    "X-Title": "BOM_Tools"
+                }
+            )
+        else:
+            # Default to OpenAI
+>           return ChatOpenAI(model=model, temperature=temperature)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/bom_tools/core/agentic_rag.py:63: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = ChatOpenAI(profile={'name': 'GPT-4o', 'release_date': '2024-05-13', 'last_updated': '2024-08-06', 'open_weights': Fals...ge_tool_message': True, 'tool_choice': True}, model_name='gpt-4o', temperature=0.0, model_kwargs={}, stream_usage=True)
+args = (), kwargs = {'model': 'gpt-4o', 'temperature': 0}
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """"""  # noqa: D419  # Intentional blank docstring
+>       super().__init__(*args, **kwargs)
+
+/usr/local/lib/python3.11/dist-packages/langchain_core/load/serializable.py:118: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = ChatOpenAI(profile={'name': 'GPT-4o', 'release_date': '2024-05-13', 'last_updated': '2024-08-06', 'open_weights': Fals...ge_tool_message': True, 'tool_choice': True}, model_name='gpt-4o', temperature=0.0, model_kwargs={}, stream_usage=True)
+
+    @model_validator(mode="after")
+    def validate_environment(self) -> Self:
+        """Validate that api key and python package exists in environment."""
+        if self.n is not None and self.n < 1:
+            msg = "n must be at least 1."
+            raise ValueError(msg)
+        if self.n is not None and self.n > 1 and self.streaming:
+            msg = "n must be 1 when streaming."
+            raise ValueError(msg)
+    
+        # Check OPENAI_ORGANIZATION for backwards compatibility.
+        self.openai_organization = (
+            self.openai_organization
+            or os.getenv("OPENAI_ORG_ID")
+            or os.getenv("OPENAI_ORGANIZATION")
+        )
+        self.openai_api_base = self.openai_api_base or os.getenv("OPENAI_API_BASE")
+    
+        # Enable stream_usage by default if using default base URL and client
+        if (
+            all(
+                getattr(self, key, None) is None
+                for key in (
+                    "stream_usage",
+                    "openai_proxy",
+                    "openai_api_base",
+                    "base_url",
+                    "client",
+                    "root_client",
+                    "async_client",
+                    "root_async_client",
+                    "http_client",
+                    "http_async_client",
+                )
+            )
+            and "OPENAI_BASE_URL" not in os.environ
+        ):
+            self.stream_usage = True
+    
+        # Resolve API key from SecretStr or Callable
+        sync_api_key_value: str | Callable[[], str] | None = None
+        async_api_key_value: str | Callable[[], Awaitable[str]] | None = None
+    
+        if self.openai_api_key is not None:
+            # Because OpenAI and AsyncOpenAI clients support either sync or async
+            # callables for the API key, we need to resolve separate values here.
+            sync_api_key_value, async_api_key_value = _resolve_sync_and_async_api_keys(
+                self.openai_api_key
+            )
+    
+        client_params: dict = {
+            "organization": self.openai_organization,
+            "base_url": self.openai_api_base,
+            "timeout": self.request_timeout,
+            "default_headers": self.default_headers,
+            "default_query": self.default_query,
+        }
+        if self.max_retries is not None:
+            client_params["max_retries"] = self.max_retries
+    
+        if self.openai_proxy and (self.http_client or self.http_async_client):
+            openai_proxy = self.openai_proxy
+            http_client = self.http_client
+            http_async_client = self.http_async_client
+            msg = (
+                "Cannot specify 'openai_proxy' if one of "
+                "'http_client'/'http_async_client' is already specified. Received:\n"
+                f"{openai_proxy=}\n{http_client=}\n{http_async_client=}"
+            )
+            raise ValueError(msg)
+        if not self.client:
+            if sync_api_key_value is None:
+                # No valid sync API key, leave client as None and raise informative
+                # error on invocation.
+                self.client = None
+                self.root_client = None
+            else:
+                if self.openai_proxy and not self.http_client:
+                    try:
+                        import httpx
+                    except ImportError as e:
+                        msg = (
+                            "Could not import httpx python package. "
+                            "Please install it with `pip install httpx`."
+                        )
+                        raise ImportError(msg) from e
+                    self.http_client = httpx.Client(
+                        proxy=self.openai_proxy, verify=global_ssl_context
+                    )
+                sync_specific = {
+                    "http_client": self.http_client
+                    or _get_default_httpx_client(
+                        self.openai_api_base, self.request_timeout
+                    ),
+                    "api_key": sync_api_key_value,
+                }
+                self.root_client = openai.OpenAI(**client_params, **sync_specific)  # type: ignore[arg-type]
+                self.client = self.root_client.chat.completions
+        if not self.async_client:
+            if self.openai_proxy and not self.http_async_client:
+                try:
+                    import httpx
+                except ImportError as e:
+                    msg = (
+                        "Could not import httpx python package. "
+                        "Please install it with `pip install httpx`."
+                    )
+                    raise ImportError(msg) from e
+                self.http_async_client = httpx.AsyncClient(
+                    proxy=self.openai_proxy, verify=global_ssl_context
+                )
+            async_specific = {
+                "http_client": self.http_async_client
+                or _get_default_async_httpx_client(
+                    self.openai_api_base, self.request_timeout
+                ),
+                "api_key": async_api_key_value,
+            }
+>           self.root_async_client = openai.AsyncOpenAI(
+                **client_params,
+                **async_specific,  # type: ignore[arg-type]
+            )
+
+/usr/local/lib/python3.11/dist-packages/langchain_openai/chat_models/base.py:1090: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <openai.AsyncOpenAI object at 0x7fa48d1c6310>
+
+    def __init__(
+        self,
+        *,
+        api_key: str | Callable[[], Awaitable[str]] | None = None,
+        organization: str | None = None,
+        project: str | None = None,
+        webhook_secret: str | None = None,
+        base_url: str | httpx.URL | None = None,
+        websocket_base_url: str | httpx.URL | None = None,
+        timeout: float | Timeout | None | NotGiven = not_given,
+        max_retries: int = DEFAULT_MAX_RETRIES,
+        default_headers: Mapping[str, str] | None = None,
+        default_query: Mapping[str, object] | None = None,
+        # Configure a custom httpx client.
+        # We provide a `DefaultAsyncHttpxClient` class that you can pass to retain the default values we use for `limits`, `timeout` & `follow_redirects`.
+        # See the [httpx documentation](https://www.python-httpx.org/api/#asyncclient) for more details.
+        http_client: httpx.AsyncClient | None = None,
+        # Enable or disable schema validation for data returned by the API.
+        # When enabled an error APIResponseValidationError is raised
+        # if the API responds with invalid data for the expected schema.
+        #
+        # This parameter may be removed or changed in the future.
+        # If you rely on this feature, please open a GitHub issue
+        # outlining your use-case to help us decide if it should be
+        # part of our public interface in the future.
+        _strict_response_validation: bool = False,
+    ) -> None:
+        """Construct a new async AsyncOpenAI client instance.
+    
+        This automatically infers the following arguments from their corresponding environment variables if they are not provided:
+        - `api_key` from `OPENAI_API_KEY`
+        - `organization` from `OPENAI_ORG_ID`
+        - `project` from `OPENAI_PROJECT_ID`
+        - `webhook_secret` from `OPENAI_WEBHOOK_SECRET`
+        """
+        if api_key is None:
+            api_key = os.environ.get("OPENAI_API_KEY")
+        if api_key is None:
+>           raise OpenAIError(
+                "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
+            )
+E           openai.OpenAIError: The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable
+
+/usr/local/lib/python3.11/dist-packages/openai/_client.py:514: OpenAIError
+________________ TestDATABOMProcessor.test_generate_dataset_id _________________
+
+self = <tests.test_processors.TestDATABOMProcessor object at 0x7fa3a8d3a390>
+
+    def test_generate_dataset_id(self):
+        """Test dataset ID generation"""
+>       processor = DATABOMProcessor()
+                    ^^^^^^^^^^^^^^^^^^
+
+tests/test_processors.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <bom_tools.core.processors.DATABOMProcessor object at 0x7fa3aa9e7650>
+model = 'gpt-4o', mode = 'rag', llm_provider = 'openai', ollama_base_url = None
+questions_config = None, use_case = 'complete', embedding_provider = 'local'
+embedding_model = 'BAAI/bge-small-en-v1.5'
+
+    def __init__(self, model: str = "gpt-4o", mode: str = "rag", llm_provider: str = "openai",
+                 ollama_base_url: str = None, questions_config: Dict[str, Dict] = None, use_case: str = 'complete',
+                 embedding_provider: str = "local", embedding_model: str = "BAAI/bge-small-en-v1.5"):
+        """Initialize processing system based on mode
+    
+        Args:
+            embedding_provider: 'local' (default, free HuggingFace) or 'openai'
+            embedding_model: Model for local embeddings (only used if embedding_provider='local')
+        """
+        self.mode = mode
+        self.model = model
+        self.llm_provider = llm_provider
+        self.ollama_base_url = ollama_base_url
+        self.questions_config = questions_config if questions_config is not None else FIXED_QUESTIONS_DATA
+        self.use_case = use_case
+        self.embedding_provider = embedding_provider
+        self.embedding_model = embedding_model
+    
+        if mode == 'rag':
+>           self.processor = AgenticRAG(
+                model=model,
+                llm_provider=llm_provider,
+                ollama_base_url=ollama_base_url,
+                questions=self.questions_config,
+                bom_type='data',
+                embedding_provider=embedding_provider,
+                embedding_model=embedding_model
+            )
+
+src/bom_tools/core/processors.py:381: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <bom_tools.core.agentic_rag.AgenticRAG object at 0x7fa3aabdd190>
+model = 'gpt-4o', temperature = 0, llm_provider = 'openai'
+ollama_base_url = None
+questions = {'anonymizationMethodUsed': {'description': 'A free-form text that describes the methods used to anonymize the dataset...'], 'question': 'What is the preprocessing steps that were applied to the raw data to create the given dataset.'}, ...}
+bom_type = 'data', embedding_provider = 'local'
+embedding_model = 'BAAI/bge-small-en-v1.5'
+
+    def __init__(self, model: str = "gpt-4o", temperature: float = 0, llm_provider: str = "openai", ollama_base_url: str = None, questions: Optional[Dict[str, Dict]] = None, bom_type: str = 'ai', embedding_provider: str = "local", embedding_model: str = "BAAI/bge-small-en-v1.5"):
+        """Initialize the RAG system with LLM and embeddings
+    
+        Args:
+            model: Model name (e.g., 'gpt-4o' for OpenAI, 'llama3:70b' for Ollama)
+            temperature: Temperature for generation
+            llm_provider: 'openai' or 'ollama'
+            ollama_base_url: Base URL for Ollama server (only used if llm_provider='ollama')
+            questions: Optional subset of FIXED_QUESTIONS to answer in this run
+            bom_type: 'ai' or 'data' - determines which question set to use if questions not provided
+            embedding_provider: 'local' (default, HuggingFace) or 'openai' - provider for embeddings
+            embedding_model: Model name for embeddings (default: 'BAAI/bge-small-en-v1.5')
+                            Other good options: 'sentence-transformers/all-mpnet-base-v2' (higher quality),
+                                                'BAAI/bge-small-en-v1.5' (good balance)
+        """
+>       self.llm = create_llm(model, temperature, llm_provider, ollama_base_url)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/bom_tools/core/agentic_rag.py:526: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+model = 'gpt-4o', temperature = 0, llm_provider = 'openai'
+ollama_base_url = None
+
+    def create_llm(model: str, temperature: float = 0, llm_provider: str = "openai", ollama_base_url: str = None):
+        """
+        Create an LLM instance based on the provider.
+    
+        Args:
+            model: Model name (e.g., 'gpt-4o' for OpenAI, 'llama3:70b' for Ollama,
+                   'qwen/qwen-2.5-72b-instruct' for OpenRouter)
+            temperature: Temperature for generation
+            llm_provider: 'openai', 'ollama', or 'openrouter'
+            ollama_base_url: Base URL for Ollama server (defaults to env var or localhost)
+    
+        Returns:
+            LLM instance compatible with LangChain
+        """
+        if llm_provider == "ollama":
+            if ollama_base_url is None:
+                ollama_base_url = os.getenv('OLLAMA_BASE_URL', 'http://10.218.163.118:11434/v1/')
+            # ChatOpenAI is compatible with Ollama's OpenAI-compatible API
+            return ChatOpenAI(
+                model=model,
+                temperature=temperature,
+                base_url=ollama_base_url,
+                api_key="ollama"  # Required but ignored by Ollama
+            )
+        elif llm_provider == "openrouter":
+            openrouter_base_url = os.getenv('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1')
+            openrouter_api_key = os.getenv('OPENROUTER_API_KEY') or os.getenv('My_OPENROUTER_API_KEY')
+            if not openrouter_api_key:
+                raise ValueError("OPENROUTER_API_KEY or My_OPENROUTER_API_KEY must be set in environment")
+            return ChatOpenAI(
+                model=model,
+                temperature=temperature,
+                base_url=openrouter_base_url,
+                api_key=openrouter_api_key,
+                default_headers={
+                    "HTTP-Referer": os.getenv('OPENROUTER_SITE_NAME', 'BOM_Tools'),
+                    "X-Title": "BOM_Tools"
+                }
+            )
+        else:
+            # Default to OpenAI
+>           return ChatOpenAI(model=model, temperature=temperature)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/bom_tools/core/agentic_rag.py:63: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = ChatOpenAI(profile={'name': 'GPT-4o', 'release_date': '2024-05-13', 'last_updated': '2024-08-06', 'open_weights': Fals...ge_tool_message': True, 'tool_choice': True}, model_name='gpt-4o', temperature=0.0, model_kwargs={}, stream_usage=True)
+args = (), kwargs = {'model': 'gpt-4o', 'temperature': 0}
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """"""  # noqa: D419  # Intentional blank docstring
+>       super().__init__(*args, **kwargs)
+
+/usr/local/lib/python3.11/dist-packages/langchain_core/load/serializable.py:118: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = ChatOpenAI(profile={'name': 'GPT-4o', 'release_date': '2024-05-13', 'last_updated': '2024-08-06', 'open_weights': Fals...ge_tool_message': True, 'tool_choice': True}, model_name='gpt-4o', temperature=0.0, model_kwargs={}, stream_usage=True)
+
+    @model_validator(mode="after")
+    def validate_environment(self) -> Self:
+        """Validate that api key and python package exists in environment."""
+        if self.n is not None and self.n < 1:
+            msg = "n must be at least 1."
+            raise ValueError(msg)
+        if self.n is not None and self.n > 1 and self.streaming:
+            msg = "n must be 1 when streaming."
+            raise ValueError(msg)
+    
+        # Check OPENAI_ORGANIZATION for backwards compatibility.
+        self.openai_organization = (
+            self.openai_organization
+            or os.getenv("OPENAI_ORG_ID")
+            or os.getenv("OPENAI_ORGANIZATION")
+        )
+        self.openai_api_base = self.openai_api_base or os.getenv("OPENAI_API_BASE")
+    
+        # Enable stream_usage by default if using default base URL and client
+        if (
+            all(
+                getattr(self, key, None) is None
+                for key in (
+                    "stream_usage",
+                    "openai_proxy",
+                    "openai_api_base",
+                    "base_url",
+                    "client",
+                    "root_client",
+                    "async_client",
+                    "root_async_client",
+                    "http_client",
+                    "http_async_client",
+                )
+            )
+            and "OPENAI_BASE_URL" not in os.environ
+        ):
+            self.stream_usage = True
+    
+        # Resolve API key from SecretStr or Callable
+        sync_api_key_value: str | Callable[[], str] | None = None
+        async_api_key_value: str | Callable[[], Awaitable[str]] | None = None
+    
+        if self.openai_api_key is not None:
+            # Because OpenAI and AsyncOpenAI clients support either sync or async
+            # callables for the API key, we need to resolve separate values here.
+            sync_api_key_value, async_api_key_value = _resolve_sync_and_async_api_keys(
+                self.openai_api_key
+            )
+    
+        client_params: dict = {
+            "organization": self.openai_organization,
+            "base_url": self.openai_api_base,
+            "timeout": self.request_timeout,
+            "default_headers": self.default_headers,
+            "default_query": self.default_query,
+        }
+        if self.max_retries is not None:
+            client_params["max_retries"] = self.max_retries
+    
+        if self.openai_proxy and (self.http_client or self.http_async_client):
+            openai_proxy = self.openai_proxy
+            http_client = self.http_client
+            http_async_client = self.http_async_client
+            msg = (
+                "Cannot specify 'openai_proxy' if one of "
+                "'http_client'/'http_async_client' is already specified. Received:\n"
+                f"{openai_proxy=}\n{http_client=}\n{http_async_client=}"
+            )
+            raise ValueError(msg)
+        if not self.client:
+            if sync_api_key_value is None:
+                # No valid sync API key, leave client as None and raise informative
+                # error on invocation.
+                self.client = None
+                self.root_client = None
+            else:
+                if self.openai_proxy and not self.http_client:
+                    try:
+                        import httpx
+                    except ImportError as e:
+                        msg = (
+                            "Could not import httpx python package. "
+                            "Please install it with `pip install httpx`."
+                        )
+                        raise ImportError(msg) from e
+                    self.http_client = httpx.Client(
+                        proxy=self.openai_proxy, verify=global_ssl_context
+                    )
+                sync_specific = {
+                    "http_client": self.http_client
+                    or _get_default_httpx_client(
+                        self.openai_api_base, self.request_timeout
+                    ),
+                    "api_key": sync_api_key_value,
+                }
+                self.root_client = openai.OpenAI(**client_params, **sync_specific)  # type: ignore[arg-type]
+                self.client = self.root_client.chat.completions
+        if not self.async_client:
+            if self.openai_proxy and not self.http_async_client:
+                try:
+                    import httpx
+                except ImportError as e:
+                    msg = (
+                        "Could not import httpx python package. "
+                        "Please install it with `pip install httpx`."
+                    )
+                    raise ImportError(msg) from e
+                self.http_async_client = httpx.AsyncClient(
+                    proxy=self.openai_proxy, verify=global_ssl_context
+                )
+            async_specific = {
+                "http_client": self.http_async_client
+                or _get_default_async_httpx_client(
+                    self.openai_api_base, self.request_timeout
+                ),
+                "api_key": async_api_key_value,
+            }
+>           self.root_async_client = openai.AsyncOpenAI(
+                **client_params,
+                **async_specific,  # type: ignore[arg-type]
+            )
+
+/usr/local/lib/python3.11/dist-packages/langchain_openai/chat_models/base.py:1090: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <openai.AsyncOpenAI object at 0x7fa3aa99d8d0>
+
+    def __init__(
+        self,
+        *,
+        api_key: str | Callable[[], Awaitable[str]] | None = None,
+        organization: str | None = None,
+        project: str | None = None,
+        webhook_secret: str | None = None,
+        base_url: str | httpx.URL | None = None,
+        websocket_base_url: str | httpx.URL | None = None,
+        timeout: float | Timeout | None | NotGiven = not_given,
+        max_retries: int = DEFAULT_MAX_RETRIES,
+        default_headers: Mapping[str, str] | None = None,
+        default_query: Mapping[str, object] | None = None,
+        # Configure a custom httpx client.
+        # We provide a `DefaultAsyncHttpxClient` class that you can pass to retain the default values we use for `limits`, `timeout` & `follow_redirects`.
+        # See the [httpx documentation](https://www.python-httpx.org/api/#asyncclient) for more details.
+        http_client: httpx.AsyncClient | None = None,
+        # Enable or disable schema validation for data returned by the API.
+        # When enabled an error APIResponseValidationError is raised
+        # if the API responds with invalid data for the expected schema.
+        #
+        # This parameter may be removed or changed in the future.
+        # If you rely on this feature, please open a GitHub issue
+        # outlining your use-case to help us decide if it should be
+        # part of our public interface in the future.
+        _strict_response_validation: bool = False,
+    ) -> None:
+        """Construct a new async AsyncOpenAI client instance.
+    
+        This automatically infers the following arguments from their corresponding environment variables if they are not provided:
+        - `api_key` from `OPENAI_API_KEY`
+        - `organization` from `OPENAI_ORG_ID`
+        - `project` from `OPENAI_PROJECT_ID`
+        - `webhook_secret` from `OPENAI_WEBHOOK_SECRET`
+        """
+        if api_key is None:
+            api_key = os.environ.get("OPENAI_API_KEY")
+        if api_key is None:
+>           raise OpenAIError(
+                "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
+            )
+E           openai.OpenAIError: The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable
+
+/usr/local/lib/python3.11/dist-packages/openai/_client.py:514: OpenAIError
+=========================== short test summary info ============================
+FAILED tests/test_processors.py::TestAIBOMProcessor::test_initialization - openai.OpenAIError: The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable
+FAILED tests/test_processors.py::TestAIBOMProcessor::test_generate_model_id - openai.OpenAIError: The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable
+FAILED tests/test_processors.py::TestDATABOMProcessor::test_initialization - openai.OpenAIError: The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable
+FAILED tests/test_processors.py::TestDATABOMProcessor::test_generate_dataset_id - openai.OpenAIError: The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable
+==================== 4 failed, 5 passed, 2 skipped in 6.72s ====================

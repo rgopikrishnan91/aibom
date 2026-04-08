@@ -69,18 +69,19 @@ BOM_Tools/
 - Linux/macOS/Windows (Linux is most tested)
 
 Optional credentials depending on provider/features:
-- OpenAI: OPENAI_API_KEY
-- OpenRouter: OPENROUTER_API_KEY
-- Gemini link fallback: GEMINI_API_KEY
-- GitHub API access (recommended): GITHUB_TOKEN
-- Hugging Face access (recommended): hug_token or HUGGINGFACE_TOKEN
+- OpenAI: `OPENAI_API_KEY`
+- OpenRouter: `OPENROUTER_API_KEY`
+- Ollama: No key needed (just `OLLAMA_BASE_URL`)
+- Gemini link fallback: `GEMINI_API_KEY`
+- GitHub API access (recommended): `GITHUB_TOKEN`
+- Hugging Face access (recommended): `HUGGINGFACE_TOKEN`
 
 ## Installation
 
 ### Virtual environment
 
 ```bash
-cd BOM_Tools
+cd aibom
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
@@ -91,7 +92,7 @@ pip install -e .
 ### Conda environment
 
 ```bash
-cd BOM_Tools
+cd aibom
 conda create -n bom-tools python=3.11 -y
 conda activate bom-tools
 pip install -r requirements.txt
@@ -100,21 +101,33 @@ pip install -e .
 
 ## Configuration
 
-Create a .env file in project root if you need cloud providers or fallback services.
+Copy the example env file and fill in the keys you need:
+
+```bash
+cp .env.example .env
+```
+
+Or create `.env` manually in the project root:
 
 ```env
-OPENAI_API_KEY=
-OPENROUTER_API_KEY=
-GEMINI_API_KEY=
-GITHUB_TOKEN=
-hug_token=
-HUGGINGFACE_TOKEN=
-OLLAMA_BASE_URL=http://localhost:11434/v1/
+# Pick ONE LLM provider:
+OPENAI_API_KEY=sk-...          # Option 1: OpenAI
+OPENROUTER_API_KEY=sk-or-...   # Option 2: OpenRouter (free models available)
+OLLAMA_BASE_URL=http://localhost:11434/v1/  # Option 3: Ollama (local, no key)
+
+# Source API tokens (optional but recommended for higher rate limits):
+GITHUB_TOKEN=ghp_...
+HUGGINGFACE_TOKEN=hf_...
+
+# Optional - enables automatic link discovery:
+GEMINI_API_KEY=AI...
 ```
 
 Notes:
-- RAG uses local Hugging Face embeddings by default.
-- You can still switch to OpenAI embeddings by setting embedding_provider="openai" in processor initialization.
+- RAG mode uses local HuggingFace embeddings by default — no OpenAI key needed for embeddings.
+- You only need the API key for the LLM provider you choose.
+- Without `GITHUB_TOKEN`, GitHub API calls are limited to 60 requests/hour.
+- See `.env.example` for all available environment variables.
 
 ## Quick Start
 
@@ -210,7 +223,7 @@ Then set:
 
 Set tokens in `.env`:
 - `GITHUB_TOKEN`
-- `hug_token` (or `HUGGINGFACE_TOKEN`)
+- `HUGGINGFACE_TOKEN`
 
 ### arXiv PDF parsing issues
 

@@ -34,7 +34,7 @@ processor = AIBOMProcessor(mode="rag")
 processor = AIBOMProcessor(
     mode="rag",
     embedding_provider="local",  # default
-    embedding_model="sentence-transformers/all-MiniLM-L6-v2"  # default
+    embedding_model="BAAI/bge-small-en-v1.5"  # default
 )
 ```
 

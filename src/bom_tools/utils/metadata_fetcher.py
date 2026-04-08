@@ -1,23 +1,23 @@
 # metadata_utils.py
+import os
 import requests
 from urllib.parse import urlparse
 from huggingface_hub import HfApi
 import fitz  # PyMuPDF
-import urllib3
 import chromadb
 from sentence_transformers import SentenceTransformer
 import numpy as np
 import inspect
-# Disable SSL warnings
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-GITHUB_TOKEN = "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"
-GITHUB_HEADERS = {
-    "Authorization": f"token {GITHUB_TOKEN}",
-    "Accept": "application/vnd.github.v3.raw"
-}
+def _get_github_headers():
+    """Build GitHub API headers with token from environment (if available)."""
+    headers = {"Accept": "application/vnd.github.v3.raw"}
+    token = os.getenv("GITHUB_TOKEN")
+    if token:
+        headers["Authorization"] = f"token {token}"
+    return headers
 
-github_metadata = []
+
 class MetadataFetcher:
     @staticmethod
     def extract_hf_repo_id(url):
@@ -76,7 +76,7 @@ class MetadataFetcher:
     def fetch_github_repo_license(user, repo):
         url = f"https://api.github.com/repos/{user}/{repo}/license"
         try:
-            r = requests.get(url, headers=GITHUB_HEADERS, verify=False)
+            r = requests.get(url, headers=_get_github_headers(), timeout=30)
             if r.status_code == 200:
                 data = r.json()
                 return {
@@ -103,7 +103,7 @@ class MetadataFetcher:
             matched_files = {f for f in files if any(k in f.upper() for k in ["LICENSE", "COPYING", "NOTICE", "README"])}
             content = {}
             for f in matched_files:
-                r = requests.get(f"https://huggingface.co/datasets/{repo_id}/resolve/main/{f}", verify=False)
+                r = requests.get(f"https://huggingface.co/datasets/{repo_id}/resolve/main/{f}", timeout=30)
                 if r.status_code == 200:
                     content[f] = r.text.strip()
 
@@ -133,12 +133,12 @@ class MetadataFetcher:
             found_readmes = {}
 
             for f in license_files:
-                r = requests.get(f"{base}/{f}", headers=GITHUB_HEADERS, verify=False)
+                r = requests.get(f"{base}/{f}", headers=_get_github_headers(), timeout=30)
                 if r.status_code == 200:
                     found_licenses[f] = r.text.strip()
 
             for f in readme_files:
-                r = requests.get(f"{base}/{f}", headers=GITHUB_HEADERS, verify=False)
+                r = requests.get(f"{base}/{f}", headers=_get_github_headers(), timeout=30)
                 if r.status_code == 200:
                     found_readmes[f] = r.text.strip()
                     break
@@ -160,18 +160,25 @@ class MetadataFetcher:
 
     @staticmethod
     def get_pdf_text_from_arxiv(arxiv_url):
+        import tempfile
         arxiv_id = arxiv_url.split('/')[-1]
         pdf_url = f"https://arxiv.org/pdf/{arxiv_id}.pdf"
-        response = requests.get(pdf_url, verify=False)
+        response = requests.get(pdf_url, timeout=30)
         if response.status_code == 200:
-            with open("temp.pdf", "wb") as f:
-                f.write(response.content)
-            doc = fitz.open("temp.pdf")
-            text = ""
-            for page in doc:
-                text += page.get_text()
-            doc.close()
-            return text
+            temp_pdf_path = None
+            try:
+                with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as tmp:
+                    temp_pdf_path = tmp.name
+                    tmp.write(response.content)
+                doc = fitz.open(temp_pdf_path)
+                text = ""
+                for page in doc:
+                    text += page.get_text()
+                doc.close()
+                return text
+            finally:
+                if temp_pdf_path and os.path.exists(temp_pdf_path):
+                    os.remove(temp_pdf_path)
         else:
             print(f"Failed to download PDF from {pdf_url}")
             return ""
@@ -222,7 +229,7 @@ class MetadataFetcher:
                     else:
                         tags = repo.get_tags()
                         github_metadata["packageVersion"] = tags[0].name if tags.totalCount > 0 else None
-                except:
+                except Exception:
                     github_metadata["packageVersion"] = None
                 
                 # Primary Purpose
@@ -233,7 +240,7 @@ class MetadataFetcher:
                     topics = repo.get_topics()
                     if topics:
                         purpose_indicators.extend(topics)
-                except:
+                except Exception:
                     pass
                 github_metadata["primaryPurpose"] = "; ".join(purpose_indicators) if purpose_indicators else None
                 
@@ -241,10 +248,10 @@ class MetadataFetcher:
                 try:
                     license_info = repo.get_license()
                     github_metadata["license"] = license_info.license.name if license_info else None
-                except:
+                except Exception:
                     try:
                         github_metadata["license"] = repo.license.name if repo.license else None
-                    except:
+                    except Exception:
                         github_metadata["license"] = None
             else:
                 # Data BOM fields
@@ -270,10 +277,10 @@ class MetadataFetcher:
                 try:
                     license_info = repo.get_license()
                     github_metadata["license"] = license_info.license.name if license_info else None
-                except:
+                except Exception:
                     try:
                         github_metadata["license"] = repo.license.name if repo.license else None
-                    except:
+                    except Exception:
                         github_metadata["license"] = None
 
         except Exception as e:
@@ -305,7 +312,7 @@ class MetadataFetcher:
                         hf_metadata["packageVersion"] = repo_info.sha[:8]
                     else:
                         hf_metadata["packageVersion"] = None
-                except:
+                except Exception:
                     hf_metadata["packageVersion"] = None
                 
                 # Primary Purpose

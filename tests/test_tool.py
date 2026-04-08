@@ -158,7 +158,7 @@ Examples:
         '--ollama-url',
         type=str,
         default=None,
-        help='Ollama base URL (default: http://10.218.163.118:11434/v1/)'
+        help='Ollama base URL (default: http://localhost:11434/v1/)'
     )
     
     parser.add_argument(
@@ -227,7 +227,7 @@ Examples:
     print(f"LLM Provider:     {args.provider.upper()}")
     print(f"Model:            {args.model}")
     if args.provider == 'ollama':
-        print(f"Ollama URL:       {args.ollama_url or 'default (http://10.218.163.118:11434/v1/)'}")
+        print(f"Ollama URL:       {args.ollama_url or 'default (http://localhost:11434/v1/)'}")
     elif args.provider == 'openrouter':
         print(f"OpenRouter URL:   {os.getenv('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1')}")
     print(f"Embedding:        {args.embedding_provider.upper()}")

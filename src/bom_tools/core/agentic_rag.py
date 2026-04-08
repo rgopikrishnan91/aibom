@@ -6,7 +6,7 @@ Modified to retrieve top 6 chunks globally and detect conflicts between sources
 import os
 import time
 import concurrent.futures
-from typing import TypedDict, List, Dict, Tuple, Optional
+from typing import Any, TypedDict, List, Dict, Tuple, Optional
 from langgraph.graph import StateGraph, END
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -35,7 +35,7 @@ def create_llm(model: str, temperature: float = 0, llm_provider: str = "openai",
     """
     if llm_provider == "ollama":
         if ollama_base_url is None:
-            ollama_base_url = os.getenv('OLLAMA_BASE_URL', 'http://10.218.163.118:11434/v1/')
+            ollama_base_url = os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434/v1/')
         # ChatOpenAI is compatible with Ollama's OpenAI-compatible API
         return ChatOpenAI(
             model=model,
@@ -45,9 +45,9 @@ def create_llm(model: str, temperature: float = 0, llm_provider: str = "openai",
         )
     elif llm_provider == "openrouter":
         openrouter_base_url = os.getenv('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1')
-        openrouter_api_key = os.getenv('OPENROUTER_API_KEY') or os.getenv('My_OPENROUTER_API_KEY')
+        openrouter_api_key = os.getenv('OPENROUTER_API_KEY')
         if not openrouter_api_key:
-            raise ValueError("OPENROUTER_API_KEY or My_OPENROUTER_API_KEY must be set in environment")
+            raise ValueError("OPENROUTER_API_KEY must be set in environment")
         return ChatOpenAI(
             model=model,
             temperature=temperature,
@@ -72,12 +72,9 @@ try:
     from langchain.schema import Document
 except ImportError:
     from langchain_core.documents import Document
-import httpx
 import requests
-from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 from dotenv import load_dotenv
-import urllib3
 import ssl
 import certifi
 from github import Github
@@ -113,16 +110,7 @@ def _invoke_with_retry(fn, *args, max_retries=3, initial_delay=2.0, **kwargs):
                 raise
     raise last_error
 
-# Disable SSL warnings
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 ssl_context = ssl.create_default_context(cafile=certifi.where())
-
-# Monkey patch httpx for insecure connections
-orig_init = httpx.Client.__init__
-def insecure_init(self, *args, **kwargs):
-    kwargs["verify"] = False
-    return orig_init(self, *args, **kwargs)
-httpx.Client.__init__ = insecure_init
 
 
 # FIXED AI MODEL QUESTIONS WITH PRE-DEFINED SOURCE PRIORITY
@@ -538,7 +526,7 @@ class AgenticRAG:
             self.embeddings = OpenAIEmbeddings()
         
         self.g = Github(os.environ.get("GITHUB_TOKEN"))
-        self.hf_api = HfApi(token=os.environ.get("hug_token"))
+        self.hf_api = HfApi(token=os.environ.get("HUGGINGFACE_TOKEN"))
         self.bom_type = bom_type.lower()
         if questions is None:
             questions = get_fixed_questions(self.bom_type)
@@ -760,7 +748,7 @@ class AgenticRAG:
             # Try model URL first (most common for AI models)
             url_model = f"https://huggingface.co/{repo_id}/raw/main/README.md"
             try:
-                r = requests.get(url_model, headers=headers, timeout=30, verify=False)
+                r = requests.get(url_model, headers=headers, timeout=30)
                 r.raise_for_status()
                 print(f"  ✓ Fetched README from HuggingFace model: {repo_id}")
                 return r.text
@@ -768,7 +756,7 @@ class AgenticRAG:
                 # Try dataset URL as fallback
                 url_dataset = f"https://huggingface.co/datasets/{repo_id}/raw/main/README.md"
                 try:
-                    r = requests.get(url_dataset, headers=headers, timeout=30, verify=False)
+                    r = requests.get(url_dataset, headers=headers, timeout=30)
                     r.raise_for_status()
                     print(f"  ✓ Fetched README from HuggingFace dataset: {repo_id}")
                     return r.text
@@ -789,30 +777,29 @@ class AgenticRAG:
         try:
             arxiv_id = arxiv_url.split('/')[-1]
             pdf_url = f"https://arxiv.org/pdf/{arxiv_id}.pdf"
-            response = requests.get(pdf_url, verify=False, timeout=30)
+            response = requests.get(pdf_url, timeout=30)
             
             if response.status_code == 200:
-                temp_pdf_path = "temp.pdf"
-                with open(temp_pdf_path, "wb") as f:
-                    f.write(response.content)
-                
-                # Use PyMuPDF to extract text and convert to markdown
-                markdown_content = self._pdf_to_markdown(temp_pdf_path)
-                
-                # Clean up temporary file
-                if os.path.exists(temp_pdf_path):
-                    os.remove(temp_pdf_path)
-                
-                print(f"  ✓ Fetched and converted arXiv paper to markdown ({len(markdown_content)} chars)")
-                return markdown_content
+                import tempfile
+                temp_pdf_path = None
+                try:
+                    with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as tmp:
+                        temp_pdf_path = tmp.name
+                        tmp.write(response.content)
+
+                    # Use PyMuPDF to extract text and convert to markdown
+                    markdown_content = self._pdf_to_markdown(temp_pdf_path)
+
+                    print(f"  ✓ Fetched and converted arXiv paper to markdown ({len(markdown_content)} chars)")
+                    return markdown_content
+                finally:
+                    if temp_pdf_path and os.path.exists(temp_pdf_path):
+                        os.remove(temp_pdf_path)
             else:
                 print(f"  ⚠️ Failed to download PDF from {pdf_url}")
                 return ""
         except Exception as e:
             print(f"  ⚠️ Error fetching arXiv content: {e}")
-            # Clean up temporary file in case of error
-            if os.path.exists("temp.pdf"):
-                os.remove("temp.pdf")
             return ""
     
     def _pdf_to_markdown(self, pdf_path: str) -> str:
@@ -946,7 +933,7 @@ class AgenticRAG:
         
         return '\n'.join(final_lines)
     
-    def create_vector_stores(self, content_dict: Dict[str, str]) -> Dict[str, any]:
+    def create_vector_stores(self, content_dict: Dict[str, str]) -> Dict[str, Any]:
         """Create vector stores for each source with header-aware chunking"""
         retrievers = {}
         
@@ -1305,7 +1292,7 @@ class DirectLLM:
         """
         self.llm = create_llm(model, temperature, llm_provider, ollama_base_url)
         self.g = Github(os.environ.get("GITHUB_TOKEN"))
-        self.hf_api = HfApi(token=os.environ.get("hug_token"))
+        self.hf_api = HfApi(token=os.environ.get("HUGGINGFACE_TOKEN"))
         self.questions = questions or FIXED_QUESTIONS
         if llm_provider == "ollama":
             provider_info = f"Ollama ({ollama_base_url or 'default'})"
@@ -1358,14 +1345,14 @@ class DirectLLM:
                 return ""
             
             headers = {}
-            hf_token = os.environ.get("hug_token")
+            hf_token = os.environ.get("HUGGINGFACE_TOKEN")
             if hf_token:
                 headers["Authorization"] = f"Bearer {hf_token}"
             
             # Try model URL first (most common for AI models)
             url_model = f"https://huggingface.co/{repo_id}/raw/main/README.md"
             try:
-                r = requests.get(url_model, headers=headers, timeout=30, verify=False)
+                r = requests.get(url_model, headers=headers, timeout=30)
                 r.raise_for_status()
                 print(f"  ✓ Fetched README from HuggingFace model: {repo_id}")
                 return r.text
@@ -1373,7 +1360,7 @@ class DirectLLM:
                 # Try dataset URL as fallback
                 url_dataset = f"https://huggingface.co/datasets/{repo_id}/raw/main/README.md"
                 try:
-                    r = requests.get(url_dataset, headers=headers, timeout=30, verify=False)
+                    r = requests.get(url_dataset, headers=headers, timeout=30)
                     r.raise_for_status()
                     print(f"  ✓ Fetched README from HuggingFace dataset: {repo_id}")
                     return r.text
@@ -1391,27 +1378,29 @@ class DirectLLM:
         try:
             arxiv_id = arxiv_url.split('/')[-1]
             pdf_url = f"https://arxiv.org/pdf/{arxiv_id}.pdf"
-            response = requests.get(pdf_url, verify=False, timeout=30)
+            response = requests.get(pdf_url, timeout=30)
             
             if response.status_code == 200:
-                temp_pdf_path = "temp_direct.pdf"
-                with open(temp_pdf_path, "wb") as f:
-                    f.write(response.content)
-                
-                # Extract text using PyMuPDF
-                doc = fitz.open(temp_pdf_path)
-                text_content = []
-                for page in doc:
-                    text_content.append(page.get_text())
-                doc.close()
-                
-                # Clean up temporary file
-                if os.path.exists(temp_pdf_path):
-                    os.remove(temp_pdf_path)
-                
-                full_text = "\n".join(text_content)
-                print(f"  ✓ Fetched arXiv paper ({len(full_text):,} chars)")
-                return full_text
+                import tempfile
+                temp_pdf_path = None
+                try:
+                    with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as tmp:
+                        temp_pdf_path = tmp.name
+                        tmp.write(response.content)
+
+                    # Extract text using PyMuPDF
+                    doc = fitz.open(temp_pdf_path)
+                    text_content = []
+                    for page in doc:
+                        text_content.append(page.get_text())
+                    doc.close()
+
+                    full_text = "\n".join(text_content)
+                    print(f"  ✓ Fetched arXiv paper ({len(full_text):,} chars)")
+                    return full_text
+                finally:
+                    if temp_pdf_path and os.path.exists(temp_pdf_path):
+                        os.remove(temp_pdf_path)
             else:
                 print(f"  ⚠️ Failed to download PDF from {pdf_url}")
                 return ""

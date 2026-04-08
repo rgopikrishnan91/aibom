@@ -1,0 +1,234 @@
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-9.0.3, pluggy-1.6.0 -- /usr/local/bin/python
+cachedir: .pytest_cache
+rootdir: /home/user/aibom
+configfile: pyproject.toml
+plugins: langsmith-0.7.27, cov-7.1.0, anyio-4.13.0
+collecting ... collected 144 items
+
+tests/test_internal_conflict.py::TestNormalizeLicense::test_mit_variants PASSED [  0%]
+tests/test_internal_conflict.py::TestNormalizeLicense::test_apache_variants PASSED [  1%]
+tests/test_internal_conflict.py::TestNormalizeLicense::test_gpl_variants PASSED [  2%]
+tests/test_internal_conflict.py::TestNormalizeLicense::test_cc_variants PASSED [  2%]
+tests/test_internal_conflict.py::TestNormalizeLicense::test_empty_string PASSED [  3%]
+tests/test_internal_conflict.py::TestNormalizeLicense::test_none PASSED  [  4%]
+tests/test_internal_conflict.py::TestNormalizeLicense::test_unknown_license PASSED [  4%]
+tests/test_internal_conflict.py::TestNormalizeLicense::test_whitespace_handling PASSED [  5%]
+tests/test_internal_conflict.py::TestNormalizeLicense::test_license_suffix_stripping PASSED [  6%]
+tests/test_internal_conflict.py::TestExtractLicenseFromText::test_licensed_under_pattern PASSED [  6%]
+tests/test_internal_conflict.py::TestExtractLicenseFromText::test_released_under_pattern PASSED [  7%]
+tests/test_internal_conflict.py::TestExtractLicenseFromText::test_yaml_header_pattern PASSED [  8%]
+tests/test_internal_conflict.py::TestExtractLicenseFromText::test_no_license_found PASSED [  9%]
+tests/test_internal_conflict.py::TestExtractLicenseFromText::test_empty_text PASSED [  9%]
+tests/test_internal_conflict.py::TestExtractLicenseFromText::test_none_text PASSED [ 10%]
+tests/test_internal_conflict.py::TestComputeSimilarity::test_identical_licenses PASSED [ 11%]
+tests/test_internal_conflict.py::TestComputeSimilarity::test_same_after_normalization PASSED [ 11%]
+tests/test_internal_conflict.py::TestComputeSimilarity::test_completely_different PASSED [ 12%]
+tests/test_internal_conflict.py::TestComputeSimilarity::test_empty_string_returns_zero PASSED [ 13%]
+tests/test_internal_conflict.py::TestCheck::test_matching_licenses PASSED [ 13%]
+tests/test_internal_conflict.py::TestCheck::test_conflicting_licenses PASSED [ 14%]
+tests/test_internal_conflict.py::TestCheck::test_missing_structured_license PASSED [ 15%]
+tests/test_internal_conflict.py::TestCheck::test_no_license_in_text PASSED [ 15%]
+tests/test_internal_conflict.py::TestCheckAllSources::test_all_matching PASSED [ 16%]
+tests/test_internal_conflict.py::TestCheckAllSources::test_one_conflicts PASSED [ 17%]
+tests/test_internal_conflict.py::TestCheckAllSources::test_empty_sources PASSED [ 18%]
+tests/test_link_fallback.py::TestLinkFallbackFinder::test_initialization_without_api_key PASSED [ 18%]
+tests/test_link_fallback.py::TestLinkFallbackFinder::test_is_valid_url PASSED [ 19%]
+tests/test_metadata_fetcher.py::TestExtractHfRepoId::test_standard_model_url PASSED [ 20%]
+tests/test_metadata_fetcher.py::TestExtractHfRepoId::test_dataset_url PASSED [ 20%]
+tests/test_metadata_fetcher.py::TestExtractHfRepoId::test_dataset_url_with_namespace PASSED [ 21%]
+tests/test_metadata_fetcher.py::TestExtractHfRepoId::test_url_with_trailing_slash PASSED [ 22%]
+tests/test_metadata_fetcher.py::TestExtractHfRepoId::test_short_url PASSED [ 22%]
+tests/test_metadata_fetcher.py::TestExtractGithubUserRepo::test_standard_url PASSED [ 23%]
+tests/test_metadata_fetcher.py::TestExtractGithubUserRepo::test_url_with_subpath PASSED [ 24%]
+tests/test_metadata_fetcher.py::TestExtractGithubUserRepo::test_short_url PASSED [ 25%]
+tests/test_metadata_fetcher.py::TestExtractRepoPath::test_standard_url PASSED [ 25%]
+tests/test_metadata_fetcher.py::TestExtractRepoPath::test_url_with_branches PASSED [ 26%]
+tests/test_metadata_fetcher.py::TestExtractRepoPath::test_invalid_url_raises PASSED [ 27%]
+tests/test_metadata_fetcher.py::TestExtractRepoIdFromHfUrl::test_dataset_url PASSED [ 27%]
+tests/test_metadata_fetcher.py::TestExtractRepoIdFromHfUrl::test_dataset_url_with_blob PASSED [ 28%]
+tests/test_metadata_fetcher.py::TestExtractRepoIdFromHfUrl::test_model_url PASSED [ 29%]
+tests/test_metadata_fetcher.py::TestExtractRepoIdFromHfUrl::test_none_input PASSED [ 29%]
+tests/test_metadata_fetcher.py::TestExtractRepoIdFromHfUrl::test_empty_string PASSED [ 30%]
+tests/test_metadata_fetcher.py::TestExtractRepoIdFromHfUrl::test_non_string_input PASSED [ 31%]
+tests/test_pipeline_features.py::test_json_output_is_triplet_based_and_serializable PASSED [ 31%]
+tests/test_pipeline_features.py::test_internal_domain_conflict_same_source PASSED [ 32%]
+tests/test_pipeline_features.py::test_external_domain_conflict_arxiv_wins PASSED [ 33%]
+tests/test_processors.py::TestAIBOMProcessor::test_initialization FAILED [ 34%]
+tests/test_processors.py::TestAIBOMProcessor::test_generate_model_id FAILED [ 34%]
+tests/test_processors.py::TestDATABOMProcessor::test_initialization FAILED [ 35%]
+tests/test_processors.py::TestDATABOMProcessor::test_generate_dataset_id FAILED [ 36%]
+tests/test_processors_extended.py::TestCleanValue::test_normal_string PASSED [ 36%]
+tests/test_processors_extended.py::TestCleanValue::test_none PASSED      [ 37%]
+tests/test_processors_extended.py::TestCleanValue::test_nan PASSED       [ 38%]
+tests/test_processors_extended.py::TestCleanValue::test_number PASSED    [ 38%]
+tests/test_processors_extended.py::TestCleanValue::test_empty_string PASSED [ 39%]
+tests/test_processors_extended.py::TestParseConflictString::test_none_input PASSED [ 40%]
+tests/test_processors_extended.py::TestParseConflictString::test_dict_passthrough PASSED [ 40%]
+tests/test_processors_extended.py::TestParseConflictString::test_no_conflict_string PASSED [ 41%]
+tests/test_processors_extended.py::TestParseConflictString::test_single_source_conflict PASSED [ 42%]
+tests/test_processors_extended.py::TestParseConflictString::test_multi_source_conflict PASSED [ 43%]
+tests/test_processors_extended.py::TestParseConflictString::test_plain_string_fallback PASSED [ 43%]
+tests/test_processors_extended.py::TestParseConflictString::test_non_string_non_dict PASSED [ 44%]
+tests/test_processors_extended.py::TestBuildTripletPayload::test_basic_payload PASSED [ 45%]
+tests/test_processors_extended.py::TestBuildTripletPayload::test_skip_keys PASSED [ 45%]
+tests/test_processors_extended.py::TestBuildTripletPayload::test_conflict_keys_excluded_from_output PASSED [ 46%]
+tests/test_processors_extended.py::TestBuildTripletPayload::test_source_suffix PASSED [ 47%]
+tests/test_processors_extended.py::TestMergeLicenseIntraConflict::test_no_conflict PASSED [ 47%]
+tests/test_processors_extended.py::TestMergeLicenseIntraConflict::test_no_has_conflict_flag PASSED [ 48%]
+tests/test_processors_extended.py::TestMergeLicenseIntraConflict::test_with_conflict PASSED [ 49%]
+tests/test_processors_extended.py::TestMergeLicenseIntraConflict::test_conflict_without_description_builds_from_per_source PASSED [ 50%]
+tests/test_prompt.py::TestPromptDetectConflicts::test_contains_field_name PASSED [ 50%]
+tests/test_prompt.py::TestPromptDetectConflicts::test_contains_instructions PASSED [ 51%]
+tests/test_prompt.py::TestPromptDetectConflicts::test_contains_context PASSED [ 52%]
+tests/test_prompt.py::TestPromptGenerateAnswer::test_contains_field_and_context PASSED [ 52%]
+tests/test_prompt.py::TestPromptGenerateAnswer::test_contains_instructions PASSED [ 53%]
+tests/test_prompt.py::TestPromptNoDocuments::test_contains_question PASSED [ 54%]
+tests/test_prompt.py::TestPromptDirectLLM::test_contains_all_fields PASSED [ 54%]
+tests/test_security.py::TestNoHardcodedSecrets::test_no_github_tokens PASSED [ 55%]
+tests/test_security.py::TestNoHardcodedSecrets::test_no_openai_keys PASSED [ 56%]
+tests/test_security.py::TestNoHardcodedSecrets::test_no_verify_false PASSED [ 56%]
+tests/test_security.py::TestNoHardcodedSecrets::test_no_hardcoded_internal_ips PASSED [ 57%]
+tests/test_security.py::TestNoHardcodedSecrets::test_github_token_from_env PASSED [ 58%]
+tests/test_source_handler.py::TestTagSimilarity::test_identical_strings PASSED [ 59%]
+tests/test_source_handler.py::TestTagSimilarity::test_completely_different PASSED [ 59%]
+tests/test_source_handler.py::TestTagSimilarity::test_partial_overlap PASSED [ 60%]
+tests/test_source_handler.py::TestTagSimilarity::test_both_empty PASSED  [ 61%]
+tests/test_source_handler.py::TestTagSimilarity::test_one_empty PASSED   [ 61%]
+tests/test_source_handler.py::TestTagSimilarity::test_case_insensitive PASSED [ 62%]
+tests/test_source_handler.py::TestTagSimilarity::test_semicolon_separator PASSED [ 63%]
+tests/test_source_handler.py::TestTagSimilarity::test_whitespace_separator PASSED [ 63%]
+tests/test_source_handler.py::TestSourceHandlerGetFieldConflict::test_single_source PASSED [ 64%]
+tests/test_source_handler.py::TestSourceHandlerGetFieldConflict::test_no_sources_have_key PASSED [ 65%]
+tests/test_source_handler.py::TestSourceHandlerGetFieldConflict::test_all_sources_agree PASSED [ 65%]
+tests/test_source_handler.py::TestSourceHandlerGetFieldConflict::test_two_agree_one_disagrees PASSED [ 66%]
+tests/test_source_handler.py::TestSourceHandlerGetFieldConflict::test_all_different_uses_priority PASSED [ 67%]
+tests/test_source_handler.py::TestSourceHandlerGetFieldConflict::test_none_values_ignored PASSED [ 68%]
+tests/test_source_handler.py::TestSourceHandlerGetFieldConflict::test_empty_string_ignored PASSED [ 68%]
+tests/test_source_handler.py::TestSourceHandlerGetFieldConflict::test_fuzzy_mode_similar_tags PASSED [ 69%]
+tests/test_source_handler.py::TestSourceHandlerGetFieldConflict::test_fuzzy_mode_dissimilar_tags PASSED [ 70%]
+tests/test_source_handler.py::TestSourceHandlerGetField::test_priority_mode_first_wins PASSED [ 70%]
+tests/test_source_handler.py::TestSourceHandlerGetField::test_priority_mode_skips_none PASSED [ 71%]
+tests/test_source_handler.py::TestSourceHandlerGetField::test_priority_mode_no_values PASSED [ 72%]
+tests/test_source_handler.py::TestSourceHandlerGetField::test_earliest_mode PASSED [ 72%]
+tests/test_source_handler.py::TestSourceHandlerGetField::test_latest_mode PASSED [ 73%]
+tests/test_source_handler.py::TestSourceHandlerGetField::test_invalid_mode_raises PASSED [ 74%]
+tests/test_source_handler.py::TestSourceHandlerGetField::test_llm_source_renamed_to_paper PASSED [ 75%]
+tests/test_spdx_validator.py::TestExtractValue::test_triplet_structure PASSED [ 75%]
+tests/test_spdx_validator.py::TestExtractValue::test_plain_value PASSED  [ 76%]
+tests/test_spdx_validator.py::TestExtractValue::test_none_value PASSED   [ 77%]
+tests/test_spdx_validator.py::TestExtractValue::test_dict_without_value_key PASSED [ 77%]
+tests/test_spdx_validator.py::TestExtractValue::test_nested_value_none PASSED [ 78%]
+tests/test_spdx_validator.py::TestValidateAndConvert::test_ai_bom_basic_structure PASSED [ 79%]
+tests/test_spdx_validator.py::TestValidateAndConvert::test_dataset_bom_basic_structure PASSED [ 79%]
+tests/test_spdx_validator.py::TestValidateAndConvert::test_invalid_bom_type_raises PASSED [ 80%]
+tests/test_spdx_validator.py::TestValidateAndConvert::test_ai_bom_triplet_input PASSED [ 81%]
+tests/test_spdx_validator.py::TestValidateSpdxBom::test_valid_bom PASSED [ 81%]
+tests/test_spdx_validator.py::TestValidateSpdxBom::test_missing_graph PASSED [ 82%]
+tests/test_spdx_validator.py::TestValidateSpdxBom::test_missing_context PASSED [ 83%]
+tests/test_spdx_validator.py::TestValidateSpdxBom::test_empty_dict PASSED [ 84%]
+tests/test_spdx_validator.py::TestConvenienceFunction::test_ai_bom PASSED [ 84%]
+tests/test_spdx_validator.py::TestConvenienceFunction::test_dataset_bom PASSED [ 85%]
+tests/test_web_app.py::TestNormalizeUseCase::test_valid_ai_use_cases PASSED [ 86%]
+tests/test_web_app.py::TestNormalizeUseCase::test_valid_data_use_cases PASSED [ 86%]
+tests/test_web_app.py::TestNormalizeUseCase::test_case_insensitive PASSED [ 87%]
+tests/test_web_app.py::TestNormalizeUseCase::test_whitespace_handling PASSED [ 88%]
+tests/test_web_app.py::TestNormalizeUseCase::test_unknown_defaults_to_complete PASSED [ 88%]
+tests/test_web_app.py::TestNormalizeUseCase::test_none_defaults_to_complete PASSED [ 89%]
+tests/test_web_app.py::TestNormalizeUseCase::test_empty_string_defaults_to_complete PASSED [ 90%]
+tests/test_web_app.py::TestGetUseCaseLabel::test_complete_ai PASSED      [ 90%]
+tests/test_web_app.py::TestGetUseCaseLabel::test_safety_ai PASSED        [ 91%]
+tests/test_web_app.py::TestGetUseCaseLabel::test_complete_data PASSED    [ 92%]
+tests/test_web_app.py::TestGetUseCaseLabel::test_unknown_returns_complete_label PASSED [ 93%]
+tests/test_web_app.py::TestCountFields::test_triplet_structure PASSED    [ 93%]
+tests/test_web_app.py::TestCountFields::test_direct_values PASSED        [ 94%]
+tests/test_web_app.py::TestCountFields::test_empty_dict PASSED           [ 95%]
+tests/test_web_app.py::TestCountFields::test_none_input PASSED           [ 95%]
+tests/test_web_app.py::TestCountFields::test_mixed_structure PASSED      [ 96%]
+tests/test_web_app.py::TestFlaskApp::test_home_page PASSED               [ 97%]
+tests/test_web_app.py::TestFlaskApp::test_process_no_json PASSED         [ 97%]
+tests/test_web_app.py::TestFlaskApp::test_find_links_no_json PASSED      [ 98%]
+tests/test_web_app.py::TestFlaskApp::test_download_path_traversal_blocked PASSED [ 99%]
+tests/test_web_app.py::TestFlaskApp::test_download_nonexistent_file PASSED [100%]
+
+=================================== FAILURES ===================================
+____________________ TestAIBOMProcessor.test_initialization ____________________
+tests/test_processors.py:13: in test_initialization
+    processor = AIBOMProcessor(
+src/bom_tools/core/processors.py:150: in __init__
+    self.processor = AgenticRAG(
+src/bom_tools/core/agentic_rag.py:514: in __init__
+    self.llm = create_llm(model, temperature, llm_provider, ollama_base_url)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/bom_tools/core/agentic_rag.py:63: in create_llm
+    return ChatOpenAI(model=model, temperature=temperature)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/dist-packages/langchain_core/load/serializable.py:118: in __init__
+    super().__init__(*args, **kwargs)
+/usr/local/lib/python3.11/dist-packages/langchain_openai/chat_models/base.py:1090: in validate_environment
+    self.root_async_client = openai.AsyncOpenAI(
+/usr/local/lib/python3.11/dist-packages/openai/_client.py:514: in __init__
+    raise OpenAIError(
+E   openai.OpenAIError: The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable
+__________________ TestAIBOMProcessor.test_generate_model_id ___________________
+tests/test_processors.py:24: in test_generate_model_id
+    processor = AIBOMProcessor()
+                ^^^^^^^^^^^^^^^^
+src/bom_tools/core/processors.py:150: in __init__
+    self.processor = AgenticRAG(
+src/bom_tools/core/agentic_rag.py:514: in __init__
+    self.llm = create_llm(model, temperature, llm_provider, ollama_base_url)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/bom_tools/core/agentic_rag.py:63: in create_llm
+    return ChatOpenAI(model=model, temperature=temperature)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/dist-packages/langchain_core/load/serializable.py:118: in __init__
+    super().__init__(*args, **kwargs)
+/usr/local/lib/python3.11/dist-packages/langchain_openai/chat_models/base.py:1090: in validate_environment
+    self.root_async_client = openai.AsyncOpenAI(
+/usr/local/lib/python3.11/dist-packages/openai/_client.py:514: in __init__
+    raise OpenAIError(
+E   openai.OpenAIError: The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable
+___________________ TestDATABOMProcessor.test_initialization ___________________
+tests/test_processors.py:46: in test_initialization
+    processor = DATABOMProcessor(
+src/bom_tools/core/processors.py:392: in __init__
+    self.processor = DirectLLM(
+src/bom_tools/core/agentic_rag.py:1293: in __init__
+    self.llm = create_llm(model, temperature, llm_provider, ollama_base_url)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/bom_tools/core/agentic_rag.py:63: in create_llm
+    return ChatOpenAI(model=model, temperature=temperature)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/dist-packages/langchain_core/load/serializable.py:118: in __init__
+    super().__init__(*args, **kwargs)
+/usr/local/lib/python3.11/dist-packages/langchain_openai/chat_models/base.py:1090: in validate_environment
+    self.root_async_client = openai.AsyncOpenAI(
+/usr/local/lib/python3.11/dist-packages/openai/_client.py:514: in __init__
+    raise OpenAIError(
+E   openai.OpenAIError: The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable
+________________ TestDATABOMProcessor.test_generate_dataset_id _________________
+tests/test_processors.py:57: in test_generate_dataset_id
+    processor = DATABOMProcessor()
+                ^^^^^^^^^^^^^^^^^^
+src/bom_tools/core/processors.py:381: in __init__
+    self.processor = AgenticRAG(
+src/bom_tools/core/agentic_rag.py:514: in __init__
+    self.llm = create_llm(model, temperature, llm_provider, ollama_base_url)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/bom_tools/core/agentic_rag.py:63: in create_llm
+    return ChatOpenAI(model=model, temperature=temperature)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/dist-packages/langchain_core/load/serializable.py:118: in __init__
+    super().__init__(*args, **kwargs)
+/usr/local/lib/python3.11/dist-packages/langchain_openai/chat_models/base.py:1090: in validate_environment
+    self.root_async_client = openai.AsyncOpenAI(
+/usr/local/lib/python3.11/dist-packages/openai/_client.py:514: in __init__
+    raise OpenAIError(
+E   openai.OpenAIError: The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable
+=========================== short test summary info ============================
+FAILED tests/test_processors.py::TestAIBOMProcessor::test_initialization - openai.OpenAIError: The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable
+FAILED tests/test_processors.py::TestAIBOMProcessor::test_generate_model_id - openai.OpenAIError: The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable
+FAILED tests/test_processors.py::TestDATABOMProcessor::test_initialization - openai.OpenAIError: The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable
+FAILED tests/test_processors.py::TestDATABOMProcessor::test_generate_dataset_id - openai.OpenAIError: The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable
+======================== 4 failed, 140 passed in 6.99s =========================

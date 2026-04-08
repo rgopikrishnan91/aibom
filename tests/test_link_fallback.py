@@ -10,10 +10,8 @@ class TestLinkFallbackFinder:
     
     def test_initialization_without_api_key(self):
         """Test that initialization without API key creates disabled client"""
-        # This should not raise an error, just create a disabled client
         finder = LinkFallbackFinder(api_key=None)
-        # The client should be None if no API key
-        # This is a safe test that doesn't require actual API keys
+        assert finder.client is None
     
     def test_is_valid_url(self):
         """Test URL validation"""

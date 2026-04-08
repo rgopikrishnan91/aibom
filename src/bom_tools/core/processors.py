@@ -176,9 +176,11 @@ class AIBOMProcessor:
                 print(f"Warning: Github client unavailable ({exc})")
                 self.github_client = None
         else:
+            print("  Note: GITHUB_TOKEN not set. GitHub API calls will be rate-limited (60 req/hr).")
+            print("        Set it in .env or export GITHUB_TOKEN=ghp_...")
             self.github_client = None
 
-        hf_token = os.getenv("hug_token") or os.getenv("HUGGINGFACE_TOKEN")
+        hf_token = os.getenv("HUGGINGFACE_TOKEN")
         if hf_token:
             try:
                 self.hf_api = HfApi(token=hf_token)
@@ -186,6 +188,8 @@ class AIBOMProcessor:
                 print(f"Warning: Hugging Face client unavailable ({exc})")
                 self.hf_api = None
         else:
+            print("  Note: HUGGINGFACE_TOKEN not set. HuggingFace API calls may be rate-limited.")
+            print("        Set it in .env or export HUGGINGFACE_TOKEN=hf_...")
             self.hf_api = None
 
     def generate_model_id(self, repo_id: str, github_url: str) -> str:
@@ -283,7 +287,7 @@ class AIBOMProcessor:
                 f"https://huggingface.co/{hf_repo_id}/raw/main/README.md",
                 f"https://huggingface.co/models/{hf_repo_id}/raw/main/README.md",
             ]:
-                r = requests.get(url, timeout=30, verify=False)
+                r = requests.get(url, timeout=30)
                 if r.status_code == 200:
                     return r.text
         except Exception as e:
@@ -407,9 +411,10 @@ class DATABOMProcessor:
                 print(f"Warning: Github client unavailable ({exc})")
                 self.github_client = None
         else:
+            print("  Note: GITHUB_TOKEN not set. GitHub API calls will be rate-limited (60 req/hr).")
             self.github_client = None
 
-        hf_token = os.getenv("hug_token") or os.getenv("HUGGINGFACE_TOKEN")
+        hf_token = os.getenv("HUGGINGFACE_TOKEN")
         if hf_token:
             try:
                 self.hf_api = HfApi(token=hf_token)
@@ -417,9 +422,9 @@ class DATABOMProcessor:
                 print(f"Warning: Hugging Face client unavailable ({exc})")
                 self.hf_api = None
         else:
+            print("  Note: HUGGINGFACE_TOKEN not set. HuggingFace API calls may be rate-limited.")
             self.hf_api = None
 
-    
     def generate_dataset_id(self, arxiv_url: str, github_url: str, hf_url: str) -> str:
         """Generate a unique dataset identifier from URLs"""
         if hf_url and "huggingface.co" in str(hf_url):
@@ -431,7 +436,7 @@ class DATABOMProcessor:
             try:
                 repo_path = MetadataFetcher.extract_repo_path(github_url)
                 return repo_path.replace("/", "_")
-            except:
+            except (ValueError, IndexError):
                 pass
         
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -521,7 +526,7 @@ class DATABOMProcessor:
                 f"https://huggingface.co/datasets/{repo_id}/raw/main/README.md",
                 f"https://huggingface.co/{repo_id}/raw/main/README.md",
             ]:
-                r = requests.get(url, timeout=30, verify=False)
+                r = requests.get(url, timeout=30)
                 if r.status_code == 200:
                     return r.text
         except Exception as e:

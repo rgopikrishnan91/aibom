@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [
-    {name = "Your Name", email = "your.email@example.com"}
+    {name = "BOM Tools Contributors"}
 ]
 keywords = ["bom", "ai", "dataset", "rag", "spdx", "metadata"]
 classifiers = [
@@ -32,16 +32,20 @@ dependencies = [
     "langchain-openai>=0.0.5",
     "langchain-community>=0.0.20",
     "langchain-huggingface>=0.0.1",
+    "langchain-text-splitters>=0.0.1",
+    "langchain-core>=0.1.0",
     "langgraph>=0.0.20",
     "faiss-cpu>=1.7.4",
     "sentence-transformers>=2.2.0",
+    "chromadb>=0.4.0",
+    "numpy>=1.24.0",
+    "pandas>=2.0.0",
     "PyGithub>=2.1.1",
     "huggingface-hub>=0.20.0",
     "requests>=2.31.0",
     "beautifulsoup4>=4.12.0",
     "pymupdf>=1.23.0",
     "certifi>=2023.0.0",
-    "urllib3>=2.0.0",
 ]
 
 [project.optional-dependencies]
@@ -61,10 +65,10 @@ dev = [
 bom-tools = "bom_tools.web.app:main"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/BOM_Tools"
-Documentation = "https://github.com/yourusername/BOM_Tools/docs"
-Repository = "https://github.com/yourusername/BOM_Tools"
-Issues = "https://github.com/yourusername/BOM_Tools/issues"
+Homepage = "https://github.com/rgopikrishnan91/aibom"
+Documentation = "https://github.com/rgopikrishnan91/aibom/docs"
+Repository = "https://github.com/rgopikrishnan91/aibom"
+Issues = "https://github.com/rgopikrishnan91/aibom/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]

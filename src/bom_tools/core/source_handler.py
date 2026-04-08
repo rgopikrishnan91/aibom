@@ -39,9 +39,11 @@ class SourceHandler:
                 or None if no conflict exists.
         """
         # Inspect caller frame to map object IDs to variable names
-        frame = inspect.currentframe().f_back
-        id_to_name = {id(val): name for name, val in frame.f_locals.items()}
-        
+        id_to_name = {}
+        frame = inspect.currentframe()
+        if frame and frame.f_back:
+            id_to_name = {id(val): name for name, val in frame.f_back.f_locals.items()}
+
         # Collect all non-null values with their sources
         collected = []  # List of tuples: (value, source_name, source_dict)
         
@@ -174,9 +176,11 @@ class SourceHandler:
         from datetime import datetime
         
         # Inspect caller frame to map object IDs to variable names
-        frame = inspect.currentframe().f_back
-        id_to_name = {id(val): name for name, val in frame.f_locals.items()}
-        
+        id_to_name = {}
+        frame = inspect.currentframe()
+        if frame and frame.f_back:
+            id_to_name = {id(val): name for name, val in frame.f_back.f_locals.items()}
+
         # Helper function to parse dates
         def parse_date(val):
             """Try to parse various date formats"""
