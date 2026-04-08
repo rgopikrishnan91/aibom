@@ -212,35 +212,47 @@ The SPDX output contains:
 - License relationships (`hasConcludedLicense`, `hasDeclaredLicense`)
 - SPDX 3.0.1 JSON-LD structure with `@context` and `@graph`
 
-## Knowledge Base Storage
+## Knowledge Graph Storage
 
-BOM results can be stored in a vector database for organizational AI asset tracking. Since BOM Tools already includes [ChromaDB](https://www.trychroma.com/), you can build a searchable knowledge base:
+BOM results can be stored in a knowledge graph for organizational AI asset tracking and relationship queries. Using [Neo4J](https://neo4j.com/), you can model relationships between models, datasets, licenses, and organizations:
 
 ```python
+from neo4j import GraphDatabase
 import json
-import chromadb
 
-# Store BOMs
-client = chromadb.PersistentClient(path="./bom_knowledge_base")
-collection = client.get_or_create_collection("ai_models")
+driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "password"))
 
-collection.add(
-    ids=[result["model_id"]],
-    documents=[json.dumps(result)],
-    metadatas=[{
-        "repo_id": result["repo_id"],
-        "use_case": result["use_case"],
-    }]
-)
+with driver.session() as session:
+    # Store an AI model BOM as a node with relationships
+    session.run("""
+        MERGE (m:AIModel {model_id: $model_id})
+        SET m.repo_id = $repo_id,
+            m.use_case = $use_case,
+            m.domain = $domain,
+            m.model_type = $model_type
+        MERGE (l:License {name: $license})
+        MERGE (m)-[:LICENSED_UNDER]->(l)
+        MERGE (o:Organization {name: $supplier})
+        MERGE (o)-[:SUPPLIES]->(m)
+    """,
+        model_id=result["model_id"],
+        repo_id=result["repo_id"],
+        use_case=result["use_case"],
+        domain=result["rag_fields"]["domain"]["value"],
+        model_type=result["rag_fields"]["typeOfModel"]["value"],
+        license=result["direct_fields"]["license"]["value"],
+        supplier=result["direct_fields"]["suppliedBy"]["value"],
+    )
 
-# Query later — semantic search across all stored BOMs
-results = collection.query(
-    query_texts=["computer vision models with MIT license"],
-    n_results=5
-)
+    # Query: find all models with license conflicts
+    conflicts = session.run("""
+        MATCH (m:AIModel)
+        WHERE m.license_conflict IS NOT NULL
+        RETURN m.model_id, m.license_conflict
+    """)
 ```
 
-This pattern lets you build an inventory of all AI models and datasets your organization uses, queryable by domain, license, safety risk, or any other field.
+This lets you build a queryable inventory of your AI supply chain — trace which organizations supply which models, what licenses are in use, and where conflicts exist across your portfolio.
 
 ## Use-Case Presets
 
