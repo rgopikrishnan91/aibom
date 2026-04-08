@@ -1,0 +1,14 @@
+{
+  "uid": "alana89_TabSTAR",
+  "model_id": "alana89_TabSTAR",
+  "model_name": "alana89/TabSTAR",
+  "use_case": "complete",
+    "modelDataPreprocessing": {
+      "value": "",
+      "source": "which source we used to populate",
+      "conflict": {
+        "value": "",
+        "type": "internal or external"
+      }
+    }
+}

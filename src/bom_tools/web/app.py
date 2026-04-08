@@ -109,18 +109,23 @@ def count_fields(metadata_dict: dict) -> int:
 
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = 'results'
+# Use absolute paths so Flask can always find the files regardless of CWD
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+app.config['UPLOAD_FOLDER'] = os.path.join(_PROJECT_ROOT, 'results')
+app.config['REPO_RESULTS_FOLDER'] = os.path.join(_PROJECT_ROOT, 'data', 'results')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
 
-# Ensure results directory exists
-os.makedirs('results', exist_ok=True)
+# Ensure results directories exist
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+os.makedirs(app.config['REPO_RESULTS_FOLDER'], exist_ok=True)
 
 # Initialize processors cache
 processors_cache = {}
 
 
 def get_processor(bom_type: str, mode: str = "rag", llm_provider: str = "openai", 
-                  model: str = "gpt-4o", ollama_model: str = "llama3:70b", 
+                  model: str = "gpt-4o", ollama_model: str = "llama3:70b",
+                  openrouter_model: str = "qwen/qwen-2.5-72b-instruct",
                   ollama_url: str = None, use_case: str = 'complete'):
     """Get or create a processor for the specified configuration"""
     global processors_cache
@@ -130,8 +135,13 @@ def get_processor(bom_type: str, mode: str = "rag", llm_provider: str = "openai"
     normalized_mode = mode if mode in ['rag', 'direct'] else 'rag'
     normalized_use_case = normalize_use_case(use_case, bom_type)
     
-    # Determine which model to use
-    model_to_use = ollama_model if llm_provider == 'ollama' else model
+    # Determine which model to use based on provider
+    if llm_provider == 'ollama':
+        model_to_use = ollama_model
+    elif llm_provider == 'openrouter':
+        model_to_use = openrouter_model
+    else:
+        model_to_use = model
     
     # Create a unique key for this configuration
     cache_key = f"{bom_type}_{llm_provider}_{normalized_mode}_{model_to_use}_{normalized_use_case}"
@@ -155,7 +165,7 @@ def get_processor(bom_type: str, mode: str = "rag", llm_provider: str = "openai"
                 questions_config=questions,
                 use_case=normalized_use_case,
                 embedding_provider="local",  # Use free local embeddings
-                embedding_model="sentence-transformers/all-MiniLM-L6-v2"
+                embedding_model="BAAI/bge-small-en-v1.5"
             )
         else:
             processors_cache[cache_key] = DATABOMProcessor(
@@ -166,7 +176,7 @@ def get_processor(bom_type: str, mode: str = "rag", llm_provider: str = "openai"
                 questions_config=questions,
                 use_case=normalized_use_case,
                 embedding_provider="local",  # Use free local embeddings
-                embedding_model="sentence-transformers/all-MiniLM-L6-v2"
+                embedding_model="BAAI/bge-small-en-v1.5"
             )
     
     return processors_cache[cache_key]
@@ -176,6 +186,48 @@ def get_processor(bom_type: str, mode: str = "rag", llm_provider: str = "openai"
 def index():
     """Render the main page"""
     return render_template('index.html')
+
+
+@app.route('/find_links', methods=['POST'])
+def find_links():
+    """Run link fallback and return found links immediately, before full BOM generation."""
+    try:
+        data = request.json
+        bom_type = data.get('bom_type', 'ai').strip().lower()
+        repo_id = data.get('repo_id', '').strip() or None
+        hf_repo_id = data.get('hf_repo_id', '').strip() or repo_id or None
+        arxiv_url = data.get('arxiv_url', '').strip() or None
+        github_url = data.get('github_url', '').strip() or None
+
+        gemini_api_key = os.getenv('GEMINI_API_KEY')
+        if not gemini_api_key:
+            return jsonify({
+                'status': 'skipped',
+                'reason': 'No Gemini API key configured',
+                'hf_repo_id': hf_repo_id,
+                'arxiv_url': arxiv_url,
+                'github_url': github_url,
+                'link_status': {}
+            })
+
+        fallback_finder = LinkFallbackFinder()
+        final_repo_id, final_arxiv_url, final_github_url, link_status = fallback_finder.find_missing_links(
+            repo_id=hf_repo_id,
+            hf_repo_id=hf_repo_id,
+            arxiv_url=arxiv_url,
+            github_url=github_url
+        )
+        return jsonify({
+            'status': 'success',
+            'hf_repo_id': final_repo_id,
+            'arxiv_url': final_arxiv_url,
+            'github_url': final_github_url,
+            'link_status': link_status
+        })
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
 @app.route('/config', methods=['GET'])
@@ -195,9 +247,10 @@ def get_config():
     config = {
         'bom_types': ['ai', 'data'],
         'modes': ['rag', 'direct'],
-        'llm_providers': ['openai', 'ollama'],
+        'llm_providers': ['openai', 'ollama', 'openrouter'],
         'default_openai_models': ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-3.5-turbo'],
         'default_ollama_models': ['llama3:70b', 'llama3:8b', 'mixtral:8x7b', 'codellama:34b'],
+        'default_openrouter_models': ['qwen/qwen-2.5-72b-instruct', 'meta-llama/llama-3.3-70b-instruct', 'mistralai/mistral-medium-3.1', 'openai/gpt-oss-120b', 'qwen/qwen3-coder'],
         'default_mode': 'rag',
         'default_provider': 'openai',
         'default_model': 'gpt-4o',
@@ -216,16 +269,17 @@ def process():
         
         # Get processing options
         mode = data.get('mode', 'rag').strip().lower()
-        llm_provider = data.get('llm_provider', 'openai').strip().lower()
+        llm_provider = data.get('llm_provider', 'openrouter').strip().lower()
         model = data.get('model', 'gpt-4o').strip()
         ollama_model = data.get('ollama_model', 'llama3:70b').strip()
+        openrouter_model = data.get('openrouter_model', 'qwen/qwen-2.5-72b-instruct').strip() or 'qwen/qwen-2.5-72b-instruct'
         ollama_url = data.get('ollama_url', '').strip() or None
         use_case = normalize_use_case(data.get('use_case', 'complete'), bom_type)
         
         # Validate mode and provider
         if mode not in ['rag', 'direct']:
             mode = 'rag'
-        if llm_provider not in ['openai', 'ollama']:
+        if llm_provider not in ['openai', 'ollama', 'openrouter']:
             llm_provider = 'openai'
         
         if bom_type == 'ai':
@@ -240,27 +294,28 @@ def process():
                     'message': 'Provide at least a repo ID or one URL!'
                 }), 400
             
-            # Use link fallback to find missing links
-            print("\n" + "="*70)
-            print("LINK FALLBACK: Checking for missing links...")
-            print("="*70)
-            
-            gemini_api_key = os.getenv("GEMINI_API_KEY")
-            if gemini_api_key:
-                try:
-                    fallback_finder = LinkFallbackFinder()
-                    final_repo_id, final_arxiv_url, final_github_url, link_status = fallback_finder.find_missing_links(
-                        repo_id=repo_id,
-                        hf_repo_id=repo_id,
-                        arxiv_url=arxiv_url,
-                        github_url=github_url
-                    )
-                    if link_status and any([link_status.get('hf_found', False), link_status.get('arxiv_found', False), link_status.get('github_found', False)]):
-                        repo_id = final_repo_id
-                        arxiv_url = final_arxiv_url
-                        github_url = final_github_url
-                except Exception as e:
-                    print(f"⚠️ Link fallback failed: {e}")
+            # Use link fallback to find missing links (skip if frontend already ran /find_links)
+            skip_fallback = data.get('skip_fallback', False)
+            if not skip_fallback:
+                print("\n" + "="*70)
+                print("LINK FALLBACK: Checking for missing links...")
+                print("="*70)
+                gemini_api_key = os.getenv("GEMINI_API_KEY")
+                if gemini_api_key:
+                    try:
+                        fallback_finder = LinkFallbackFinder()
+                        final_repo_id, final_arxiv_url, final_github_url, link_status = fallback_finder.find_missing_links(
+                            repo_id=repo_id,
+                            hf_repo_id=repo_id,
+                            arxiv_url=arxiv_url,
+                            github_url=github_url
+                        )
+                        if link_status and any([link_status.get('hf_found', False), link_status.get('arxiv_found', False), link_status.get('github_found', False)]):
+                            repo_id = final_repo_id
+                            arxiv_url = final_arxiv_url
+                            github_url = final_github_url
+                    except Exception as e:
+                        print(f"⚠️ Link fallback failed: {e}")
             
             proc = get_processor(
                 bom_type='ai',
@@ -268,6 +323,7 @@ def process():
                 llm_provider=llm_provider,
                 model=model,
                 ollama_model=ollama_model,
+                openrouter_model=openrouter_model,
                 ollama_url=ollama_url,
                 use_case=use_case
             )
@@ -278,9 +334,13 @@ def process():
                 github_url=github_url
             )
             
-            # Save to file
-            output_file = os.path.join(app.config['UPLOAD_FOLDER'], f"{metadata['model_id']}_aibom.json")
+            # Save to file (download folder + persistent repo copy)
+            filename = f"{metadata['model_id']}_aibom.json"
+            output_file = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             with open(output_file, 'w', encoding='utf-8') as f:
+                json.dump(metadata, f, indent=2, ensure_ascii=False)
+            repo_copy = os.path.join(app.config['REPO_RESULTS_FOLDER'], filename)
+            with open(repo_copy, 'w', encoding='utf-8') as f:
                 json.dump(metadata, f, indent=2, ensure_ascii=False)
             
             # Count fields
@@ -299,6 +359,11 @@ def process():
                     'direct': direct_count,
                     'rag': rag_count,
                     'total': direct_count + rag_count
+                },
+                'found_links': {
+                    'hf_repo_id': repo_id,
+                    'arxiv_url': arxiv_url,
+                    'github_url': github_url
                 }
             }
             
@@ -320,24 +385,26 @@ def process():
                 hf_url = f"https://huggingface.co/datasets/{hf_repo_id}"
                 print(f"Constructed HuggingFace dataset URL: {hf_url}")
             
-            # Try link fallback
-            try:
-                fallback_finder = LinkFallbackFinder()
-                
-                final_repo_id, final_arxiv_url, final_github_url, link_status = fallback_finder.find_missing_links(
-                    repo_id=hf_repo_id,
-                    hf_repo_id=hf_repo_id,
-                    arxiv_url=arxiv_url,
-                    github_url=github_url
-                )
-                if final_repo_id and not hf_url:
-                    hf_url = f"https://huggingface.co/datasets/{final_repo_id}"
-                if final_arxiv_url:
-                    arxiv_url = final_arxiv_url
-                if final_github_url:
-                    github_url = final_github_url
-            except Exception as e:
-                print(f"⚠️ Link fallback failed: {e}")
+            # Try link fallback (skip if frontend already ran /find_links)
+            skip_fallback = data.get('skip_fallback', False)
+            if not skip_fallback:
+                try:
+                    fallback_finder = LinkFallbackFinder()
+                    final_repo_id, final_arxiv_url, final_github_url, link_status = fallback_finder.find_missing_links(
+                        repo_id=hf_repo_id,
+                        hf_repo_id=hf_repo_id,
+                        arxiv_url=arxiv_url,
+                        github_url=github_url
+                    )
+                    if final_repo_id and not hf_url:
+                        hf_url = f"https://huggingface.co/datasets/{final_repo_id}"
+                        hf_repo_id = final_repo_id
+                    if final_arxiv_url:
+                        arxiv_url = final_arxiv_url
+                    if final_github_url:
+                        github_url = final_github_url
+                except Exception as e:
+                    print(f"⚠️ Link fallback failed: {e}")
             
             proc = get_processor(
                 bom_type='data',
@@ -345,6 +412,7 @@ def process():
                 llm_provider=llm_provider,
                 model=model,
                 ollama_model=ollama_model,
+                openrouter_model=openrouter_model,
                 ollama_url=ollama_url,
                 use_case=use_case
             )
@@ -355,14 +423,18 @@ def process():
                 hf_url=hf_url
             )
             
-            # Save to file
-            output_file = os.path.join(app.config['UPLOAD_FOLDER'], f"{metadata['dataset_id']}_databom.json")
+            # Save to file (download folder + persistent repo copy)
+            filename = f"{metadata['dataset_id']}_databom.json"
+            output_file = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             with open(output_file, 'w', encoding='utf-8') as f:
                 json.dump(metadata, f, indent=2, ensure_ascii=False)
+            repo_copy = os.path.join(app.config['REPO_RESULTS_FOLDER'], filename)
+            with open(repo_copy, 'w', encoding='utf-8') as f:
+                json.dump(metadata, f, indent=2, ensure_ascii=False)
             
-            # Count fields (Data BOM uses direct_metadata and rag_metadata keys)
-            direct_count = count_fields(metadata.get('direct_metadata', {}))
-            rag_count = count_fields(metadata.get('rag_metadata', {}))
+            # Count fields
+            direct_count = count_fields(metadata.get('direct_fields', {}))
+            rag_count = count_fields(metadata.get('rag_fields', {}))
             
             response_data = {
                 'status': 'success',
@@ -376,6 +448,11 @@ def process():
                     'direct': direct_count,
                     'rag': rag_count,
                     'total': direct_count + rag_count
+                },
+                'found_links': {
+                    'hf_repo_id': hf_repo_id,
+                    'arxiv_url': arxiv_url,
+                    'github_url': github_url
                 }
             }
         

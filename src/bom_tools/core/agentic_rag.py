@@ -4,21 +4,30 @@ Modified to retrieve top 6 chunks globally and detect conflicts between sources
 """
 
 import os
+import time
+import concurrent.futures
 from typing import TypedDict, List, Dict, Tuple, Optional
 from langgraph.graph import StateGraph, END
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
+from .prompt import (
+    prompt_detect_conflicts,
+    prompt_generate_answer,
+    prompt_no_documents,
+    prompt_direct_llm,
+)
 
-# Ollama support - create LLM instance based on provider
+# Create LLM instance based on provider
 def create_llm(model: str, temperature: float = 0, llm_provider: str = "openai", ollama_base_url: str = None):
     """
     Create an LLM instance based on the provider.
     
     Args:
-        model: Model name (e.g., 'gpt-4o' for OpenAI, 'llama3:70b' for Ollama)
+        model: Model name (e.g., 'gpt-4o' for OpenAI, 'llama3:70b' for Ollama,
+               'qwen/qwen-2.5-72b-instruct' for OpenRouter)
         temperature: Temperature for generation
-        llm_provider: 'openai' or 'ollama'
+        llm_provider: 'openai', 'ollama', or 'openrouter'
         ollama_base_url: Base URL for Ollama server (defaults to env var or localhost)
     
     Returns:
@@ -33,6 +42,21 @@ def create_llm(model: str, temperature: float = 0, llm_provider: str = "openai",
             temperature=temperature,
             base_url=ollama_base_url,
             api_key="ollama"  # Required but ignored by Ollama
+        )
+    elif llm_provider == "openrouter":
+        openrouter_base_url = os.getenv('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1')
+        openrouter_api_key = os.getenv('OPENROUTER_API_KEY') or os.getenv('My_OPENROUTER_API_KEY')
+        if not openrouter_api_key:
+            raise ValueError("OPENROUTER_API_KEY or My_OPENROUTER_API_KEY must be set in environment")
+        return ChatOpenAI(
+            model=model,
+            temperature=temperature,
+            base_url=openrouter_base_url,
+            api_key=openrouter_api_key,
+            default_headers={
+                "HTTP-Referer": os.getenv('OPENROUTER_SITE_NAME', 'BOM_Tools'),
+                "X-Title": "BOM_Tools"
+            }
         )
     else:
         # Default to OpenAI
@@ -63,6 +87,31 @@ import re
 
 # Load environment variables
 load_dotenv()
+
+
+def _invoke_with_retry(fn, *args, max_retries=3, initial_delay=2.0, **kwargs):
+    """Invoke fn(*args, **kwargs) with exponential backoff for transient connection errors."""
+    last_error = None
+    for attempt in range(max_retries):
+        try:
+            return fn(*args, **kwargs)
+        except Exception as e:
+            err_str = str(e).lower()
+            is_transient = any(x in err_str for x in [
+                'connection reset', 'connection aborted', 'connectionreset',
+                'protocol error', 'broken pipe', 'remotedisconnected',
+                'econnreset', 'econnrefused', '104,', 'connection error',
+                'provider returned error',  # transient upstream 400s from OpenRouter etc.
+            ])
+            if is_transient and attempt < max_retries - 1:
+                delay = initial_delay * (2 ** attempt)
+                print(f"  ⚠️ Transient connection error (attempt {attempt + 1}/{max_retries}): "
+                      f"{type(e).__name__}. Retrying in {delay:.1f}s...")
+                time.sleep(delay)
+                last_error = e
+            else:
+                raise
+    raise last_error
 
 # Disable SSL warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -128,31 +177,31 @@ FIXED_QUESTIONS_AI = {
     # },
     'informationAboutApplication': {
         'question': 'Provides relevant information about the AI software, not including the model description.',
-        'priority': ['arxiv', 'huggingface', 'github'],
+        'priority': ['github', 'huggingface', 'arxiv'],
         'keywords': 'application functionality pre-processing APIs dependencies',
         'description': 'A free-form text description of how the AI model is used within the software. It should include any relevant information, such as pre-processing steps, third-party APIs, and other pertinent details. It can also include: Functionality provided by the AI model within the software application, including: any specific tasks or decisions it is designed to perform; any pre-processing steps that are applied to the input data before it is fed into the AI model for inference, such as data cleaning, normalization, or feature extraction; and any third-party APIs or services that are used in conjunction with the AI model, such as data sources, cloud services, or other AI models. Description of any dependencies or requirements needed to run the AI model within the software application, including: specific hardware, software libraries, and operating systems.'
     },
     'informationAboutTraining': {
         'question': 'Describes relevant information about different steps of the training process.',
-        'priority': ['arxiv', 'github', 'huggingface'],
+        'priority': ['arxiv', 'huggingface', 'github'],
         'keywords': 'training process data algorithms techniques evaluation metrics',
         'description': 'A detailed explanation of the training process, including the specific techniques, algorithms, and methods employed. Examples include: training data used to train the AI model, along with any relevant details about its source, quality, and pre-processing steps; specific training algorithms employed, including stochastic gradient descent, backpropagation, and reinforcement learning; specific training techniques used to improve the performance or accuracy of the AI model, such as transfer learning, fine-tuning, or active learning; and any evaluation metrics used to assess the performance of the AI model during the training process, including accuracy, precision, recall, and F1 score.'
     },
     'limitation': {
         'question': 'Captures a limitation of the AI software.',
-        'priority': ['arxiv', 'github', 'huggingface'],
+        'priority': ['arxiv', 'huggingface', 'github'],
         'keywords': 'limitations constraints challenges restrictions',
         'description': 'A free-form text that captures a limitation of the AI package (or of the AI models present in the AI package). Note that this is not guaranteed to be exhaustive. For instance, a limitation might be that the AI package cannot be used on datasets from a certain demography.'
     },
     'metric': {
         'question': 'Records the measurement of prediction quality of the AI model.',
-        'priority': ['arxiv', 'github', 'huggingface'],
+        'priority': ['arxiv', 'huggingface', 'github'],
         'keywords': 'metrics evaluation accuracy precision recall F1-score',
         'description': 'Records the measurement with which the AI model was evaluated. This makes statements about the prediction quality including uncertainty, accuracy, characteristics of the tested population, quality, fairness, explainability, robustness etc.'
     },
     'metricDecisionThreshold': {
         'question': 'Captures the threshold that was used for computation of a metric described in the metric field.',
-        'priority': ['arxiv', 'github', 'huggingface'],
+        'priority': ['arxiv', 'huggingface', 'github'],
         'keywords': 'decision threshold metric computation evaluation',
         'description': 'Each metric might be computed based on a decision threshold. For instance, precision or recall is typically computed by checking if the probability of the outcome is larger than 0.5. Each decision threshold should match with a metric field defined in the AI package.'
     },
@@ -170,7 +219,7 @@ FIXED_QUESTIONS_AI = {
     },
     'safetyRiskAssessment': {
         'question': 'Records the results of general safety risk assessment of the AI system.',
-        'priority': ['arxiv', 'github', 'huggingface'],
+        'priority': ['huggingface', 'arxiv', 'github'],
         'keywords': 'safety risk assessment compliance evaluation',
         'description': 'Records the results of general safety risk assessment of the AI system. Using categorization according to the EU general risk assessment methodology. The methodology implements Article 20 of Regulation (EC) No 765/2008 and is intended to assist authorities when they assess general product safety compliance. It is important to note that this categorization differs from the one proposed in the EU AI Acts provisional agreement.'
     },
@@ -188,13 +237,13 @@ FIXED_QUESTIONS_AI = {
     # },
     'typeOfModel': {
         'question': 'Records the type of the model used in the AI software.',
-        'priority': ['arxiv', 'github', 'huggingface'],
+        'priority': ['arxiv', 'huggingface', 'github'],
         'keywords': 'model type supervised unsupervised reinforcement learning',
         'description': 'A free-form text that records the type of the AI model(s) used in the software. For instance, if it is a supervised model, unsupervised model, reinforcement learning model or a combination of those.'
     },
     'useSensitivePersonalInformation': {
         'question': 'Records if sensitive personal information is used during model training or could be used during the inference.',
-        'priority': ['arxiv', 'github', 'huggingface'],
+        'priority': ['huggingface', 'arxiv', 'github'],
         'keywords': 'sensitive personal information PII privacy data protection',
         'description': 'Notes if sensitive personal information is used in the training or inference of the AI models. This might include biometric data, addresses or other data that can be used to infer a persons identity.'
     }
@@ -228,7 +277,7 @@ FIXED_QUESTIONS_DATA = {
     },
     'datasetAvailability': {
         'question': 'Does the dataset publicaly available or not?',
-        'priority': ['arxiv', 'huggingface', 'github'],
+        'priority': ['huggingface', 'arxiv', 'github'],
         'keywords': 'available availability download access public private registration clickthrough restricted open',
         'description': 'Describes the dataset availability from accessibility perspective.'
     },
@@ -240,7 +289,7 @@ FIXED_QUESTIONS_DATA = {
     },
     'datasetSize': {
         'question': 'What is the size of the dataset.',
-        'priority': ['arxiv', 'huggingface', 'github'],
+        'priority': ['huggingface', 'arxiv', 'github'],
         'keywords': 'size samples examples instances records entries GB MB TB bytes volume count number',
         'description': 'Captures how large a dataset is, measured in bytes.'
     },
@@ -252,25 +301,25 @@ FIXED_QUESTIONS_DATA = {
     },
     'datasetUpdateMechanism': {
         'question': 'What is the mechanism to update the dataset.',
-        'priority': ['arxiv', 'huggingface', 'github'],
+        'priority': ['github', 'huggingface', 'arxiv'],
         'keywords': 'update updated updating version maintenance versioning refresh dynamic static mechanism',
         'description': 'A free-form text that describes a mechanism to update the dataset.'
     },
     'hasSensitivePersonalInformation': {
         'question': 'Does any sensitive personal information is present in the dataset?',
-        'priority': ['arxiv', 'github', 'huggingface'],
+        'priority': ['huggingface', 'arxiv', 'github'],
         'keywords': 'sensitive personal information PII privacy identifying identity protected health financial',
         'description': 'Indicates the presence of sensitive personal data or information.'
     },
     'intendedUse': {
         'question': 'For what the given dataset should be used for?',
-        'priority': ['arxiv', 'github', 'huggingface'],
+        'priority': ['arxiv', 'huggingface', 'github'],
         'keywords': 'intended use purpose application task designed goal objective research training evaluation',
         'description': 'A free-form text that describes what the given dataset should be used for.'
     },
     'knownBias': {
         'question': 'What is the biases that the dataset is known to encompass?',
-        'priority': ['arxiv', 'github', 'huggingface'],
+        'priority': ['arxiv', 'huggingface', 'github'],
         'keywords': 'bias biased fairness demographic representation imbalance skewed prejudice limitation',
         'description': 'A free-form text that describes the different biases that the dataset encompasses.'
     },
@@ -308,8 +357,9 @@ class AgentState(TypedDict):
     row_index: int
     all_results: List[Dict]
     row_retrievers: Dict
-    available_sources: List[str]
-    conflicts: str
+    chunks_per_source: Dict
+    internal_conflict: str            # "No" or "Yes: ..."
+    external_conflict: str            # "No" or "Yes: ..."
 
 
 class HeaderAwareTextSplitter:
@@ -458,7 +508,7 @@ class HeaderAwareTextSplitter:
 class AgenticRAG:
     """Main RAG class that handles document processing and question answering"""
     
-    def __init__(self, model: str = "gpt-4o", temperature: float = 0, llm_provider: str = "openai", ollama_base_url: str = None, questions: Optional[Dict[str, Dict]] = None, bom_type: str = 'ai', embedding_provider: str = "local", embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"):
+    def __init__(self, model: str = "gpt-4o", temperature: float = 0, llm_provider: str = "openai", ollama_base_url: str = None, questions: Optional[Dict[str, Dict]] = None, bom_type: str = 'ai', embedding_provider: str = "local", embedding_model: str = "BAAI/bge-small-en-v1.5"):
         """Initialize the RAG system with LLM and embeddings
         
         Args:
@@ -469,7 +519,7 @@ class AgenticRAG:
             questions: Optional subset of FIXED_QUESTIONS to answer in this run
             bom_type: 'ai' or 'data' - determines which question set to use if questions not provided
             embedding_provider: 'local' (default, HuggingFace) or 'openai' - provider for embeddings
-            embedding_model: Model name for embeddings (default: 'sentence-transformers/all-MiniLM-L6-v2')
+            embedding_model: Model name for embeddings (default: 'BAAI/bge-small-en-v1.5')
                             Other good options: 'sentence-transformers/all-mpnet-base-v2' (higher quality),
                                                 'BAAI/bge-small-en-v1.5' (good balance)
         """
@@ -494,18 +544,146 @@ class AgenticRAG:
             questions = get_fixed_questions(self.bom_type)
         self.questions = questions
         self.workflow = self._build_workflow()
-        provider_info = f"Ollama ({ollama_base_url or 'default'})" if llm_provider == "ollama" else "OpenAI"
+        if llm_provider == "ollama":
+            provider_info = f"Ollama ({ollama_base_url or 'default'})"
+        elif llm_provider == "openrouter":
+            provider_info = f"OpenRouter ({os.getenv('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1')})"
+        else:
+            provider_info = "OpenAI"
         print(f"✓ Initialized AgenticRAG with model: {model} (provider: {provider_info}, BOM type: {self.bom_type})")
     
     def _build_workflow(self) -> StateGraph:
-        """Build the LangGraph workflow"""
+        """Build the LangGraph workflow: retrieve → detect conflicts → generate answer"""
         workflow = StateGraph(AgentState)
         workflow.add_node("global_retrieve_top_k", self._global_retrieve_top_k)
-        workflow.add_node("generate", self._generate_answer)
+        workflow.add_node("detect_conflicts", self._detect_conflicts)
+        workflow.add_node("generate_answer", self._generate_answer_node)
         workflow.set_entry_point("global_retrieve_top_k")
-        workflow.add_edge("global_retrieve_top_k", "generate")
-        workflow.add_edge("generate", END)
+        workflow.add_edge("global_retrieve_top_k", "detect_conflicts")
+        workflow.add_edge("detect_conflicts", "generate_answer")
+        workflow.add_edge("generate_answer", END)
         return workflow.compile()
+
+    @staticmethod
+    def _extract_field(text, marker):
+        """Extract text after 'MARKER:' up to the next all-caps marker or end."""
+        import re
+        pattern = rf"{re.escape(marker)}:\s*(.*?)(?=\n[A-Z_]{{3,}}:|$)"
+        m = re.search(pattern, text, re.DOTALL)
+        return m.group(1).strip() if m else ""
+
+    def _detect_conflicts(self, state: AgentState) -> AgentState:
+        """
+        Step 1: Conflict detection only — no answer generation.
+        Compares chunks pairwise; same-source contradictions → internal,
+        cross-source contradictions → external.
+        """
+        documents = state.get("documents", [])
+        if not documents:
+            return {**state, "internal_conflict": "No", "external_conflict": "No"}
+
+        # If only one chunk exists there is nothing to compare — skip the LLM call.
+        if len(documents) == 1:
+            return {**state, "internal_conflict": "No", "external_conflict": "No"}
+
+        question_type = state.get("question_type", "unknown")
+        question_config = self.questions.get(question_type, FIXED_QUESTIONS.get(question_type, {}))
+        field_name = question_type
+        question_summary = question_config.get('question', state["question"])
+        field_description = question_config.get('description', '')
+
+        # Build context: all chunks with their source label
+        context_parts = []
+        for i, doc in enumerate(documents, 1):
+            source = doc.metadata.get('source', 'unknown')
+            context_parts.append(f"--- Chunk {i} (Source: {source}) ---\n{doc.page_content.strip()}\n")
+        context = "\n".join(context_parts)
+
+        prompt = prompt_detect_conflicts(field_name, question_summary, field_description, context)
+        try:
+            response = _invoke_with_retry(self.llm.invoke, prompt)
+            response_text = response.content
+        except (ValueError, Exception) as e:
+            err_str = str(e)
+            if '400' in err_str or 'context' in err_str.lower() or 'too long' in err_str.lower():
+                print(f"  ⚠️  Conflict detection skipped (prompt too large): {err_str[:120]}")
+                return {**state, "internal_conflict": "No", "external_conflict": "No"}
+            raise
+
+        internal_conflict = self._extract_field(response_text, "INTERNAL_CONFLICT") or "No"
+        external_conflict = self._extract_field(response_text, "EXTERNAL_CONFLICT") or "No"
+
+        print(f"  ⚠️  Internal conflict: {internal_conflict[:120]}")
+        print(f"  ⚠️  External conflict: {external_conflict[:120]}")
+
+        return {**state, "internal_conflict": internal_conflict, "external_conflict": external_conflict}
+
+    def _generate_answer_node(self, state: AgentState) -> AgentState:
+        """
+        Step 2: Generate an answer from chunks.
+        If an external conflict was detected, keep only chunks from the
+        highest-priority source (per the question's priority list) and
+        generate the answer from those chunks alone.
+        """
+        documents = state.get("documents", [])
+        question_type = state.get("question_type", "unknown")
+        question_config = self.questions.get(question_type, FIXED_QUESTIONS.get(question_type, {}))
+        field_name = question_type
+        question_summary = question_config.get('question', state["question"])
+        field_description = question_config.get('description', '')
+
+        if not documents:
+            prompt = prompt_no_documents(state["question"])
+            response = _invoke_with_retry(self.llm.invoke, prompt)
+            answer = self._extract_field(response.content, "ANSWER") or response.content.strip()
+            return {**state, "answer": answer}
+
+        # If external conflict → filter to highest-priority source
+        external_conflict = state.get("external_conflict", "No")
+        chunks_for_answer = documents
+        if external_conflict.lower().startswith("yes"):
+            priority = question_config.get('priority', ['huggingface', 'arxiv', 'github'])
+            available_sources = {doc.metadata.get('source', 'unknown') for doc in documents}
+            for preferred in priority:
+                if preferred in available_sources:
+                    chunks_for_answer = [d for d in documents if d.metadata.get('source') == preferred]
+                    print(f"  🏅 External conflict resolved: using '{preferred}' ({len(chunks_for_answer)} chunks)")
+                    break
+
+        # Build context from (possibly filtered) chunks
+        context_parts = []
+        for i, doc in enumerate(chunks_for_answer, 1):
+            source = doc.metadata.get('source', 'unknown')
+            context_parts.append(f"--- Chunk {i} (Source: {source}) ---\n{doc.page_content.strip()}\n")
+        context = "\n".join(context_parts)
+
+        prompt = prompt_generate_answer(field_name, question_summary, field_description, context)
+        try:
+            response = _invoke_with_retry(self.llm.invoke, prompt)
+            answer = self._extract_field(response.content, "ANSWER") or response.content.strip()
+        except (ValueError, Exception) as e:
+            err_str = str(e)
+            is_context_limit = any(kw in err_str.lower() for kw in [
+                'context', 'too long', 'max_tokens', 'maximum context',
+                'token limit', 'exceeds', 'length',
+            ])
+            if is_context_limit:
+                # Retry with only the first 6 chunks
+                print(f"  ⚠️  Answer prompt too large, retrying with fewer chunks...")
+                truncated_parts = context_parts[:6]
+                truncated_context = "\n".join(truncated_parts)
+                prompt = prompt_generate_answer(field_name, question_summary, field_description, truncated_context)
+                try:
+                    response = _invoke_with_retry(self.llm.invoke, prompt)
+                    answer = self._extract_field(response.content, "ANSWER") or response.content.strip()
+                except Exception as e2:
+                    print(f"  ❌ Retry with fewer chunks also failed: {e2}")
+                    answer = "Not found"
+            else:
+                raise
+
+        print(f"  💡 Answer: {answer[:150]}...")
+        return {**state, "answer": answer}
 
     def _normalize_markdown(self, content: str, source: str) -> str:
         """Ensure all source content is normalized as markdown"""
@@ -852,7 +1030,7 @@ class AgenticRAG:
         """
         question = state["question"]
         TOP_K_PER_SOURCE = 20  # Number of candidates to retrieve from each source
-        FINAL_TOP_K = 12  # Final number of chunks to select globally
+        FINAL_TOP_K = 10  # Final number of chunks to select globally
         MIN_CHUNK_LENGTH = 100  # Minimum characters for a chunk to be valid
         
         # Get retrievers for current row
@@ -956,143 +1134,27 @@ class AgenticRAG:
         for source, count in sorted(source_counts.items(), key=lambda x: x[1], reverse=True):
             print(f"    {source}: {count} chunks")
         
+        # Group ALL top-20 candidates by source for internal conflict detection
+        chunks_by_source = {}
+        for chunk_info in all_chunks_with_scores:
+            source = chunk_info['source']
+            if source not in chunks_by_source:
+                chunks_by_source[source] = []
+            chunks_by_source[source].append(chunk_info['document'])
+        
+        print(f"\n  📦 Chunks per source for internal conflict check:")
+        for source, docs in chunks_by_source.items():
+            print(f"    {source}: {len(docs)} chunks")
+        
         return {
             **state, 
             "documents": selected_documents,
             "sources_used": sources_used,
             "source_priority": available_sources,  # Not used for retrieval anymore
-            "question_type": question_type
+            "question_type": question_type,
+            "chunks_per_source": chunks_by_source
         }
 
-    def _generate_answer(self, state: AgentState) -> AgentState:
-        """Generate an answer using retrieved documents and detect conflicts between sources"""
-        question = state["question"]
-        documents = state.get("documents", [])
-        sources_used = state.get("sources_used", [])
-        question_type = state.get("question_type")
-        
-        if documents:
-            # Group documents by source
-            source_contexts = {}
-            for doc in documents:
-                source = doc.metadata.get('source', 'unknown')
-                if source not in source_contexts:
-                    source_contexts[source] = []
-                source_contexts[source].append(doc.page_content)
-            
-            # Build context with source labels
-            context_parts = []
-            for source in sources_used:
-                if source in source_contexts:
-                    context_parts.append(f"\n{'='*60}")
-                    context_parts.append(f"SOURCE: {source.upper()}")
-                    context_parts.append(f"{'='*60}")
-                    for content in source_contexts[source]:
-                        context_parts.append(content.strip())
-                        context_parts.append("")
-            
-            context = "\n".join(context_parts)
-
-            question_config = self.questions.get(question_type, FIXED_QUESTIONS.get(question_type, {}))
-            field_name = question_type
-            question_summary = question_config.get('question', question)
-            field_description = question_config.get('description', '')
-            
-            prompt = f"""You are an AI model documentation expert. Your task is to extract specific information about an AI model or package from the provided sources AND detect any conflicts between sources.
-
-                You are looking for information related to the following field:
-
-                FIELD_NAME: {field_name}
-                QUESTION_SUMMARY: {question_summary}
-                FIELD_DESCRIPTION: {field_description}
-
-                AVAILABLE SOURCES:
-                {context}
-
-                INSTRUCTIONS:
-                1. Carefully read through ALL the provided source materials.
-                2. Look for information that directly answers the question based on the field name and description.
-                3. CONFLICT DETECTION - THIS IS CRITICAL:
-                - If multiple sources provide information about the same aspect but with DIFFERENT or CONTRADICTORY details, this is a CONFLICT.
-                - For example:
-                    * If arxiv says "the model is a transformer" but github says "the model is a CNN" → CONFLICT
-                    * If huggingface says "trained on ImageNet" but arxiv says "trained on COCO" → CONFLICT
-                    * If one source says "learning rate is 0.01" but another says "learning rate is 0.001" → CONFLICT
-                - Pay attention to: different methods, different values, contradictory statements, incompatible descriptions.
-                - Minor differences in wording are NOT conflicts if they describe the same thing.
-
-                4. If you find the answer:
-                - Provide a clear, specific, and detailed response.
-                - If information comes from multiple sources and they AGREE, synthesize them.
-                - If sources DISAGREE or provide CONFLICTING information, note this explicitly in your answer.
-                - Mention which source(s) contained each piece of information.
-
-                5. If information is partially available:
-                - Provide what you found.
-                - Clearly state what information is missing.
-
-                6. If no relevant information is found:
-                - State: "Not found."
-                - DO NOT make up information.
-
-                YOUR RESPONSE MUST BE IN THIS EXACT FORMAT:
-
-                ANSWER: [Your detailed answer here, incorporating information from all sources]
-
-                CONFLICT_STATUS: [Either "No conflicts detected" OR "CONFLICT DETECTED: [describe the specific conflict between sources]"]
-
-                IMPORTANT: 
-                - Be thorough - the information might be phrased differently than the question.
-                - Look for synonyms and related concepts.
-                - Be VERY CAREFUL to identify genuine conflicts where sources contradict each other.
-                - Do not report conflicts for information that is complementary or describes different aspects.
-
-                RESPONSE:"""
-            
-            print(f"\n  📝 Context length: {len(context)} characters")
-            print(f"  📚 Sources in context: {list(source_contexts.keys())}")
-        else:
-            prompt = f"""You are analyzing information about an AI model, but no relevant source documents were retrieved.
-
-Question: {question}
-
-YOUR RESPONSE MUST BE IN THIS EXACT FORMAT:
-
-ANSWER: Not found.
-
-CONFLICT_STATUS: No conflicts detected
-
-RESPONSE:"""
-        
-        response = self.llm.invoke(prompt)
-        response_text = response.content
-        
-        # Parse the response to extract answer and conflict status
-        answer = ""
-        conflicts = "No conflicts detected"
-        
-        # Split by the format markers
-        parts = response_text.split("CONFLICT_STATUS:")
-        
-        if len(parts) == 2:
-            # Extract answer (remove "ANSWER:" prefix if present)
-            answer_part = parts[0].strip()
-            if answer_part.startswith("ANSWER:"):
-                answer = answer_part[7:].strip()
-            else:
-                answer = answer_part
-            
-            # Extract conflict status
-            conflicts = parts[1].strip()
-        else:
-            # Fallback if format is not followed
-            answer = response_text
-            conflicts = "No conflicts detected"
-        
-        print(f"  ⚠️  Conflicts: {conflicts[:100]}...")
-        
-        return {**state, "answer": answer, "conflicts": conflicts}
-    
     def process_ai_model(self, repo_id: str, arxiv_url: str, github_url: str, huggingface_url: str) -> List[Dict]:
         """Process a single AI model and answer all questions"""
         return self.process(repo_id, arxiv_url, github_url, huggingface_url, 'ai')
@@ -1116,34 +1178,45 @@ RESPONSE:"""
         print(f"    GitHub: {github_url or 'None'}")
         print(f"    HuggingFace: {huggingface_url or 'None'}")
         
-        # Fetch content from all sources
-        content_dict = {}
-        
+        # Fetch all sources in parallel — each is an independent network request.
+        fetch_tasks = {}
         if arxiv_url and "arxiv.org" in str(arxiv_url):
-            print(f"\n  Fetching ArXiv content...")
-            content_dict['arxiv'] = self.fetch_arxiv_pdf_text(arxiv_url)
+            fetch_tasks['arxiv'] = (self.fetch_arxiv_pdf_text, arxiv_url)
         else:
             print(f"\n  Skipping ArXiv (no valid URL)")
-        
         if github_url and "github.com" in str(github_url):
-            print(f"  Fetching GitHub content...")
-            content_dict['github'] = self.fetch_github_readme(github_url)
+            fetch_tasks['github'] = (self.fetch_github_readme, github_url)
         else:
             print(f"  Skipping GitHub (no valid URL)")
-        
         if huggingface_url and "huggingface.co" in str(huggingface_url):
-            print(f"  Fetching HuggingFace content...")
-            content_dict['huggingface'] = self.fetch_huggingface_readme(huggingface_url)
+            fetch_tasks['huggingface'] = (self.fetch_huggingface_readme, huggingface_url)
         else:
             print(f"  Skipping HuggingFace (no valid URL: {huggingface_url})")
-        
+
+        content_dict = {}
+        if fetch_tasks:
+            print(f"\n  Fetching {list(fetch_tasks.keys())} in parallel...")
+            with concurrent.futures.ThreadPoolExecutor(max_workers=len(fetch_tasks)) as executor:
+                future_to_source = {
+                    executor.submit(fn, url): source
+                    for source, (fn, url) in fetch_tasks.items()
+                }
+                for future in concurrent.futures.as_completed(future_to_source):
+                    source = future_to_source[future]
+                    try:
+                        content = future.result()
+                        if content:
+                            content_dict[source] = content
+                            print(f"  ✓ {source}: {len(content):,} characters")
+                        else:
+                            print(f"  ⚠️ {source}: NO CONTENT")
+                    except Exception as e:
+                        print(f"  ✗ {source}: fetch failed — {e}")
+
         # Print content statistics
         print("\n  📊 Content Statistics:")
         for source, content in content_dict.items():
-            if content:
-                print(f"    {source}: {len(content):,} characters")
-            else:
-                print(f"    {source}: NO CONTENT")
+            print(f"    {source}: {len(content):,} characters")
         
         # Create vector stores
         print("\n  Creating vector stores...")
@@ -1155,12 +1228,13 @@ RESPONSE:"""
         
         print(f"  ✓ Created retrievers for: {list(retrievers.keys())}")
         
-        # Process all questions
-        results = []
-        for question_type, config in self.questions.items():
+        # Process all questions in parallel — each workflow.invoke is independent
+        # (retrievers is read-only; each invocation has its own state dict).
+        id_key = 'repo_id' if item_type == 'ai' else 'dataset_id'
+        MAX_PARALLEL_QUESTIONS = 5  # keep within OpenRouter rate limits
+
+        def _run_question(question_type, config):
             question = config['question']
-            print(f"\n  ❓ Question: {question}")
-            
             initial_state = {
                 "question": question,
                 "documents": [],
@@ -1171,42 +1245,44 @@ RESPONSE:"""
                 "row_index": 0,
                 "row_retrievers": retrievers,
                 "all_results": [],
-                "conflicts": ""
+                "chunks_per_source": {},
+                "internal_conflict": "No",
+                "external_conflict": "No",
             }
-            
-            result = self.workflow.invoke(initial_state)
-            
-            if item_type == 'ai':
-                qa_result = {
-                    'repo_id': item_id,
-                    'question': question,
-                    'answer': result['answer'],
-                    'sources_used': result.get('sources_used', []),
-                    'conflicts': result.get('conflicts', 'No conflicts detected'),
-                    'source_priority': result.get('source_priority', []),
-                    'question_type': result.get('question_type', 'general'),
-                    'num_documents': len(result['documents'])
-                }
-            else:
-                qa_result = {
-                    'dataset_id': item_id,
-                    'question': question,
-                    'answer': result['answer'],
-                    'sources_used': result.get('sources_used', []),
-                    'conflicts': result.get('conflicts', 'No conflicts detected'),
-                    'source_priority': result.get('source_priority', []),
-                    'question_type': result.get('question_type', 'general'),
-                    'num_documents': len(result['documents'])
-                }
-            
-            results.append(qa_result)
-            
-            print(f"  🏷️  Question Type: {result.get('question_type', 'general')}")
-            print(f"  💡 Answer: {result['answer'][:150]}...")
-            print(f"  📚 Sources Used: {result.get('sources_used', [])}")
-            print(f"  ⚠️  Conflicts: {result.get('conflicts', 'No conflicts detected')[:100]}...")
-            print(f"  📄 Documents Retrieved: {len(result['documents'])}")
-        
+            result = _invoke_with_retry(self.workflow.invoke, initial_state)
+            return question_type, question, result
+
+        ordered_items = list(self.questions.items())
+        qa_results_map = {}
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_PARALLEL_QUESTIONS) as executor:
+            future_to_qt = {
+                executor.submit(_run_question, qt, cfg): qt
+                for qt, cfg in ordered_items
+            }
+            for future in concurrent.futures.as_completed(future_to_qt):
+                qt = future_to_qt[future]
+                try:
+                    question_type, question, result = future.result()
+                    qa_result = {
+                        id_key: item_id,
+                        'question': question,
+                        'answer': result['answer'],
+                        'sources_used': result.get('sources_used', []),
+                        'conflict': {
+                            'internal': result.get('internal_conflict', 'No'),
+                            'external': result.get('external_conflict', 'No')
+                        },
+                        'question_type': result.get('question_type', 'general'),
+                        'num_documents': len(result['documents'])
+                    }
+                    qa_results_map[question_type] = qa_result
+                    print(f"  ✅ [{question_type}] {result['answer'][:100]}...")
+                except Exception as e:
+                    print(f"  ✗ [{qt}] failed: {e}")
+
+        # Reassemble in original question order
+        results = [qa_results_map[qt] for qt, _ in ordered_items if qt in qa_results_map]
         return results
 
 
@@ -1231,7 +1307,12 @@ class DirectLLM:
         self.g = Github(os.environ.get("GITHUB_TOKEN"))
         self.hf_api = HfApi(token=os.environ.get("hug_token"))
         self.questions = questions or FIXED_QUESTIONS
-        provider_info = f"Ollama ({ollama_base_url or 'default'})" if llm_provider == "ollama" else "OpenAI"
+        if llm_provider == "ollama":
+            provider_info = f"Ollama ({ollama_base_url or 'default'})"
+        elif llm_provider == "openrouter":
+            provider_info = f"OpenRouter ({os.getenv('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1')})"
+        else:
+            provider_info = "OpenAI"
         print(f"✓ Initialized DirectLLM with model: {model} (provider: {provider_info})")
     
     def extract_repo_path(self, github_url: str) -> str:
@@ -1379,51 +1460,12 @@ class DirectLLM:
         question_summary = question_config.get('question', question)
         field_description = question_config.get('description', '')
         
-        prompt = f"""You are an AI model documentation expert. Your task is to extract specific information about an AI model or package from the provided sources AND detect any conflicts between sources.
-
-You are looking for information related to the following field:
-
-FIELD_NAME: {field_name}
-QUESTION_SUMMARY: {question_summary}
-FIELD_DESCRIPTION: {field_description}
-
-AVAILABLE SOURCES:
-{context}
-
-INSTRUCTIONS:
-1. Carefully read through ALL the provided source materials.
-2. Look for information that directly answers the question based on the field name and description.
-3. CONFLICT DETECTION - THIS IS CRITICAL:
-   - If multiple sources provide information about the same aspect but with DIFFERENT or CONTRADICTORY details, this is a CONFLICT.
-   - Pay attention to: different methods, different values, contradictory statements, incompatible descriptions.
-   - Minor differences in wording are NOT conflicts if they describe the same thing.
-
-4. If you find the answer:
-   - Provide a clear, specific, and detailed response.
-   - If information comes from multiple sources and they AGREE, synthesize them.
-   - If sources DISAGREE or provide CONFLICTING information, note this explicitly in your answer.
-   - Mention which source(s) contained each piece of information.
-
-5. If information is partially available:
-   - Provide what you found.
-   - Clearly state what information is missing.
-
-6. If no relevant information is found:
-   - State: "Not found."
-   - DO NOT make up information.
-
-YOUR RESPONSE MUST BE IN THIS EXACT FORMAT:
-
-ANSWER: [Your detailed answer here, incorporating information from all sources]
-
-CONFLICT_STATUS: [Either "No conflicts detected" OR "CONFLICT DETECTED: [describe the specific conflict between sources]"]
-
-RESPONSE:"""
+        prompt = prompt_direct_llm(field_name, question_summary, field_description, context)
         
         print(f"\n  📝 Full context length: {len(context):,} characters (Direct mode - no chunking)")
         print(f"  📚 Sources in context: {sources_used}")
         
-        response = self.llm.invoke(prompt)
+        response = _invoke_with_retry(self.llm.invoke, prompt)
         response_text = response.content
         
         # Parse the response

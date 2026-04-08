@@ -254,8 +254,18 @@ class MetadataFetcher:
                 github_metadata["releaseTime"] = repo.pushed_at.isoformat() if repo.pushed_at else None
                 github_metadata["name"] = repo.name if repo.name else None
                 github_metadata["datasetAvailability"] = "public" if not repo.private else "private"
-                github_metadata["primaryPurpose"] = repo.description if repo.description else None
-                
+                # Primary Purpose (description + topics, same as AI BOM)
+                purpose_indicators = []
+                if repo.description:
+                    purpose_indicators.append(repo.description)
+                try:
+                    topics = repo.get_topics()
+                    if topics:
+                        purpose_indicators.extend(topics)
+                except Exception:
+                    pass
+                github_metadata["primaryPurpose"] = "; ".join(purpose_indicators) if purpose_indicators else None
+
                 # License
                 try:
                     license_info = repo.get_license()
@@ -299,19 +309,45 @@ class MetadataFetcher:
                     hf_metadata["packageVersion"] = None
                 
                 # Primary Purpose
-                purpose_indicators = []
-                if repo_info.cardData:
-                    if repo_info.cardData.get("task_categories"):
-                        task_cats = repo_info.cardData.get("task_categories")
-                        if isinstance(task_cats, list):
-                            purpose_indicators.extend(task_cats)
+                # First try: $.components[0].modelCard.modelParameters.task
+                purpose_from_components = None
+                try:
+                    components = None
+                    if hasattr(repo_info, 'components') and repo_info.components:
+                        components = repo_info.components
+                    elif repo_info.cardData and isinstance(repo_info.cardData.get('components'), list):
+                        components = repo_info.cardData.get('components')
+                    if components:
+                        first_comp = components[0]
+                        if isinstance(first_comp, dict):
+                            task = (first_comp
+                                    .get('modelCard', {})
+                                    .get('modelParameters', {})
+                                    .get('task'))
                         else:
-                            purpose_indicators.append(str(task_cats))
-                    if repo_info.cardData.get("pipeline_tag"):
-                        purpose_indicators.append(repo_info.cardData.get("pipeline_tag"))
-                if hasattr(repo_info, 'tags') and repo_info.tags:
-                    purpose_indicators.extend(repo_info.tags[:3])
-                hf_metadata["primaryPurpose"] = "; ".join(purpose_indicators) if purpose_indicators else None
+                            task = (getattr(getattr(getattr(first_comp, 'modelCard', None), 'modelParameters', None), 'task', None))
+                        if task:
+                            purpose_from_components = str(task) if not isinstance(task, list) else "; ".join(task)
+                except Exception:
+                    pass
+
+                if purpose_from_components:
+                    hf_metadata["primaryPurpose"] = purpose_from_components
+                else:
+                    # Fallback: task_categories + pipeline_tag + first 3 tags
+                    purpose_indicators = []
+                    if repo_info.cardData:
+                        if repo_info.cardData.get("task_categories"):
+                            task_cats = repo_info.cardData.get("task_categories")
+                            if isinstance(task_cats, list):
+                                purpose_indicators.extend(task_cats)
+                            else:
+                                purpose_indicators.append(str(task_cats))
+                        if repo_info.cardData.get("pipeline_tag"):
+                            purpose_indicators.append(repo_info.cardData.get("pipeline_tag"))
+                    if hasattr(repo_info, 'tags') and repo_info.tags:
+                        purpose_indicators.extend(repo_info.tags[:3])
+                    hf_metadata["primaryPurpose"] = "; ".join(purpose_indicators) if purpose_indicators else None
                 
                 # License
                 hf_metadata["license"] = repo_info.cardData.get("license") if repo_info.cardData else None

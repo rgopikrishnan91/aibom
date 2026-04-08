@@ -577,18 +577,72 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- LLM Provider Selection -->
+                <div class="form-group">
+                    <label>🧠 LLM Provider</label>
+                    <div class="mode-selector">
+                        <div class="mode-option">
+                            <input type="radio" name="llm_provider" id="provider_openrouter" value="openrouter" checked>
+                            <label for="provider_openrouter">
+                                <span class="mode-icon">🌐</span>
+                                <span class="mode-label">OpenRouter</span>
+                            </label>
+                        </div>
+                        <div class="mode-option">
+                            <input type="radio" name="llm_provider" id="provider_openai" value="openai">
+                            <label for="provider_openai">
+                                <span class="mode-icon">🔑</span>
+                                <span class="mode-label">OpenAI</span>
+                            </label>
+                        </div>
+                        <div class="mode-option">
+                            <input type="radio" name="llm_provider" id="provider_ollama" value="ollama">
+                            <label for="provider_ollama">
+                                <span class="mode-icon">🦙</span>
+                                <span class="mode-label">Ollama</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Model Selection (dynamic based on provider) -->
+                <div class="form-group" id="model_group_openrouter">
+                    <label for="openrouter_model">🤖 OpenRouter Model</label>
+                    <input type="text" id="openrouter_model" name="openrouter_model"
+                           value="qwen/qwen-2.5-72b-instruct"
+                           placeholder="e.g. qwen/qwen-2.5-72b-instruct"
+                           style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:0.95em;box-sizing:border-box;">
+                    <div class="url-hint">Type any OpenRouter model ID (e.g. meta-llama/llama-3.3-70b-instruct)</div>
+                </div>
+
+                <div class="form-group" id="model_group_openai" style="display:none;">
+                    <label for="openai_model">🤖 OpenAI Model</label>
+                    <select id="openai_model" name="openai_model" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:0.95em;">
+                        <option value="gpt-4o">gpt-4o</option>
+                        <option value="gpt-4o-mini">gpt-4o-mini</option>
+                        <option value="gpt-4-turbo">gpt-4-turbo</option>
+                        <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="model_group_ollama" style="display:none;">
+                    <label for="ollama_model_input">🤖 Ollama Model</label>
+                    <input type="text" id="ollama_model_input" name="ollama_model" placeholder="llama3:70b" value="llama3:70b">
+                    <div class="url-hint">Model name as listed in your Ollama instance</div>
+                </div>
                 
                 <!-- Use Case Focus Selection -->
                 <div class="form-group">
                     <label>🎯 Use Case Focus</label>
                     <div class="usecase-dropdown-container" id="useCaseContainer">
                         <button type="button" class="usecase-dropdown-btn" id="useCaseDropdownBtn">
-                            <span id="useCaseLabel">Complete Data BOM</span>
+                            <span id="useCaseLabel">Complete BOM</span>
                             <span class="dropdown-arrow">▼</span>
                         </button>
                         <input type="hidden" name="use_case" id="use_case" value="complete">
                         <div class="usecase-dropdown-menu" id="useCaseDropdownMenu">
-                            <div class="usecase-option selected" data-value="complete">Complete Data BOM</div>
+                            <div class="usecase-option selected" data-value="complete">Complete BOM</div>
                             <div class="usecase-option" data-value="safety">Safety & Bias</div>
                             <div class="usecase-option" data-value="security">Security & Privacy</div>
                             <div class="usecase-option" data-value="lineage">Data Lineage</div>
@@ -629,7 +683,7 @@
                 </div>
                 
                 <div class="button-group">
-                    <button type="button" class="btn-process" id="processBtn">🚀 Process Dataset</button>
+                    <button type="button" class="btn-process" id="processBtn">🚀 Process Model or Dataset</button>
                     <button type="button" class="btn-reset" onclick="resetForm()">🔄 Reset</button>
                 </div>
             </form>
@@ -689,7 +743,7 @@
         const useCaseInput = document.getElementById('use_case');
         
         const USE_CASE_LABELS = {
-            complete: 'Complete Data BOM',
+            complete: 'Complete BOM',
             safety: 'Safety & Bias',
             security: 'Security & Privacy',
             lineage: 'Data Lineage',
@@ -699,6 +753,18 @@
         let currentTab = 'complete';
         let spdxData = null;
         
+        // Show/hide model inputs based on selected provider
+        function updateModelVisibility() {
+            const provider = document.querySelector('input[name="llm_provider"]:checked').value;
+            document.getElementById('model_group_openrouter').style.display = provider === 'openrouter' ? 'block' : 'none';
+            document.getElementById('model_group_openai').style.display = provider === 'openai' ? 'block' : 'none';
+            document.getElementById('model_group_ollama').style.display = provider === 'ollama' ? 'block' : 'none';
+        }
+        document.querySelectorAll('input[name="llm_provider"]').forEach(function(r) {
+            r.addEventListener('change', updateModelVisibility);
+        });
+        updateModelVisibility();
+
         // Debugging: Ensure the script is loaded
         console.log("🚀 Script loaded successfully!");
         
@@ -761,19 +827,33 @@
             const selectedMode = document.querySelector('input[name="mode"]:checked').value;
             const selectedUseCase = document.getElementById('use_case').value;
 
+            const selectedProvider = document.querySelector('input[name="llm_provider"]:checked').value;
+            let selectedModel = '';
+            if (selectedProvider === 'openrouter') {
+                selectedModel = document.getElementById('openrouter_model').value;
+            } else if (selectedProvider === 'openai') {
+                selectedModel = document.getElementById('openai_model').value;
+            } else {
+                selectedModel = document.getElementById('ollama_model_input').value;
+            }
+
             const formData = {
                 bom_type: selectedBomType,
                 arxiv_url: document.getElementById('arxiv_url').value,
                 github_url: document.getElementById('github_url').value,
                 mode: selectedMode,
-                use_case: selectedUseCase
+                use_case: selectedUseCase,
+                llm_provider: selectedProvider,
+                model: selectedModel,
+                ollama_model: document.getElementById('ollama_model_input').value,
+                openrouter_model: document.getElementById('openrouter_model').value
             };
 
             // Add fields based on BOM type
             if (selectedBomType === 'ai') {
                 formData.repo_id = document.getElementById('repo_id').value;
             } else {
-                formData.hf_url = document.getElementById('hf_url').value;
+                formData.hf_repo_id = (document.getElementById('hf_repo_id_data') || {}).value || '';
             }
 
             console.log("📄 Form data:", formData);
@@ -786,22 +866,73 @@
                     return;
                 }
             } else {
-                if (!formData.arxiv_url && !formData.github_url && !formData.hf_repo_id) {
+                if (!formData.hf_repo_id && !formData.arxiv_url && !formData.github_url) {
                     showStatus('error', '❌ Please provide at least a repo ID or one URL!');
                     return;
                 }
             }
 
             const bomTypeLabel = selectedBomType === 'ai' ? 'AI Model' : 'Dataset';
-            showStatus('processing', '<span class="spinner"></span> Processing ' + bomTypeLabel + ' with ' + selectedMode.toUpperCase() + ' mode (' + USE_CASE_LABELS[selectedUseCase] + ')... This may take a few minutes.');
             processBtn.disabled = true;
 
+            // Helper to fill found links into the input fields immediately
+            function applyFoundLinks(linkResult) {
+                const hfInput = selectedBomType === 'ai'
+                    ? document.getElementById('repo_id')
+                    : document.getElementById('hf_repo_id_data');
+                if (linkResult.hf_repo_id) {
+                    if (hfInput) hfInput.value = linkResult.hf_repo_id;
+                    if (selectedBomType === 'ai') formData.repo_id = linkResult.hf_repo_id;
+                    else formData.hf_repo_id = linkResult.hf_repo_id;
+                }
+                if (linkResult.arxiv_url) {
+                    document.getElementById('arxiv_url').value = linkResult.arxiv_url;
+                    formData.arxiv_url = linkResult.arxiv_url;
+                }
+                if (linkResult.github_url) {
+                    document.getElementById('github_url').value = linkResult.github_url;
+                    formData.github_url = linkResult.github_url;
+                }
+            }
+
             try {
+                // Step 1: Find any missing links immediately, before BOM generation
+                const hasAllLinks = formData.arxiv_url && formData.github_url &&
+                    (selectedBomType === 'ai' ? formData.repo_id : formData.hf_repo_id);
+
+                if (!hasAllLinks) {
+                    showStatus('processing', '<span class="spinner"></span> 🔍 Searching for missing links...');
+                    try {
+                        const linkResp = await fetch('/find_links', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify(formData)
+                        });
+                        const linkResult = await linkResp.json();
+                        if (linkResult.status === 'success' || linkResult.status === 'skipped') {
+                            applyFoundLinks(linkResult);
+                            formData.skip_fallback = true;
+                            const ls = linkResult.link_status || {};
+                            const found = [];
+                            if (ls.hf_found)    found.push('HuggingFace');
+                            if (ls.arxiv_found)  found.push('ArXiv');
+                            if (ls.github_found) found.push('GitHub');
+                            const linkNote = found.length > 0 ? `🔗 Found: ${found.join(', ')}. ` : '';
+                            showStatus('processing', `<span class="spinner"></span> ${linkNote}Generating ${bomTypeLabel} BOM...`);
+                        }
+                    } catch (linkErr) {
+                        console.warn('Link search failed, continuing:', linkErr);
+                        showStatus('processing', `<span class="spinner"></span> Generating ${bomTypeLabel} BOM...`);
+                    }
+                } else {
+                    formData.skip_fallback = true;
+                    showStatus('processing', `<span class="spinner"></span> Generating ${bomTypeLabel} BOM with ${selectedMode.toUpperCase()} mode (${USE_CASE_LABELS[selectedUseCase]})... This may take a few minutes.`);
+                }
+
+                // Step 2: Generate the full BOM
                 const response = await fetch('/process', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(formData)
                 });
 
@@ -810,7 +941,12 @@
                 const result = await response.json();
 
                 if (result.status === 'success') {
-                    const useCaseLabel = result.use_case_label || 'Complete Data BOM';
+                    // Populate any remaining discovered links back into input boxes
+                    if (result.found_links) {
+                        applyFoundLinks(result.found_links);
+                    }
+
+                    const useCaseLabel = result.use_case_label || 'Complete BOM';
                     const isSubset = result.is_subset || false;
                     const directFields = result.field_counts?.direct || 0;
                     const ragFields = result.field_counts?.rag || 0;
@@ -826,6 +962,17 @@
                     } else {
                         statusMessage += `<strong>Output Mode:</strong> COMPLETE BOM (all fields with sources & conflicts)<br>`;
                         statusMessage += `<strong>Fields Retrieved:</strong> ${directFields} direct + ${ragFields} RAG`;
+                    }
+
+                    // Show auto-filled links note
+                    if (result.found_links) {
+                        const auto = [];
+                        if (result.found_links.hf_repo_id)  auto.push('HuggingFace');
+                        if (result.found_links.arxiv_url)   auto.push('ArXiv');
+                        if (result.found_links.github_url)  auto.push('GitHub');
+                        if (auto.length > 0) {
+                            statusMessage += `<br><small>🔗 Links auto-filled: ${auto.join(', ')}</small>`;
+                        }
                     }
 
                     showStatus('success', statusMessage);
@@ -944,14 +1091,27 @@
                     return '<span class="json-object">{</span>';
                 }
                 
+                // For field triplets {value, source, conflict, ...} always put "value" first, then "source", then "conflict"
+                const isFieldTriplet = keys.includes('value') && keys.includes('conflict');
+                // For conflict sub-objects {value, source, type} order as value → source → type
+                const isConflictObj = keys.includes('value') && keys.includes('type') && !keys.includes('conflict');
+                let orderedKeys;
+                if (isFieldTriplet) {
+                    orderedKeys = ['value', 'source', 'conflict', ...keys.filter(k => k !== 'value' && k !== 'source' && k !== 'conflict')];
+                } else if (isConflictObj) {
+                    orderedKeys = ['value', 'source', 'type', ...keys.filter(k => k !== 'value' && k !== 'source' && k !== 'type')];
+                } else {
+                    orderedKeys = keys;
+                }
+                
                 let html = `<span class="json-toggle" onclick="toggleCollapse(this)">▼</span><span class="json-object">{</span>`;
                 html += '<div class="json-content">';
                 
-                keys.forEach((key, index) => {
+                orderedKeys.forEach((key, index) => {
                     html += '<div class="json-line">';
                     html += `<span class="json-key">"${escapeHtml(key)}"</span>: `;
                     html += formatJSON(obj[key], depth + 1);
-                    if (index < keys.length - 1) html += ',';
+                    if (index < orderedKeys.length - 1) html += ',';
                     html += '</div>';
                 });
                 
@@ -991,7 +1151,7 @@
             
             // Reset use case dropdown
             useCaseInput.value = 'complete';
-            useCaseLabelSpan.textContent = 'Complete Data BOM';
+            useCaseLabelSpan.textContent = 'Complete BOM';
             document.querySelectorAll('.usecase-option').forEach(function(o) {
                 o.classList.remove('selected');
             });

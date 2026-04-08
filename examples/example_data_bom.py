@@ -13,7 +13,7 @@ def main():
         llm_provider="openai",
         use_case="complete",
         embedding_provider="local",  # Use local HuggingFace embeddings (default)
-        embedding_model="sentence-transformers/all-MiniLM-L6-v2"  # Fast, free, CPU-friendly
+        embedding_model="BAAI/bge-small-en-v1.5"  # Good balance of quality and speed
     )
     
     # Alternative: Use OpenAI embeddings (requires OPENAI_API_KEY, costs money)

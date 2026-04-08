@@ -69,4 +69,7 @@ docs/.doctrees/
 build/
 dist/
 *.egg-info/
-  
+results/
+results-golden-set/
+results_200nodes/
+docs/

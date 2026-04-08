@@ -1,8 +1,27 @@
 import inspect
+from collections import defaultdict
+
+
+def _tag_similarity(v1, v2):
+    """Jaccard similarity between two tag/category strings.
+
+    Splits on ';', ',', and whitespace, lowercases each token, then computes
+    |intersection| / |union|.  Returns a float in [0, 1].
+    """
+    import re
+    def _tokenize(s):
+        return set(t.strip().lower() for t in re.split(r'[;,\s]+', str(s)) if t.strip())
+    t1, t2 = _tokenize(v1), _tokenize(v2)
+    if not t1 and not t2:
+        return 1.0
+    if not t1 or not t2:
+        return 0.0
+    return len(t1 & t2) / len(t1 | t2)
+
 
 class SourceHandler:
     @staticmethod
-    def get_field_conflict(key, *sources):
+    def get_field_conflict(key, *sources, fuzzy=False, fuzzy_threshold=0.5):
         """
         Return (value, source_name, conflict) based on priority and conflict resolution rules.
         
@@ -60,9 +79,37 @@ class SourceHandler:
             if isinstance(v, str):
                 return v.strip().lower()
             return str(v).strip().lower()
-        
-        # Group by normalized values
-        from collections import defaultdict
+
+        # When fuzzy=True, merge collected entries whose tag similarity exceeds the
+        # threshold into the same group instead of requiring an exact string match.
+        if fuzzy and len(collected) >= 2:
+            # Build groups by fuzzy similarity; greedy first-match
+            groups = []  # list of lists of (val, src_name) pairs
+            for val, src_name, _ in collected:
+                placed = False
+                for grp in groups:
+                    rep_val = grp[0][0]  # representative value of the group
+                    if _tag_similarity(val, rep_val) >= fuzzy_threshold:
+                        grp.append((val, src_name))
+                        placed = True
+                        break
+                if not placed:
+                    groups.append([(val, src_name)])
+
+            if len(groups) == 1:
+                # All sources are similar enough — no conflict
+                return collected[0][0], collected[0][1], None
+
+            # Multiple dissimilar groups — pick largest (or first on tie), flag rest
+            groups.sort(key=lambda g: len(g), reverse=True)
+            chosen_val, chosen_src = groups[0][0]
+            conflict_parts = [
+                f"{src}: {val}" for grp in groups[1:] for val, src in grp
+            ]
+            conflict = ", ".join(conflict_parts) if conflict_parts else None
+            return chosen_val, chosen_src, conflict
+
+        # Group by normalized values (exact match path)
         value_groups = defaultdict(list)
         for val, src_name, _ in collected:
             norm_val = normalize(val)

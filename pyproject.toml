@@ -81,7 +81,7 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --cov=bom_tools --cov-report=html --cov-report=term"
+addopts = "-v"
 
 [tool.mypy]
 python_version = "3.8"
