@@ -193,7 +193,7 @@ def index():
 def find_links():
     """Run link fallback and return found links immediately, before full BOM generation."""
     try:
-        data = request.json
+        data = request.get_json(silent=True)
         if not data or not isinstance(data, dict):
             return jsonify({'status': 'error', 'message': 'Request must be JSON'}), 400
         bom_type = data.get('bom_type', 'ai').strip().lower()
@@ -267,7 +267,7 @@ def get_config():
 def process():
     """Handle processing request for both AI and Data BOMs"""
     try:
-        data = request.json
+        data = request.get_json(silent=True)
         if not data or not isinstance(data, dict):
             return jsonify({'status': 'error', 'message': 'Request must be JSON'}), 400
         bom_type = data.get('bom_type', 'ai').strip().lower()

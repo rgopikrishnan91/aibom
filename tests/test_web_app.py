@@ -1,9 +1,9 @@
 """
 Baseline regression tests for web app utility functions.
-Tests pure logic functions only — no Flask server needed.
+Tests pure logic functions + Flask integration tests.
 """
 import pytest
-from bom_tools.web.app import normalize_use_case, get_use_case_label, count_fields
+from bom_tools.web.app import normalize_use_case, get_use_case_label, count_fields, app
 
 
 class TestNormalizeUseCase:
@@ -82,3 +82,39 @@ class TestCountFields:
             "empty_direct": "",
         }
         assert count_fields(metadata) == 2
+
+
+class TestFlaskApp:
+    """Integration tests using Flask test client."""
+
+    @pytest.fixture
+    def client(self):
+        app.config['TESTING'] = True
+        with app.test_client() as client:
+            yield client
+
+    def test_home_page(self, client):
+        response = client.get('/')
+        assert response.status_code == 200
+
+    def test_process_no_json(self, client):
+        """Test that /process rejects non-JSON requests."""
+        response = client.post('/process', data="not json", content_type='text/plain')
+        assert response.status_code == 400
+
+    def test_find_links_no_json(self, client):
+        """Test that /find_links rejects non-JSON requests."""
+        response = client.post('/find_links', data="not json", content_type='text/plain')
+        assert response.status_code == 400
+
+    def test_download_path_traversal_blocked(self, client):
+        """Test that path traversal in /download is blocked."""
+        response = client.get('/download/../../etc/passwd')
+        # secure_filename strips the ../ so it becomes 'etcpasswd' or similar
+        # The file won't exist so we get 404, but NOT the contents of /etc/passwd
+        assert response.status_code in (400, 404)
+
+    def test_download_nonexistent_file(self, client):
+        """Test that downloading a non-existent file returns 404."""
+        response = client.get('/download/nonexistent_file_12345.json')
+        assert response.status_code == 404

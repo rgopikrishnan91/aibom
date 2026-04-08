@@ -62,4 +62,5 @@ class TestDATABOMProcessor:
             github_url=None,
             hf_url="https://huggingface.co/datasets/squad"
         )
-        assert "squad" in dataset_id or "datasets_squad" in dataset_id
+        assert dataset_id is not None
+        assert "squad" in dataset_id.lower()
