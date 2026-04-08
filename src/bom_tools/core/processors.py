@@ -178,7 +178,7 @@ class AIBOMProcessor:
         else:
             self.github_client = None
 
-        hf_token = os.getenv("hug_token") or os.getenv("HUGGINGFACE_TOKEN")
+        hf_token = os.getenv("HUGGINGFACE_TOKEN")
         if hf_token:
             try:
                 self.hf_api = HfApi(token=hf_token)
@@ -409,7 +409,7 @@ class DATABOMProcessor:
         else:
             self.github_client = None
 
-        hf_token = os.getenv("hug_token") or os.getenv("HUGGINGFACE_TOKEN")
+        hf_token = os.getenv("HUGGINGFACE_TOKEN")
         if hf_token:
             try:
                 self.hf_api = HfApi(token=hf_token)

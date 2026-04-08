@@ -45,9 +45,9 @@ def create_llm(model: str, temperature: float = 0, llm_provider: str = "openai",
         )
     elif llm_provider == "openrouter":
         openrouter_base_url = os.getenv('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1')
-        openrouter_api_key = os.getenv('OPENROUTER_API_KEY') or os.getenv('My_OPENROUTER_API_KEY')
+        openrouter_api_key = os.getenv('OPENROUTER_API_KEY')
         if not openrouter_api_key:
-            raise ValueError("OPENROUTER_API_KEY or My_OPENROUTER_API_KEY must be set in environment")
+            raise ValueError("OPENROUTER_API_KEY must be set in environment")
         return ChatOpenAI(
             model=model,
             temperature=temperature,
@@ -526,7 +526,7 @@ class AgenticRAG:
             self.embeddings = OpenAIEmbeddings()
         
         self.g = Github(os.environ.get("GITHUB_TOKEN"))
-        self.hf_api = HfApi(token=os.environ.get("hug_token"))
+        self.hf_api = HfApi(token=os.environ.get("HUGGINGFACE_TOKEN"))
         self.bom_type = bom_type.lower()
         if questions is None:
             questions = get_fixed_questions(self.bom_type)
@@ -1293,7 +1293,7 @@ class DirectLLM:
         """
         self.llm = create_llm(model, temperature, llm_provider, ollama_base_url)
         self.g = Github(os.environ.get("GITHUB_TOKEN"))
-        self.hf_api = HfApi(token=os.environ.get("hug_token"))
+        self.hf_api = HfApi(token=os.environ.get("HUGGINGFACE_TOKEN"))
         self.questions = questions or FIXED_QUESTIONS
         if llm_provider == "ollama":
             provider_info = f"Ollama ({ollama_base_url or 'default'})"
@@ -1346,7 +1346,7 @@ class DirectLLM:
                 return ""
             
             headers = {}
-            hf_token = os.environ.get("hug_token")
+            hf_token = os.environ.get("HUGGINGFACE_TOKEN")
             if hf_token:
                 headers["Authorization"] = f"Bearer {hf_token}"
             
