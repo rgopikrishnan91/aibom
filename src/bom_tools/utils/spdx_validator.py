@@ -361,7 +361,7 @@ class SPDXValidator:
         if isinstance(dataset_size, str):
             try:
                 dataset_size = int(dataset_size)
-            except:
+            except (ValueError, TypeError):
                 dataset_size = 0
         
         dataset_type = self._extract_value(rag.get('datasetType', []))

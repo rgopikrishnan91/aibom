@@ -431,7 +431,7 @@ class DATABOMProcessor:
             try:
                 repo_path = MetadataFetcher.extract_repo_path(github_url)
                 return repo_path.replace("/", "_")
-            except:
+            except (ValueError, IndexError):
                 pass
         
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

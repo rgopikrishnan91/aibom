@@ -157,18 +157,25 @@ class MetadataFetcher:
 
     @staticmethod
     def get_pdf_text_from_arxiv(arxiv_url):
+        import tempfile
         arxiv_id = arxiv_url.split('/')[-1]
         pdf_url = f"https://arxiv.org/pdf/{arxiv_id}.pdf"
         response = requests.get(pdf_url, timeout=30)
         if response.status_code == 200:
-            with open("temp.pdf", "wb") as f:
-                f.write(response.content)
-            doc = fitz.open("temp.pdf")
-            text = ""
-            for page in doc:
-                text += page.get_text()
-            doc.close()
-            return text
+            temp_pdf_path = None
+            try:
+                with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as tmp:
+                    temp_pdf_path = tmp.name
+                    tmp.write(response.content)
+                doc = fitz.open(temp_pdf_path)
+                text = ""
+                for page in doc:
+                    text += page.get_text()
+                doc.close()
+                return text
+            finally:
+                if temp_pdf_path and os.path.exists(temp_pdf_path):
+                    os.remove(temp_pdf_path)
         else:
             print(f"Failed to download PDF from {pdf_url}")
             return ""
@@ -219,7 +226,7 @@ class MetadataFetcher:
                     else:
                         tags = repo.get_tags()
                         github_metadata["packageVersion"] = tags[0].name if tags.totalCount > 0 else None
-                except:
+                except Exception:
                     github_metadata["packageVersion"] = None
                 
                 # Primary Purpose
@@ -230,7 +237,7 @@ class MetadataFetcher:
                     topics = repo.get_topics()
                     if topics:
                         purpose_indicators.extend(topics)
-                except:
+                except Exception:
                     pass
                 github_metadata["primaryPurpose"] = "; ".join(purpose_indicators) if purpose_indicators else None
                 
@@ -238,10 +245,10 @@ class MetadataFetcher:
                 try:
                     license_info = repo.get_license()
                     github_metadata["license"] = license_info.license.name if license_info else None
-                except:
+                except Exception:
                     try:
                         github_metadata["license"] = repo.license.name if repo.license else None
-                    except:
+                    except Exception:
                         github_metadata["license"] = None
             else:
                 # Data BOM fields
@@ -267,10 +274,10 @@ class MetadataFetcher:
                 try:
                     license_info = repo.get_license()
                     github_metadata["license"] = license_info.license.name if license_info else None
-                except:
+                except Exception:
                     try:
                         github_metadata["license"] = repo.license.name if repo.license else None
-                    except:
+                    except Exception:
                         github_metadata["license"] = None
 
         except Exception as e:
@@ -302,7 +309,7 @@ class MetadataFetcher:
                         hf_metadata["packageVersion"] = repo_info.sha[:8]
                     else:
                         hf_metadata["packageVersion"] = None
-                except:
+                except Exception:
                     hf_metadata["packageVersion"] = None
                 
                 # Primary Purpose

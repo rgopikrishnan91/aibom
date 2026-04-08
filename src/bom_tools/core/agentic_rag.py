@@ -6,7 +6,7 @@ Modified to retrieve top 6 chunks globally and detect conflicts between sources
 import os
 import time
 import concurrent.futures
-from typing import TypedDict, List, Dict, Tuple, Optional
+from typing import Any, TypedDict, List, Dict, Tuple, Optional
 from langgraph.graph import StateGraph, END
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -780,27 +780,26 @@ class AgenticRAG:
             response = requests.get(pdf_url, timeout=30)
             
             if response.status_code == 200:
-                temp_pdf_path = "temp.pdf"
-                with open(temp_pdf_path, "wb") as f:
-                    f.write(response.content)
-                
-                # Use PyMuPDF to extract text and convert to markdown
-                markdown_content = self._pdf_to_markdown(temp_pdf_path)
-                
-                # Clean up temporary file
-                if os.path.exists(temp_pdf_path):
-                    os.remove(temp_pdf_path)
-                
-                print(f"  ✓ Fetched and converted arXiv paper to markdown ({len(markdown_content)} chars)")
-                return markdown_content
+                import tempfile
+                temp_pdf_path = None
+                try:
+                    with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as tmp:
+                        temp_pdf_path = tmp.name
+                        tmp.write(response.content)
+
+                    # Use PyMuPDF to extract text and convert to markdown
+                    markdown_content = self._pdf_to_markdown(temp_pdf_path)
+
+                    print(f"  ✓ Fetched and converted arXiv paper to markdown ({len(markdown_content)} chars)")
+                    return markdown_content
+                finally:
+                    if temp_pdf_path and os.path.exists(temp_pdf_path):
+                        os.remove(temp_pdf_path)
             else:
                 print(f"  ⚠️ Failed to download PDF from {pdf_url}")
                 return ""
         except Exception as e:
             print(f"  ⚠️ Error fetching arXiv content: {e}")
-            # Clean up temporary file in case of error
-            if os.path.exists("temp.pdf"):
-                os.remove("temp.pdf")
             return ""
     
     def _pdf_to_markdown(self, pdf_path: str) -> str:
@@ -934,7 +933,7 @@ class AgenticRAG:
         
         return '\n'.join(final_lines)
     
-    def create_vector_stores(self, content_dict: Dict[str, str]) -> Dict[str, any]:
+    def create_vector_stores(self, content_dict: Dict[str, str]) -> Dict[str, Any]:
         """Create vector stores for each source with header-aware chunking"""
         retrievers = {}
         
@@ -1382,24 +1381,26 @@ class DirectLLM:
             response = requests.get(pdf_url, timeout=30)
             
             if response.status_code == 200:
-                temp_pdf_path = "temp_direct.pdf"
-                with open(temp_pdf_path, "wb") as f:
-                    f.write(response.content)
-                
-                # Extract text using PyMuPDF
-                doc = fitz.open(temp_pdf_path)
-                text_content = []
-                for page in doc:
-                    text_content.append(page.get_text())
-                doc.close()
-                
-                # Clean up temporary file
-                if os.path.exists(temp_pdf_path):
-                    os.remove(temp_pdf_path)
-                
-                full_text = "\n".join(text_content)
-                print(f"  ✓ Fetched arXiv paper ({len(full_text):,} chars)")
-                return full_text
+                import tempfile
+                temp_pdf_path = None
+                try:
+                    with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as tmp:
+                        temp_pdf_path = tmp.name
+                        tmp.write(response.content)
+
+                    # Extract text using PyMuPDF
+                    doc = fitz.open(temp_pdf_path)
+                    text_content = []
+                    for page in doc:
+                        text_content.append(page.get_text())
+                    doc.close()
+
+                    full_text = "\n".join(text_content)
+                    print(f"  ✓ Fetched arXiv paper ({len(full_text):,} chars)")
+                    return full_text
+                finally:
+                    if temp_pdf_path and os.path.exists(temp_pdf_path):
+                        os.remove(temp_pdf_path)
             else:
                 print(f"  ⚠️ Failed to download PDF from {pdf_url}")
                 return ""

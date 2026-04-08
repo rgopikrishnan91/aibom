@@ -194,6 +194,8 @@ def find_links():
     """Run link fallback and return found links immediately, before full BOM generation."""
     try:
         data = request.json
+        if not data or not isinstance(data, dict):
+            return jsonify({'status': 'error', 'message': 'Request must be JSON'}), 400
         bom_type = data.get('bom_type', 'ai').strip().lower()
         repo_id = data.get('repo_id', '').strip() or None
         hf_repo_id = data.get('hf_repo_id', '').strip() or repo_id or None
@@ -266,6 +268,8 @@ def process():
     """Handle processing request for both AI and Data BOMs"""
     try:
         data = request.json
+        if not data or not isinstance(data, dict):
+            return jsonify({'status': 'error', 'message': 'Request must be JSON'}), 400
         bom_type = data.get('bom_type', 'ai').strip().lower()
         
         # Get processing options
@@ -494,7 +498,9 @@ if __name__ == '__main__':
     print("="*70 + "\n")
     
     # Run Flask app
-    app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)
+    host = os.getenv('BOM_HOST', '127.0.0.1')
+    port = int(os.getenv('BOM_PORT', '5000'))
+    app.run(host=host, port=port, debug=False, threaded=True)
 
 
 def main():
@@ -509,4 +515,6 @@ def main():
     print("="*70 + "\n")
     
     # Run Flask app
-    app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)
+    host = os.getenv('BOM_HOST', '127.0.0.1')
+    port = int(os.getenv('BOM_PORT', '5000'))
+    app.run(host=host, port=port, debug=False, threaded=True)
