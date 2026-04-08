@@ -62,7 +62,7 @@ dev = [
 ]
 
 [project.scripts]
-bom-tools = "bom_tools.web.app:main"
+bom-tools = "bom_tools.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/rgopikrishnan91/aibom"

@@ -651,6 +651,11 @@
                     </div>
                 </div>
                 
+                <!-- Output Format -->
+                <div class="form-group">
+                    <label><input type="checkbox" id="spdx_output" name="spdx_output" style="width:auto; margin-right:8px;">Generate SPDX 3.0.1 output</label>
+                </div>
+
                 <!-- AI Mode Fields -->
                 <div id="ai_fields">
                     <div class="form-group">
@@ -837,6 +842,7 @@
                 selectedModel = document.getElementById('ollama_model_input').value;
             }
 
+            const spdxChecked = document.getElementById('spdx_output').checked;
             const formData = {
                 bom_type: selectedBomType,
                 arxiv_url: document.getElementById('arxiv_url').value,
@@ -846,7 +852,8 @@
                 llm_provider: selectedProvider,
                 model: selectedModel,
                 ollama_model: document.getElementById('ollama_model_input').value,
-                openrouter_model: document.getElementById('openrouter_model').value
+                openrouter_model: document.getElementById('openrouter_model').value,
+                format: spdxChecked ? 'both' : 'json'
             };
 
             // Add fields based on BOM type

@@ -1,0 +1,73 @@
+{
+  "repo_id": "microsoft/DialoGPT-medium",
+  "model_id": "microsoft_DialoGPT-medium",
+  "use_case": "complete",
+  "direct_fields": {
+    "suppliedBy": {
+      "value": "microsoft",
+      "source": "huggingface",
+      "conflict": null
+    },
+    "license": {
+      "value": "MIT",
+      "source": "huggingface",
+      "conflict": {
+        "value": "Apache License 2.0",
+        "source": "github",
+        "type": "inter"
+      }
+    },
+    "downloadLocation": {
+      "value": "https://huggingface.co/microsoft/DialoGPT-medium",
+      "source": "huggingface",
+      "conflict": null
+    },
+    "releaseTime": {
+      "value": "2020-03-13T00:00:00Z",
+      "source": "huggingface",
+      "conflict": null
+    },
+    "packageVersion": {
+      "value": "v1.0",
+      "source": "github",
+      "conflict": null
+    },
+    "primaryPurpose": {
+      "value": "text-generation; conversational",
+      "source": "huggingface",
+      "conflict": null
+    }
+  },
+  "rag_fields": {
+    "domain": {
+      "value": "Natural Language Processing, Dialogue Systems",
+      "source": "arxiv, huggingface",
+      "conflict": null
+    },
+    "typeOfModel": {
+      "value": "GPT-2 based autoregressive language model fine-tuned for multi-turn dialogue response generation",
+      "source": "arxiv",
+      "conflict": null
+    },
+    "informationAboutApplication": {
+      "value": "Open-domain conversation, chitchat, and multi-turn dialogue response generation. The model generates contextually relevant responses given a conversation history.",
+      "source": "arxiv, github",
+      "conflict": null
+    },
+    "informationAboutTraining": {
+      "value": "Fine-tuned on 147M multi-turn dialogues from Reddit spanning 2005-2017. Training used a maximum mutual information (MMI) scoring function to reduce generic responses.",
+      "source": "arxiv",
+      "conflict": null
+    },
+    "limitation": {
+      "value": "May generate generic or repetitive responses. Can produce socially biased or offensive content. Not suitable for safety-critical applications without additional filtering.",
+      "source": "arxiv, huggingface",
+      "conflict": null
+    },
+    "metric": {
+      "value": "Human evaluation via relevance and informativeness scoring. Automatic metrics: BLEU, METEOR, NIST.",
+      "source": "arxiv",
+      "conflict": null
+    }
+  }
+}

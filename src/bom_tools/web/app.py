@@ -461,8 +461,21 @@ def process():
                 }
             }
         
+        # Optionally generate SPDX 3.0.1 output
+        output_format = data.get('format', 'json')
+        if output_format in ('spdx', 'both'):
+            from bom_tools.utils.spdx_validator import SPDXValidator
+            validator = SPDXValidator(bom_type=bom_type)
+            spdx_output = validator.validate_and_convert(metadata)
+            spdx_filename = filename.replace('.json', '.spdx.json')
+            spdx_path = os.path.join(app.config['UPLOAD_FOLDER'], spdx_filename)
+            with open(spdx_path, 'w', encoding='utf-8') as f:
+                json.dump(spdx_output, f, indent=2, ensure_ascii=False)
+            response_data['spdx_download_url'] = f'/download/{spdx_filename}'
+            response_data['spdx_data'] = spdx_output
+
         return jsonify(response_data)
-        
+
     except Exception as e:
         import traceback
         error_trace = traceback.format_exc()

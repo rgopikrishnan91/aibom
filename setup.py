@@ -69,7 +69,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "bom-tools=bom_tools.web.app:main",
+            "bom-tools=bom_tools.cli:main",
         ],
     },
     include_package_data=True,
