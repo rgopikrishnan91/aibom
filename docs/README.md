@@ -1,19 +1,15 @@
 # BOM Tools Documentation
 
-## Table of Contents
+## Contents
 
-1. [Getting Started](./getting_started.md)
-2. [Architecture](./architecture.md)
-3. [API Reference](./api.md)
-4. [User Guide](./user_guide.md)
-5. [Configuration](./configuration.md)
-6. [Development](./development.md)
+- [Local Embeddings Guide](./LOCAL_EMBEDDINGS.md)
+- [Migration Guide](./migration.md)
 
 ## Quick Links
 
 - [Installation Instructions](../README.md#installation)
 - [Examples](../examples/)
-- [GitHub Repository](https://github.com/yourusername/BOM_Tools)
+- [GitHub Repository](https://github.com/rgopikrishnan91/aibom)
 
 ## Overview
 

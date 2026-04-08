@@ -176,6 +176,8 @@ class AIBOMProcessor:
                 print(f"Warning: Github client unavailable ({exc})")
                 self.github_client = None
         else:
+            print("  Note: GITHUB_TOKEN not set. GitHub API calls will be rate-limited (60 req/hr).")
+            print("        Set it in .env or export GITHUB_TOKEN=ghp_...")
             self.github_client = None
 
         hf_token = os.getenv("HUGGINGFACE_TOKEN")
@@ -186,6 +188,8 @@ class AIBOMProcessor:
                 print(f"Warning: Hugging Face client unavailable ({exc})")
                 self.hf_api = None
         else:
+            print("  Note: HUGGINGFACE_TOKEN not set. HuggingFace API calls may be rate-limited.")
+            print("        Set it in .env or export HUGGINGFACE_TOKEN=hf_...")
             self.hf_api = None
 
     def generate_model_id(self, repo_id: str, github_url: str) -> str:
@@ -407,6 +411,7 @@ class DATABOMProcessor:
                 print(f"Warning: Github client unavailable ({exc})")
                 self.github_client = None
         else:
+            print("  Note: GITHUB_TOKEN not set. GitHub API calls will be rate-limited (60 req/hr).")
             self.github_client = None
 
         hf_token = os.getenv("HUGGINGFACE_TOKEN")
@@ -417,9 +422,9 @@ class DATABOMProcessor:
                 print(f"Warning: Hugging Face client unavailable ({exc})")
                 self.hf_api = None
         else:
+            print("  Note: HUGGINGFACE_TOKEN not set. HuggingFace API calls may be rate-limited.")
             self.hf_api = None
 
-    
     def generate_dataset_id(self, arxiv_url: str, github_url: str, hf_url: str) -> str:
         """Generate a unique dataset identifier from URLs"""
         if hf_url and "huggingface.co" in str(hf_url):

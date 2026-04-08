@@ -9,12 +9,15 @@ from sentence_transformers import SentenceTransformer
 import numpy as np
 import inspect
 
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-GITHUB_HEADERS = {
-    "Accept": "application/vnd.github.v3.raw"
-}
-if GITHUB_TOKEN:
-    GITHUB_HEADERS["Authorization"] = f"token {GITHUB_TOKEN}"
+def _get_github_headers():
+    """Build GitHub API headers with token from environment (if available)."""
+    headers = {"Accept": "application/vnd.github.v3.raw"}
+    token = os.getenv("GITHUB_TOKEN")
+    if token:
+        headers["Authorization"] = f"token {token}"
+    return headers
+
+
 class MetadataFetcher:
     @staticmethod
     def extract_hf_repo_id(url):
@@ -73,7 +76,7 @@ class MetadataFetcher:
     def fetch_github_repo_license(user, repo):
         url = f"https://api.github.com/repos/{user}/{repo}/license"
         try:
-            r = requests.get(url, headers=GITHUB_HEADERS, timeout=30)
+            r = requests.get(url, headers=_get_github_headers(), timeout=30)
             if r.status_code == 200:
                 data = r.json()
                 return {
@@ -130,12 +133,12 @@ class MetadataFetcher:
             found_readmes = {}
 
             for f in license_files:
-                r = requests.get(f"{base}/{f}", headers=GITHUB_HEADERS, timeout=30)
+                r = requests.get(f"{base}/{f}", headers=_get_github_headers(), timeout=30)
                 if r.status_code == 200:
                     found_licenses[f] = r.text.strip()
 
             for f in readme_files:
-                r = requests.get(f"{base}/{f}", headers=GITHUB_HEADERS, timeout=30)
+                r = requests.get(f"{base}/{f}", headers=_get_github_headers(), timeout=30)
                 if r.status_code == 200:
                     found_readmes[f] = r.text.strip()
                     break
