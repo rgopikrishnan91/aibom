@@ -63,7 +63,7 @@ def _fetch_hf_readme(model_id: str) -> str:
     """
     url = f"https://huggingface.co/{model_id}/raw/main/README.md"
     try:
-        r = requests.get(url, timeout=30, verify=False)
+        r = requests.get(url, timeout=30)
         r.raise_for_status()
         return r.text
     except Exception as e:

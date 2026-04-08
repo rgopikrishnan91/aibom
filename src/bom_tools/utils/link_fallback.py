@@ -77,20 +77,10 @@ class LinkFallbackFinder:
             self.config = None
             return
         
-        # Build SSL context that disables verification
-        ctx = ssl.create_default_context()
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
-        
-        # Also set global SSL context (belt and suspenders approach)
-        ssl._create_default_https_context = ssl._create_unverified_context
-        
-        # HTTPX transport with verify disabled (only if httpx is available)
+        # HTTPX transport (only if httpx is available)
         if HTTPX_AVAILABLE:
-            transport = httpx.HTTPTransport(verify=False)
             timeout = httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=10.0)
         else:
-            transport = None
             timeout = None
         
         try:
@@ -101,8 +91,6 @@ class LinkFallbackFinder:
             # Debug: Print API key status (masked)
             if os.getenv("DEBUG_FALLBACK", "false").lower() == "true":
                 print(f"   [DEBUG] Using API key: {self.api_key[:10]}...{self.api_key[-4:] if len(self.api_key) > 14 else '****'}")
-                print(f"   [DEBUG] SSL context: verify={ctx.verify_mode}, hostname={ctx.check_hostname}")
-                print(f"   [DEBUG] Transport: verify={transport._pool.verify if hasattr(transport._pool, 'verify') else 'N/A'}")
             
             # Initialize client with simplified configuration
             # The Gemini client may not fully support all httpx options, so we use minimal config

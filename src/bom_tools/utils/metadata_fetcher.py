@@ -1,23 +1,20 @@
 # metadata_utils.py
+import os
 import requests
 from urllib.parse import urlparse
 from huggingface_hub import HfApi
 import fitz  # PyMuPDF
-import urllib3
 import chromadb
 from sentence_transformers import SentenceTransformer
 import numpy as np
 import inspect
-# Disable SSL warnings
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-GITHUB_TOKEN = "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"
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 GITHUB_HEADERS = {
-    "Authorization": f"token {GITHUB_TOKEN}",
     "Accept": "application/vnd.github.v3.raw"
 }
-
-github_metadata = []
+if GITHUB_TOKEN:
+    GITHUB_HEADERS["Authorization"] = f"token {GITHUB_TOKEN}"
 class MetadataFetcher:
     @staticmethod
     def extract_hf_repo_id(url):
@@ -76,7 +73,7 @@ class MetadataFetcher:
     def fetch_github_repo_license(user, repo):
         url = f"https://api.github.com/repos/{user}/{repo}/license"
         try:
-            r = requests.get(url, headers=GITHUB_HEADERS, verify=False)
+            r = requests.get(url, headers=GITHUB_HEADERS, timeout=30)
             if r.status_code == 200:
                 data = r.json()
                 return {
@@ -103,7 +100,7 @@ class MetadataFetcher:
             matched_files = {f for f in files if any(k in f.upper() for k in ["LICENSE", "COPYING", "NOTICE", "README"])}
             content = {}
             for f in matched_files:
-                r = requests.get(f"https://huggingface.co/datasets/{repo_id}/resolve/main/{f}", verify=False)
+                r = requests.get(f"https://huggingface.co/datasets/{repo_id}/resolve/main/{f}", timeout=30)
                 if r.status_code == 200:
                     content[f] = r.text.strip()
 
@@ -133,12 +130,12 @@ class MetadataFetcher:
             found_readmes = {}
 
             for f in license_files:
-                r = requests.get(f"{base}/{f}", headers=GITHUB_HEADERS, verify=False)
+                r = requests.get(f"{base}/{f}", headers=GITHUB_HEADERS, timeout=30)
                 if r.status_code == 200:
                     found_licenses[f] = r.text.strip()
 
             for f in readme_files:
-                r = requests.get(f"{base}/{f}", headers=GITHUB_HEADERS, verify=False)
+                r = requests.get(f"{base}/{f}", headers=GITHUB_HEADERS, timeout=30)
                 if r.status_code == 200:
                     found_readmes[f] = r.text.strip()
                     break
@@ -162,7 +159,7 @@ class MetadataFetcher:
     def get_pdf_text_from_arxiv(arxiv_url):
         arxiv_id = arxiv_url.split('/')[-1]
         pdf_url = f"https://arxiv.org/pdf/{arxiv_id}.pdf"
-        response = requests.get(pdf_url, verify=False)
+        response = requests.get(pdf_url, timeout=30)
         if response.status_code == 200:
             with open("temp.pdf", "wb") as f:
                 f.write(response.content)

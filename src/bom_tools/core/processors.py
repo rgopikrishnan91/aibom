@@ -283,7 +283,7 @@ class AIBOMProcessor:
                 f"https://huggingface.co/{hf_repo_id}/raw/main/README.md",
                 f"https://huggingface.co/models/{hf_repo_id}/raw/main/README.md",
             ]:
-                r = requests.get(url, timeout=30, verify=False)
+                r = requests.get(url, timeout=30)
                 if r.status_code == 200:
                     return r.text
         except Exception as e:
@@ -521,7 +521,7 @@ class DATABOMProcessor:
                 f"https://huggingface.co/datasets/{repo_id}/raw/main/README.md",
                 f"https://huggingface.co/{repo_id}/raw/main/README.md",
             ]:
-                r = requests.get(url, timeout=30, verify=False)
+                r = requests.get(url, timeout=30)
                 if r.status_code == 200:
                     return r.text
         except Exception as e:

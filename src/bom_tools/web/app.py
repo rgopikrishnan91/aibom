@@ -4,6 +4,7 @@ Supports both AI Model BOM and Data BOM generation
 """
 
 from flask import Flask, render_template, request, jsonify, send_file
+from werkzeug.utils import secure_filename
 import os
 import json
 from datetime import datetime
@@ -473,8 +474,11 @@ def process():
 def download(filename):
     """Download the generated JSON file"""
     try:
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        return send_file(file_path, as_attachment=True, download_name=filename)
+        safe_name = secure_filename(filename)
+        if not safe_name:
+            return jsonify({'status': 'error', 'message': 'Invalid filename'}), 400
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], safe_name)
+        return send_file(file_path, as_attachment=True, download_name=safe_name)
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 404
 
