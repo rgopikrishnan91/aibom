@@ -507,7 +507,24 @@
             color: #667eea;
             border-bottom-color: #667eea;
         }
-        
+
+        .tab.has-conflicts {
+            color: white;
+            background: #c0392b;
+            border-radius: 6px 6px 0 0;
+        }
+        .tab.has-conflicts.active {
+            color: white;
+            border-bottom-color: #c0392b;
+        }
+        .tab.no-conflicts {
+            color: #1e8449;
+        }
+        .tab.no-conflicts.active {
+            color: #1e8449;
+            border-bottom-color: #1e8449;
+        }
+
         .tab-content {
             display: none;
             flex: 1;
@@ -697,7 +714,7 @@
             
             <div class="tabs">
                 <button class="tab active" onclick="switchTab('complete')" title="Source-traced fields with conflict detection">BOM with Provenance</button>
-                <button class="tab" onclick="switchTab('conflicts')" title="Summary of all detected conflicts">Conflicts</button>
+                <button class="tab" id="conflictsTabBtn" onclick="switchTab('conflicts')" title="Summary of all detected conflicts">Conflicts</button>
                 <button class="tab" onclick="switchTab('spdx')" title="Standards-compliant SPDX 3.0.1 export">SPDX 3.0.1</button>
                 <button class="tab" onclick="switchTab('logs')" title="Server processing logs">Logs</button>
             </div>
@@ -1027,12 +1044,26 @@
                     // Show link fallback agent status
                     const lfb = result.link_fallback || {};
                     if (lfb.reason === 'no_gemini_key') {
-                        statusMessage += `<br><small>🔗 <em>Link Fallback Agent inactive — set <code>GEMINI_API_KEY</code> to enable auto-discovery. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Get a free key →</a></em></small>`;
+                        statusMessage += `<br><small>🔗 <em>Link Fallback Agent inactive. Set <code>GEMINI_API_KEY</code> to enable auto-discovery. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Get a free key</a></em></small>`;
                     } else if (lfb.attempted && Array.isArray(lfb.not_found) && lfb.not_found.length > 0) {
                         const labels = lfb.not_found.map(n =>
                             n === 'huggingface' ? 'HuggingFace' : n === 'arxiv' ? 'ArXiv' : 'GitHub'
                         );
                         statusMessage += `<br><small>⚠️ Link Fallback Agent could not auto-discover: ${labels.join(', ')}</small>`;
+                    }
+
+                    // Show link-validation rejections / warnings
+                    const lstat = (lfb.link_status || {});
+                    const rejected = [];
+                    if (lstat.hf_rejected) rejected.push(`HuggingFace (${lstat.hf_rejected})`);
+                    if (lstat.arxiv_rejected) rejected.push(`arXiv (${lstat.arxiv_rejected})`);
+                    if (lstat.github_rejected) rejected.push(`GitHub (${lstat.github_rejected})`);
+                    if (rejected.length > 0) {
+                        statusMessage += `<br><small>🛑 Validator rejected discovered links: ${rejected.join('; ')}</small>`;
+                    }
+                    if (Array.isArray(lstat.warnings) && lstat.warnings.length > 0) {
+                        const warns = lstat.warnings.map(w => `${w.link} (${w.reason})`);
+                        statusMessage += `<br><small>⚠️ Validator flagged user-provided links: ${warns.join('; ')}</small>`;
                     }
 
                     showStatus('success', statusMessage);
@@ -1066,9 +1097,13 @@
                         jsonViewerSPDX.innerHTML = `<div class="json-placeholder">${errMsg}</div>`;
                     }
                     
-                    // Populate Conflicts tab
+                    // Populate Conflicts tab + update tab badge
                     const conflictsViewer = document.getElementById('conflictsViewer');
+                    const conflictsTabBtn = document.getElementById('conflictsTabBtn');
                     const conflicts = result.conflicts || [];
+                    conflictsTabBtn.textContent = `Conflicts (${conflicts.length})`;
+                    conflictsTabBtn.classList.remove('has-conflicts', 'no-conflicts');
+                    conflictsTabBtn.classList.add(conflicts.length > 0 ? 'has-conflicts' : 'no-conflicts');
                     if (conflicts.length > 0) {
                         let html = `<div style="margin-bottom:12px;"><strong>⚠️ ${conflicts.length} conflict(s) detected</strong></div>`;
                         html += '<table style="width:100%;border-collapse:collapse;font-size:13px;">';

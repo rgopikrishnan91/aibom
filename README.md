@@ -1,18 +1,18 @@
 # BOM Tools
 
-Generate Software Bills of Materials for AI models and datasets — with source-level conflict detection and SPDX 3.0.1 support.
+Generate Software Bills of Materials for AI models and datasets - with source-level conflict detection and SPDX 3.0.1 support.
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![SPDX 3.0.1](https://img.shields.io/badge/SPDX-3.0.1-blue.svg)](https://spdx.github.io/spdx-spec/v3.0.1/)
 
-BOM Tools extracts metadata from **HuggingFace**, **GitHub**, and **arXiv**, uses an LLM (via RAG or direct extraction) to populate structured BOM fields, and flags conflicts when sources disagree. Output is a JSON document with field-level provenance — each field records its value, which source it came from, and whether other sources reported something different. Results can be converted to [SPDX 3.0.1](https://spdx.github.io/spdx-spec/v3.0.1/) format.
+BOM Tools extracts metadata from **HuggingFace**, **GitHub**, and **arXiv**, uses an LLM (via RAG or direct extraction) to populate structured BOM fields, and flags conflicts when sources disagree. Output is a JSON document with field-level provenance - each field records its value, which source it came from, and whether other sources reported something different. Results can be converted to [SPDX 3.0.1](https://spdx.github.io/spdx-spec/v3.0.1/) format.
 
 ## Why?
 
-- **Transparency** — Know what's inside your AI models and datasets: training data, licenses, limitations, safety risks
-- **Compliance** — Generate SPDX 3.0.1-compliant AI and Dataset BOMs for regulatory needs (EU AI Act, ISO/IEC standards)
-- **Conflict detection** — Automatically flag when GitHub says "MIT" but HuggingFace says "Apache-2.0"
+- **Transparency** - Know what's inside your AI models and datasets: training data, licenses, limitations, safety risks
+- **Compliance** - Generate SPDX 3.0.1-compliant AI and Dataset BOMs for regulatory needs (EU AI Act, ISO/IEC standards)
+- **Conflict detection** - Automatically flag when GitHub says "MIT" but HuggingFace says "Apache-2.0"
 
 ## How It Works
 
@@ -30,7 +30,7 @@ BOM Tools extracts metadata from **HuggingFace**, **GitHub**, and **arXiv**, use
 ```
 
 1. **Fetch** metadata from source APIs (HuggingFace model cards, GitHub repos, arXiv PDFs)
-2. **Extract** structured fields using an LLM — either via RAG (embed + retrieve + generate) or direct prompting
+2. **Extract** structured fields using an LLM - either via RAG (embed + retrieve + generate) or direct prompting
 3. **Detect conflicts** between sources using majority voting and license similarity checks
 4. **Output** a JSON BOM with triplet fields, optionally converting to SPDX 3.0.1
 
@@ -65,7 +65,7 @@ Select BOM type (AI / Data), processing mode (RAG / Direct), and LLM provider. B
 ### CLI
 
 ```bash
-# Generate an AI model BOM
+# Generate an AI model BOM (provider auto-detected from .env)
 bom-tools generate --type ai \
     --repo microsoft/DialoGPT-medium \
     --arxiv https://arxiv.org/abs/1911.00536 \
@@ -81,6 +81,11 @@ bom-tools generate --type data \
 # Start web UI
 bom-tools serve --port 5000
 ```
+
+The CLI auto-detects which LLM provider to use based on the API keys in your
+`.env` file. If only `OPENROUTER_API_KEY` is set, it uses OpenRouter; if multiple
+keys are set, it asks which one you want. Pass `--provider openai|openrouter|ollama`
+to override, or `--yes` to skip the confirmation prompt in scripts.
 
 ### Python API
 
@@ -126,7 +131,7 @@ See [examples/](examples/) for complete runnable scripts.
 
 ## Output Format
 
-Every field is a **triplet** — the value, where it came from, and whether sources disagreed:
+Every field is a **triplet** - the value, where it came from, and whether sources disagreed:
 
 ```json
 {
@@ -177,12 +182,12 @@ See [examples/sample-output.json](examples/sample-output.json) for a complete ex
 
 BOM Tools automatically detects when metadata sources disagree.
 
-**Inter-source conflicts** — different sources report different values:
+**Inter-source conflicts** - different sources report different values:
 > HuggingFace model card says `license: MIT` but the GitHub repo's LICENSE file says `Apache-2.0`.
 
 Resolution: majority voting when 3+ sources available; priority ordering otherwise.
 
-**Intra-source conflicts** — the same source contradicts itself:
+**Intra-source conflicts** - the same source contradicts itself:
 > HuggingFace API metadata says `MIT` but the README text says "licensed under the Apache License 2.0."
 
 Resolution: similarity scoring (difflib) between structured metadata and extracted text. Flagged when similarity drops below 80%.
@@ -191,12 +196,12 @@ Both conflict types appear in the `conflict` field of each triplet, with `type: 
 
 ## SPDX 3.0.1 Conversion
 
-Convert any BOM output to [SPDX 3.0.1](https://spdx.github.io/spdx-spec/v3.0.1/) format — the standard for software supply chain transparency.
+Convert any BOM output to [SPDX 3.0.1](https://spdx.github.io/spdx-spec/v3.0.1/) format - the standard for software supply chain transparency.
 
 **Three ways to generate SPDX:**
 
 1. **CLI**: `bom-tools generate --type ai --repo org/model --spdx output.spdx.json`
-2. **Web UI**: Always generated — see the "SPDX 3.0.1" tab and "Download SPDX 3.0.1" button after processing
+2. **Web UI**: Always generated - see the "SPDX 3.0.1" tab and "Download SPDX 3.0.1" button after processing
 3. **Python API**:
 
 ```python
@@ -245,11 +250,11 @@ OLLAMA_BASE_URL=http://localhost:11434/v1/  # Option 3: Ollama (local, no key)
 GITHUB_TOKEN=ghp_...
 HUGGINGFACE_TOKEN=hf_...
 
-# Optional — enables automatic link discovery:
+# Optional - enables automatic link discovery:
 GEMINI_API_KEY=AI...
 ```
 
-RAG mode uses local HuggingFace embeddings by default — no OpenAI key needed for embeddings.
+RAG mode uses local HuggingFace embeddings by default - no OpenAI key needed for embeddings.
 
 See [.env.example](.env.example) for all available variables.
 
@@ -281,11 +286,11 @@ pytest --cov=bom_tools --cov-report=html
 
 ## Troubleshooting
 
-**Ollama connection issues** — Ensure Ollama is running (`ollama serve`) and reachable at `http://localhost:11434/api/tags`.
+**Ollama connection issues** - Ensure Ollama is running (`ollama serve`) and reachable at `http://localhost:11434/api/tags`.
 
-**Rate limits** — Set `GITHUB_TOKEN` and `HUGGINGFACE_TOKEN` in `.env` to increase API rate limits.
+**Rate limits** - Set `GITHUB_TOKEN` and `HUGGINGFACE_TOKEN` in `.env` to increase API rate limits.
 
-**arXiv PDF parsing** — Complex PDFs may yield imperfect text. Try adding GitHub/HF sources, using Direct mode, or reviewing the retrieved evidence chunks.
+**arXiv PDF parsing** - Complex PDFs may yield imperfect text. Try adding GitHub/HF sources, using Direct mode, or reviewing the retrieved evidence chunks.
 
 ## License
 

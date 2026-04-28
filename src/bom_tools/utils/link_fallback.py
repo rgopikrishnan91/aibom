@@ -161,55 +161,81 @@ class LinkFallbackFinder:
             return parts[-1] if parts else "model"
         return "model"
     
-    @staticmethod
-    def _validate_arxiv_for_model(arxiv_url: str, model_name: str) -> dict:
-        """Check whether an arXiv paper is plausibly about the given model.
+    def _validate_links_with_llm(self, model_name: str, hf_repo_id: Optional[str],
+                                  arxiv_url: Optional[str], github_url: Optional[str]) -> Dict:
+        """Validate all retrieved links in a single Gemini call.
 
-        Uses the arXiv Atom API (no key needed) to fetch the paper title and
-        abstract, then looks for the model name (or a close variant) in the text.
-
-        Returns:
-            {'valid': bool, 'title': str|None, 'reason': str}
+        Asks Gemini whether each provided link genuinely describes the target model,
+        with strict version-number checking. Returns a dict keyed by link type, each
+        containing {'valid': bool, 'reason': str}. Links that aren't set get None.
         """
-        import requests as _req
-        import re as _re
+        if not self.client or not self.config:
+            return {'huggingface': None, 'arxiv': None, 'github': None,
+                    'skipped': True, 'reason': 'Gemini client unavailable'}
+
+        if not any([hf_repo_id, arxiv_url, github_url]):
+            return {'huggingface': None, 'arxiv': None, 'github': None,
+                    'skipped': True, 'reason': 'Nothing to validate'}
+
+        hf_url = f"https://huggingface.co/{hf_repo_id}" if hf_repo_id else None
+        prompt = f"""You are validating that a set of links all describe the SAME AI model or dataset.
+
+Target identifier: {model_name}
+
+Links to validate:
+- HuggingFace: {hf_url or '(not provided)'}
+- arXiv paper: {arxiv_url or '(not provided)'}
+- GitHub repo: {github_url or '(not provided)'}
+
+For each link that is provided, decide whether it is specifically about the target.
+
+STRICT RULES:
+1. Version numbers MUST match. "Kimi-K2.6" must NOT validate against a paper about
+   "Kimi-K2.5" or any other version. Same for Llama-3.1 vs Llama-3.2, etc.
+2. The arXiv paper's title or abstract must explicitly mention the target model name.
+3. The GitHub repository should be the model's own repo, training/inference code,
+   or the official organization repo. A generic ML library is NOT valid.
+4. The HuggingFace URL should be the exact model/dataset page for the target.
+5. If a link is plausibly about the target but you are not certain, mark valid=true
+   and explain in the reason. Only mark valid=false when you have a positive reason
+   to reject (e.g. wrong version, different model, unrelated repo).
+
+Respond with ONLY a JSON object in this exact shape, no extra text:
+{{
+  "huggingface": {{"valid": true_or_false, "reason": "one short sentence"}},
+  "arxiv": {{"valid": true_or_false, "reason": "one short sentence"}},
+  "github": {{"valid": true_or_false, "reason": "one short sentence"}}
+}}
+
+For any link that was not provided, use null instead of the object."""
 
         try:
-            arxiv_id = arxiv_url.rstrip('/').split('/')[-1].replace('.pdf', '')
-            resp = _req.get(f"https://export.arxiv.org/api/query?id_list={arxiv_id}", timeout=15)
-            if resp.status_code != 200:
-                return {'valid': True, 'title': None, 'reason': 'Could not reach arXiv API — skipping validation'}
+            print(f"  🔎 Validating retrieved links via Gemini for: {model_name}")
+            response = self.client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt,
+                config=self.config,
+            )
+            text = (response.text or "").strip()
+            # Strip markdown code fences if Gemini wrapped the JSON
+            if text.startswith("```"):
+                text = re.sub(r"^```(?:json)?\s*", "", text)
+                text = re.sub(r"\s*```$", "", text)
 
-            text = resp.text
-            # Extract <title> ... </title>
-            title_match = _re.search(r'<title>(.*?)</title>', text, _re.DOTALL)
-            title = title_match.group(1).strip() if title_match else ''
-            # Also grab <summary> for broader matching
-            summary_match = _re.search(r'<summary>(.*?)</summary>', text, _re.DOTALL)
-            summary = summary_match.group(1).strip() if summary_match else ''
-            haystack = (title + ' ' + summary).lower()
+            import json as _json
+            parsed = _json.loads(text)
 
-            # Build name variants to look for.  "Kimi-K2.6" → ["kimi-k2.6", "kimi k2.6", "kimi-k2", "kimi"]
-            clean = model_name.lower().strip()
-            variants = {clean}
-            variants.add(clean.replace('-', ' '))
-            # Drop trailing version: "kimi-k2.6" → "kimi-k2", then "kimi"
-            base = _re.sub(r'[.\-]?\d+(\.\d+)?$', '', clean).strip(' -')
-            if base:
-                variants.add(base)
-                variants.add(base.replace('-', ' '))
-
-            for v in variants:
-                if v and v in haystack:
-                    return {'valid': True, 'title': title, 'reason': f'Paper mentions "{v}"'}
-
-            return {
-                'valid': False,
-                'title': title,
-                'reason': f'Paper title "{title}" does not mention any variant of "{model_name}"'
-            }
+            # Normalize: ensure all three keys exist with consistent shape
+            for key in ("huggingface", "arxiv", "github"):
+                val = parsed.get(key)
+                if val is None or not isinstance(val, dict):
+                    parsed[key] = None
+            parsed['skipped'] = False
+            return parsed
         except Exception as exc:
-            return {'valid': True, 'title': None, 'reason': f'Validation skipped: {exc}'}
+            print(f"  ⚠️ Link validation skipped (LLM call failed): {exc}")
+            return {'huggingface': None, 'arxiv': None, 'github': None,
+                    'skipped': True, 'reason': str(exc)}
 
     def _is_valid_url(self, url: str, url_type: str) -> bool:
         """Validate URL format"""
@@ -595,22 +621,14 @@ Respond with ONLY the URL, nothing else."""
                 found_count += 1
                 available_info['hf_repo_id'] = final_hf_repo_id
         
-        # Find missing ArXiv link (with paper-title validation)
+        # Find missing ArXiv link
         if not has_arxiv:
             found_arxiv = self._find_missing_link("arxiv", available_info)
             if found_arxiv:
-                model_name = self._extract_model_name(repo_id or hf_repo_id, None)
-                check = self._validate_arxiv_for_model(found_arxiv, model_name)
-                if check['valid']:
-                    final_arxiv_url = found_arxiv
-                    status['arxiv_found'] = True
-                    found_count += 1
-                    available_info['arxiv_url'] = final_arxiv_url
-                    print(f"  ✓ ArXiv paper validated: {check.get('reason', '')}")
-                else:
-                    print(f"  ⚠️ ArXiv paper rejected — {check.get('reason', 'no match')}")
-                    status['arxiv_found'] = False
-                    status['arxiv_rejected'] = check.get('reason', 'Paper does not match model')
+                final_arxiv_url = found_arxiv
+                status['arxiv_found'] = True
+                found_count += 1
+                available_info['arxiv_url'] = final_arxiv_url
         
         # Find missing GitHub link
         if not has_github:
@@ -630,5 +648,41 @@ Respond with ONLY the URL, nothing else."""
         print(f"  - ArXiv: {'✓ FOUND' if status['arxiv_found'] else '✗ NOT FOUND' if not has_arxiv else '✓ PROVIDED'}")
         print(f"  - GitHub: {'✓ FOUND' if status['github_found'] else '✗ NOT FOUND' if not has_github else '✓ PROVIDED'}")
         print(f"{'='*70}\n")
-        
+
+        # Single-shot LLM validation across all retrieved/provided links.
+        # Drop links the validator rejects (auto-discovered ones); keep
+        # user-provided ones but flag them in the status warnings.
+        model_name = self._extract_model_name(repo_id or hf_repo_id, None)
+        validation = self._validate_links_with_llm(
+            model_name=model_name,
+            hf_repo_id=final_hf_repo_id,
+            arxiv_url=final_arxiv_url,
+            github_url=final_github_url,
+        )
+        status['validation'] = validation
+        warnings = []
+
+        def _drop_or_warn(link_key, was_user_provided, current_value, status_found_key, status_rejected_key):
+            v = validation.get(link_key)
+            if not v or not isinstance(v, dict):
+                return current_value
+            if v.get('valid') is False:
+                if was_user_provided:
+                    warnings.append({'link': link_key, 'reason': v.get('reason', 'rejected')})
+                    print(f"  ⚠️ {link_key} link rejected by validator (kept as user-provided): {v.get('reason')}")
+                    return current_value
+                else:
+                    print(f"  ⚠️ {link_key} link rejected by validator (dropping): {v.get('reason')}")
+                    status[status_found_key] = False
+                    status[status_rejected_key] = v.get('reason', 'Validator rejected')
+                    return None
+            return current_value
+
+        final_hf_repo_id = _drop_or_warn('huggingface', has_hf, final_hf_repo_id, 'hf_found', 'hf_rejected')
+        final_arxiv_url = _drop_or_warn('arxiv', has_arxiv, final_arxiv_url, 'arxiv_found', 'arxiv_rejected')
+        final_github_url = _drop_or_warn('github', has_github, final_github_url, 'github_found', 'github_rejected')
+
+        if warnings:
+            status['warnings'] = warnings
+
         return final_hf_repo_id, final_arxiv_url, final_github_url, status
