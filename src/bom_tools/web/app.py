@@ -3,10 +3,14 @@ Unified Web Interface for BOM Generator
 Supports both AI Model BOM and Data BOM generation
 """
 
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, render_template, request, jsonify, send_file, Response
 from werkzeug.utils import secure_filename
 import os
+import io
 import json
+import queue
+import logging
+import threading
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -122,6 +126,94 @@ os.makedirs(app.config['REPO_RESULTS_FOLDER'], exist_ok=True)
 
 # Initialize processors cache
 processors_cache = {}
+
+# ---------- Live log streaming ----------
+# Thread-safe queue; the SSE endpoint drains it, /process pushes to it.
+_log_subscribers = []  # list of queue.Queue, one per SSE listener
+_log_lock = threading.Lock()
+
+
+class _QueueLogHandler(logging.Handler):
+    """Forward log records to all connected SSE subscribers."""
+    def emit(self, record):
+        msg = self.format(record)
+        with _log_lock:
+            for q in _log_subscribers:
+                try:
+                    q.put_nowait(msg)
+                except queue.Full:
+                    pass
+
+
+class _PrintCapture(io.TextIOBase):
+    """Intercept print() calls and mirror them to the log queue."""
+    def __init__(self, original):
+        self._original = original
+
+    def write(self, text):
+        self._original.write(text)
+        if text.strip():
+            with _log_lock:
+                for q in _log_subscribers:
+                    try:
+                        q.put_nowait(text.rstrip())
+                    except queue.Full:
+                        pass
+        return len(text)
+
+    def flush(self):
+        self._original.flush()
+
+
+import sys
+sys.stdout = _PrintCapture(sys.stdout)
+
+
+def _extract_conflicts(metadata: dict) -> list:
+    """Walk the BOM metadata and return a list of human-readable conflict dicts."""
+    conflicts = []
+    for section in ('direct_fields', 'rag_fields'):
+        fields = metadata.get(section, {})
+        if not isinstance(fields, dict):
+            continue
+        for field, triplet in fields.items():
+            if not isinstance(triplet, dict):
+                continue
+            c = triplet.get('conflict')
+            if c and isinstance(c, dict):
+                conflicts.append({
+                    'field': field,
+                    'section': section.replace('_fields', ''),
+                    'chosen_value': triplet.get('value'),
+                    'chosen_source': triplet.get('source'),
+                    'conflict_value': c.get('value'),
+                    'conflict_source': c.get('source'),
+                    'conflict_type': c.get('type'),
+                })
+    return conflicts
+
+
+@app.route('/logs')
+def stream_logs():
+    """SSE endpoint — streams server logs to the browser in real time."""
+    q = queue.Queue(maxsize=500)
+    with _log_lock:
+        _log_subscribers.append(q)
+
+    def generate():
+        try:
+            while True:
+                try:
+                    msg = q.get(timeout=30)
+                    yield f"data: {msg}\n\n"
+                except queue.Empty:
+                    yield ": keepalive\n\n"
+        finally:
+            with _log_lock:
+                _log_subscribers.remove(q)
+
+    return Response(generate(), mimetype='text/event-stream',
+                    headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
 
 
 def get_processor(bom_type: str, mode: str = "rag", llm_provider: str = "openai", 
@@ -436,6 +528,7 @@ def process():
                     'github_url': github_url
                 },
                 'link_fallback': link_fallback_info,
+                'conflicts': _extract_conflicts(metadata),
             }
 
         else:
@@ -556,6 +649,7 @@ def process():
                     'github_url': github_url
                 },
                 'link_fallback': link_fallback_info,
+                'conflicts': _extract_conflicts(metadata),
             }
 
         # Always generate SPDX 3.0.1 output — it's the headline value prop.

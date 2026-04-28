@@ -161,6 +161,56 @@ class LinkFallbackFinder:
             return parts[-1] if parts else "model"
         return "model"
     
+    @staticmethod
+    def _validate_arxiv_for_model(arxiv_url: str, model_name: str) -> dict:
+        """Check whether an arXiv paper is plausibly about the given model.
+
+        Uses the arXiv Atom API (no key needed) to fetch the paper title and
+        abstract, then looks for the model name (or a close variant) in the text.
+
+        Returns:
+            {'valid': bool, 'title': str|None, 'reason': str}
+        """
+        import requests as _req
+        import re as _re
+
+        try:
+            arxiv_id = arxiv_url.rstrip('/').split('/')[-1].replace('.pdf', '')
+            resp = _req.get(f"https://export.arxiv.org/api/query?id_list={arxiv_id}", timeout=15)
+            if resp.status_code != 200:
+                return {'valid': True, 'title': None, 'reason': 'Could not reach arXiv API — skipping validation'}
+
+            text = resp.text
+            # Extract <title> ... </title>
+            title_match = _re.search(r'<title>(.*?)</title>', text, _re.DOTALL)
+            title = title_match.group(1).strip() if title_match else ''
+            # Also grab <summary> for broader matching
+            summary_match = _re.search(r'<summary>(.*?)</summary>', text, _re.DOTALL)
+            summary = summary_match.group(1).strip() if summary_match else ''
+            haystack = (title + ' ' + summary).lower()
+
+            # Build name variants to look for.  "Kimi-K2.6" → ["kimi-k2.6", "kimi k2.6", "kimi-k2", "kimi"]
+            clean = model_name.lower().strip()
+            variants = {clean}
+            variants.add(clean.replace('-', ' '))
+            # Drop trailing version: "kimi-k2.6" → "kimi-k2", then "kimi"
+            base = _re.sub(r'[.\-]?\d+(\.\d+)?$', '', clean).strip(' -')
+            if base:
+                variants.add(base)
+                variants.add(base.replace('-', ' '))
+
+            for v in variants:
+                if v and v in haystack:
+                    return {'valid': True, 'title': title, 'reason': f'Paper mentions "{v}"'}
+
+            return {
+                'valid': False,
+                'title': title,
+                'reason': f'Paper title "{title}" does not mention any variant of "{model_name}"'
+            }
+        except Exception as exc:
+            return {'valid': True, 'title': None, 'reason': f'Validation skipped: {exc}'}
+
     def _is_valid_url(self, url: str, url_type: str) -> bool:
         """Validate URL format"""
         if not url:
@@ -545,14 +595,22 @@ Respond with ONLY the URL, nothing else."""
                 found_count += 1
                 available_info['hf_repo_id'] = final_hf_repo_id
         
-        # Find missing ArXiv link
+        # Find missing ArXiv link (with paper-title validation)
         if not has_arxiv:
             found_arxiv = self._find_missing_link("arxiv", available_info)
             if found_arxiv:
-                final_arxiv_url = found_arxiv
-                status['arxiv_found'] = True
-                found_count += 1
-                available_info['arxiv_url'] = final_arxiv_url
+                model_name = self._extract_model_name(repo_id or hf_repo_id, None)
+                check = self._validate_arxiv_for_model(found_arxiv, model_name)
+                if check['valid']:
+                    final_arxiv_url = found_arxiv
+                    status['arxiv_found'] = True
+                    found_count += 1
+                    available_info['arxiv_url'] = final_arxiv_url
+                    print(f"  ✓ ArXiv paper validated: {check.get('reason', '')}")
+                else:
+                    print(f"  ⚠️ ArXiv paper rejected — {check.get('reason', 'no match')}")
+                    status['arxiv_found'] = False
+                    status['arxiv_rejected'] = check.get('reason', 'Paper does not match model')
         
         # Find missing GitHub link
         if not has_github:

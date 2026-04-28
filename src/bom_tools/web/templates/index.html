@@ -697,7 +697,9 @@
             
             <div class="tabs">
                 <button class="tab active" onclick="switchTab('complete')" title="Source-traced fields with conflict detection">BOM with Provenance</button>
+                <button class="tab" onclick="switchTab('conflicts')" title="Summary of all detected conflicts">Conflicts</button>
                 <button class="tab" onclick="switchTab('spdx')" title="Standards-compliant SPDX 3.0.1 export">SPDX 3.0.1</button>
+                <button class="tab" onclick="switchTab('logs')" title="Server processing logs">Logs</button>
             </div>
 
             <div class="download-buttons" id="downloadButtons" style="display: none;">
@@ -715,12 +717,30 @@
                 </div>
             </div>
 
+            <div id="conflictsTab" class="tab-content">
+                <div class="json-container">
+                    <div id="conflictsViewer" class="json-viewer" style="font-family:inherit;">
+                        <div class="json-placeholder">
+                            Conflict summary will appear here after processing.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div id="spdxTab" class="tab-content">
                 <div class="json-container">
                     <div id="jsonViewerSPDX" class="json-viewer">
                         <div class="json-placeholder">
                             SPDX 3.0.1 JSON-LD export will appear here.
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="logsTab" class="tab-content">
+                <div class="json-container">
+                    <div id="logsViewer" class="json-viewer" style="font-family:'Courier New',monospace; font-size:12px; white-space:pre-wrap; background:#1e1e1e; color:#d4d4d4; padding:12px; max-height:500px; overflow-y:auto;">
+                        <span style="color:#888;">Waiting for processing to start...</span>
                     </div>
                 </div>
             </div>
@@ -946,7 +966,19 @@
                     showStatus('processing', `<span class="spinner"></span> Generating ${bomTypeLabel} BOM with ${selectedMode.toUpperCase()} mode (${USE_CASE_LABELS[selectedUseCase]})... This may take a few minutes.`);
                 }
 
-                // Step 2: Generate the full BOM
+                // Step 2: Start live log stream
+                const logsViewer = document.getElementById('logsViewer');
+                logsViewer.innerHTML = '';
+                if (window._logSource) { window._logSource.close(); }
+                window._logSource = new EventSource('/logs');
+                window._logSource.onmessage = function(e) {
+                    const line = document.createElement('div');
+                    line.textContent = e.data;
+                    logsViewer.appendChild(line);
+                    logsViewer.scrollTop = logsViewer.scrollHeight;
+                };
+
+                // Step 3: Generate the full BOM
                 const response = await fetch('/process', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
@@ -1034,6 +1066,30 @@
                         jsonViewerSPDX.innerHTML = `<div class="json-placeholder">${errMsg}</div>`;
                     }
                     
+                    // Populate Conflicts tab
+                    const conflictsViewer = document.getElementById('conflictsViewer');
+                    const conflicts = result.conflicts || [];
+                    if (conflicts.length > 0) {
+                        let html = `<div style="margin-bottom:12px;"><strong>⚠️ ${conflicts.length} conflict(s) detected</strong></div>`;
+                        html += '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
+                        html += '<tr style="background:#f0f0f0;"><th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Field</th><th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Chosen</th><th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Conflicting</th><th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Type</th></tr>';
+                        conflicts.forEach(c => {
+                            const typeLabel = c.conflict_type === 'intra'
+                                ? '<span style="color:#e67e22;">intra-source</span>'
+                                : '<span style="color:#e74c3c;">inter-source</span>';
+                            html += `<tr style="border-bottom:1px solid #eee;">`;
+                            html += `<td style="padding:8px;"><strong>${c.field}</strong><br><small style="color:#888;">${c.section}</small></td>`;
+                            html += `<td style="padding:8px;">${c.chosen_value || '—'}<br><small style="color:#888;">from ${c.chosen_source || '?'}</small></td>`;
+                            html += `<td style="padding:8px;color:#c0392b;">${c.conflict_value || '—'}<br><small style="color:#888;">from ${c.conflict_source || '?'}</small></td>`;
+                            html += `<td style="padding:8px;">${typeLabel}</td>`;
+                            html += `</tr>`;
+                        });
+                        html += '</table>';
+                        conflictsViewer.innerHTML = html;
+                    } else {
+                        conflictsViewer.innerHTML = '<div style="padding:20px;text-align:center;color:#27ae60;">✅ No conflicts detected — all sources agree.</div>';
+                    }
+
                     downloadButtons.style.display = 'flex';
                 } else {
                     showStatus('error', `❌ Error: ${result.message}`);
@@ -1043,6 +1099,7 @@
                 showStatus('error', `❌ Network error: ${error.message}`);
             } finally {
                 processBtn.disabled = false;
+                if (window._logSource) { window._logSource.close(); window._logSource = null; }
             }
         });
 
