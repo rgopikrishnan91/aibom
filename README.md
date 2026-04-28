@@ -25,8 +25,7 @@ BOM Tools extracts metadata from **HuggingFace**, **GitHub**, and **arXiv**, use
                               │             │  OpenRouter) │     └────┬─────┘
                        Local embeddings     └─────────────┘          │
                        (no API key needed)                     ┌─────▼──────┐
-                                                               │ SPDX 3.0.1│
-                                                               │ (optional) │
+                                                               │ SPDX 3.0.1 │
                                                                └────────────┘
 ```
 
@@ -61,7 +60,7 @@ python run.py
 # Open http://localhost:5000
 ```
 
-Select BOM type (AI / Data), processing mode (RAG / Direct), and LLM provider. Check "Generate SPDX 3.0.1 output" for standards-compliant output.
+Select BOM type (AI / Data), processing mode (RAG / Direct), and LLM provider. Both the Provenance BOM (with conflict triplets) and SPDX 3.0.1 export are generated automatically.
 
 ### CLI
 
@@ -197,7 +196,7 @@ Convert any BOM output to [SPDX 3.0.1](https://spdx.github.io/spdx-spec/v3.0.1/)
 **Three ways to generate SPDX:**
 
 1. **CLI**: `bom-tools generate --type ai --repo org/model --spdx output.spdx.json`
-2. **Web UI**: Check "Generate SPDX 3.0.1 output" before processing
+2. **Web UI**: Always generated — see the "SPDX 3.0.1" tab and "Download SPDX 3.0.1" button after processing
 3. **Python API**:
 
 ```python
@@ -211,48 +210,6 @@ The SPDX output contains:
 - `CreationInfo` with generation timestamp
 - License relationships (`hasConcludedLicense`, `hasDeclaredLicense`)
 - SPDX 3.0.1 JSON-LD structure with `@context` and `@graph`
-
-## Knowledge Graph Storage
-
-BOM results can be stored in a knowledge graph for organizational AI asset tracking and relationship queries. Using [Neo4J](https://neo4j.com/), you can model relationships between models, datasets, licenses, and organizations:
-
-```python
-from neo4j import GraphDatabase
-import json
-
-driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "password"))
-
-with driver.session() as session:
-    # Store an AI model BOM as a node with relationships
-    session.run("""
-        MERGE (m:AIModel {model_id: $model_id})
-        SET m.repo_id = $repo_id,
-            m.use_case = $use_case,
-            m.domain = $domain,
-            m.model_type = $model_type
-        MERGE (l:License {name: $license})
-        MERGE (m)-[:LICENSED_UNDER]->(l)
-        MERGE (o:Organization {name: $supplier})
-        MERGE (o)-[:SUPPLIES]->(m)
-    """,
-        model_id=result["model_id"],
-        repo_id=result["repo_id"],
-        use_case=result["use_case"],
-        domain=result["rag_fields"]["domain"]["value"],
-        model_type=result["rag_fields"]["typeOfModel"]["value"],
-        license=result["direct_fields"]["license"]["value"],
-        supplier=result["direct_fields"]["suppliedBy"]["value"],
-    )
-
-    # Query: find all models with license conflicts
-    conflicts = session.run("""
-        MATCH (m:AIModel)
-        WHERE m.license_conflict IS NOT NULL
-        RETURN m.model_id, m.license_conflict
-    """)
-```
-
-This lets you build a queryable inventory of your AI supply chain — trace which organizations supply which models, what licenses are in use, and where conflicts exist across your portfolio.
 
 ## Use-Case Presets
 
