@@ -53,6 +53,8 @@ setup(
         "beautifulsoup4>=4.12.0",
         "pymupdf>=1.23.0",
         "certifi>=2023.0.0",
+        "google-genai>=0.3.0",
+        "httpx>=0.25.0",
     ],
     extras_require={
         "link_fallback": [
@@ -69,7 +71,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "bom-tools=bom_tools.web.app:main",
+            "bom-tools=bom_tools.cli:main",
         ],
     },
     include_package_data=True,

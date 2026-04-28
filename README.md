@@ -1,153 +1,90 @@
-# BOM Tools (BOM_Tools)
+# BOM Tools
 
-Generate AI BOMs (for models) and Data BOMs (for datasets) from evidence sources such as Hugging Face, GitHub, and arXiv.
+Generate Software Bills of Materials for AI models and datasets — with source-level conflict detection and SPDX 3.0.1 support.
 
-This repository currently supports both RAG and Direct extraction flows, multiple LLM providers, conflict-aware output fields, and a Flask web UI.
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![SPDX 3.0.1](https://img.shields.io/badge/SPDX-3.0.1-blue.svg)](https://spdx.github.io/spdx-spec/v3.0.1/)
 
-## Features (Current)
+BOM Tools extracts metadata from **HuggingFace**, **GitHub**, and **arXiv**, uses an LLM (via RAG or direct extraction) to populate structured BOM fields, and flags conflicts when sources disagree. Output is a JSON document with field-level provenance — each field records its value, which source it came from, and whether other sources reported something different. Results can be converted to [SPDX 3.0.1](https://spdx.github.io/spdx-spec/v3.0.1/) format.
 
-- AI BOM and Data BOM generation
-- RAG mode and Direct mode
-- LLM providers: OpenAI, Ollama, OpenRouter
-- Local embeddings by default in RAG mode (no OpenAI key required for embeddings)
-- Configurable use-case presets: complete, safety, security, lineage, license
-- Field-level output triplets: value, source, conflict
-- Optional Gemini-based link fallback when identifiers/links are missing
-- SPDX validation/conversion utilities
+## Why?
 
-## Changes Reflected In This README
+- **Transparency** — Know what's inside your AI models and datasets: training data, licenses, limitations, safety risks
+- **Compliance** — Generate SPDX 3.0.1-compliant AI and Dataset BOMs for regulatory needs (EU AI Act, ISO/IEC standards)
+- **Conflict detection** — Automatically flag when GitHub says "MIT" but HuggingFace says "Apache-2.0"
 
-Added/updated:
-- OpenRouter provider support
-- Local embedding-first workflow for RAG
-- Use-case preset support in the web/API flow
-- Dependency notes now include the currently used runtime stack (including chromadb, numpy, pandas, langchain-core, and langchain-text-splitters)
+## How It Works
 
-Removed/deprecated references:
-- CSV batch scripts and helper scripts that are not present in this repository
-- Hugging Face relationship extraction files that are not present in this repository
-
-## Project Structure
-
-```text
-BOM_Tools/
-├── src/bom_tools/
-│   ├── core/
-│   │   ├── agentic_rag.py
-│   │   ├── processors.py
-│   │   ├── source_handler.py
-│   │   └── internal_conflict.py
-│   ├── utils/
-│   │   ├── metadata_fetcher.py
-│   │   ├── link_fallback.py
-│   │   └── spdx_validator.py
-│   └── web/
-│       ├── app.py
-│       ├── templates/
-│       └── static/
-├── examples/
-│   ├── example_ai_bom.py
-│   ├── example_data_bom.py
-│   └── sample-ouput.json
-├── tests/
-│   ├── test_processors.py
-│   └── test_link_fallback.py
-├── docs/
-│   ├── README.md
-│   ├── migration.md
-│   └── LOCAL_EMBEDDINGS.md
-├── requirements.txt
-├── pyproject.toml
-├── setup.py
-├── run.py
-└── README.md
+```
+  HuggingFace ──┐
+                 │     ┌──────────────┐     ┌─────────────┐     ┌──────────┐
+  GitHub ────────┼────→│ RAG / Direct │────→│ LLM Engine  │────→│ BOM JSON │
+                 │     │  Extraction  │     │ (OpenAI /   │     │ (triplet │
+  arXiv ─────────┘     └──────────────┘     │  Ollama /   │     │  fields) │
+                              │             │  OpenRouter) │     └────┬─────┘
+                       Local embeddings     └─────────────┘          │
+                       (no API key needed)                     ┌─────▼──────┐
+                                                               │ SPDX 3.0.1 │
+                                                               └────────────┘
 ```
 
-## Requirements
-
-- Python 3.8+
-- Linux/macOS/Windows (Linux is most tested)
-
-Optional credentials depending on provider/features:
-- OpenAI: `OPENAI_API_KEY`
-- OpenRouter: `OPENROUTER_API_KEY`
-- Ollama: No key needed (just `OLLAMA_BASE_URL`)
-- Gemini link fallback: `GEMINI_API_KEY`
-- GitHub API access (recommended): `GITHUB_TOKEN`
-- Hugging Face access (recommended): `HUGGINGFACE_TOKEN`
-
-## Installation
-
-### Virtual environment
-
-```bash
-cd aibom
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-pip install -e .
-```
-
-### Conda environment
-
-```bash
-cd aibom
-conda create -n bom-tools python=3.11 -y
-conda activate bom-tools
-pip install -r requirements.txt
-pip install -e .
-```
-
-## Configuration
-
-Copy the example env file and fill in the keys you need:
-
-```bash
-cp .env.example .env
-```
-
-Or create `.env` manually in the project root:
-
-```env
-# Pick ONE LLM provider:
-OPENAI_API_KEY=sk-...          # Option 1: OpenAI
-OPENROUTER_API_KEY=sk-or-...   # Option 2: OpenRouter (free models available)
-OLLAMA_BASE_URL=http://localhost:11434/v1/  # Option 3: Ollama (local, no key)
-
-# Source API tokens (optional but recommended for higher rate limits):
-GITHUB_TOKEN=ghp_...
-HUGGINGFACE_TOKEN=hf_...
-
-# Optional - enables automatic link discovery:
-GEMINI_API_KEY=AI...
-```
-
-Notes:
-- RAG mode uses local HuggingFace embeddings by default — no OpenAI key needed for embeddings.
-- You only need the API key for the LLM provider you choose.
-- Without `GITHUB_TOKEN`, GitHub API calls are limited to 60 requests/hour.
-- See `.env.example` for all available environment variables.
+1. **Fetch** metadata from source APIs (HuggingFace model cards, GitHub repos, arXiv PDFs)
+2. **Extract** structured fields using an LLM — either via RAG (embed + retrieve + generate) or direct prompting
+3. **Detect conflicts** between sources using majority voting and license similarity checks
+4. **Output** a JSON BOM with triplet fields, optionally converting to SPDX 3.0.1
 
 ## Quick Start
 
-For the fastest setup path, see [QUICKSTART.md](QUICKSTART.md).
+```bash
+git clone https://github.com/rgopikrishnan91/aibom && cd aibom
+pip install -e .
+cp .env.example .env   # add your LLM provider key
+python run.py           # open http://localhost:5000
+```
 
-## Run The Web App
+**No API keys?** Use [Ollama](https://ollama.com/) for fully local processing:
+
+```bash
+ollama serve && ollama pull llama3:8b
+# Set OLLAMA_BASE_URL=http://localhost:11434/v1/ in .env
+# Select "Ollama" as provider in the web UI
+```
+
+## Usage
+
+### Web UI
 
 ```bash
 python run.py
+# Open http://localhost:5000
 ```
 
-Then open http://localhost:5000.
+Select BOM type (AI / Data), processing mode (RAG / Direct), and LLM provider. Both the Provenance BOM (with conflict triplets) and SPDX 3.0.1 export are generated automatically.
 
-Web UI supports:
-- BOM type: AI or Data
-- Mode: rag or direct
-- Provider: openai, ollama, openrouter
-- Optional link completion endpoint via Gemini fallback
+### CLI
 
-## Python API Example
+```bash
+# Generate an AI model BOM
+bom-tools generate --type ai \
+    --repo microsoft/DialoGPT-medium \
+    --arxiv https://arxiv.org/abs/1911.00536 \
+    --github https://github.com/microsoft/DialoGPT \
+    --output result.json --spdx result.spdx.json
+
+# Generate a dataset BOM
+bom-tools generate --type data \
+    --hf-url https://huggingface.co/datasets/squad \
+    --github https://github.com/rajpurkar/SQuAD-explorer \
+    --output result.json
+
+# Start web UI
+bom-tools serve --port 5000
+```
+
+### Python API
+
+**AI Model BOM:**
 
 ```python
 from bom_tools.core.processors import AIBOMProcessor
@@ -156,23 +93,184 @@ processor = AIBOMProcessor(
     model="gpt-4o",
     mode="rag",
     llm_provider="openai",
-    use_case="complete",
-    embedding_provider="local",
-    embedding_model="BAAI/bge-small-en-v1.5"
+    use_case="complete"
 )
 
-metadata = processor.process_ai_model(
+result = processor.process_ai_model(
     repo_id="microsoft/DialoGPT-medium",
     arxiv_url="https://arxiv.org/abs/1911.00536",
     github_url="https://github.com/microsoft/DialoGPT"
 )
-
-print(metadata.get("model_id"))
 ```
 
-More runnable examples:
-- [examples/example_ai_bom.py](examples/example_ai_bom.py)
-- [examples/example_data_bom.py](examples/example_data_bom.py)
+**Dataset BOM:**
+
+```python
+from bom_tools.core.processors import DATABOMProcessor
+
+processor = DATABOMProcessor(
+    model="gpt-4o",
+    mode="rag",
+    llm_provider="openai",
+    use_case="complete"
+)
+
+result = processor.process_dataset(
+    arxiv_url="https://arxiv.org/abs/1606.05250",
+    github_url="https://github.com/rajpurkar/SQuAD-explorer",
+    hf_url="https://huggingface.co/datasets/squad"
+)
+```
+
+See [examples/](examples/) for complete runnable scripts.
+
+## Output Format
+
+Every field is a **triplet** — the value, where it came from, and whether sources disagreed:
+
+```json
+{
+  "repo_id": "microsoft/DialoGPT-medium",
+  "model_id": "microsoft_DialoGPT-medium",
+  "use_case": "complete",
+  "direct_fields": {
+    "suppliedBy": {
+      "value": "microsoft",
+      "source": "huggingface",
+      "conflict": null
+    },
+    "license": {
+      "value": "MIT",
+      "source": "huggingface",
+      "conflict": {
+        "value": "Apache License 2.0",
+        "source": "github",
+        "type": "inter"
+      }
+    }
+  },
+  "rag_fields": {
+    "domain": {
+      "value": "Natural Language Processing, Dialogue Systems",
+      "source": "arxiv, huggingface",
+      "conflict": null
+    },
+    "typeOfModel": {
+      "value": "GPT-2 based autoregressive language model",
+      "source": "arxiv",
+      "conflict": null
+    }
+  }
+}
+```
+
+| Key | Meaning |
+|-----|---------|
+| `value` | The resolved field value |
+| `source` | Which source(s) provided this value |
+| `conflict` | What another source reported, if different (`null` = no conflict) |
+| `conflict.type` | `"inter"` = different sources disagree; `"intra"` = same source is internally inconsistent |
+
+See [examples/sample-output.json](examples/sample-output.json) for a complete example.
+
+## Conflict Detection
+
+BOM Tools automatically detects when metadata sources disagree.
+
+**Inter-source conflicts** — different sources report different values:
+> HuggingFace model card says `license: MIT` but the GitHub repo's LICENSE file says `Apache-2.0`.
+
+Resolution: majority voting when 3+ sources available; priority ordering otherwise.
+
+**Intra-source conflicts** — the same source contradicts itself:
+> HuggingFace API metadata says `MIT` but the README text says "licensed under the Apache License 2.0."
+
+Resolution: similarity scoring (difflib) between structured metadata and extracted text. Flagged when similarity drops below 80%.
+
+Both conflict types appear in the `conflict` field of each triplet, with `type: "inter"` or `type: "intra"`.
+
+## SPDX 3.0.1 Conversion
+
+Convert any BOM output to [SPDX 3.0.1](https://spdx.github.io/spdx-spec/v3.0.1/) format — the standard for software supply chain transparency.
+
+**Three ways to generate SPDX:**
+
+1. **CLI**: `bom-tools generate --type ai --repo org/model --spdx output.spdx.json`
+2. **Web UI**: Always generated — see the "SPDX 3.0.1" tab and "Download SPDX 3.0.1" button after processing
+3. **Python API**:
+
+```python
+from bom_tools.utils.spdx_validator import validate_bom_to_spdx
+
+spdx = validate_bom_to_spdx(result, bom_type='ai', output_path='output.spdx.json')
+```
+
+The SPDX output contains:
+- `AI_AIPackage` or `dataset_DatasetPackage` elements with mapped fields
+- `CreationInfo` with generation timestamp
+- License relationships (`hasConcludedLicense`, `hasDeclaredLicense`)
+- SPDX 3.0.1 JSON-LD structure with `@context` and `@graph`
+
+## Use-Case Presets
+
+Focus BOM generation on specific compliance needs:
+
+| Preset | Focus |
+|--------|-------|
+| `complete` | All fields (default) |
+| `safety` | Safety risks, bias, limitations, compliance |
+| `security` | Security posture, sensitive data, autonomy |
+| `lineage` | Training data, preprocessing, hyperparameters |
+| `license` | License and standards compliance only |
+
+```bash
+bom-tools generate --type ai --repo org/model --use-case safety
+```
+
+## Configuration
+
+Copy `.env.example` and fill in the keys you need:
+
+```bash
+cp .env.example .env
+```
+
+```env
+# Pick ONE LLM provider:
+OPENAI_API_KEY=sk-...          # Option 1: OpenAI
+OPENROUTER_API_KEY=sk-or-...   # Option 2: OpenRouter (free models available)
+OLLAMA_BASE_URL=http://localhost:11434/v1/  # Option 3: Ollama (local, no key)
+
+# Source API tokens (optional, increases rate limits):
+GITHUB_TOKEN=ghp_...
+HUGGINGFACE_TOKEN=hf_...
+
+# Optional — enables automatic link discovery:
+GEMINI_API_KEY=AI...
+```
+
+RAG mode uses local HuggingFace embeddings by default — no OpenAI key needed for embeddings.
+
+See [.env.example](.env.example) for all available variables.
+
+## Installation
+
+```bash
+# Clone and install
+git clone https://github.com/rgopikrishnan91/aibom && cd aibom
+python -m venv .venv && source .venv/bin/activate
+pip install -e .
+cp .env.example .env  # edit with your keys
+```
+
+Or with conda:
+
+```bash
+conda create -n bom-tools python=3.11 -y && conda activate bom-tools
+pip install -e .
+```
+
+Requires Python 3.8+. Tested on Linux, macOS, and Windows.
 
 ## Testing
 
@@ -181,57 +279,14 @@ pytest
 pytest --cov=bom_tools --cov-report=html
 ```
 
-## Output Shape
-
-BOM fields use triplets:
-
-```json
-"license": {
-  "value": "odc-by",
-  "source": "huggingface",
-  "conflict": {
-    "value": "Apache License 2.0",
-    "source": "github",
-    "type": "inter"
-  }
-}
-```
-
-## Docs
-
-- [docs/README.md](docs/README.md)
-- [docs/LOCAL_EMBEDDINGS.md](docs/LOCAL_EMBEDDINGS.md)
-- [docs/migration.md](docs/migration.md)
-
 ## Troubleshooting
 
-If package installation fails due to permissions, use a virtual environment or conda environment rather than system Python.
+**Ollama connection issues** — Ensure Ollama is running (`ollama serve`) and reachable at `http://localhost:11434/api/tags`.
 
-### Ollama connection issues
+**Rate limits** — Set `GITHUB_TOKEN` and `HUGGINGFACE_TOKEN` in `.env` to increase API rate limits.
 
-Ensure Ollama is running and reachable:
-
-```bash
-ollama serve
-curl http://localhost:11434/api/tags
-```
-
-Then set:
-`OLLAMA_BASE_URL=http://localhost:11434/v1/`
-
-### GitHub / Hugging Face rate limits
-
-Set tokens in `.env`:
-- `GITHUB_TOKEN`
-- `HUGGINGFACE_TOKEN`
-
-### arXiv PDF parsing issues
-
-arXiv PDFs are parsed via PyMuPDF. Some papers with complex formatting may yield imperfect text. If a field is consistently “Not found”, try:
-- adding GitHub/HF sources
-- using Direct mode
-- manually reviewing evidence chunks retrieved in RAG mode
+**arXiv PDF parsing** — Complex PDFs may yield imperfect text. Try adding GitHub/HF sources, using Direct mode, or reviewing the retrieved evidence chunks.
 
 ## License
 
-MIT License. See `LICENSE`.
+MIT License. See [LICENSE](LICENSE).

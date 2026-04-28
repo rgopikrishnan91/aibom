@@ -102,7 +102,6 @@ class LinkFallbackFinder:
                             api_key=self.api_key,
                             http_options=types.HttpOptions(
                                 client_args={
-                                    "verify": False,  # Disable SSL verification
                                     "timeout": timeout,
                                     "trust_env": True,
                                 }

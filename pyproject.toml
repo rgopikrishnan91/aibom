@@ -46,6 +46,8 @@ dependencies = [
     "beautifulsoup4>=4.12.0",
     "pymupdf>=1.23.0",
     "certifi>=2023.0.0",
+    "google-genai>=0.3.0",
+    "httpx>=0.25.0",
 ]
 
 [project.optional-dependencies]
@@ -62,7 +64,7 @@ dev = [
 ]
 
 [project.scripts]
-bom-tools = "bom_tools.web.app:main"
+bom-tools = "bom_tools.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/rgopikrishnan91/aibom"
