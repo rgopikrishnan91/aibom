@@ -29,6 +29,6 @@ pymupdf>=1.23.0
 # SSL & Network
 certifi>=2023.0.0
 
-# Optional - Link Fallback
-# google-genai>=0.3.0
-# httpx>=0.25.0
+# Link Fallback Agent (uses Gemini for missing-link auto-discovery)
+google-genai>=0.3.0
+httpx>=0.25.0

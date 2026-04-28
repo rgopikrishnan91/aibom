@@ -206,12 +206,35 @@ def find_links():
         if not gemini_api_key:
             return jsonify({
                 'status': 'skipped',
-                'reason': 'No Gemini API key configured',
+                'reason': 'no_gemini_key',
+                'message': 'Link Fallback Agent inactive — no GEMINI_API_KEY set',
                 'hf_repo_id': hf_repo_id,
                 'arxiv_url': arxiv_url,
                 'github_url': github_url,
                 'link_status': {}
             })
+
+        # Verify google-genai is installed (it's a hard dep now, but fall back gracefully)
+        try:
+            from google import genai  # noqa: F401
+        except ImportError:
+            return jsonify({
+                'status': 'skipped',
+                'reason': 'genai_not_installed',
+                'message': 'Link Fallback Agent unavailable — google-genai package not installed. Run: pip install google-genai',
+                'hf_repo_id': hf_repo_id,
+                'arxiv_url': arxiv_url,
+                'github_url': github_url,
+                'link_status': {}
+            })
+
+        # Compute which links were missing before the call, so we can tell
+        # the UI both what was found and what we tried but couldn't find.
+        missing_before = {
+            'hf': not hf_repo_id,
+            'arxiv': not arxiv_url,
+            'github': not github_url,
+        }
 
         fallback_finder = LinkFallbackFinder()
         final_repo_id, final_arxiv_url, final_github_url, link_status = fallback_finder.find_missing_links(
@@ -220,12 +243,23 @@ def find_links():
             arxiv_url=arxiv_url,
             github_url=github_url
         )
+        link_status = link_status or {}
+        # For each link that was missing, mark whether the agent recovered it.
+        not_found = []
+        if missing_before['hf'] and not final_repo_id:
+            not_found.append('huggingface')
+        if missing_before['arxiv'] and not final_arxiv_url:
+            not_found.append('arxiv')
+        if missing_before['github'] and not final_github_url:
+            not_found.append('github')
+
         return jsonify({
             'status': 'success',
             'hf_repo_id': final_repo_id,
             'arxiv_url': final_arxiv_url,
             'github_url': final_github_url,
-            'link_status': link_status
+            'link_status': link_status,
+            'not_found': not_found,
         })
     except Exception as e:
         import traceback
@@ -301,12 +335,24 @@ def process():
             
             # Use link fallback to find missing links (skip if frontend already ran /find_links)
             skip_fallback = data.get('skip_fallback', False)
+            link_fallback_info = {'attempted': False}
             if not skip_fallback:
                 print("\n" + "="*70)
                 print("LINK FALLBACK: Checking for missing links...")
                 print("="*70)
                 gemini_api_key = os.getenv("GEMINI_API_KEY")
-                if gemini_api_key:
+                if not gemini_api_key:
+                    link_fallback_info = {
+                        'attempted': False,
+                        'reason': 'no_gemini_key',
+                        'message': 'Link Fallback Agent inactive — no GEMINI_API_KEY set',
+                    }
+                else:
+                    missing_before = {
+                        'hf': not repo_id,
+                        'arxiv': not arxiv_url,
+                        'github': not github_url,
+                    }
                     try:
                         fallback_finder = LinkFallbackFinder()
                         final_repo_id, final_arxiv_url, final_github_url, link_status = fallback_finder.find_missing_links(
@@ -315,12 +361,31 @@ def process():
                             arxiv_url=arxiv_url,
                             github_url=github_url
                         )
-                        if link_status and any([link_status.get('hf_found', False), link_status.get('arxiv_found', False), link_status.get('github_found', False)]):
+                        # Always apply discovered links — overwrite missing fields if found.
+                        if missing_before['hf'] and final_repo_id:
                             repo_id = final_repo_id
+                        if missing_before['arxiv'] and final_arxiv_url:
                             arxiv_url = final_arxiv_url
+                        if missing_before['github'] and final_github_url:
                             github_url = final_github_url
+                        not_found = []
+                        if missing_before['hf'] and not final_repo_id:
+                            not_found.append('huggingface')
+                        if missing_before['arxiv'] and not final_arxiv_url:
+                            not_found.append('arxiv')
+                        if missing_before['github'] and not final_github_url:
+                            not_found.append('github')
+                        link_fallback_info = {
+                            'attempted': True,
+                            'link_status': link_status or {},
+                            'not_found': not_found,
+                        }
                     except Exception as e:
                         print(f"⚠️ Link fallback failed: {e}")
+                        link_fallback_info = {
+                            'attempted': True,
+                            'error': str(e),
+                        }
             
             proc = get_processor(
                 bom_type='ai',
@@ -369,9 +434,10 @@ def process():
                     'hf_repo_id': repo_id,
                     'arxiv_url': arxiv_url,
                     'github_url': github_url
-                }
+                },
+                'link_fallback': link_fallback_info,
             }
-            
+
         else:
             # Data BOM processing
             arxiv_url = data.get('arxiv_url', '').strip() or None
@@ -392,24 +458,54 @@ def process():
             
             # Try link fallback (skip if frontend already ran /find_links)
             skip_fallback = data.get('skip_fallback', False)
+            link_fallback_info = {'attempted': False}
             if not skip_fallback:
-                try:
-                    fallback_finder = LinkFallbackFinder()
-                    final_repo_id, final_arxiv_url, final_github_url, link_status = fallback_finder.find_missing_links(
-                        repo_id=hf_repo_id,
-                        hf_repo_id=hf_repo_id,
-                        arxiv_url=arxiv_url,
-                        github_url=github_url
-                    )
-                    if final_repo_id and not hf_url:
-                        hf_url = f"https://huggingface.co/datasets/{final_repo_id}"
-                        hf_repo_id = final_repo_id
-                    if final_arxiv_url:
-                        arxiv_url = final_arxiv_url
-                    if final_github_url:
-                        github_url = final_github_url
-                except Exception as e:
-                    print(f"⚠️ Link fallback failed: {e}")
+                gemini_api_key = os.getenv("GEMINI_API_KEY")
+                if not gemini_api_key:
+                    link_fallback_info = {
+                        'attempted': False,
+                        'reason': 'no_gemini_key',
+                        'message': 'Link Fallback Agent inactive — no GEMINI_API_KEY set',
+                    }
+                else:
+                    missing_before = {
+                        'hf': not hf_repo_id,
+                        'arxiv': not arxiv_url,
+                        'github': not github_url,
+                    }
+                    try:
+                        fallback_finder = LinkFallbackFinder()
+                        final_repo_id, final_arxiv_url, final_github_url, link_status = fallback_finder.find_missing_links(
+                            repo_id=hf_repo_id,
+                            hf_repo_id=hf_repo_id,
+                            arxiv_url=arxiv_url,
+                            github_url=github_url
+                        )
+                        if missing_before['hf'] and final_repo_id and not hf_url:
+                            hf_url = f"https://huggingface.co/datasets/{final_repo_id}"
+                            hf_repo_id = final_repo_id
+                        if missing_before['arxiv'] and final_arxiv_url:
+                            arxiv_url = final_arxiv_url
+                        if missing_before['github'] and final_github_url:
+                            github_url = final_github_url
+                        not_found = []
+                        if missing_before['hf'] and not final_repo_id:
+                            not_found.append('huggingface')
+                        if missing_before['arxiv'] and not final_arxiv_url:
+                            not_found.append('arxiv')
+                        if missing_before['github'] and not final_github_url:
+                            not_found.append('github')
+                        link_fallback_info = {
+                            'attempted': True,
+                            'link_status': link_status or {},
+                            'not_found': not_found,
+                        }
+                    except Exception as e:
+                        print(f"⚠️ Link fallback failed: {e}")
+                        link_fallback_info = {
+                            'attempted': True,
+                            'error': str(e),
+                        }
             
             proc = get_processor(
                 bom_type='data',
@@ -458,12 +554,13 @@ def process():
                     'hf_repo_id': hf_repo_id,
                     'arxiv_url': arxiv_url,
                     'github_url': github_url
-                }
+                },
+                'link_fallback': link_fallback_info,
             }
-        
-        # Optionally generate SPDX 3.0.1 output
-        output_format = data.get('format', 'json')
-        if output_format in ('spdx', 'both'):
+
+        # Always generate SPDX 3.0.1 output — it's the headline value prop.
+        # If conversion fails, log it but don't break the rest of the response.
+        try:
             from bom_tools.utils.spdx_validator import SPDXValidator
             validator = SPDXValidator(bom_type=bom_type)
             spdx_output = validator.validate_and_convert(metadata)
@@ -473,6 +570,11 @@ def process():
                 json.dump(spdx_output, f, indent=2, ensure_ascii=False)
             response_data['spdx_download_url'] = f'/download/{spdx_filename}'
             response_data['spdx_data'] = spdx_output
+        except Exception as spdx_exc:
+            import traceback
+            print(f"⚠️ SPDX conversion failed: {spdx_exc}")
+            print(traceback.format_exc())
+            response_data['spdx_error'] = str(spdx_exc)
 
         return jsonify(response_data)
 

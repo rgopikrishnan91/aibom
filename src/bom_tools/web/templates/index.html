@@ -651,11 +651,6 @@
                     </div>
                 </div>
                 
-                <!-- Output Format -->
-                <div class="form-group">
-                    <label><input type="checkbox" id="spdx_output" name="spdx_output" style="width:auto; margin-right:8px;">Generate SPDX 3.0.1 output</label>
-                </div>
-
                 <!-- AI Mode Fields -->
                 <div id="ai_fields">
                     <div class="form-group">
@@ -701,30 +696,30 @@
             <h2>📋 Generated BOM</h2>
             
             <div class="tabs">
-                <button class="tab active" onclick="switchTab('complete')">Complete BOM</button>
-                <button class="tab" onclick="switchTab('spdx')">SPDX BOM</button>
+                <button class="tab active" onclick="switchTab('complete')" title="Source-traced fields with conflict detection">BOM with Provenance</button>
+                <button class="tab" onclick="switchTab('spdx')" title="Standards-compliant SPDX 3.0.1 export">SPDX 3.0.1</button>
             </div>
-            
+
             <div class="download-buttons" id="downloadButtons" style="display: none;">
-                <a id="downloadComplete" href="#" class="download-btn" target="_blank" style="display: none;">📥 Download Complete BOM</a>
-                <a id="downloadSPDX" href="#" class="download-btn spdx" target="_blank" style="display: none;">📄 Download SPDX BOM</a>
+                <a id="downloadComplete" href="#" class="download-btn" target="_blank" style="display: none;">📥 Download Provenance BOM</a>
+                <a id="downloadSPDX" href="#" class="download-btn spdx" target="_blank" style="display: none;">📄 Download SPDX 3.0.1</a>
             </div>
-            
+
             <div id="completeTab" class="tab-content active">
                 <div class="json-container">
                     <div id="jsonViewerComplete" class="json-viewer">
                         <div class="json-placeholder">
-                            Process a dataset to view the complete BOM JSON output here
+                            Generated BOM with source provenance and conflict detection will appear here.
                         </div>
                     </div>
                 </div>
             </div>
-            
+
             <div id="spdxTab" class="tab-content">
                 <div class="json-container">
                     <div id="jsonViewerSPDX" class="json-viewer">
                         <div class="json-placeholder">
-                            Process a dataset to view the SPDX-compliant JSON output here
+                            SPDX 3.0.1 JSON-LD export will appear here.
                         </div>
                     </div>
                 </div>
@@ -842,7 +837,7 @@
                 selectedModel = document.getElementById('ollama_model_input').value;
             }
 
-            const spdxChecked = document.getElementById('spdx_output').checked;
+            // SPDX 3.0.1 is always generated alongside the provenance BOM.
             const formData = {
                 bom_type: selectedBomType,
                 arxiv_url: document.getElementById('arxiv_url').value,
@@ -853,7 +848,7 @@
                 model: selectedModel,
                 ollama_model: document.getElementById('ollama_model_input').value,
                 openrouter_model: document.getElementById('openrouter_model').value,
-                format: spdxChecked ? 'both' : 'json'
+                format: 'both'
             };
 
             // Add fields based on BOM type
@@ -919,12 +914,27 @@
                         if (linkResult.status === 'success' || linkResult.status === 'skipped') {
                             applyFoundLinks(linkResult);
                             formData.skip_fallback = true;
-                            const ls = linkResult.link_status || {};
-                            const found = [];
-                            if (ls.hf_found)    found.push('HuggingFace');
-                            if (ls.arxiv_found)  found.push('ArXiv');
-                            if (ls.github_found) found.push('GitHub');
-                            const linkNote = found.length > 0 ? `🔗 Found: ${found.join(', ')}. ` : '';
+                            let linkNote = '';
+                            if (linkResult.status === 'skipped' && linkResult.reason === 'no_gemini_key') {
+                                linkNote = '🔗 <strong>Link Fallback Agent inactive</strong> — set <code>GEMINI_API_KEY</code> to enable auto-discovery. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Get a free key →</a><br>';
+                            } else if (linkResult.status === 'skipped' && linkResult.reason === 'genai_not_installed') {
+                                linkNote = '🔗 <strong>Link Fallback Agent unavailable</strong> — <code>google-genai</code> package not installed.<br>';
+                            } else if (linkResult.status === 'success') {
+                                const ls = linkResult.link_status || {};
+                                const found = [];
+                                if (ls.hf_found)     found.push('HuggingFace');
+                                if (ls.arxiv_found)  found.push('ArXiv');
+                                if (ls.github_found) found.push('GitHub');
+                                const notFound = (linkResult.not_found || []).map(n =>
+                                    n === 'huggingface' ? 'HuggingFace' : n === 'arxiv' ? 'ArXiv' : 'GitHub'
+                                );
+                                if (found.length > 0) {
+                                    linkNote += `🔗 Found: ${found.join(', ')}. `;
+                                }
+                                if (notFound.length > 0) {
+                                    linkNote += `⚠️ Could not auto-discover: ${notFound.join(', ')}. `;
+                                }
+                            }
                             showStatus('processing', `<span class="spinner"></span> ${linkNote}Generating ${bomTypeLabel} BOM...`);
                         }
                     } catch (linkErr) {
@@ -982,32 +992,46 @@
                         }
                     }
 
+                    // Show link fallback agent status
+                    const lfb = result.link_fallback || {};
+                    if (lfb.reason === 'no_gemini_key') {
+                        statusMessage += `<br><small>🔗 <em>Link Fallback Agent inactive — set <code>GEMINI_API_KEY</code> to enable auto-discovery. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Get a free key →</a></em></small>`;
+                    } else if (lfb.attempted && Array.isArray(lfb.not_found) && lfb.not_found.length > 0) {
+                        const labels = lfb.not_found.map(n =>
+                            n === 'huggingface' ? 'HuggingFace' : n === 'arxiv' ? 'ArXiv' : 'GitHub'
+                        );
+                        statusMessage += `<br><small>⚠️ Link Fallback Agent could not auto-discover: ${labels.join(', ')}</small>`;
+                    }
+
                     showStatus('success', statusMessage);
 
-                    // Display Complete BOM JSON
+                    // Display Provenance BOM JSON
                     displayJSON(result.metadata, jsonViewerComplete);
-                    
+
                     // Setup download buttons
                     downloadComplete.href = result.download_url;
                     downloadComplete.style.display = 'inline-block';
-                    
+
                     // Update button text based on use case
                     if (isSubset) {
-                        downloadComplete.textContent = `📥 Download ${useCaseLabel} Data`;
+                        downloadComplete.textContent = `📥 Download ${useCaseLabel} Provenance BOM`;
                     } else {
-                        downloadComplete.textContent = '📥 Download Complete BOM';
+                        downloadComplete.textContent = '📥 Download Provenance BOM';
                     }
-                    
+
                     if (result.spdx_download_url && result.spdx_data) {
                         downloadSPDX.href = result.spdx_download_url;
                         downloadSPDX.style.display = 'inline-block';
-                        
+
                         // Display SPDX JSON directly from response
                         spdxData = result.spdx_data;
                         displayJSON(spdxData, jsonViewerSPDX);
                     } else {
                         downloadSPDX.style.display = 'none';
-                        jsonViewerSPDX.innerHTML = '<div class="json-placeholder">SPDX output not available</div>';
+                        const errMsg = result.spdx_error
+                            ? `SPDX conversion failed: ${result.spdx_error}`
+                            : 'SPDX output not available';
+                        jsonViewerSPDX.innerHTML = `<div class="json-placeholder">${errMsg}</div>`;
                     }
                     
                     downloadButtons.style.display = 'flex';

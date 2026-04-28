@@ -53,6 +53,8 @@ setup(
         "beautifulsoup4>=4.12.0",
         "pymupdf>=1.23.0",
         "certifi>=2023.0.0",
+        "google-genai>=0.3.0",
+        "httpx>=0.25.0",
     ],
     extras_require={
         "link_fallback": [
