@@ -724,12 +724,14 @@
                 <button class="tab active" onclick="switchTab('complete')" title="Source-traced fields with conflict detection">BOM with Provenance</button>
                 <button class="tab" id="conflictsTabBtn" onclick="switchTab('conflicts')" title="Summary of all detected conflicts">Conflicts</button>
                 <button class="tab" onclick="switchTab('spdx')" title="Standards-compliant SPDX 3.0.1 export">SPDX 3.0.1</button>
+                <button class="tab" onclick="switchTab('cyclonedx')" title="CycloneDX 1.7 ML-BOM export">CycloneDX 1.7</button>
                 <button class="tab" onclick="switchTab('logs')" title="Server processing logs">Logs</button>
             </div>
 
             <div class="download-buttons" id="downloadButtons" style="display: none;">
                 <a id="downloadComplete" href="#" class="download-btn" target="_blank" style="display: none;">📥 Download Provenance BOM</a>
                 <a id="downloadSPDX" href="#" class="download-btn spdx" target="_blank" style="display: none;">📄 Download SPDX 3.0.1</a>
+                <a id="downloadCDX" href="#" class="download-btn spdx" target="_blank" style="display: none;">📦 Download CycloneDX 1.7</a>
             </div>
 
             <div id="completeTab" class="tab-content active">
@@ -762,6 +764,16 @@
                 </div>
             </div>
 
+            <div id="cyclonedxTab" class="tab-content">
+                <div class="json-container">
+                    <div id="jsonViewerCDX" class="json-viewer">
+                        <div class="json-placeholder">
+                            CycloneDX 1.7 ML-BOM export will appear here.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div id="logsTab" class="tab-content">
                 <div class="json-container">
                     <div id="logsViewer" class="json-viewer" style="font-family:'Courier New',monospace; font-size:12px; white-space:pre-wrap; background:#1e1e1e; color:#d4d4d4; padding:12px; max-height:500px; overflow-y:auto;">
@@ -777,9 +789,11 @@
         const statusDiv = document.getElementById('status');
         const jsonViewerComplete = document.getElementById('jsonViewerComplete');
         const jsonViewerSPDX = document.getElementById('jsonViewerSPDX');
+        const jsonViewerCDX = document.getElementById('jsonViewerCDX');
         const processBtn = document.getElementById('processBtn');
         const downloadButtons = document.getElementById('downloadButtons');
         const downloadComplete = document.getElementById('downloadComplete');
+        const downloadCDX = document.getElementById('downloadCDX');
         const downloadSPDX = document.getElementById('downloadSPDX');
         const useCaseDropdownBtn = document.getElementById('useCaseDropdownBtn');
         const useCaseContainer = document.getElementById('useCaseContainer');
@@ -1173,7 +1187,20 @@
                             : 'SPDX output not available';
                         jsonViewerSPDX.innerHTML = `<div class="json-placeholder">${errMsg}</div>`;
                     }
-                    
+
+                    // CycloneDX 1.7
+                    if (result.cyclonedx_download_url && result.cyclonedx_data) {
+                        downloadCDX.href = result.cyclonedx_download_url;
+                        downloadCDX.style.display = 'inline-block';
+                        displayJSON(result.cyclonedx_data, jsonViewerCDX);
+                    } else {
+                        downloadCDX.style.display = 'none';
+                        const cdxErr = result.cyclonedx_error
+                            ? `CycloneDX conversion failed: ${result.cyclonedx_error}`
+                            : 'CycloneDX output not available';
+                        jsonViewerCDX.innerHTML = `<div class="json-placeholder">${cdxErr}</div>`;
+                    }
+
                     // Populate Conflicts tab + update tab badge
                     const conflictsViewer = document.getElementById('conflictsViewer');
                     const conflictsTabBtn = document.getElementById('conflictsTabBtn');

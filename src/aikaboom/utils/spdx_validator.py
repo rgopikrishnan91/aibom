@@ -38,7 +38,11 @@ class SPDXValidator:
         "safety_risk_assessment": "safetyRiskAssessment",
         "standard_compliance": "standardCompliance",
         "model_type": "typeOfModel",
-        "sensitive_personal_information": "useSensitivePersonalInformation"
+        "sensitive_personal_information": "useSensitivePersonalInformation",
+        # Relationship fields (not AIPackage properties -- emitted as SPDX Relationships)
+        # "trainedOnDatasets": emitted as Relationship(trainedOn) -> DatasetPackage stubs
+        # "testedOnDatasets": emitted as Relationship(testedOn) -> DatasetPackage stubs
+        # "modelLineage": emitted as Relationship(dependsOn) -> Package stubs
     }
     
     # Field mappings for Dataset BOM
@@ -247,8 +251,71 @@ class SPDXValidator:
             ]
         }
         
+        # Emit trainedOn / testedOn / dependsOn relationships from RAG fields
+        relationship_fields = {
+            'trainedOnDatasets': 'trainedOn',
+            'testedOnDatasets': 'testedOn',
+            'modelLineage': 'dependsOn',
+        }
+        for field_key, rel_type in relationship_fields.items():
+            value = self._extract_value(rag_fields.get(field_key))
+            if value and isinstance(value, str) and value.lower() not in ('not found', 'not found.', ''):
+                stub_elements, rels = self._build_dataset_relationships(
+                    value=value,
+                    rel_type=rel_type,
+                    from_id=f"urn:spdx:AIPackage-{package_uuid}",
+                    creation_uuid=creation_uuid,
+                )
+                spdx_doc['@graph'].extend(stub_elements)
+                spdx_doc['@graph'].extend(rels)
+
         return spdx_doc
-    
+
+    def _build_dataset_relationships(self, value: str, rel_type: str,
+                                      from_id: str, creation_uuid: str):
+        """Create stub DatasetPackage elements and Relationship elements.
+
+        Parses a comma/semicolon separated string of dataset names, creates
+        a minimal DatasetPackage stub for each, and emits a Relationship
+        linking the AIPackage to each dataset.
+
+        Returns:
+            (stub_elements: list[dict], relationships: list[dict])
+        """
+        import re
+        names = [n.strip() for n in re.split(r'[;,\n]+', value) if n.strip()]
+        # Deduplicate while preserving order
+        seen = set()
+        unique_names = []
+        for n in names:
+            low = n.lower()
+            if low not in seen:
+                seen.add(low)
+                unique_names.append(n)
+
+        stubs = []
+        rels = []
+        for name in unique_names[:10]:
+            ds_uuid = self._generate_uuid()
+            ds_id = f"urn:spdx:DatasetPackage-{ds_uuid}"
+            stubs.append({
+                "type": "dataset_DatasetPackage",
+                "spdxId": ds_id,
+                "creationInfo": f"_:creationinfo-{creation_uuid}",
+                "name": name,
+                "downloadLocation": "NOASSERTION",
+            })
+            rels.append({
+                "type": "Relationship",
+                "spdxId": f"urn:spdx:Relationship-{rel_type}-{ds_uuid}",
+                "creationInfo": f"_:creationinfo-{creation_uuid}",
+                "relationshipType": rel_type,
+                "from": from_id,
+                "to": [ds_id],
+                "description": f"{rel_type} relationship to dataset: {name}",
+            })
+        return stubs, rels
+
     def _build_ai_package(
         self, package_uuid: str, creation_uuid: str, org_uuid: str,
         direct_fields: Dict, rag_fields: Dict, repo_id: str
@@ -282,9 +349,10 @@ class SPDXValidator:
                 elif spdx_field == "primaryPurpose":
                     ai_package[spdx_field] = "data"
         
-        # Set AI-Model-Name (required field)
+        # Set name (standard SPDX property) + AI-Model-Name (legacy, kept for compatibility)
         model_name_value = self._extract_value(rag_fields.get("model_name"))
-        ai_package["AI-Model-Name"] = model_name_value or repo_id or "AI Model Name Placeholder"
+        ai_package["name"] = model_name_value or repo_id or "AI Model Name Placeholder"
+        ai_package["AI-Model-Name"] = ai_package["name"]
         
         # Map RAG fields
         rag_mapping = {

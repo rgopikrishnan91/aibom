@@ -182,13 +182,19 @@ def cmd_generate(args):
     else:
         print(output_json)
 
+    bom_type = "ai" if args.type == "ai" else "data"
+
     # Optionally convert to SPDX
     if args.spdx:
         from aikaboom.utils.spdx_validator import validate_bom_to_spdx
-
-        bom_type = "ai" if args.type == "ai" else "data"
         validate_bom_to_spdx(result, bom_type=bom_type, output_path=args.spdx)
         print(f"SPDX 3.0.1 BOM saved to {args.spdx}")
+
+    # Optionally convert to CycloneDX
+    if args.cyclonedx:
+        from aikaboom.utils.cyclonedx_exporter import bom_to_cyclonedx
+        bom_to_cyclonedx(result, bom_type=bom_type, output_path=args.cyclonedx)
+        print(f"CycloneDX 1.7 BOM saved to {args.cyclonedx}")
 
 
 def cmd_serve(args):
@@ -273,6 +279,7 @@ def main():
     )
     gen.add_argument("-o", "--output", help="Output JSON file path (default: stdout)")
     gen.add_argument("--spdx", help="Also generate SPDX 3.0.1 output at this path")
+    gen.add_argument("--cyclonedx", help="Also generate CycloneDX 1.7 output at this path")
     gen.add_argument(
         "-y", "--yes",
         action="store_true",

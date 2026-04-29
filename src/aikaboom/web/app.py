@@ -697,6 +697,23 @@ def process():
             print(traceback.format_exc())
             response_data['spdx_error'] = str(spdx_exc)
 
+        # Always generate CycloneDX 1.7 output
+        try:
+            from aikaboom.utils.cyclonedx_exporter import CycloneDXExporter
+            cdx_exporter = CycloneDXExporter(bom_type=bom_type)
+            cdx_output = cdx_exporter.validate_and_convert(metadata)
+            cdx_filename = filename.replace('.json', '.cyclonedx.json')
+            cdx_path = os.path.join(app.config['UPLOAD_FOLDER'], cdx_filename)
+            with open(cdx_path, 'w', encoding='utf-8') as f:
+                json.dump(cdx_output, f, indent=2, ensure_ascii=False)
+            response_data['cyclonedx_download_url'] = f'/download/{cdx_filename}'
+            response_data['cyclonedx_data'] = cdx_output
+        except Exception as cdx_exc:
+            import traceback
+            print(f"⚠️ CycloneDX conversion failed: {cdx_exc}")
+            print(traceback.format_exc())
+            response_data['cyclonedx_error'] = str(cdx_exc)
+
         return jsonify(response_data)
 
     except Exception as e:
