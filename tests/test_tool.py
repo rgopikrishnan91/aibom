@@ -36,7 +36,7 @@ if env_file.exists():
 # Add src directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from bom_tools.core.processors import AIBOMProcessor, DATABOMProcessor
+from aikaboom.core.processors import AIBOMProcessor, DATABOMProcessor
 
 
 def setup_directories():

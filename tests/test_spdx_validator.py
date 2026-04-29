@@ -3,7 +3,7 @@ Baseline regression tests for SPDXValidator.
 Captures current behavior BEFORE any code changes.
 """
 import pytest
-from bom_tools.utils.spdx_validator import SPDXValidator, validate_bom_to_spdx
+from aikaboom.utils.spdx_validator import SPDXValidator, validate_bom_to_spdx
 
 
 class TestExtractValue:

@@ -26,7 +26,7 @@ def _run_cli(env_overrides, args):
         env.pop(k, None)
     env.update(env_overrides)
     return subprocess.run(
-        [sys.executable, "-m", "bom_tools.cli"] + args,
+        [sys.executable, "-m", "aikaboom.cli"] + args,
         capture_output=True, text=True, env=env, timeout=30
     )
 
@@ -78,17 +78,17 @@ class TestProviderResolverUnit:
 
     def test_detect_available_only_openai(self, clean_env):
         os.environ["OPENAI_API_KEY"] = "x"
-        from bom_tools import cli
+        from aikaboom import cli
         assert cli._detect_available_providers() == ["openai"]
 
     def test_detect_available_multiple(self, clean_env):
         os.environ["OPENAI_API_KEY"] = "x"
         os.environ["OPENROUTER_API_KEY"] = "y"
-        from bom_tools import cli
+        from aikaboom import cli
         avail = cli._detect_available_providers()
         assert "openai" in avail
         assert "openrouter" in avail
 
     def test_detect_available_none(self, clean_env):
-        from bom_tools import cli
+        from aikaboom import cli
         assert cli._detect_available_providers() == []

@@ -1,13 +1,13 @@
 import json
 
-from bom_tools.core.processors import AIBOMProcessor, _build_triplet_payload
+from aikaboom.core.processors import AIBOMProcessor, _build_triplet_payload
 
 try:
     from langchain.schema import Document
 except ImportError:
     from langchain_core.documents import Document
 
-from bom_tools.core.agentic_rag import AgenticRAG, AgentState
+from aikaboom.core.agentic_rag import AgenticRAG, AgentState
 
 
 # ---------------------------------------------------------------------------

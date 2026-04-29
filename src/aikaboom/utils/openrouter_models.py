@@ -14,9 +14,8 @@ Each returned model dict has at least: id, name, context_length, pricing.
 """
 from __future__ import annotations
 
-import os
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import requests
 
@@ -116,7 +115,7 @@ def list_free_openrouter_models(force_refresh: bool = False) -> List[Dict[str, A
 def pick_free_openrouter_model() -> str:
     """Return one free model id. Picks the highest-context model available.
 
-    Used by ``bom-tools generate --pick-free-model`` and the equivalent
+    Used by ``aikaboom generate --pick-free-model`` and the equivalent
     Python API path.  Always returns a string (uses CURATED_FREE_FALLBACK[0]
     as the absolute last resort).
     """

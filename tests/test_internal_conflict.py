@@ -3,7 +3,7 @@ Baseline regression tests for LicenseConflictChecker.
 Captures current behavior BEFORE any code changes.
 """
 import pytest
-from bom_tools.core.internal_conflict import LicenseConflictChecker
+from aikaboom.core.internal_conflict import LicenseConflictChecker
 
 
 class TestNormalizeLicense:

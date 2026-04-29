@@ -13,7 +13,7 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
-from bom_tools.utils import openrouter_models as orm
+from aikaboom.utils import openrouter_models as orm
 
 
 SAMPLE_RESPONSE = {
@@ -152,7 +152,7 @@ class TestPickFreeOpenrouterModel:
 class TestPublicAPIReexports:
 
     def test_can_import_from_top_level(self):
-        from bom_tools import (
+        from aikaboom import (
             list_openrouter_models,
             list_free_openrouter_models,
             pick_free_openrouter_model,

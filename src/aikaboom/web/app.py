@@ -8,15 +8,14 @@ from werkzeug.utils import secure_filename
 import os
 import io
 import json
-import queue
 import logging
+import queue
 import threading
-from datetime import datetime
 from dotenv import load_dotenv
 
-from bom_tools.utils.link_fallback import LinkFallbackFinder
-from bom_tools.core.processors import AIBOMProcessor, DATABOMProcessor
-from bom_tools.core.agentic_rag import get_fixed_questions, FIXED_QUESTIONS_AI, FIXED_QUESTIONS_DATA
+from aikaboom.utils.link_fallback import LinkFallbackFinder
+from aikaboom.core.processors import AIBOMProcessor, DATABOMProcessor
+from aikaboom.core.agentic_rag import get_fixed_questions
 
 # Load environment variables
 _env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
@@ -405,7 +404,7 @@ def list_models_endpoint():
     if provider != 'openrouter':
         return jsonify({'provider': provider, 'models': []})
 
-    from bom_tools.utils.openrouter_models import (
+    from aikaboom.utils.openrouter_models import (
         list_free_openrouter_models,
         list_openrouter_models,
     )
@@ -683,7 +682,7 @@ def process():
         # Always generate SPDX 3.0.1 output — it's the headline value prop.
         # If conversion fails, log it but don't break the rest of the response.
         try:
-            from bom_tools.utils.spdx_validator import SPDXValidator
+            from aikaboom.utils.spdx_validator import SPDXValidator
             validator = SPDXValidator(bom_type=bom_type)
             spdx_output = validator.validate_and_convert(metadata)
             spdx_filename = filename.replace('.json', '.spdx.json')

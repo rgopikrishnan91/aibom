@@ -2,7 +2,7 @@
 Unit tests for LinkFallbackFinder
 """
 import pytest
-from bom_tools.utils.link_fallback import LinkFallbackFinder
+from aikaboom.utils.link_fallback import LinkFallbackFinder
 
 
 class TestLinkFallbackFinder:

@@ -3,7 +3,7 @@ Baseline regression tests for SourceHandler.
 Captures current behavior of pure logic functions BEFORE any code changes.
 """
 import pytest
-from bom_tools.core.source_handler import _tag_similarity, SourceHandler
+from aikaboom.core.source_handler import _tag_similarity, SourceHandler
 
 
 class TestTagSimilarity:

@@ -4,20 +4,19 @@ Contains AIBOMProcessor and DATABOMProcessor classes for processing AI models an
 """
 
 import os
-import json
 import pandas as pd
 from datetime import datetime
-from typing import Optional, Dict, Tuple
+from typing import Dict
 from github import Github
 from huggingface_hub import HfApi
 from huggingface_hub.utils import RepositoryNotFoundError
 from requests.exceptions import HTTPError
 
 import requests
-from bom_tools.core.agentic_rag import AgenticRAG, DirectLLM, get_fixed_questions, FIXED_QUESTIONS_AI, FIXED_QUESTIONS_DATA
-from bom_tools.utils.metadata_fetcher import MetadataFetcher
-from bom_tools.core.source_handler import SourceHandler
-from bom_tools.core.internal_conflict import LicenseConflictChecker
+from aikaboom.core.agentic_rag import AgenticRAG, DirectLLM, FIXED_QUESTIONS_AI, FIXED_QUESTIONS_DATA
+from aikaboom.utils.metadata_fetcher import MetadataFetcher
+from aikaboom.core.source_handler import SourceHandler
+from aikaboom.core.internal_conflict import LicenseConflictChecker
 
 
 def _clean_value(value):

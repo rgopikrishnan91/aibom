@@ -1,4 +1,4 @@
-"""Tests for the bom-tools list-models subcommand and --pick-free-model flag."""
+"""Tests for the aikaboom list-models subcommand and --pick-free-model flag."""
 import json
 import os
 import subprocess
@@ -13,7 +13,7 @@ def _run_cli(args, env_overrides=None, timeout=30):
     if env_overrides:
         env.update(env_overrides)
     return subprocess.run(
-        [sys.executable, "-m", "bom_tools.cli"] + args,
+        [sys.executable, "-m", "aikaboom.cli"] + args,
         capture_output=True, text=True, env=env, timeout=timeout
     )
 

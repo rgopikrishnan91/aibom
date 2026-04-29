@@ -15,7 +15,7 @@ class TestSPDXPipeline:
 
     def test_ai_bom_to_spdx_roundtrip(self):
         """Complete AI BOM → SPDX conversion produces valid SPDX."""
-        from bom_tools.utils.spdx_validator import SPDXValidator
+        from aikaboom.utils.spdx_validator import SPDXValidator
 
         bom_data = {
             "repo_id": "test/model",
@@ -61,7 +61,7 @@ class TestSPDXPipeline:
 
     def test_dataset_bom_to_spdx_roundtrip(self):
         """Complete Dataset BOM → SPDX conversion produces valid SPDX."""
-        from bom_tools.utils.spdx_validator import SPDXValidator
+        from aikaboom.utils.spdx_validator import SPDXValidator
 
         bom_data = {
             "dataset_id": "test/dataset",
@@ -95,7 +95,7 @@ class TestSPDXPipeline:
 
     def test_spdx_save_to_file(self):
         """SPDX output can be saved and re-read as valid JSON."""
-        from bom_tools.utils.spdx_validator import validate_bom_to_spdx
+        from aikaboom.utils.spdx_validator import validate_bom_to_spdx
 
         bom_data = {
             "repo_id": "org/model",
@@ -123,7 +123,7 @@ class TestWebAppIntegration:
 
     @pytest.fixture
     def client(self):
-        from bom_tools.web.app import app
+        from aikaboom.web.app import app
         app.config["TESTING"] = True
         with app.test_client() as c:
             yield c
@@ -166,7 +166,7 @@ class TestWebAppIntegration:
 
     def test_download_valid_file(self, client):
         """Write a file to results dir and verify download works."""
-        from bom_tools.web.app import app
+        from aikaboom.web.app import app
         test_content = {"test": True}
         test_file = os.path.join(app.config["UPLOAD_FOLDER"], "test_download.json")
         with open(test_file, "w") as f:
@@ -186,7 +186,7 @@ class TestCLIIntegration:
         """CLI generate --type ai with no URLs should exit with error."""
         import subprocess, sys
         result = subprocess.run(
-            [sys.executable, "-m", "bom_tools.cli", "generate", "--type", "ai"],
+            [sys.executable, "-m", "aikaboom.cli", "generate", "--type", "ai"],
             capture_output=True, text=True, timeout=30
         )
         assert result.returncode != 0
@@ -196,7 +196,7 @@ class TestCLIIntegration:
         """CLI generate --type data with no URLs should exit with error."""
         import subprocess, sys
         result = subprocess.run(
-            [sys.executable, "-m", "bom_tools.cli", "generate", "--type", "data"],
+            [sys.executable, "-m", "aikaboom.cli", "generate", "--type", "data"],
             capture_output=True, text=True, timeout=30
         )
         assert result.returncode != 0
@@ -207,8 +207,8 @@ class TestConflictDetectionIntegration:
 
     def test_inter_source_conflict_flows_through_triplet(self):
         """SourceHandler conflict → _parse_conflict_string → triplet output."""
-        from bom_tools.core.source_handler import SourceHandler
-        from bom_tools.core.processors import _parse_conflict_string
+        from aikaboom.core.source_handler import SourceHandler
+        from aikaboom.core.processors import _parse_conflict_string
 
         val, src, conflict = SourceHandler.get_field_conflict(
             "license",
@@ -226,8 +226,8 @@ class TestConflictDetectionIntegration:
 
     def test_intra_source_conflict_flows_through_merge(self):
         """LicenseConflictChecker → _merge_license_intra_conflict → triplet output."""
-        from bom_tools.core.internal_conflict import LicenseConflictChecker
-        from bom_tools.core.processors import _merge_license_intra_conflict
+        from aikaboom.core.internal_conflict import LicenseConflictChecker
+        from aikaboom.core.processors import _merge_license_intra_conflict
 
         conflict_result = LicenseConflictChecker.check_all_sources(
             structured_license="MIT",
@@ -244,7 +244,7 @@ class TestConflictDetectionIntegration:
 
     def test_triplet_payload_preserves_conflict_chain(self):
         """_build_triplet_payload correctly wires conflict through."""
-        from bom_tools.core.processors import _build_triplet_payload
+        from aikaboom.core.processors import _build_triplet_payload
 
         raw = {
             "license": "MIT",
@@ -270,7 +270,7 @@ class TestSPDXFieldMapping:
 
     def test_ai_rag_fields_map_to_spdx(self):
         """RAG field names correctly map to SPDX AI Package properties."""
-        from bom_tools.utils.spdx_validator import SPDXValidator
+        from aikaboom.utils.spdx_validator import SPDXValidator
 
         bom = {
             "repo_id": "t/m",

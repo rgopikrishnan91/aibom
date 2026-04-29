@@ -10,7 +10,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 # Import and run the app
-from bom_tools.web.app import app
+from aikaboom.web.app import app
 
 if __name__ == '__main__':
     host = os.getenv('BOM_HOST', '127.0.0.1')

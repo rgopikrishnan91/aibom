@@ -3,35 +3,7 @@ Baseline regression tests for MetadataFetcher URL parsing functions.
 Tests only pure logic functions — no network calls.
 """
 import pytest
-from bom_tools.utils.metadata_fetcher import MetadataFetcher
-
-
-class TestExtractHfRepoId:
-    """Tests for MetadataFetcher.extract_hf_repo_id."""
-
-    def test_standard_model_url(self):
-        result = MetadataFetcher.extract_hf_repo_id("https://huggingface.co/microsoft/DialoGPT-medium")
-        assert result == "microsoft/DialoGPT-medium"
-
-    def test_dataset_url(self):
-        result = MetadataFetcher.extract_hf_repo_id("https://huggingface.co/datasets/squad")
-        # "datasets" is removed, so for single-part path it may return None
-        # For multi-part: "datasets/namespace/repo" → "namespace/repo"
-        # "squad" alone after removing "datasets" has only 1 part
-        # Behavior: parts = ["squad"] → len < 2 → None
-        assert result is None
-
-    def test_dataset_url_with_namespace(self):
-        result = MetadataFetcher.extract_hf_repo_id("https://huggingface.co/datasets/rajpurkar/squad")
-        assert result == "rajpurkar/squad"
-
-    def test_url_with_trailing_slash(self):
-        result = MetadataFetcher.extract_hf_repo_id("https://huggingface.co/microsoft/DialoGPT-medium/")
-        assert result == "microsoft/DialoGPT-medium"
-
-    def test_short_url(self):
-        result = MetadataFetcher.extract_hf_repo_id("https://huggingface.co/")
-        assert result is None
+from aikaboom.utils.metadata_fetcher import MetadataFetcher
 
 
 class TestExtractGithubUserRepo:

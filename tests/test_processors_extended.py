@@ -4,7 +4,7 @@ Tests pure logic helpers from processors.py — no LLM or API calls.
 """
 import pytest
 import math
-from bom_tools.core.processors import (
+from aikaboom.core.processors import (
     _clean_value,
     _parse_conflict_string,
     _build_triplet_payload,

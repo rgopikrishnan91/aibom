@@ -13,10 +13,9 @@ Example .env file:
     DEBUG_FALLBACK=false
 """
 
-import ssl
 import os
 import re
-from typing import Dict, Optional, Tuple, List
+from typing import Dict, Optional, Tuple
 from dotenv import load_dotenv
 
 # Import optional dependencies with fallbacks

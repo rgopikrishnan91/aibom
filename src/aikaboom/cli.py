@@ -5,7 +5,6 @@ Usage:
     aikaboom generate --type ai --repo microsoft/DialoGPT-medium --spdx out.spdx.json
     aikaboom serve --port 5000
 
-(The legacy `bom-tools` command is kept as an alias.)
 """
 
 import argparse
@@ -132,14 +131,14 @@ def cmd_generate(args):
             print(f"Error: --pick-free-model requires --provider openrouter (got {args.provider})", file=sys.stderr)
             sys.exit(1)
         args.provider = "openrouter"
-        from bom_tools.utils.openrouter_models import pick_free_openrouter_model
+        from aikaboom.utils.openrouter_models import pick_free_openrouter_model
         args.model = pick_free_openrouter_model()
         print(f"Picked free OpenRouter model: {args.model}")
 
     provider, model = _resolve_provider_and_model(args)
     print(f"Provider: {provider} | Model: {model} | Mode: {args.mode}")
 
-    from bom_tools.core.processors import AIBOMProcessor, DATABOMProcessor
+    from aikaboom.core.processors import AIBOMProcessor, DATABOMProcessor
 
     if args.type == "ai":
         if not any([args.repo, args.arxiv, args.github]):
@@ -185,7 +184,7 @@ def cmd_generate(args):
 
     # Optionally convert to SPDX
     if args.spdx:
-        from bom_tools.utils.spdx_validator import validate_bom_to_spdx
+        from aikaboom.utils.spdx_validator import validate_bom_to_spdx
 
         bom_type = "ai" if args.type == "ai" else "data"
         validate_bom_to_spdx(result, bom_type=bom_type, output_path=args.spdx)
@@ -194,7 +193,7 @@ def cmd_generate(args):
 
 def cmd_serve(args):
     """Start the web UI."""
-    from bom_tools.web.app import app
+    from aikaboom.web.app import app
 
     host = args.host or os.getenv("BOM_HOST", "127.0.0.1")
     port = args.port or int(os.getenv("BOM_PORT", "5000"))
@@ -209,7 +208,7 @@ def cmd_list_models(args):
         print(f"Error: list-models only supports openrouter (got {args.provider})", file=sys.stderr)
         sys.exit(1)
 
-    from bom_tools.utils.openrouter_models import (
+    from aikaboom.utils.openrouter_models import (
         list_free_openrouter_models,
         list_openrouter_models,
     )

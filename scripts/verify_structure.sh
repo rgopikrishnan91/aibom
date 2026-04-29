@@ -11,28 +11,28 @@ import sys
 sys.path.insert(0, 'src')
 
 try:
-    from bom_tools.core.processors import AIBOMProcessor, DATABOMProcessor
+    from aikaboom.core.processors import AIBOMProcessor, DATABOMProcessor
     print("   ✅ Processors imported successfully")
 except Exception as e:
     print(f"   ❌ Failed to import processors: {e}")
     sys.exit(1)
 
 try:
-    from bom_tools.core.agentic_rag import AgenticRAG, DirectLLM
+    from aikaboom.core.agentic_rag import AgenticRAG, DirectLLM
     print("   ✅ RAG modules imported successfully")
 except Exception as e:
     print(f"   ❌ Failed to import RAG modules: {e}")
     sys.exit(1)
 
 try:
-    from bom_tools.utils.link_fallback import LinkFallbackFinder
+    from aikaboom.utils.link_fallback import LinkFallbackFinder
     print("   ✅ Link fallback imported successfully")
 except Exception as e:
     print(f"   ❌ Failed to import link fallback: {e}")
     sys.exit(1)
 
 try:
-    from bom_tools.web.app import app
+    from aikaboom.web.app import app
     print("   ✅ Web app imported successfully")
 except Exception as e:
     print(f"   ❌ Failed to import web app: {e}")
@@ -47,8 +47,8 @@ if [ $? -eq 0 ]; then
     
     # Check key files exist
     files=(
-        "src/bom_tools/__init__.py"
-        "src/bom_tools/web/app.py"
+        "src/aikaboom/__init__.py"
+        "src/aikaboom/web/app.py"
         "requirements.txt"
         "setup.py"
         "pyproject.toml"
@@ -69,7 +69,7 @@ if [ $? -eq 0 ]; then
     echo "🚀 Next steps:"
     echo "   1. Install: pip install -e ."
     echo "   2. Configure: cp .env.example .env (and edit with your keys)"
-    echo "   3. Run: python -m bom_tools.web.app"
+    echo "   3. Run: python -m aikaboom.web.app"
     echo ""
 else
     echo ""

@@ -25,7 +25,7 @@ pip install sentence-transformers langchain-huggingface
 
 ### Default (Local Embeddings - Recommended)
 ```python
-from bom_tools.core.processors import AIBOMProcessor, DATABOMProcessor
+from aikaboom.core.processors import AIBOMProcessor, DATABOMProcessor
 
 # Uses local embeddings automatically - no API key needed!
 processor = AIBOMProcessor(mode="rag")
@@ -98,7 +98,7 @@ Models are cached in: `~/.cache/huggingface/hub/`
 ## GPU Support (Optional)
 To use GPU for faster embeddings (if you have CUDA):
 ```python
-from bom_tools.core.agentic_rag import AgenticRAG
+from aikaboom.core.agentic_rag import AgenticRAG
 
 # Edit agentic_rag.py line ~478 to change 'cpu' to 'cuda':
 self.embeddings = HuggingFaceEmbeddings(

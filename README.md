@@ -98,13 +98,12 @@ aikaboom generate --type data \
 
 The CLI auto-detects which LLM provider to use from the keys in your `.env`.
 With multiple keys set, it asks. Pass `--provider` to override or `--yes` to
-skip the prompt in scripts. The legacy `bom-tools` command remains available
-as an alias.
+skip the prompt in scripts.
 
 ### Python API
 
 ```python
-from bom_tools import (
+from aikaboom import (
     AIBOMProcessor, DATABOMProcessor,
     pick_free_openrouter_model, list_free_openrouter_models,
 )
@@ -125,7 +124,7 @@ result = processor.process_ai_model(
 )
 
 # Convert to SPDX 3.0.1 (separate step, returns JSON-LD)
-from bom_tools.utils.spdx_validator import validate_bom_to_spdx
+from aikaboom.utils.spdx_validator import validate_bom_to_spdx
 spdx = validate_bom_to_spdx(result, bom_type="ai", output_path="out.spdx.json")
 ```
 
@@ -301,7 +300,7 @@ done.
 
 ```bash
 pytest                                    # 234+ tests
-pytest --cov=bom_tools --cov-report=html
+pytest --cov=aikaboom --cov-report=html
 ```
 
 ## Troubleshooting

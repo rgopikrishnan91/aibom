@@ -2,12 +2,12 @@
 import pytest
 from unittest.mock import patch
 
-from bom_tools.utils import openrouter_models as orm
+from aikaboom.utils import openrouter_models as orm
 
 
 @pytest.fixture
 def client():
-    from bom_tools.web.app import app
+    from aikaboom.web.app import app
     app.config["TESTING"] = True
     with app.test_client() as c:
         yield c
