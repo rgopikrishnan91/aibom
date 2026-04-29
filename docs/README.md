@@ -1,7 +1,8 @@
-# BOM Tools Documentation
+# AIkaBoOM Documentation
 
 ## Contents
 
+- [HuggingFace Spaces Deployment](./HF_SPACES.md)
 - [Local Embeddings Guide](./LOCAL_EMBEDDINGS.md)
 - [Migration Guide](./migration.md)
 
@@ -13,7 +14,7 @@
 
 ## Overview
 
-BOM Tools is a comprehensive solution for generating Bill of Materials (BOM) for AI models and datasets. It supports:
+AIkaBoOM is a comprehensive solution for generating Bills of Materials for AI models and datasets. It supports:
 
 - **Dual Processing Modes**: RAG (Retrieval-Augmented Generation) and Direct LLM
 - **Multiple Sources**: GitHub, HuggingFace, ArXiv

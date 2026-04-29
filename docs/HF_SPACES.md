@@ -1,6 +1,6 @@
 # Deploy to HuggingFace Spaces
 
-This guide walks through deploying the BOM Tools web app to a free
+This guide walks through deploying the AIkaBoOM web app to a free
 HuggingFace Space using the Docker SDK. End users will then be able to
 generate BOMs from a public URL without installing anything.
 
@@ -63,7 +63,7 @@ and faiss). Subsequent builds are faster thanks to Docker layer caching.
 
 ## 4. Use the Space
 
-Open the Space URL. You should see the BOM Tools web UI. Try generating
+Open the Space URL. You should see the AIkaBoOM web UI. Try generating
 a BOM for `microsoft/DialoGPT-medium` to confirm everything works.
 
 ## Known limitations on the free tier

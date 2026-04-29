@@ -1,47 +1,59 @@
 ---
-title: BOM Tools
-emoji: 📦
-colorFrom: blue
-colorTo: purple
+title: AIkaBoOM
+emoji: 💥
+colorFrom: red
+colorTo: yellow
 sdk: docker
 app_port: 7860
 pinned: false
 license: mit
-short_description: Generate SPDX 3.0.1 BOMs for AI models and datasets.
+short_description: Build AI BOMs by aggregating, aligning, and resolving conflicting metadata.
 ---
 
-# BOM Tools on HuggingFace Spaces
+# AIkaBoOM
 
-Generate Software Bills of Materials (SBOMs) for AI models and datasets, with
-source-level conflict detection and SPDX 3.0.1 export.
+Builds AI Bills of Materials by aggregating, aligning, and resolving
+conflicting metadata across the AI supply chain.
 
 ## How to use this Space
 
-1. Pick a BOM type: **AI** (model) or **Data** (dataset)
-2. Paste any combination of HuggingFace, GitHub, and arXiv links
-3. Choose an LLM provider (OpenAI / OpenRouter / Ollama). For OpenRouter,
-   click **🎯 Pick a free model** to use one of the free OpenRouter models
-4. Hit **Generate** and watch the live logs stream in the Logs tab
-5. Download the **Provenance BOM** (JSON with conflict triplets) and the
-   **SPDX 3.0.1** standards-compliant export
+1. Pick a BOM type: **AI** (model) or **Data** (dataset).
+2. Paste any combination of HuggingFace, GitHub, and arXiv links.
+3. Choose an LLM provider. For OpenRouter, click **🎯 Pick a free model**
+   to use one of the free models from `/v1/models`.
+4. Hit **Generate** and watch live logs in the **Logs** tab.
+5. Inspect the **Conflicts** tab (red badge if any disagreement was found),
+   then download the **Provenance BOM** and the **SPDX 3.0.1** export.
 
-If a link is missing the **Link Fallback Agent** (Gemini) will try to find
-it. The agent is disabled if `GEMINI_API_KEY` is not set in this Space's
-secrets.
+If a link is missing, the **Link Fallback Agent** (Gemini) tries to find it.
+Disabled when `GEMINI_API_KEY` is not set in this Space's secrets.
 
 ## Required configuration (Space secrets)
 
 Set at least one LLM provider key in **Settings → Variables and secrets**:
 
-- `OPENAI_API_KEY` — OpenAI
-- `OPENROUTER_API_KEY` — OpenRouter (free models available, recommended)
-- `OLLAMA_BASE_URL` — for a remote Ollama server
+| Secret                | When you need it                                  |
+|-----------------------|---------------------------------------------------|
+| `OPENROUTER_API_KEY`  | Recommended. Free models available.               |
+| `OPENAI_API_KEY`      | If you want to use OpenAI directly.               |
+| `OLLAMA_BASE_URL`     | If you point at a remote Ollama server.           |
+| `GITHUB_TOKEN`        | Optional. Higher GitHub API rate limit.           |
+| `HUGGINGFACE_TOKEN`   | Optional. Required for gated/private HF models.   |
+| `GEMINI_API_KEY`      | Optional. Enables the Link Fallback Agent.        |
 
-Optional secrets:
+These are exposed as environment variables inside the container at runtime.
 
-- `GITHUB_TOKEN` — increases GitHub API rate limits
-- `HUGGINGFACE_TOKEN` — needed for gated/private models
-- `GEMINI_API_KEY` — enables the Link Fallback Agent
+## What runs inside this Space?
+
+The Space itself does **not** host a large LLM. It runs:
+
+- The Flask web UI
+- A small local embedding model (`BAAI/bge-small-en-v1.5`, ~50 MB)
+- HTTP clients that call out to whichever LLM provider you configured
+
+This keeps the Space well within the free-tier 16 GB RAM / 8 GB image
+limits and avoids cold-start costs of downloading a multi-billion-parameter
+model.
 
 ## Source code & docs
 

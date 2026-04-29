@@ -64,6 +64,7 @@ dev = [
 ]
 
 [project.scripts]
+aikaboom = "bom_tools.cli:main"
 bom-tools = "bom_tools.cli:main"
 
 [project.urls]

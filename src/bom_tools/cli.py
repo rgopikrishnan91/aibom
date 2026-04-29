@@ -1,9 +1,11 @@
 """
-BOM Tools CLI - generate AI and Dataset BOMs from the command line.
+AIkaBoOM CLI - generate AI and Dataset BOMs from the command line.
 
 Usage:
-    bom-tools generate --type ai --repo microsoft/DialoGPT-medium --spdx out.spdx.json
-    bom-tools serve --port 5000
+    aikaboom generate --type ai --repo microsoft/DialoGPT-medium --spdx out.spdx.json
+    aikaboom serve --port 5000
+
+(The legacy `bom-tools` command is kept as an alias.)
 """
 
 import argparse
@@ -237,8 +239,10 @@ def cmd_list_models(args):
 
 def main():
     parser = argparse.ArgumentParser(
-        prog="bom-tools",
-        description="Generate Software Bills of Materials for AI models and datasets.",
+        prog="aikaboom",
+        description="AIkaBoOM - aggregate, align, and resolve conflicting metadata "
+                    "across the AI supply chain. Generates AI BOMs and Dataset BOMs "
+                    "with SPDX 3.0.1 export.",
     )
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 

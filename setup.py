@@ -71,6 +71,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
+            "aikaboom=bom_tools.cli:main",
             "bom-tools=bom_tools.cli:main",
         ],
     },
