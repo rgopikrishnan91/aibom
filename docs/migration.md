@@ -39,10 +39,10 @@ python Demo_UI.py
 python -m aikaboom.web.app
 
 # Option 2: Using installed command (after pip install)
-bom-tools
+aikaboom
 
 # Option 3: From anywhere after installation
-bom-tools
+aikaboom
 ```
 
 ### File Locations
@@ -60,7 +60,7 @@ bom-tools
 
 ## Key Changes
 
-1. **Package Structure**: Code is now organized in a proper Python package under `src/aikaboom/`
+1. **Package Structure**: Code is now organized in a Python package under `src/aikaboom/` (src layout)
 2. **Installation**: Can now be installed via `pip install -e .`
 3. **Testing**: Tests are in a dedicated `tests/` directory
 4. **Documentation**: Organized in `docs/` directory

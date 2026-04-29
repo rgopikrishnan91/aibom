@@ -130,6 +130,19 @@ class TestUITemplateContent:
         resp = client.get("/")
         html = resp.data.decode()
         assert "SPDX 3.0.1" in html
+        assert "validate_spdx" in html
+        assert "strict_spdx_validation" in html
+        assert "Deep SHACL validation (beta)" in html
+        assert "recursive_bom" in html
+        assert "Recursive Beta" in html
+
+    def test_index_html_warns_before_recursion(self, client):
+        resp = client.get("/")
+        html = resp.data.decode()
+        assert "confirmRecursive" in html
+        assert "walks the dependency tree" in html
+        assert "unique-target set" in html
+        assert "Download Linked SPDX Beta" in html
 
     def test_index_html_has_gemini_help_link(self, client):
         """When showing 'agent inactive', UI should link to a free-key signup."""
@@ -142,3 +155,5 @@ class TestUITemplateContent:
         html = resp.data.decode()
         assert "Download Provenance BOM" in html
         assert "Download SPDX 3.0.1" in html
+        assert "Download CycloneDX 1.7 Beta" in html
+        assert "Download Recursive BOM Beta" in html

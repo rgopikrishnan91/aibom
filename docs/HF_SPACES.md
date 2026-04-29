@@ -15,14 +15,14 @@ generate BOMs from a public URL without installing anything.
 
 1. Go to <https://huggingface.co/new-space>
 2. Owner: your account or org
-3. Space name: e.g. `aibom`
+3. Space name: e.g. `aikaboom`
 4. License: MIT
 5. Space SDK: **Docker** -> **Blank**
 6. Hardware: `cpu-basic` (free) is enough for the embedding model and Flask app
 7. Click **Create Space**
 
 You will end up with a URL like
-`https://huggingface.co/spaces/<you>/aibom`.
+`https://huggingface.co/spaces/<you>/aikaboom`.
 
 ## 2. Configure secrets
 
@@ -45,7 +45,7 @@ From a clone of this GitHub repo:
 
 ```bash
 # Add the HF Space as a git remote
-git remote add hf https://huggingface.co/spaces/<you>/aibom
+git remote add hf https://huggingface.co/spaces/<you>/aikaboom
 
 # Use the HF-flavored README (which has the YAML frontmatter Spaces needs)
 bash scripts/deploy_to_hf_spaces.sh
@@ -65,6 +65,21 @@ and faiss). Subsequent builds are faster thanks to Docker layer caching.
 
 Open the Space URL. You should see the AIkaBoOM web UI. Try generating
 a BOM for `microsoft/DialoGPT-medium` to confirm everything works.
+
+SPDX 3.0.1 exports are validated automatically with the official bundled
+JSON Schema. The UI shows the validation status in the SPDX tab and keeps the
+export downloadable even if validation reports errors. The **Deep SHACL
+validation (beta)** checkbox runs the official SPDX SHACL shapes after JSON
+Schema; leave it off for normal free-tier use and enable it for slower final
+checks. CycloneDX 1.7 export and recursive BOM generation are also beta in the
+Space UI. Recursive BOM generation walks the dependency tree of an AI BOM:
+each `trainedOn` / `testedOn` / `dependsOn` target produces another BOM, the
+walk stops at the configured depth (capped at 5 in the Space UI) or when the
+unique-target set is exhausted, and any field flagged with a conflict is
+skipped. When recursion is on, the UI offers a **Linked SPDX Beta** download
+that merges the parent and every recursive child into a single SPDX 3.0.1
+JSON-LD document with explicit Relationship edges, validated by both the
+JSON Schema and (when **Deep SHACL validation** is on) the SHACL shapes.
 
 ## 5. Choosing a model on the Space
 

@@ -118,3 +118,113 @@ class TestFlaskApp:
         """Test that downloading a non-existent file returns 404."""
         response = client.get('/download/nonexistent_file_12345.json')
         assert response.status_code == 404
+
+    def test_process_returns_spdx_validation(self, client, monkeypatch):
+        """Successful /process responses include structured SPDX validation."""
+        import importlib
+
+        web_app_module = importlib.import_module("aikaboom.web.app")
+
+        class DummyProcessor:
+            use_case = "complete"
+
+            def process_ai_model(self, repo_id=None, arxiv_url=None, github_url=None):
+                return {
+                    "model_id": "test_model",
+                    "direct_fields": {"license": "MIT"},
+                    "rag_fields": {
+                        "model_name": "Test Model",
+                        "trainedOnDatasets": "squad",
+                    },
+                }
+
+        monkeypatch.setattr(
+            web_app_module,
+            "get_processor",
+            lambda **kwargs: DummyProcessor(),
+        )
+
+        response = client.post(
+            "/process",
+            json={
+                "bom_type": "ai",
+                "mode": "rag",
+                "repo_id": "test/model",
+                "skip_fallback": True,
+                "validate_spdx": True,
+                "strict_spdx_validation": False,
+                "recursive_bom": True,
+                "recursive_depth": 1,
+            },
+            content_type="application/json",
+        )
+
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data["status"] == "success"
+        assert data["spdx_validation"]["valid"] is True
+        assert data["spdx_validation"]["strict"] is False
+        assert data["spdx_validation"]["validator"] == "jsonschema"
+        assert data["spdx_validation"]["errors"] == []
+        assert data["cyclonedx_beta"] is True
+        assert data["recursive_bom"]["beta"] is True
+        assert data["recursive_bom"]["enabled"] is True
+        assert data["recursive_bom"]["generated_count"] == 1
+        assert data["recursive_bom"]["strategy"] == "conflict-gated dependency-tree recursion"
+        assert data.get("linked_bom_download_url", "").endswith(".linked.spdx.json")
+        assert data["linked_bom"]["beta"] is True
+        assert data["linked_bom"]["recursive_edge_count"] >= 1
+        # The sidecar must include validation status when validate_spdx is on.
+        assert data["linked_bom"]["validation"]["valid"] is True
+        assert data["linked_bom"]["validation"]["validator"] == "jsonschema"
+
+    def test_process_strict_spdx_validation_runs_shacl_on_linked_bundle(
+        self, client, monkeypatch
+    ):
+        """When strict_spdx_validation is on, the linked bundle is validated
+        with both JSON Schema and SHACL — the validator string changes."""
+        import importlib
+
+        web_app_module = importlib.import_module("aikaboom.web.app")
+
+        class DummyProcessor:
+            use_case = "complete"
+
+            def process_ai_model(self, repo_id=None, arxiv_url=None, github_url=None):
+                return {
+                    "model_id": "test_model",
+                    "direct_fields": {"license": "MIT"},
+                    "rag_fields": {
+                        "model_name": "Test Model",
+                        "trainedOnDatasets": "squad",
+                    },
+                }
+
+        monkeypatch.setattr(
+            web_app_module,
+            "get_processor",
+            lambda **kwargs: DummyProcessor(),
+        )
+
+        response = client.post(
+            "/process",
+            json={
+                "bom_type": "ai",
+                "mode": "rag",
+                "repo_id": "test/model",
+                "skip_fallback": True,
+                "validate_spdx": True,
+                "strict_spdx_validation": True,
+                "recursive_bom": True,
+                "recursive_depth": 1,
+            },
+            content_type="application/json",
+        )
+        assert response.status_code == 200
+        data = response.get_json()
+        # Both the parent SPDX and the linked-bundle validators must report
+        # the SHACL pass ran.
+        assert data["spdx_validation"]["validator"] == "jsonschema+shacl"
+        assert data["spdx_validation"]["valid"] is True
+        assert data["linked_bom"]["validation"]["validator"] == "jsonschema+shacl"
+        assert data["linked_bom"]["validation"]["valid"] is True

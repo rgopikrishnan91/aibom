@@ -5,7 +5,7 @@ This guide is the fastest path to run BOM Tools with minimal setup and minimal c
 ## 1) Open the project
 
 ```bash
-cd aibom
+cd aikaboom
 ```
 
 ## 2) Use your conda environment

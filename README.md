@@ -14,7 +14,7 @@
 
 ---
 
-AIkaBoOM extracts metadata from **HuggingFace**, **GitHub**, and **arXiv**, uses an LLM to populate structured BOM fields, and flags conflicts when sources disagree. The result is a JSON document with field-level provenance plus an SPDX 3.0.1 export, suitable for AI governance, supply-chain transparency, and EU AI Act / NIST AI RMF compliance work.
+AIkaBoOM extracts metadata from **HuggingFace**, **GitHub**, and **arXiv**, uses an LLM to populate structured BOM fields, and flags conflicts when sources disagree. The result is a JSON document with field-level provenance plus SPDX 3.0.1 JSON-LD validation. CycloneDX 1.7 export, recursive child BOM seed generation, and strict SPDX SHACL validation are available as beta features.
 
 ## Why?
 
@@ -25,7 +25,7 @@ AIkaBoOM extracts metadata from **HuggingFace**, **GitHub**, and **arXiv**, uses
 ## Quick Start
 
 ```bash
-git clone https://github.com/rgopikrishnan91/aibom && cd aibom
+git clone https://github.com/rgopikrishnan91/aikaboom && cd aikaboom
 pip install -e .
 cp .env.example .env   # add a provider key (OpenRouter free tier works)
 python run.py           # opens http://localhost:5000
@@ -49,14 +49,14 @@ ollama serve && ollama pull llama3:8b
                               │              │  OpenRouter)│            │
                        Local embeddings      └─────────────┘     ┌──────▼───────┐
                        (no API key)                              │ SPDX 3.0.1   │
-                                                                 │ CycloneDX 1.7│
+                                                                 │ CycloneDX Beta │
                                                                  └──────────────┘
 ```
 
 1. **Fetch** structured metadata via APIs and unstructured text via README scraping and PDF parsing.
 2. **Extract** structured fields with an LLM, either via RAG (chunk + retrieve + generate) or direct prompting.
 3. **Detect conflicts** between sources (majority voting, license similarity).
-4. **Output** a JSON BOM with triplet fields and an SPDX 3.0.1 JSON-LD export.
+4. **Output** a JSON BOM with triplet fields, SPDX 3.0.1 JSON-LD, and optional beta CycloneDX / recursive child BOM exports.
 
 ## Usage
 
@@ -70,9 +70,7 @@ aikaboom serve --port 5000
 
 Pick BOM type (AI / Data), mode (RAG / Direct), and provider. For OpenRouter,
 click **🎯 Pick a free model** to load free models directly from
-`/v1/models`. Both the **Provenance BOM** (with conflict triplets) and the
-**SPDX 3.0.1** export are generated automatically. Server logs stream live
-in the **Logs** tab; the **Conflicts** tab shows a coloured count badge.
+`/v1/models`. The **Provenance BOM** and **SPDX 3.0.1** export are generated automatically. The UI also exposes beta toggles/status for **CycloneDX 1.7**, **recursive BOM generation**, and **Deep SHACL validation (beta)**. Server logs stream live in the **Logs** tab; the **Conflicts** tab shows a coloured count badge.
 
 ### CLI
 
@@ -86,6 +84,15 @@ aikaboom generate --type ai \
     --arxiv https://arxiv.org/abs/1911.00536 \
     --github https://github.com/microsoft/DialoGPT \
     --output result.json --spdx result.spdx.json --cyclonedx result.cdx.json
+
+# Add slower semantic SHACL validation for a final SPDX check
+aikaboom generate --type ai --repo org/model \
+    --spdx result.spdx.json --strict-spdx-validation
+
+# Generate beta recursive child BOM seed exports from trainedOn/testedOn/dependsOn
+aikaboom generate --type ai --repo org/model \
+    --output result.json \
+    --recursive-bom --recursive-output result.recursive.json
 
 # Auto-pick a free OpenRouter model
 aikaboom generate --type ai --repo org/model --pick-free-model
@@ -124,9 +131,19 @@ result = processor.process_ai_model(
     github_url="https://github.com/microsoft/DialoGPT",
 )
 
-# Convert to SPDX 3.0.1 (separate step, returns JSON-LD)
-from aikaboom.utils.spdx_validator import validate_bom_to_spdx
+# Convert to SPDX 3.0.1 (separate step, returns JSON-LD and validates by default)
+from aikaboom.utils.spdx_validator import validate_bom_to_spdx, validate_spdx_export
+from aikaboom.utils.cyclonedx_exporter import bom_to_cyclonedx
+from aikaboom.utils.recursive_bom import generate_recursive_boms
 spdx = validate_bom_to_spdx(result, bom_type="ai", output_path="out.spdx.json")
+spdx_status = validate_spdx_export(spdx, bom_type="ai")
+
+# Beta: run the slower SHACL semantic validator too
+strict_spdx = validate_bom_to_spdx(result, bom_type="ai", strict=True)
+
+# Beta: CycloneDX and recursive child BOM seed exports
+cdx = bom_to_cyclonedx(result, bom_type="ai", output_path="out.cyclonedx.json")
+recursive = generate_recursive_boms(result, bom_type="ai", max_depth=1)
 ```
 
 See [`examples/`](examples/) for runnable scripts.
@@ -193,33 +210,63 @@ Discovered links are also LLM-validated against the target model: if the link ag
 
 ## Export Formats
 
-AIkaBoOM always generates all three formats. Each captures the same underlying data in a different standard.
+AIkaBoOM always produces the native Provenance BOM and can emit standards-focused exports for downstream consumers. Each captures the same underlying data in a different shape.
 
 | Format | Standard | Use case |
 |--------|----------|----------|
 | **Provenance BOM** | AIkaBoOM JSON | Field-level source attribution + conflict detection (our native format) |
 | **SPDX 3.0.1** | [SPDX AI Profile](https://spdx.github.io/spdx-spec/v3.0.1/) JSON-LD | Regulatory compliance (EU AI Act, NIST), supply chain transparency |
-| **CycloneDX 1.7** | [CycloneDX ML-BOM](https://cyclonedx.org/) JSON | DevSecOps integration, vulnerability management workflows |
+| **CycloneDX 1.7 (beta)** | [CycloneDX ML-BOM](https://cyclonedx.org/) JSON | DevSecOps integration, vulnerability management workflows |
+| **Recursive BOMs (beta)** | AIkaBoOM JSON bundle | Per-child BOMs for every `trainedOn` / `testedOn` / `dependsOn` target discovered in the dependency tree |
+| **Linked SPDX bundle (beta)** | SPDX 3.0.1 JSON-LD | Single `@graph` merging the parent and every recursive child with explicit Relationship edges; passes both lightweight and strict SPDX validation |
 
 ```bash
 aikaboom generate --type ai --repo org/model \
     --output result.json \
     --spdx result.spdx.json \
-    --cyclonedx result.cyclonedx.json
+    --cyclonedx result.cyclonedx.json \
+    --recursive-bom --recursive-depth 2 \
+    --recursive-output result.recursive.json \
+    --linked-bom-output result.linked.spdx.json
 ```
 
-**SPDX 3.0.1** output includes `AI_AIPackage` elements, `trainedOn`/`testedOn`/`dependsOn` relationships to dataset stubs, license relationships, and a structurally validated JSON-LD graph (our validator checks ID uniqueness, cross-reference integrity, and required properties per element type).
+**SPDX 3.0.1** output includes `ai_AIPackage` elements, `trainedOn`/`testedOn`/`dependsOn` relationships to dataset/model stubs, license relationships, and JSON-LD validated by the bundled SPDX 3.0.1 JSON Schema. With `--strict-spdx-validation` the same document also runs through the official SPDX SHACL shapes (beta). The CLI and web UI report pass/fail without blocking export. The same validators apply to the linked SPDX bundle.
 
-**CycloneDX 1.7** output uses the `modelCard` extension: `modelParameters.task`, `modelParameters.architectureFamily`, `modelParameters.datasets`, `quantitativeAnalysis.performanceMetrics`, `considerations.technicalLimitations`, and `pedigree.ancestors` for model lineage. Conflict data is preserved as `aikaboom:conflict:*` properties.
+**CycloneDX 1.7 is beta.** It uses the `modelCard` extension: `modelParameters.task`, `modelParameters.architectureFamily`, `modelParameters.datasets`, `quantitativeAnalysis.performanceMetrics`, `considerations.technicalLimitations`, and `pedigree.ancestors` for model lineage. Conflict data is preserved as `aikaboom:conflict:*` properties.
+
+**Recursive BOM generation is beta.** It walks the dependency tree of an AI BOM:
+
+- `trainedOnDatasets` / `testedOnDatasets` produce *data* BOM children; `modelLineage` produces *AI* BOM children that may themselves have dependencies.
+- Recursion is **conflict-gated**: any field whose RAG triplet has an internal or external conflict is skipped and surfaced in `skipped_due_to_conflict`. This guarantees we never recurse on contested data.
+- A unique-target set deduplicates by `(bom_type, name)` so each artefact is fetched once and cycles can't loop. Duplicates are reported in `duplicates`.
+- The walk stops at `--recursive-depth` (default 1, raisable; the web UI caps it at 5) or when the unique-target set is exhausted, whichever comes first. The result reports `deepest_level_reached` and `tree_exhausted`.
+- Without an enrich callback the walker uses seed metadata only and the tree usually terminates after one level. Pass an `enrich_fn` to `generate_recursive_boms(...)` to plug in real fetching (e.g. wrap `AIBOMProcessor.process_ai_model`).
+
+**Linked SPDX bundle (beta).** `--linked-bom-output` (or `build_linked_spdx_bundle(...)`) merges the parent SPDX export and every recursive child into one spec-clean SPDX 3.0.1 JSON-LD document with a single `@graph` and explicit `Relationship` elements wiring the dependency tree. Stub packages auto-emitted by the per-child SPDX export are de-duplicated against the recursive children, child `CreationInfo`/`Person`/`Organization` references are rebound onto the parent's, and the result passes both the lightweight (JSON Schema) and strict (SHACL) validators.
 
 **Python API:**
 ```python
-from aikaboom.utils.spdx_validator import validate_bom_to_spdx
+from aikaboom.utils.spdx_validator import validate_bom_to_spdx, validate_spdx_export
 from aikaboom.utils.cyclonedx_exporter import bom_to_cyclonedx
+from aikaboom.utils.recursive_bom import (
+    generate_recursive_boms,
+    build_linked_spdx_bundle,
+    linked_bundle_summary,
+)
 
 spdx = validate_bom_to_spdx(result, bom_type='ai', output_path='out.spdx.json')
 cdx = bom_to_cyclonedx(result, bom_type='ai', output_path='out.cyclonedx.json')
+
+# Walk the dependency tree two levels deep with conflict gating
+recursive = generate_recursive_boms(result, bom_type='ai', max_depth=2)
+
+# One linked SPDX bundle with parent + every child + relationship edges
+linked = build_linked_spdx_bundle(result, recursive, bom_type='ai')
+summary = linked_bundle_summary(linked, recursive)
+report = validate_spdx_export(linked, strict=True, bom_type='ai')
 ```
+
+Validation is enabled by default for SPDX exports. Pass `validate=False` to `validate_bom_to_spdx(...)` to skip it, or `strict=True` to run the beta SHACL pass after JSON Schema. The CLI equivalents are `--no-validate-spdx` and `--strict-spdx-validation`. Use `--recursive-bom --recursive-output result.recursive.json` for the per-child bundle and `--linked-bom-output result.linked.spdx.json` for the single linked document.
 
 ## Use-Case Presets
 
@@ -283,7 +330,7 @@ See [`.env.example`](.env.example) for every supported variable.
 ## Installation
 
 ```bash
-git clone https://github.com/rgopikrishnan91/aibom && cd aibom
+git clone https://github.com/rgopikrishnan91/aikaboom && cd aikaboom
 python -m venv .venv && source .venv/bin/activate
 pip install -e .
 cp .env.example .env

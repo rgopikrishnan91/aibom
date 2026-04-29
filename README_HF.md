@@ -23,10 +23,28 @@ conflicting metadata across the AI supply chain.
    to use one of the free models from `/v1/models`.
 4. Hit **Generate** and watch live logs in the **Logs** tab.
 5. Inspect the **Conflicts** tab (red badge if any disagreement was found),
-   then download the **Provenance BOM**, **SPDX 3.0.1**, and **CycloneDX 1.7** exports.
+   then download the **Provenance BOM**, **SPDX 3.0.1**, and **CycloneDX 1.7 beta** exports.
 
 If a link is missing, the **Link Fallback Agent** (Gemini) tries to find it.
 Disabled when `GEMINI_API_KEY` is not set in this Space's secrets.
+
+SPDX exports are validated by default against the official bundled SPDX 3.0.1
+JSON Schema. The SPDX tab shows pass/fail status and concise errors while still
+letting you inspect/download the generated JSON-LD. Enable **Deep SHACL
+validation (beta)** only for final checks; it uses the official SPDX SHACL
+shapes and is slower on free CPU Spaces.
+
+CycloneDX 1.7 export, recursive BOM generation, and strict SHACL validation are
+beta in the Space UI. Recursive BOM generation walks the dependency tree —
+each `trainedOn` / `testedOn` / `dependsOn` target produces another BOM, the
+walk stops at the configured depth or when the unique-target set is exhausted,
+and any field with a detected conflict is skipped. With recursion on, the UI
+also surfaces a single **Linked SPDX Beta** download that merges the parent
+and every child into one SPDX 3.0.1 JSON-LD `@graph` (validated by both the
+JSON Schema and SHACL passes). AIkaBoOM also auto-extracts model lineage
+hints from HuggingFace's `cardData.base_model`, `cardData.datasets`,
+`model-index`, and repository tags (e.g. `dataset:squad`, `base_model:...`)
+so they participate in cross-source conflict detection.
 
 ## Required configuration (Space secrets)
 
@@ -50,6 +68,8 @@ The Space itself does **not** host a large LLM. It runs:
 - The Flask web UI
 - A small local embedding model (`BAAI/bge-small-en-v1.5`, ~50 MB)
 - HTTP clients that call out to whichever LLM provider you configured
+- Bundled SPDX 3.0.1 JSON Schema and SHACL validation artifacts
+- Beta CycloneDX 1.7 and recursive BOM export helpers
 
 This keeps the Space well within the free-tier 16 GB RAM / 8 GB image
 limits and avoids cold-start costs of downloading a multi-billion-parameter
@@ -81,7 +101,7 @@ picker never appears empty.
 
 ## Source code & docs
 
-- GitHub: <https://github.com/rgopikrishnan91/aibom>
+- GitHub: <https://github.com/rgopikrishnan91/aikaboom>
 - Full docs and CLI usage: see the README in the GitHub repo.
 
 ## License

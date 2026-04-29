@@ -3,7 +3,7 @@ Baseline regression tests for SPDXValidator.
 Captures current behavior BEFORE any code changes.
 """
 import pytest
-from aikaboom.utils.spdx_validator import SPDXValidator, validate_bom_to_spdx
+from aikaboom.utils.spdx_validator import SPDXValidator, validate_bom_to_spdx, validate_spdx_export
 
 
 class TestExtractValue:
@@ -91,10 +91,10 @@ class TestValidateAndConvert:
 
         # Find the AI package
         ai_pkg = next(e for e in result["@graph"] if e["type"] == "ai_AIPackage")
-        assert ai_pkg["suppliedBy"] == "DeepOrg"
+        assert ai_pkg["suppliedBy"].startswith("urn:spdx:Organization-")
         assert ai_pkg["software_downloadLocation"] == "https://example.com"
         assert ai_pkg["name"] == "MyModel"
-        assert ai_pkg["ai_typeOfModel"] == "transformer"
+        assert ai_pkg["ai_typeOfModel"] == ["transformer"]
 
 
 class TestValidateSpdxBom:
@@ -130,7 +130,43 @@ class TestValidateSpdxBom:
     def test_empty_dict(self):
         is_valid, errors = self.validator.validate_spdx_bom({})
         assert is_valid is False
-        assert len(errors) == 2
+        assert any("@context" in e for e in errors)
+        assert any("@graph" in e for e in errors)
+
+    def test_official_schema_catches_bad_field_type(self):
+        spdx = self.validator.validate_and_convert({
+            "repo_id": "test/model",
+            "direct_fields": {"license": "MIT"},
+            "rag_fields": {"model_name": "Test"},
+        })
+        ai_pkg = next(e for e in spdx["@graph"] if e["type"] == "ai_AIPackage")
+        ai_pkg["ai_domain"] = "not-an-array"
+        is_valid, errors = self.validator.validate_spdx_bom(spdx)
+        assert is_valid is False
+        assert any("JSON Schema" in e and "ai_domain" in e for e in errors)
+
+    def test_structured_validation_helper(self):
+        spdx = self.validator.validate_and_convert({
+            "repo_id": "test/model",
+            "direct_fields": {"license": "MIT"},
+            "rag_fields": {"model_name": "Test"},
+        })
+        result = validate_spdx_export(spdx)
+        assert result["valid"] is True
+        assert result["validator"] == "jsonschema"
+        assert result["errors"] == []
+
+    def test_structured_validation_helper_accepts_dataset_exports(self):
+        validator = SPDXValidator(bom_type='data')
+        spdx = validator.validate_and_convert({
+            "dataset_id": "test/dataset",
+            "direct_metadata": {"license": "CC-BY-4.0"},
+            "rag_metadata": {"intendedUse": "Research"},
+            "urls": {"huggingface": "https://huggingface.co/datasets/test/dataset"},
+        })
+        result = validate_spdx_export(spdx, bom_type='data')
+        assert result["valid"] is True
+        assert result["errors"] == []
 
 
 class TestConvenienceFunction:

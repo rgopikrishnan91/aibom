@@ -135,6 +135,14 @@ def cmd_generate(args):
         args.model = pick_free_openrouter_model()
         print(f"Picked free OpenRouter model: {args.model}")
 
+    if getattr(args, "linked_bom_output", None) and not args.recursive_bom:
+        print(
+            "Error: --linked-bom-output requires --recursive-bom (the linked "
+            "bundle is built from the recursive walk).",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+
     provider, model = _resolve_provider_and_model(args)
     print(f"Provider: {provider} | Model: {model} | Mode: {args.mode}")
 
@@ -186,15 +194,96 @@ def cmd_generate(args):
 
     # Optionally convert to SPDX
     if args.spdx:
-        from aikaboom.utils.spdx_validator import validate_bom_to_spdx
-        validate_bom_to_spdx(result, bom_type=bom_type, output_path=args.spdx)
+        from aikaboom.utils.spdx_validator import validate_bom_to_spdx, validate_spdx_export
+        spdx_data = validate_bom_to_spdx(
+            result,
+            bom_type=bom_type,
+            output_path=args.spdx,
+            validate=False,
+        )
         print(f"SPDX 3.0.1 BOM saved to {args.spdx}")
+        if args.validate_spdx:
+            validation = validate_spdx_export(
+                spdx_data,
+                strict=args.strict_spdx_validation,
+                bom_type=bom_type,
+            )
+            if validation["valid"]:
+                beta = " beta" if validation.get("beta") else ""
+                print(f"SPDX validation passed ({validation['validator']}{beta})")
+            else:
+                beta = " beta" if validation.get("beta") else ""
+                print(
+                    f"SPDX validation failed ({validation['validator']}{beta}) "
+                    f"with {len(validation['errors'])} error(s)"
+                )
+                for error in validation["errors"][:10]:
+                    print(f"  - {error}")
 
     # Optionally convert to CycloneDX
     if args.cyclonedx:
         from aikaboom.utils.cyclonedx_exporter import bom_to_cyclonedx
         bom_to_cyclonedx(result, bom_type=bom_type, output_path=args.cyclonedx)
-        print(f"CycloneDX 1.7 BOM saved to {args.cyclonedx}")
+        print(f"CycloneDX 1.7 BOM saved to {args.cyclonedx} (beta)")
+
+    if args.recursive_bom:
+        from aikaboom.utils.recursive_bom import (
+            build_linked_spdx_bundle,
+            generate_recursive_boms,
+            linked_bundle_summary,
+        )
+        from aikaboom.utils.spdx_validator import validate_spdx_export
+
+        print(
+            "[recursive-bom beta] Walking the dependency tree. Each discovered "
+            "trainedOn / testedOn / dependsOn target produces another BOM, which "
+            "may itself reference more dependencies. Targets are deduplicated and "
+            "the walk stops at --recursive-depth or when the unique-target set is "
+            "exhausted."
+        )
+        recursive_result = generate_recursive_boms(
+            result,
+            bom_type=bom_type,
+            max_depth=args.recursive_depth,
+            validate_spdx=args.validate_spdx,
+            strict_spdx=args.strict_spdx_validation,
+        )
+        if args.recursive_output:
+            with open(args.recursive_output, "w", encoding="utf-8") as f:
+                json.dump(recursive_result, f, indent=2, ensure_ascii=False)
+            print(f"Recursive BOM bundle saved to {args.recursive_output} (beta)")
+        print(
+            f"Recursive BOM beta walked {recursive_result['deepest_level_reached']} "
+            f"level(s) and emitted {recursive_result['generated_count']} child BOM "
+            f"seed export(s); skipped {len(recursive_result['skipped_due_to_conflict'])} "
+            f"field(s) due to conflicts."
+        )
+
+        if args.linked_bom_output:
+            linked = build_linked_spdx_bundle(result, recursive_result, bom_type=bom_type)
+            with open(args.linked_bom_output, "w", encoding="utf-8") as f:
+                json.dump(linked, f, indent=2, ensure_ascii=False)
+            summary = linked_bundle_summary(linked, recursive_result)
+            print(
+                f"Linked SPDX BOM bundle saved to {args.linked_bom_output} (beta) — "
+                f"{summary['recursive_edge_count']} dependency edge(s) across "
+                f"{summary['node_count']} elements."
+            )
+            if args.validate_spdx:
+                v = validate_spdx_export(
+                    linked, strict=args.strict_spdx_validation, bom_type=bom_type,
+                )
+                if v["valid"]:
+                    beta = " beta" if v.get("beta") else ""
+                    print(f"Linked SPDX bundle validation passed ({v['validator']}{beta})")
+                else:
+                    beta = " beta" if v.get("beta") else ""
+                    print(
+                        f"Linked SPDX bundle validation failed ({v['validator']}{beta}) "
+                        f"with {len(v['errors'])} error(s)"
+                    )
+                    for error in v["errors"][:10]:
+                        print(f"  - {error}")
 
 
 def cmd_serve(args):
@@ -279,7 +368,46 @@ def main():
     )
     gen.add_argument("-o", "--output", help="Output JSON file path (default: stdout)")
     gen.add_argument("--spdx", help="Also generate SPDX 3.0.1 output at this path")
-    gen.add_argument("--cyclonedx", help="Also generate CycloneDX 1.7 output at this path")
+    gen.add_argument(
+        "--no-validate-spdx",
+        dest="validate_spdx",
+        action="store_false",
+        help="Skip validation of generated SPDX output.",
+    )
+    gen.add_argument(
+        "--strict-spdx-validation",
+        action="store_true",
+        help="Run slower SHACL validation after the default SPDX JSON Schema validation (beta).",
+    )
+    gen.set_defaults(validate_spdx=True)
+    gen.add_argument("--cyclonedx", help="Also generate CycloneDX 1.7 output at this path (beta)")
+    gen.add_argument(
+        "--recursive-bom",
+        action="store_true",
+        help="Generate child BOM seed exports from trainedOn/testedOn/dependsOn targets (beta).",
+    )
+    gen.add_argument(
+        "--recursive-depth",
+        type=int,
+        default=1,
+        help=(
+            "Maximum dependency-tree depth for --recursive-bom (default: 1, beta). "
+            "Walking deeper extracts BOMs for the dependencies of each dependency, "
+            "which can be expensive — recursion stops naturally when the unique-"
+            "target set is exhausted."
+        ),
+    )
+    gen.add_argument(
+        "--recursive-output",
+        help="Write the recursive BOM beta bundle (per-child JSON) to this file.",
+    )
+    gen.add_argument(
+        "--linked-bom-output",
+        help=(
+            "Write a single linked SPDX BOM (parent + every recursive child + "
+            "Relationship edges) to this JSON-LD file (beta)."
+        ),
+    )
     gen.add_argument(
         "-y", "--yes",
         action="store_true",

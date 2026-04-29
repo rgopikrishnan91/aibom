@@ -138,7 +138,7 @@ class TestCreationInfoProperties:
         ci['created'] = '2024-01-01 12:00:00'
         ok, errs = SPDXValidator(bom_type='ai').validate_spdx_bom(spdx, strict=True)
         assert not ok
-        assert any('ISO 8601' in e for e in errs)
+        assert any('created' in e or 'CreationInfo' in e for e in errs)
 
 
 class TestCrossReferenceIntegrity:

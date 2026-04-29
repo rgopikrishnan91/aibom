@@ -81,7 +81,26 @@ class TestCLISmoke:
         assert "--type" in result.stdout
         assert "--repo" in result.stdout
         assert "--spdx" in result.stdout
+        assert "--no-validate-spdx" in result.stdout
+        assert "--strict-spdx-validation" in result.stdout
+        assert "--recursive-bom" in result.stdout
+        assert "--recursive-output" in result.stdout
+        assert "--linked-bom-output" in result.stdout
         assert "--provider" in result.stdout
+
+    def test_cli_linked_bom_requires_recursive_bom(self):
+        """--linked-bom-output without --recursive-bom must error out
+        instead of silently being ignored."""
+        result = subprocess.run(
+            [
+                sys.executable, "-m", "aikaboom.cli", "generate",
+                "--type", "ai", "--repo", "org/model",
+                "--linked-bom-output", "/tmp/aikaboom-should-not-be-written.json",
+            ],
+            capture_output=True, text=True, timeout=30,
+        )
+        assert result.returncode != 0
+        assert "--linked-bom-output requires --recursive-bom" in (result.stderr + result.stdout)
 
     def test_cli_serve_help(self):
         result = subprocess.run(

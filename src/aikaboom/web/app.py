@@ -14,8 +14,6 @@ import threading
 from dotenv import load_dotenv
 
 from aikaboom.utils.link_fallback import LinkFallbackFinder
-from aikaboom.core.processors import AIBOMProcessor, DATABOMProcessor
-from aikaboom.core.agentic_rag import get_fixed_questions
 
 # Load environment variables
 _env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
@@ -220,6 +218,9 @@ def get_processor(bom_type: str, mode: str = "rag", llm_provider: str = "openai"
                   openrouter_model: str = "qwen/qwen-2.5-72b-instruct",
                   ollama_url: str = None, use_case: str = 'complete'):
     """Get or create a processor for the specified configuration"""
+    from aikaboom.core.processors import AIBOMProcessor, DATABOMProcessor
+    from aikaboom.core.agentic_rag import get_fixed_questions
+
     global processors_cache
     
     # Normalize inputs
@@ -433,6 +434,13 @@ def process():
         openrouter_model = data.get('openrouter_model', 'qwen/qwen-2.5-72b-instruct').strip() or 'qwen/qwen-2.5-72b-instruct'
         ollama_url = data.get('ollama_url', '').strip() or None
         use_case = normalize_use_case(data.get('use_case', 'complete'), bom_type)
+        validate_spdx = data.get('validate_spdx', True) is not False
+        strict_spdx_validation = bool(data.get('strict_spdx_validation', False))
+        recursive_bom = bool(data.get('recursive_bom', False))
+        try:
+            recursive_depth = max(0, min(int(data.get('recursive_depth', 1)), 5))
+        except (TypeError, ValueError):
+            recursive_depth = 1
         
         # Validate mode and provider
         if mode not in ['rag', 'direct']:
@@ -682,7 +690,7 @@ def process():
         # Always generate SPDX 3.0.1 output — it's the headline value prop.
         # If conversion fails, log it but don't break the rest of the response.
         try:
-            from aikaboom.utils.spdx_validator import SPDXValidator
+            from aikaboom.utils.spdx_validator import SPDXValidator, validate_spdx_export
             validator = SPDXValidator(bom_type=bom_type)
             spdx_output = validator.validate_and_convert(metadata)
             spdx_filename = filename.replace('.json', '.spdx.json')
@@ -691,13 +699,34 @@ def process():
                 json.dump(spdx_output, f, indent=2, ensure_ascii=False)
             response_data['spdx_download_url'] = f'/download/{spdx_filename}'
             response_data['spdx_data'] = spdx_output
+            if validate_spdx:
+                response_data['spdx_validation'] = validate_spdx_export(
+                    spdx_output,
+                    strict=strict_spdx_validation,
+                    bom_type=bom_type,
+                )
+            else:
+                response_data['spdx_validation'] = {
+                    'valid': None,
+                    'strict': strict_spdx_validation,
+                    'beta': strict_spdx_validation,
+                    'validator': 'disabled',
+                    'errors': [],
+                }
         except Exception as spdx_exc:
             import traceback
             print(f"⚠️ SPDX conversion failed: {spdx_exc}")
             print(traceback.format_exc())
             response_data['spdx_error'] = str(spdx_exc)
+            response_data['spdx_validation'] = {
+                'valid': False,
+                'strict': strict_spdx_validation,
+                'beta': strict_spdx_validation,
+                'validator': 'jsonschema+shacl' if strict_spdx_validation else 'jsonschema',
+                'errors': [str(spdx_exc)],
+            }
 
-        # Always generate CycloneDX 1.7 output
+        # Always generate CycloneDX 1.7 beta output
         try:
             from aikaboom.utils.cyclonedx_exporter import CycloneDXExporter
             cdx_exporter = CycloneDXExporter(bom_type=bom_type)
@@ -708,11 +737,75 @@ def process():
                 json.dump(cdx_output, f, indent=2, ensure_ascii=False)
             response_data['cyclonedx_download_url'] = f'/download/{cdx_filename}'
             response_data['cyclonedx_data'] = cdx_output
+            response_data['cyclonedx_beta'] = True
         except Exception as cdx_exc:
             import traceback
             print(f"⚠️ CycloneDX conversion failed: {cdx_exc}")
             print(traceback.format_exc())
             response_data['cyclonedx_error'] = str(cdx_exc)
+            response_data['cyclonedx_beta'] = True
+
+        if recursive_bom:
+            try:
+                from aikaboom.utils.recursive_bom import (
+                    build_linked_spdx_bundle,
+                    generate_recursive_boms,
+                    linked_bundle_summary,
+                )
+
+                recursive_output = generate_recursive_boms(
+                    metadata,
+                    bom_type=bom_type,
+                    max_depth=recursive_depth,
+                    validate_spdx=validate_spdx,
+                    strict_spdx=strict_spdx_validation,
+                )
+                recursive_filename = filename.replace('.json', '.recursive.json')
+                recursive_path = os.path.join(app.config['UPLOAD_FOLDER'], recursive_filename)
+                with open(recursive_path, 'w', encoding='utf-8') as f:
+                    json.dump(recursive_output, f, indent=2, ensure_ascii=False)
+                response_data['recursive_bom'] = recursive_output
+                response_data['recursive_bom_download_url'] = f'/download/{recursive_filename}'
+
+                try:
+                    linked_bundle = build_linked_spdx_bundle(
+                        metadata, recursive_output, bom_type=bom_type
+                    )
+                    linked_filename = filename.replace('.json', '.linked.spdx.json')
+                    linked_path = os.path.join(app.config['UPLOAD_FOLDER'], linked_filename)
+                    with open(linked_path, 'w', encoding='utf-8') as f:
+                        json.dump(linked_bundle, f, indent=2, ensure_ascii=False)
+                    summary = linked_bundle_summary(linked_bundle, recursive_output)
+                    if validate_spdx:
+                        summary['validation'] = validate_spdx_export(
+                            linked_bundle,
+                            strict=strict_spdx_validation,
+                            bom_type=bom_type,
+                        )
+                    response_data['linked_bom'] = summary
+                    response_data['linked_bom_download_url'] = f'/download/{linked_filename}'
+                except Exception as linked_exc:
+                    response_data['linked_bom'] = {'error': str(linked_exc), 'beta': True}
+            except Exception as recursive_exc:
+                import traceback
+                print(f"⚠️ Recursive BOM beta generation failed: {recursive_exc}")
+                print(traceback.format_exc())
+                response_data['recursive_bom'] = {
+                    'beta': True,
+                    'enabled': True,
+                    'max_depth': recursive_depth,
+                    'generated_count': 0,
+                    'generated': [],
+                    'errors': [str(recursive_exc)],
+                }
+        else:
+            response_data['recursive_bom'] = {
+                'beta': True,
+                'enabled': False,
+                'max_depth': recursive_depth,
+                'generated_count': 0,
+                'generated': [],
+            }
 
         return jsonify(response_data)
 

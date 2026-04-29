@@ -257,6 +257,19 @@ class MetadataFetcher:
                 
                 # License
                 hf_metadata["license"] = repo_info.cardData.get("license") if repo_info.cardData else None
+
+                # Model-tree relationship hints: structured signal extracted
+                # from HF metadata that mirrors the SPDX trainedOn / testedOn /
+                # dependsOn relationships. These contribute a separate source
+                # so the RAG pipeline's conflict detector can compare them
+                # against the README/arxiv/github text.
+                tree = MetadataFetcher.extract_huggingface_model_tree(repo_info)
+                if tree.get("trainedOnDatasets"):
+                    hf_metadata["trainedOnDatasets"] = ", ".join(tree["trainedOnDatasets"])
+                if tree.get("testedOnDatasets"):
+                    hf_metadata["testedOnDatasets"] = ", ".join(tree["testedOnDatasets"])
+                if tree.get("modelLineage"):
+                    hf_metadata["modelLineage"] = ", ".join(tree["modelLineage"])
             else:
                 # Data BOM fields
                 hf_metadata["releaseTime"] = repo_info.last_modified.isoformat() if repo_info.last_modified else None
@@ -274,3 +287,57 @@ class MetadataFetcher:
             return {}
 
         return hf_metadata
+
+    @staticmethod
+    def extract_huggingface_model_tree(repo_info):
+        """Extract structured trainedOn / testedOn / modelLineage hints from
+        an HF ``model_info`` response.
+
+        HuggingFace exposes datasets and base models in several places:
+        ``cardData.datasets``, ``cardData.base_model``, ``model_index[*]
+        .results[*].dataset.name``, and ``tags`` like ``dataset:squad`` or
+        ``base_model:meta-llama/Llama-3``. This helper normalises them into
+        three deduplicated lists so the RAG conflict detector can compare
+        them against the README / arXiv / GitHub text.
+        """
+        result = {"trainedOnDatasets": [], "testedOnDatasets": [], "modelLineage": []}
+        if repo_info is None:
+            return result
+
+        def _add(bucket, value):
+            if value is None:
+                return
+            if isinstance(value, (list, tuple, set)):
+                for item in value:
+                    _add(bucket, item)
+                return
+            text = str(value).strip()
+            if not text or text.lower() in {"none", "unknown", "n/a"}:
+                return
+            if text not in result[bucket]:
+                result[bucket].append(text)
+
+        card = getattr(repo_info, "cardData", None) or {}
+        if isinstance(card, dict):
+            _add("trainedOnDatasets", card.get("datasets"))
+            _add("modelLineage", card.get("base_model"))
+
+            model_index = card.get("model_index") or card.get("model-index")
+            if isinstance(model_index, list):
+                for entry in model_index:
+                    if not isinstance(entry, dict):
+                        continue
+                    for r in entry.get("results", []) or []:
+                        ds = (r or {}).get("dataset") or {}
+                        if isinstance(ds, dict):
+                            _add("testedOnDatasets", ds.get("name") or ds.get("type"))
+
+        for tag in (getattr(repo_info, "tags", None) or []):
+            if not isinstance(tag, str):
+                continue
+            if tag.startswith("dataset:"):
+                _add("trainedOnDatasets", tag.split(":", 1)[1])
+            elif tag.startswith("base_model:"):
+                _add("modelLineage", tag.split(":", 1)[1])
+
+        return result
