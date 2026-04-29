@@ -49,6 +49,7 @@ ollama serve && ollama pull llama3:8b
                               │              │  OpenRouter)│            │
                        Local embeddings      └─────────────┘     ┌──────▼───────┐
                        (no API key)                              │ SPDX 3.0.1   │
+                                                                 │ CycloneDX 1.7│
                                                                  └──────────────┘
 ```
 
@@ -84,7 +85,7 @@ aikaboom generate --type ai \
     --repo microsoft/DialoGPT-medium \
     --arxiv https://arxiv.org/abs/1911.00536 \
     --github https://github.com/microsoft/DialoGPT \
-    --output result.json --spdx result.spdx.json
+    --output result.json --spdx result.spdx.json --cyclonedx result.cdx.json
 
 # Auto-pick a free OpenRouter model
 aikaboom generate --type ai --repo org/model --pick-free-model
@@ -190,19 +191,35 @@ Resolution: similarity scoring (difflib) between structured metadata and extract
 
 Discovered links are also LLM-validated against the target model: if the link agent returns an arXiv paper for the wrong model version, AIkaBoOM rejects it before fetching.
 
-## SPDX 3.0.1 Conversion
+## Export Formats
 
-Convert any BOM to [SPDX 3.0.1](https://spdx.github.io/spdx-spec/v3.0.1/) JSON-LD - the standard for software supply-chain transparency.
+AIkaBoOM always generates all three formats. Each captures the same underlying data in a different standard.
 
-- **CLI:** `aikaboom generate ... --spdx output.spdx.json`
-- **Web UI:** generated automatically alongside the Provenance BOM; click **Download SPDX 3.0.1**.
-- **Python API:** `validate_bom_to_spdx(result, bom_type='ai', output_path='out.spdx.json')`
+| Format | Standard | Use case |
+|--------|----------|----------|
+| **Provenance BOM** | AIkaBoOM JSON | Field-level source attribution + conflict detection (our native format) |
+| **SPDX 3.0.1** | [SPDX AI Profile](https://spdx.github.io/spdx-spec/v3.0.1/) JSON-LD | Regulatory compliance (EU AI Act, NIST), supply chain transparency |
+| **CycloneDX 1.7** | [CycloneDX ML-BOM](https://cyclonedx.org/) JSON | DevSecOps integration, vulnerability management workflows |
 
-The SPDX output contains:
-- `AI_AIPackage` (or `dataset_DatasetPackage`) elements with mapped fields
-- `CreationInfo` with timestamp and tool attribution
-- License relationships (`hasConcludedLicense`, `hasDeclaredLicense`)
-- SPDX 3.0.1 JSON-LD structure with `@context` and `@graph`
+```bash
+aikaboom generate --type ai --repo org/model \
+    --output result.json \
+    --spdx result.spdx.json \
+    --cyclonedx result.cyclonedx.json
+```
+
+**SPDX 3.0.1** output includes `AI_AIPackage` elements, `trainedOn`/`testedOn`/`dependsOn` relationships to dataset stubs, license relationships, and a structurally validated JSON-LD graph (our validator checks ID uniqueness, cross-reference integrity, and required properties per element type).
+
+**CycloneDX 1.7** output uses the `modelCard` extension: `modelParameters.task`, `modelParameters.architectureFamily`, `modelParameters.datasets`, `quantitativeAnalysis.performanceMetrics`, `considerations.technicalLimitations`, and `pedigree.ancestors` for model lineage. Conflict data is preserved as `aikaboom:conflict:*` properties.
+
+**Python API:**
+```python
+from aikaboom.utils.spdx_validator import validate_bom_to_spdx
+from aikaboom.utils.cyclonedx_exporter import bom_to_cyclonedx
+
+spdx = validate_bom_to_spdx(result, bom_type='ai', output_path='out.spdx.json')
+cdx = bom_to_cyclonedx(result, bom_type='ai', output_path='out.cyclonedx.json')
+```
 
 ## Use-Case Presets
 

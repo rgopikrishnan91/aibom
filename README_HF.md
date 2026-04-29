@@ -23,7 +23,7 @@ conflicting metadata across the AI supply chain.
    to use one of the free models from `/v1/models`.
 4. Hit **Generate** and watch live logs in the **Logs** tab.
 5. Inspect the **Conflicts** tab (red badge if any disagreement was found),
-   then download the **Provenance BOM** and the **SPDX 3.0.1** export.
+   then download the **Provenance BOM**, **SPDX 3.0.1**, and **CycloneDX 1.7** exports.
 
 If a link is missing, the **Link Fallback Agent** (Gemini) tries to find it.
 Disabled when `GEMINI_API_KEY` is not set in this Space's secrets.
