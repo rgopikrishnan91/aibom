@@ -35,9 +35,16 @@ validation (beta)** only for final checks; it uses the official SPDX SHACL
 shapes and is slower on free CPU Spaces.
 
 CycloneDX 1.7 export, recursive BOM generation, and strict SHACL validation are
-beta in the Space UI. Recursive BOM generation emits child BOM seed exports from
-discovered `trainedOn`, `testedOn`, and `dependsOn` targets without launching
-additional recursive network/LLM calls.
+beta in the Space UI. Recursive BOM generation walks the dependency tree —
+each `trainedOn` / `testedOn` / `dependsOn` target produces another BOM, the
+walk stops at the configured depth or when the unique-target set is exhausted,
+and any field with a detected conflict is skipped. With recursion on, the UI
+also surfaces a single **Linked SPDX Beta** download that merges the parent
+and every child into one SPDX 3.0.1 JSON-LD `@graph` (validated by both the
+JSON Schema and SHACL passes). AIkaBoOM also auto-extracts model lineage
+hints from HuggingFace's `cardData.base_model`, `cardData.datasets`,
+`model-index`, and repository tags (e.g. `dataset:squad`, `base_model:...`)
+so they participate in cross-source conflict detection.
 
 ## Required configuration (Space secrets)
 

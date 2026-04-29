@@ -135,6 +135,14 @@ def cmd_generate(args):
         args.model = pick_free_openrouter_model()
         print(f"Picked free OpenRouter model: {args.model}")
 
+    if getattr(args, "linked_bom_output", None) and not args.recursive_bom:
+        print(
+            "Error: --linked-bom-output requires --recursive-bom (the linked "
+            "bundle is built from the recursive walk).",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+
     provider, model = _resolve_provider_and_model(args)
     print(f"Provider: {provider} | Model: {model} | Mode: {args.mode}")
 

@@ -138,7 +138,7 @@ def discover_recursive_targets(
             })
             continue
 
-        for target in _split_targets(_extract_value(triplet) if isinstance(triplet, dict) else triplet):
+        for target in _split_targets(triplet):
             targets.append({
                 "source_field": field,
                 "relationship_type": relationship_type,

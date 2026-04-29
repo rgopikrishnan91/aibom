@@ -72,9 +72,14 @@ export downloadable even if validation reports errors. The **Deep SHACL
 validation (beta)** checkbox runs the official SPDX SHACL shapes after JSON
 Schema; leave it off for normal free-tier use and enable it for slower final
 checks. CycloneDX 1.7 export and recursive BOM generation are also beta in the
-Space UI. Recursive BOM generation emits child BOM seed exports from discovered
-`trainedOn`, `testedOn`, and `dependsOn` targets without launching additional
-recursive network/LLM calls.
+Space UI. Recursive BOM generation walks the dependency tree of an AI BOM:
+each `trainedOn` / `testedOn` / `dependsOn` target produces another BOM, the
+walk stops at the configured depth (capped at 5 in the Space UI) or when the
+unique-target set is exhausted, and any field flagged with a conflict is
+skipped. When recursion is on, the UI offers a **Linked SPDX Beta** download
+that merges the parent and every recursive child into a single SPDX 3.0.1
+JSON-LD document with explicit Relationship edges, validated by both the
+JSON Schema and (when **Deep SHACL validation** is on) the SHACL shapes.
 
 ## 5. Choosing a model on the Space
 

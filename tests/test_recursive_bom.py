@@ -219,8 +219,130 @@ def test_warns_about_resource_cost_in_payload():
         max_depth=1,
     )
     joined = " ".join(out["warnings"]).lower()
+    # All four bullets we promise users must be present.
     assert "beta" in joined
-    assert "tree" in joined or "dependency" in joined
+    assert "unique-target set" in joined
+    assert "conflict" in joined and "skipped" in joined
+    assert "enrich" in joined  # documents the enrich_fn escape hatch
+
+
+def test_seed_only_walk_terminates_after_one_level():
+    """No enrich_fn → seed children have no relationship fields, so the walk
+    naturally exhausts even when max_depth is large."""
+    parent = {
+        "model_id": "parent",
+        "rag_fields": {
+            "trainedOnDatasets": _clean_triplet("squad"),
+            "modelLineage": _clean_triplet("meta-llama/Llama-3"),
+        },
+    }
+    out = generate_recursive_boms(parent, bom_type="ai", max_depth=5)
+    assert out["tree_exhausted"] is True
+    assert out["deepest_level_reached"] == 1
+    assert all(n["depth"] == 1 for n in out["generated"])
+    # Seed children are not enriched.
+    assert all(n["enriched"] is False for n in out["generated"])
+
+
+def test_max_depth_zero_never_invokes_enrich_callback():
+    calls = []
+
+    def enrich(target):
+        calls.append(target["target"])
+        return None
+
+    parent = {
+        "model_id": "parent",
+        "rag_fields": {"trainedOnDatasets": _clean_triplet("squad")},
+    }
+    out = generate_recursive_boms(parent, bom_type="ai", max_depth=0, enrich_fn=enrich)
+    assert calls == []
+    assert out["generated_count"] == 0
+
+
+def test_three_node_cycle_does_not_loop():
+    enriched = {
+        "model-a": {"rag_fields": {"modelLineage": _clean_triplet("model-b")}},
+        "model-b": {"rag_fields": {"modelLineage": _clean_triplet("model-c")}},
+        "model-c": {"rag_fields": {"modelLineage": _clean_triplet("model-a")}},
+    }
+
+    def enrich(target):
+        return enriched.get(target["target"])
+
+    parent = {
+        "model_id": "parent",
+        "rag_fields": {"modelLineage": _clean_triplet("model-a")},
+    }
+    out = generate_recursive_boms(parent, bom_type="ai", max_depth=10, enrich_fn=enrich)
+    assert [n["target"] for n in out["generated"]] == ["model-a", "model-b", "model-c"]
+    assert any(d["target"] == "model-a" for d in out["duplicates"])
+    assert out["tree_exhausted"] is True
+
+
+def test_diamond_dependency_visits_target_once():
+    enriched = {
+        "model-a": {
+            "rag_fields": {
+                "modelLineage": _clean_triplet("model-b"),
+                "trainedOnDatasets": _clean_triplet("shared"),
+            },
+        },
+        "model-b": {"rag_fields": {"trainedOnDatasets": _clean_triplet("shared")}},
+    }
+
+    def enrich(target):
+        return enriched.get(target["target"])
+
+    parent = {
+        "model_id": "parent",
+        "rag_fields": {"modelLineage": _clean_triplet("model-a")},
+    }
+    out = generate_recursive_boms(parent, bom_type="ai", max_depth=4, enrich_fn=enrich)
+    shared = [n for n in out["generated"] if n["target"] == "shared"]
+    assert len(shared) == 1, "diamond dependency must produce exactly one node"
+    assert any(d["target"] == "shared" for d in out["duplicates"])
+
+
+def test_string_shaped_conflict_blocks_recursion():
+    """The validator must reject conflict values that aren't the RAG dict
+    shape — e.g. a free-form string from SourceHandler — as long as it is
+    not a 'no'-prefixed signal."""
+    metadata = {
+        "rag_fields": {
+            "trainedOnDatasets": {
+                "value": "squad",
+                "source": "huggingface",
+                "conflict": "github: squad-v2",
+            },
+        },
+    }
+    targets, audit = discover_recursive_targets(metadata, bom_type="ai")
+    assert targets == []
+    assert audit["skipped_due_to_conflict"][0]["conflict"]["type"] == "inter"
+
+
+def test_no_conflict_string_does_not_block_recursion():
+    metadata = {
+        "rag_fields": {
+            "trainedOnDatasets": {"value": "squad", "conflict": "No conflict detected"},
+        },
+    }
+    targets, audit = discover_recursive_targets(metadata, bom_type="ai")
+    assert [t["target"] for t in targets] == ["squad"]
+    assert audit["skipped_due_to_conflict"] == []
+
+
+def test_default_depth_is_one_asserts_tree_exhausted():
+    """Regression: default-depth tests previously didn't assert the natural
+    termination signal."""
+    parent = {
+        "model_id": "p",
+        "rag_fields": {"trainedOnDatasets": _clean_triplet("squad")},
+    }
+    out = generate_recursive_boms(parent, bom_type="ai")
+    assert out["tree_exhausted"] is True
+    assert out["max_depth"] == 1
 
 
 def test_linked_spdx_bundle_links_parent_to_children_with_relationships():
