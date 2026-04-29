@@ -79,6 +79,6 @@ setup(
     include_package_data=True,
     package_data={
         "aikaboom.web": ["templates/*.html", "static/*"],
-        "aikaboom": ["schemas/*.json", "schemas/*.ttl", "schemas/*.jsonld", "schemas/*.md"],
+        "aikaboom": ["schemas/*.json", "schemas/*.ttl", "schemas/*.jsonld", "schemas/*.md", "config/*.json"],
     },
 )

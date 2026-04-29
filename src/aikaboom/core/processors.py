@@ -17,6 +17,7 @@ from aikaboom.core.agentic_rag import AgenticRAG, DirectLLM, FIXED_QUESTIONS_AI,
 from aikaboom.utils.metadata_fetcher import MetadataFetcher
 from aikaboom.core.source_handler import SourceHandler
 from aikaboom.core.internal_conflict import LicenseConflictChecker
+from aikaboom.utils.source_priority import get_direct_priority
 
 
 def _clean_value(value):
@@ -245,23 +246,25 @@ class AIBOMProcessor:
                 if info:
                     huggingface_metadata = MetadataFetcher.inspect_huggingface_BOM_Fields(info, bom_type='ai')
 
+        named_sources = {"huggingface": huggingface_metadata, "github": github_metadata}
+
         direct_metadata["releaseTime"], direct_metadata["releaseTime_source"] = SourceHandler.get_field(
             "releaseTime", huggingface_metadata, github_metadata, mode="latest"
         )
-        direct_metadata["suppliedBy"], direct_metadata["suppliedBy_source"], direct_metadata["suppliedBy_conflicts"] = SourceHandler.get_field_conflict(
-            "suppliedBy", huggingface_metadata, github_metadata
+        direct_metadata["suppliedBy"], direct_metadata["suppliedBy_source"], direct_metadata["suppliedBy_conflicts"] = SourceHandler.get_field_conflict_with_priority(
+            "suppliedBy", named_sources, priority=get_direct_priority("suppliedBy"),
         )
-        direct_metadata["downloadLocation"], direct_metadata["downloadLocation_source"], direct_metadata["downloadLocation_conflicts"] = SourceHandler.get_field_conflict(
-            "software_downloadLocation", huggingface_metadata, github_metadata
+        direct_metadata["downloadLocation"], direct_metadata["downloadLocation_source"], direct_metadata["downloadLocation_conflicts"] = SourceHandler.get_field_conflict_with_priority(
+            "software_downloadLocation", named_sources, priority=get_direct_priority("downloadLocation"),
         )
-        direct_metadata["packageVersion"], direct_metadata["packageVersion_source"], direct_metadata["packageVersion_conflicts"] = SourceHandler.get_field_conflict(
-            "packageVersion", huggingface_metadata, github_metadata
+        direct_metadata["packageVersion"], direct_metadata["packageVersion_source"], direct_metadata["packageVersion_conflicts"] = SourceHandler.get_field_conflict_with_priority(
+            "packageVersion", named_sources, priority=get_direct_priority("packageVersion"),
         )
-        direct_metadata["primaryPurpose"], direct_metadata["primaryPurpose_source"], direct_metadata["primaryPurpose_conflicts"] = SourceHandler.get_field_conflict(
-            "primaryPurpose", huggingface_metadata, github_metadata, fuzzy=True
+        direct_metadata["primaryPurpose"], direct_metadata["primaryPurpose_source"], direct_metadata["primaryPurpose_conflicts"] = SourceHandler.get_field_conflict_with_priority(
+            "primaryPurpose", named_sources, priority=get_direct_priority("primaryPurpose"), fuzzy=True,
         )
-        direct_metadata["license"], direct_metadata["license_source"], direct_metadata["license_conflicts"] = SourceHandler.get_field_conflict(
-            "license", huggingface_metadata, github_metadata
+        direct_metadata["license"], direct_metadata["license_source"], direct_metadata["license_conflicts"] = SourceHandler.get_field_conflict_with_priority(
+            "license", named_sources, priority=get_direct_priority("license"),
         )
         return direct_metadata
 
@@ -467,38 +470,40 @@ class DATABOMProcessor:
                 print(f"Error fetching Hugging Face metadata: {e}")
         
         # Aggregate metadata using SourceHandler
+        named_sources = {"huggingface": huggingface_metadata, "github": github_metadata}
+
         direct_metadata["builtTime"], direct_metadata["builtTime_source"] = SourceHandler.get_field(
             "builtTime", huggingface_metadata, github_metadata, mode='earliest'
         )
-        
-        direct_metadata["originatedBy"], direct_metadata["originatedBy_source"], direct_metadata["originatedBy_conflicts"] = SourceHandler.get_field_conflict(
-            "originatedBy", huggingface_metadata, github_metadata
+
+        direct_metadata["originatedBy"], direct_metadata["originatedBy_source"], direct_metadata["originatedBy_conflicts"] = SourceHandler.get_field_conflict_with_priority(
+            "originatedBy", named_sources, priority=get_direct_priority("originatedBy"),
         )
-        
+
         direct_metadata["releaseTime"], direct_metadata["releaseTime_source"] = SourceHandler.get_field(
             "releaseTime", huggingface_metadata, github_metadata, mode='latest'
         )
-        
-        direct_metadata["downloadLocation"], direct_metadata["downloadLocation_source"], direct_metadata["downloadLocation_conflicts"] = SourceHandler.get_field_conflict(
-            "software_downloadLocation", huggingface_metadata, github_metadata
+
+        direct_metadata["downloadLocation"], direct_metadata["downloadLocation_source"], direct_metadata["downloadLocation_conflicts"] = SourceHandler.get_field_conflict_with_priority(
+            "software_downloadLocation", named_sources, priority=get_direct_priority("downloadLocation"),
         )
-        
-        direct_metadata["primaryPurpose"], direct_metadata["primaryPurpose_source"], direct_metadata["primaryPurpose_conflicts"] = SourceHandler.get_field_conflict(
-            "primaryPurpose", huggingface_metadata, github_metadata, fuzzy=True
+
+        direct_metadata["primaryPurpose"], direct_metadata["primaryPurpose_source"], direct_metadata["primaryPurpose_conflicts"] = SourceHandler.get_field_conflict_with_priority(
+            "primaryPurpose", named_sources, priority=get_direct_priority("primaryPurpose"), fuzzy=True,
         )
-        
-        direct_metadata["license"], direct_metadata["license_source"], direct_metadata["license_conflicts"] = SourceHandler.get_field_conflict(
-            "license", huggingface_metadata, github_metadata
+
+        direct_metadata["license"], direct_metadata["license_source"], direct_metadata["license_conflicts"] = SourceHandler.get_field_conflict_with_priority(
+            "license", named_sources, priority=get_direct_priority("license"),
         )
-        
-        direct_metadata["sourceInfo"], direct_metadata["sourceInfo_source"], direct_metadata["sourceInfo_conflicts"] = SourceHandler.get_field_conflict(
-            "sourceInfo", huggingface_metadata, github_metadata
+
+        direct_metadata["sourceInfo"], direct_metadata["sourceInfo_source"], direct_metadata["sourceInfo_conflicts"] = SourceHandler.get_field_conflict_with_priority(
+            "sourceInfo", named_sources, priority=get_direct_priority("sourceInfo"),
         )
-        
-        direct_metadata["datasetAvailability"], direct_metadata["datasetAvailability_source"], direct_metadata["datasetAvailability_conflicts"] = SourceHandler.get_field_conflict(
-            "datasetAvailability", huggingface_metadata, github_metadata
+
+        direct_metadata["datasetAvailability"], direct_metadata["datasetAvailability_source"], direct_metadata["datasetAvailability_conflicts"] = SourceHandler.get_field_conflict_with_priority(
+            "datasetAvailability", named_sources, priority=get_direct_priority("datasetAvailability"),
         )
-        
+
         return direct_metadata
 
     def _fetch_github_readme(self, github_url: str) -> str:

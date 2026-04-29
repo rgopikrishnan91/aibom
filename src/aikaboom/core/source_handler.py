@@ -154,7 +154,40 @@ class SourceHandler:
         conflict = ", ".join(conflict_parts) if conflict_parts else None
         
         return chosen_val, chosen_src, conflict
-    
+
+    @staticmethod
+    def get_field_conflict_with_priority(key, sources_by_name, priority=None, fuzzy=False, fuzzy_threshold=0.5):
+        """Reorder named sources by ``priority`` and delegate to
+        :meth:`get_field_conflict`.
+
+        Lets call sites describe sources by name (``{"huggingface": ..., "github": ...}``)
+        and look the order up from the community-editable
+        ``source_priority.json`` config rather than baking it into argument
+        position. Sources whose name is not in ``priority`` are appended in
+        dict-iteration order.
+
+        Args:
+            key: Field name to extract from each source dict.
+            sources_by_name: Mapping of source name -> source dict (or None).
+            priority: Optional list of source names; the resulting argument
+                order to ``get_field_conflict`` is this list followed by any
+                remaining sources.
+            fuzzy / fuzzy_threshold: Forwarded.
+        """
+        ordered = []
+        consumed = set()
+        for name in (priority or []):
+            src = sources_by_name.get(name)
+            if src is not None:
+                ordered.append((name, src))
+                consumed.add(name)
+        for name, src in sources_by_name.items():
+            if name not in consumed and src is not None:
+                ordered.append((name, src))
+        return SourceHandler.get_field_conflict(
+            key, *ordered, fuzzy=fuzzy, fuzzy_threshold=fuzzy_threshold,
+        )
+
     @staticmethod
     def get_field(key, *sources, mode='priority'):
         """

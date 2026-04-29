@@ -218,7 +218,50 @@ Even when a conflict is flagged, AIkaBoOM still has to pick one value to put in 
 
 Discovered links are also LLM-validated against the target model: if the link agent returns an arXiv paper for the wrong model version, AIkaBoOM rejects it before fetching.
 
-> **Source ranking is currently hard-coded in two places** — argument order in `processors.py` for direct fields and the per-question `priority` lists in `agentic_rag.py` for RAG fields. There is no single community-editable config for the source ranking yet; if you want to change a priority you edit those files. Externalising this into one ranking config is on the roadmap.
+### Customising the source ranking
+
+Source ranking lives in a single JSON config that ships with the package:
+[`src/aikaboom/config/source_priority.json`](src/aikaboom/config/source_priority.json).
+It has three sections — `direct_fields`, `rag_fields_ai`, `rag_fields_data` —
+each mapping a field name to an ordered list of source names. Every section
+also has a `default` entry that applies to fields with no explicit
+priority. Edit the file in place, or override without forking by pointing
+the `AIKABOOM_SOURCE_PRIORITY` environment variable at your own copy:
+
+```bash
+export AIKABOOM_SOURCE_PRIORITY=/path/to/my-source-priority.json
+aikaboom generate --type ai --repo org/model --output result.json
+```
+
+A user config does **not** need to be exhaustive — every section merges
+field-by-field over the bundled defaults, so listing just the entries you
+want to change is enough. Example: prefer GitHub over HuggingFace for
+licenses while leaving everything else alone:
+
+```json
+{
+  "direct_fields": { "license": ["github", "huggingface"] }
+}
+```
+
+Programmatic access (and a hook for tests) is available via the package
+API:
+
+```python
+from aikaboom import (
+    load_source_priority,
+    get_direct_priority,
+    get_rag_priority,
+    set_source_priority_path,
+)
+
+set_source_priority_path("/path/to/my-source-priority.json")  # or None to clear
+print(get_direct_priority("license"))         # -> ["github", "huggingface"]
+print(get_rag_priority("trainedOnDatasets"))  # -> ["huggingface", "arxiv", "github"]
+```
+
+A malformed user config logs a warning and falls back to the bundled
+defaults, so a typo can't break BOM generation.
 
 ## Export Formats
 

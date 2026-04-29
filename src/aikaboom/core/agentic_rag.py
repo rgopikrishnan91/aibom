@@ -337,6 +337,25 @@ FIXED_QUESTIONS_DATA = {
     }
 }
 
+# The inline `priority` lists above are the failsafe defaults: when the
+# bundled / user-supplied source_priority.json is loadable we override
+# every entry's priority from it so the community can tune ranking
+# without editing this module. If config loading fails for any reason
+# we keep the inline values untouched.
+def _apply_source_priority_config(force: bool = False) -> None:
+    try:
+        from aikaboom.utils.source_priority import get_rag_priority
+    except Exception:
+        return
+    for field, cfg in FIXED_QUESTIONS_AI.items():
+        cfg['priority'] = get_rag_priority(field, bom_type='ai')
+    for field, cfg in FIXED_QUESTIONS_DATA.items():
+        cfg['priority'] = get_rag_priority(field, bom_type='data')
+
+
+_apply_source_priority_config()
+
+
 # Unified function to get questions based on BOM type
 def get_fixed_questions(bom_type='ai'):
     """Get FIXED_QUESTIONS based on BOM type"""
