@@ -2,7 +2,7 @@
 """
 Example script for processing an AI model BOM
 """
-from bom_tools.core.processors import AIBOMProcessor
+from aikaboom.core.processors import AIBOMProcessor
 import json
 
 def main():

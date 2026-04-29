@@ -43,7 +43,7 @@ class TestNoHardcodedSecrets:
 
     def test_github_token_from_env(self):
         """Verify metadata_fetcher reads token from environment at call time."""
-        from bom_tools.utils.metadata_fetcher import _get_github_headers
+        from aikaboom.utils.metadata_fetcher import _get_github_headers
         headers = _get_github_headers()
         if os.getenv("GITHUB_TOKEN"):
             assert "Authorization" in headers

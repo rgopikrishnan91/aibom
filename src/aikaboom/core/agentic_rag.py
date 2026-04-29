@@ -234,7 +234,25 @@ FIXED_QUESTIONS_AI = {
         'priority': ['huggingface', 'arxiv', 'github'],
         'keywords': 'sensitive personal information PII privacy data protection',
         'description': 'Notes if sensitive personal information is used in the training or inference of the AI models. This might include biometric data, addresses or other data that can be used to infer a persons identity.'
-    }
+    },
+    'trainedOnDatasets': {
+        'question': 'What specific named datasets were used to train this AI model? List only the dataset names.',
+        'priority': ['huggingface', 'arxiv', 'github'],
+        'keywords': 'training data dataset corpus fine-tuned trained on pre-trained pre-training data source',
+        'description': 'Per SPDX 3.0.1 trainedOn relationship: identifies the specific datasets used to train the AI model. The answer should list concrete dataset names (e.g. "SQuAD", "Common Crawl", "The Pile") rather than generic descriptions. Maps to SPDX trainedOn relationship and CycloneDX modelCard.datasets with type=training.'
+    },
+    'testedOnDatasets': {
+        'question': 'What specific named datasets or benchmarks were used to evaluate or test this AI model?',
+        'priority': ['arxiv', 'huggingface', 'github'],
+        'keywords': 'evaluation benchmark test dataset tested evaluated assessment validation',
+        'description': 'Per SPDX 3.0.1 testedOn relationship: identifies the specific datasets or benchmarks used to evaluate the AI model. Examples include GLUE, SuperGLUE, MMLU, HellaSwag, etc. Maps to SPDX testedOn relationship and CycloneDX modelCard.datasets with type=evaluation.'
+    },
+    'modelLineage': {
+        'question': 'What is the base model or parent model that this AI model was derived from or fine-tuned on?',
+        'priority': ['huggingface', 'arxiv', 'github'],
+        'keywords': 'base model parent model derived from fine-tuned from pre-trained foundation model ancestor lineage',
+        'description': 'Per SPDX 3.0.1 dependsOn relationship: identifies the base or parent model from which this model was derived (e.g. "meta-llama/Llama-3" or "google-bert/bert-base-uncased"). Maps to SPDX dependsOn relationship and CycloneDX pedigree.ancestors.'
+    },
 }
 
 # FIXED DATASET QUESTIONS WITH PRE-DEFINED SOURCE PRIORITY

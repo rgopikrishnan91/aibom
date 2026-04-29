@@ -9,9 +9,9 @@ this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text(encoding="utf-8")
 
 setup(
-    name="bom-tools",
+    name="aikaboom",
     version="1.0.0",
-    author="BOM Tools Contributors",
+    author="AIkaBoOM Contributors",
     author_email="",
     description="Unified AI Model and Dataset BOM Generator with RAG",
     long_description=long_description,
@@ -55,6 +55,8 @@ setup(
         "certifi>=2023.0.0",
         "google-genai>=0.3.0",
         "httpx>=0.25.0",
+        "pyshacl>=0.30.0",
+        "jsonschema>=4.0.0",
     ],
     extras_require={
         "link_fallback": [
@@ -71,11 +73,11 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "bom-tools=bom_tools.cli:main",
+            "aikaboom=aikaboom.cli:main",
         ],
     },
     include_package_data=True,
     package_data={
-        "bom_tools.web": ["templates/*.html", "static/*"],
+        "aikaboom.web": ["templates/*.html", "static/*"],
     },
 )

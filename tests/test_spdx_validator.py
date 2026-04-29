@@ -3,7 +3,7 @@ Baseline regression tests for SPDXValidator.
 Captures current behavior BEFORE any code changes.
 """
 import pytest
-from bom_tools.utils.spdx_validator import SPDXValidator, validate_bom_to_spdx
+from aikaboom.utils.spdx_validator import SPDXValidator, validate_bom_to_spdx
 
 
 class TestExtractValue:
@@ -48,7 +48,7 @@ class TestValidateAndConvert:
 
         # Check that AI Package exists in graph
         types = [elem.get("type") for elem in result["@graph"]]
-        assert "AI_AIPackage" in types
+        assert "ai_AIPackage" in types
         assert "SpdxDocument" in types
         assert "Bom" in types
 
@@ -90,11 +90,11 @@ class TestValidateAndConvert:
         result = validator.validate_and_convert(bom_data)
 
         # Find the AI package
-        ai_pkg = next(e for e in result["@graph"] if e["type"] == "AI_AIPackage")
+        ai_pkg = next(e for e in result["@graph"] if e["type"] == "ai_AIPackage")
         assert ai_pkg["suppliedBy"] == "DeepOrg"
-        assert ai_pkg["downloadLocation"] == "https://example.com"
-        assert ai_pkg["AI-Model-Name"] == "MyModel"
-        assert ai_pkg["typeOfModel"] == "transformer"
+        assert ai_pkg["software_downloadLocation"] == "https://example.com"
+        assert ai_pkg["name"] == "MyModel"
+        assert ai_pkg["ai_typeOfModel"] == "transformer"
 
 
 class TestValidateSpdxBom:
@@ -104,9 +104,15 @@ class TestValidateSpdxBom:
         self.validator = SPDXValidator(bom_type='ai')
 
     def test_valid_bom(self):
-        spdx = {"@context": "https://spdx.org/...", "@graph": [{"type": "SpdxDocument"}]}
+        """A structurally complete AI BOM must pass the hardened validator."""
+        bom_data = {
+            "repo_id": "test/model",
+            "direct_fields": {"suppliedBy": "Org", "license": "MIT"},
+            "rag_fields": {"model_name": "Test"},
+        }
+        spdx = self.validator.validate_and_convert(bom_data)
         is_valid, errors = self.validator.validate_spdx_bom(spdx)
-        assert is_valid is True
+        assert is_valid is True, f"Validator errors: {errors}"
         assert len(errors) == 0
 
     def test_missing_graph(self):

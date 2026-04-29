@@ -3,7 +3,7 @@ Baseline regression tests for web app utility functions.
 Tests pure logic functions + Flask integration tests.
 """
 import pytest
-from bom_tools.web.app import normalize_use_case, get_use_case_label, count_fields, app
+from aikaboom.web.app import normalize_use_case, get_use_case_label, count_fields, app
 
 
 class TestNormalizeUseCase:

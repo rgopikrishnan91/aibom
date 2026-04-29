@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "bom-tools"
+name = "aikaboom"
 version = "1.0.0"
-description = "Unified AI Model and Dataset BOM Generator with RAG"
+description = "AIkaBoOM - AI Bills of Materials with conflict detection and SPDX 3.0.1"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
@@ -48,6 +48,8 @@ dependencies = [
     "certifi>=2023.0.0",
     "google-genai>=0.3.0",
     "httpx>=0.25.0",
+    "pyshacl>=0.30.0",
+    "jsonschema>=4.0.0",
 ]
 
 [project.optional-dependencies]
@@ -64,7 +66,7 @@ dev = [
 ]
 
 [project.scripts]
-bom-tools = "bom_tools.cli:main"
+aikaboom = "aikaboom.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/rgopikrishnan91/aibom"
@@ -76,7 +78,7 @@ Issues = "https://github.com/rgopikrishnan91/aibom/issues"
 where = ["src"]
 
 [tool.setuptools.package-data]
-"bom_tools.web" = ["templates/*.html", "static/*"]
+"aikaboom.web" = ["templates/*.html", "static/*"]
 
 [tool.black]
 line-length = 100

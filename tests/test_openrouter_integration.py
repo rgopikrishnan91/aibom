@@ -32,7 +32,7 @@ try:
 except ImportError:
     from langchain_core.documents import Document
 
-from bom_tools.core.agentic_rag import AgenticRAG, AgentState, create_llm, FIXED_QUESTIONS_AI
+from aikaboom.core.agentic_rag import AgenticRAG, AgentState, create_llm, FIXED_QUESTIONS_AI
 
 # ---------------------------------------------------------------------------
 # Skip the whole module if no API key is available

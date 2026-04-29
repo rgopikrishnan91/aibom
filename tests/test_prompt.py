@@ -2,7 +2,7 @@
 Baseline regression tests for prompt templates.
 Captures current behavior BEFORE any code changes.
 """
-from bom_tools.core.prompt import (
+from aikaboom.core.prompt import (
     prompt_detect_conflicts,
     prompt_generate_answer,
     prompt_no_documents,

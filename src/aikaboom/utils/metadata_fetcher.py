@@ -4,10 +4,6 @@ import requests
 from urllib.parse import urlparse
 from huggingface_hub import HfApi
 import fitz  # PyMuPDF
-import chromadb
-from sentence_transformers import SentenceTransformer
-import numpy as np
-import inspect
 
 def _get_github_headers():
     """Build GitHub API headers with token from environment (if available)."""
@@ -19,13 +15,6 @@ def _get_github_headers():
 
 
 class MetadataFetcher:
-    @staticmethod
-    def extract_hf_repo_id(url):
-        parts = urlparse(url).path.strip("/").split("/")
-        if "datasets" in parts:
-            parts.remove("datasets")
-        return f"{parts[0]}/{parts[1]}" if len(parts) >= 2 else None
-
     @staticmethod
     def extract_github_user_repo(url):
         parts = urlparse(url).path.strip("/").split("/")
@@ -89,76 +78,6 @@ class MetadataFetcher:
         return {"license_name": None, "license_spdx_id": None, "license_url": None}
 
     @staticmethod
-    def inspect_huggingface_dataset(url):
-        repo_id = MetadataFetcher.extract_hf_repo_id(url)
-        if not repo_id:
-            return {}
-
-        try:
-            api = HfApi()
-            info = api.dataset_info(repo_id)
-            files = api.list_repo_files(repo_id, repo_type="dataset")
-            license_tag = info.cardData.get('license') if info.cardData else None
-
-            matched_files = {f for f in files if any(k in f.upper() for k in ["LICENSE", "COPYING", "NOTICE", "README"])}
-            content = {}
-            for f in matched_files:
-                r = requests.get(f"https://huggingface.co/datasets/{repo_id}/resolve/main/{f}", timeout=30)
-                if r.status_code == 200:
-                    content[f] = r.text.strip()
-
-            return {
-                "hf_repo_id": repo_id,
-                "hf_license_tag": license_tag,
-                "hf_file_contents": content,
-                "hf_license_files": [f for f in matched_files if "LICENSE" in f.upper() or "COPYING" in f.upper()],
-                "hf_notice_files": [f for f in matched_files if "NOTICE" in f.upper()],
-                "hf_readme_files": [f for f in matched_files if "README" in f.upper()]
-            }
-        except Exception:
-            return {}
-
-    @staticmethod
-    def inspect_github_repo(url):
-        user, repo = MetadataFetcher.extract_github_user_repo(url)
-        if not user or not repo:
-            return {}
-
-        try:
-            base = f"https://raw.githubusercontent.com/{user}/{repo}/main"
-            license_files = ["LICENSE", "LICENSE.txt", "LICENSE.md", "COPYING", "NOTICE", "NOTICE.txt"]
-            readme_files = ["README.md", "README.txt", "README"]
-
-            found_licenses = {}
-            found_readmes = {}
-
-            for f in license_files:
-                r = requests.get(f"{base}/{f}", headers=_get_github_headers(), timeout=30)
-                if r.status_code == 200:
-                    found_licenses[f] = r.text.strip()
-
-            for f in readme_files:
-                r = requests.get(f"{base}/{f}", headers=_get_github_headers(), timeout=30)
-                if r.status_code == 200:
-                    found_readmes[f] = r.text.strip()
-                    break
-
-            license_info = MetadataFetcher.fetch_github_repo_license(user, repo)
-
-            return {
-                "gh_repo": f"{user}/{repo}",
-                "gh_license_files": list(found_licenses.keys()),
-                "gh_readme_files": list(found_readmes.keys()),
-                "gh_license_contents": found_licenses,
-                "gh_readme_contents": found_readmes,
-                "gh_license_name": license_info["license_name"],
-                "gh_license_spdx_id": license_info["license_spdx_id"],
-                "gh_license_url": license_info["license_url"]
-            }
-        except Exception:
-            return {}
-
-    @staticmethod
     def get_pdf_text_from_arxiv(arxiv_url):
         import tempfile
         arxiv_id = arxiv_url.split('/')[-1]
@@ -183,26 +102,6 @@ class MetadataFetcher:
             print(f"Failed to download PDF from {pdf_url}")
             return ""
     
-    @staticmethod
-    def retrieve_paper_by_uid(uid: str):
-        """
-        Retrieve top-k most relevant chunks from a specific paper by UID using semantic search.
-        """
-        client = chromadb.PersistentClient(path="./chroma_db")
-        collection = client.get_collection(name="papers")
-
-        try:
-            result = collection.get(ids=[uid])
-            if result and result['documents']:
-                return {
-                    'id': result['ids'][0],
-                    'document': result['documents'][0],
-                }
-            return None
-        except Exception as e:
-            print(f"Error retrieving paper for UID {uid}: {e}")
-            return None
-
     @staticmethod
     def inspect_github_BOM_Fields(github_repo, bom_type='ai'):
         """
@@ -375,28 +274,3 @@ class MetadataFetcher:
             return {}
 
         return hf_metadata
-
-    @staticmethod
-    def inspect_kaggle_BOM_Fields(kaggle_repo):
-        """
-        Extract BOM-style metadata from a Kaggle dataset.
-        """
-        kaggle_metadata = {}
-
-        try:
-            repo_info = kaggle_repo
-            kaggle_metadata["software_downloadLocation"] = repo_info.url if repo_info.url else None
-            kaggle_metadata["builtTime"] = None
-            kaggle_metadata["releaseTime"] = None
-            kaggle_metadata["name"] = repo_info.title if repo_info.title else None
-            kaggle_metadata["originatedBy"] = repo_info.creator_name if repo_info.creator_name else None
-            kaggle_metadata["datasetAvailability"] = "public" if repo_info._is_private is False else "private"
-            kaggle_metadata["dataset description"] = repo_info.subtitle if repo_info.subtitle else None
-            kaggle_metadata["license"] = repo_info._license_name if repo_info._license_name else None
-            kaggle_metadata["sourceInfo"] = None
-
-        except Exception as e:
-            print(f"Error retrieving Kaggle metadata: {e}")
-            return {}
-
-        return kaggle_metadata

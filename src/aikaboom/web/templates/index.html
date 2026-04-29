@@ -507,7 +507,24 @@
             color: #667eea;
             border-bottom-color: #667eea;
         }
-        
+
+        .tab.has-conflicts {
+            color: white;
+            background: #c0392b;
+            border-radius: 6px 6px 0 0;
+        }
+        .tab.has-conflicts.active {
+            color: white;
+            border-bottom-color: #c0392b;
+        }
+        .tab.no-conflicts {
+            color: #1e8449;
+        }
+        .tab.no-conflicts.active {
+            color: #1e8449;
+            border-bottom-color: #1e8449;
+        }
+
         .tab-content {
             display: none;
             flex: 1;
@@ -608,12 +625,20 @@
 
                 <!-- Model Selection (dynamic based on provider) -->
                 <div class="form-group" id="model_group_openrouter">
-                    <label for="openrouter_model">🤖 OpenRouter Model</label>
+                    <label for="openrouter_model_select">🤖 OpenRouter Model</label>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+                        <button type="button" id="btn_load_free_models" style="padding:6px 10px;border:1px solid #1e8449;background:#e8f5e9;color:#1e8449;border-radius:6px;cursor:pointer;font-size:0.85em;">🎯 Pick a free model</button>
+                        <button type="button" id="btn_load_all_models" style="padding:6px 10px;border:1px solid #888;background:#f5f5f5;color:#333;border-radius:6px;cursor:pointer;font-size:0.85em;">📋 Show all models</button>
+                    </div>
+                    <select id="openrouter_model_select" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:0.95em;margin-bottom:6px;">
+                        <option value="qwen/qwen-2.5-72b-instruct:free">qwen/qwen-2.5-72b-instruct:free (free, default)</option>
+                        <option value="__custom__">Custom model ID...</option>
+                    </select>
                     <input type="text" id="openrouter_model" name="openrouter_model"
-                           value="qwen/qwen-2.5-72b-instruct"
-                           placeholder="e.g. qwen/qwen-2.5-72b-instruct"
-                           style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:0.95em;box-sizing:border-box;">
-                    <div class="url-hint">Type any OpenRouter model ID (e.g. meta-llama/llama-3.3-70b-instruct)</div>
+                           value="qwen/qwen-2.5-72b-instruct:free"
+                           placeholder="e.g. meta-llama/llama-3.3-70b-instruct:free"
+                           style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:0.95em;box-sizing:border-box;display:none;">
+                    <div class="url-hint" id="openrouter_model_hint">Click "Pick a free model" to load free models from OpenRouter.</div>
                 </div>
 
                 <div class="form-group" id="model_group_openai" style="display:none;">
@@ -697,12 +722,16 @@
             
             <div class="tabs">
                 <button class="tab active" onclick="switchTab('complete')" title="Source-traced fields with conflict detection">BOM with Provenance</button>
+                <button class="tab" id="conflictsTabBtn" onclick="switchTab('conflicts')" title="Summary of all detected conflicts">Conflicts</button>
                 <button class="tab" onclick="switchTab('spdx')" title="Standards-compliant SPDX 3.0.1 export">SPDX 3.0.1</button>
+                <button class="tab" onclick="switchTab('cyclonedx')" title="CycloneDX 1.7 ML-BOM export">CycloneDX 1.7</button>
+                <button class="tab" onclick="switchTab('logs')" title="Server processing logs">Logs</button>
             </div>
 
             <div class="download-buttons" id="downloadButtons" style="display: none;">
                 <a id="downloadComplete" href="#" class="download-btn" target="_blank" style="display: none;">📥 Download Provenance BOM</a>
                 <a id="downloadSPDX" href="#" class="download-btn spdx" target="_blank" style="display: none;">📄 Download SPDX 3.0.1</a>
+                <a id="downloadCDX" href="#" class="download-btn spdx" target="_blank" style="display: none;">📦 Download CycloneDX 1.7</a>
             </div>
 
             <div id="completeTab" class="tab-content active">
@@ -710,6 +739,16 @@
                     <div id="jsonViewerComplete" class="json-viewer">
                         <div class="json-placeholder">
                             Generated BOM with source provenance and conflict detection will appear here.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="conflictsTab" class="tab-content">
+                <div class="json-container">
+                    <div id="conflictsViewer" class="json-viewer" style="font-family:inherit;">
+                        <div class="json-placeholder">
+                            Conflict summary will appear here after processing.
                         </div>
                     </div>
                 </div>
@@ -724,6 +763,24 @@
                     </div>
                 </div>
             </div>
+
+            <div id="cyclonedxTab" class="tab-content">
+                <div class="json-container">
+                    <div id="jsonViewerCDX" class="json-viewer">
+                        <div class="json-placeholder">
+                            CycloneDX 1.7 ML-BOM export will appear here.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="logsTab" class="tab-content">
+                <div class="json-container">
+                    <div id="logsViewer" class="json-viewer" style="font-family:'Courier New',monospace; font-size:12px; white-space:pre-wrap; background:#1e1e1e; color:#d4d4d4; padding:12px; max-height:500px; overflow-y:auto;">
+                        <span style="color:#888;">Waiting for processing to start...</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -732,9 +789,11 @@
         const statusDiv = document.getElementById('status');
         const jsonViewerComplete = document.getElementById('jsonViewerComplete');
         const jsonViewerSPDX = document.getElementById('jsonViewerSPDX');
+        const jsonViewerCDX = document.getElementById('jsonViewerCDX');
         const processBtn = document.getElementById('processBtn');
         const downloadButtons = document.getElementById('downloadButtons');
         const downloadComplete = document.getElementById('downloadComplete');
+        const downloadCDX = document.getElementById('downloadCDX');
         const downloadSPDX = document.getElementById('downloadSPDX');
         const useCaseDropdownBtn = document.getElementById('useCaseDropdownBtn');
         const useCaseContainer = document.getElementById('useCaseContainer');
@@ -764,6 +823,75 @@
             r.addEventListener('change', updateModelVisibility);
         });
         updateModelVisibility();
+
+        // OpenRouter model dropdown wiring
+        (function setupOpenRouterPicker() {
+            const select = document.getElementById('openrouter_model_select');
+            const hidden = document.getElementById('openrouter_model');
+            const customInput = hidden;  // same element repurposed for custom
+            const hint = document.getElementById('openrouter_model_hint');
+            const btnFree = document.getElementById('btn_load_free_models');
+            const btnAll = document.getElementById('btn_load_all_models');
+
+            function setHint(msg, color) {
+                hint.textContent = msg;
+                hint.style.color = color || '';
+            }
+
+            function fmtCtx(ctx) {
+                if (!ctx) return '';
+                if (ctx >= 1000) return Math.round(ctx / 1000) + 'K';
+                return String(ctx);
+            }
+
+            function applySelectedModel() {
+                if (select.value === '__custom__') {
+                    customInput.style.display = '';
+                    setHint('Type a custom OpenRouter model ID.');
+                } else {
+                    customInput.value = select.value;
+                    customInput.style.display = 'none';
+                }
+            }
+
+            select.addEventListener('change', applySelectedModel);
+            applySelectedModel();
+
+            async function loadModels(freeOnly) {
+                setHint(freeOnly ? '🎯 Loading free models...' : '📋 Loading all models...', '#666');
+                try {
+                    const url = `/models?provider=openrouter&free_only=${freeOnly}`;
+                    const resp = await fetch(url);
+                    const data = await resp.json();
+                    const models = data.models || [];
+                    if (!models.length) {
+                        setHint('No models returned from OpenRouter.', '#c0392b');
+                        return;
+                    }
+                    // Rebuild dropdown
+                    select.innerHTML = '';
+                    models.forEach(function(m) {
+                        const opt = document.createElement('option');
+                        opt.value = m.id;
+                        const ctx = fmtCtx(m.context_length);
+                        opt.textContent = ctx ? `${m.name || m.id} (ctx: ${ctx})` : (m.name || m.id);
+                        select.appendChild(opt);
+                    });
+                    const customOpt = document.createElement('option');
+                    customOpt.value = '__custom__';
+                    customOpt.textContent = 'Custom model ID...';
+                    select.appendChild(customOpt);
+                    select.value = models[0].id;
+                    applySelectedModel();
+                    setHint(`✓ Loaded ${models.length} ${freeOnly ? 'free' : ''} model(s) from OpenRouter.`, '#1e8449');
+                } catch (err) {
+                    setHint('Could not load models: ' + err.message, '#c0392b');
+                }
+            }
+
+            btnFree.addEventListener('click', function() { loadModels(true); });
+            btnAll.addEventListener('click', function() { loadModels(false); });
+        })();
 
         // Debugging: Ensure the script is loaded
         console.log("🚀 Script loaded successfully!");
@@ -946,7 +1074,19 @@
                     showStatus('processing', `<span class="spinner"></span> Generating ${bomTypeLabel} BOM with ${selectedMode.toUpperCase()} mode (${USE_CASE_LABELS[selectedUseCase]})... This may take a few minutes.`);
                 }
 
-                // Step 2: Generate the full BOM
+                // Step 2: Start live log stream
+                const logsViewer = document.getElementById('logsViewer');
+                logsViewer.innerHTML = '';
+                if (window._logSource) { window._logSource.close(); }
+                window._logSource = new EventSource('/logs');
+                window._logSource.onmessage = function(e) {
+                    const line = document.createElement('div');
+                    line.textContent = e.data;
+                    logsViewer.appendChild(line);
+                    logsViewer.scrollTop = logsViewer.scrollHeight;
+                };
+
+                // Step 3: Generate the full BOM
                 const response = await fetch('/process', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
@@ -995,12 +1135,26 @@
                     // Show link fallback agent status
                     const lfb = result.link_fallback || {};
                     if (lfb.reason === 'no_gemini_key') {
-                        statusMessage += `<br><small>🔗 <em>Link Fallback Agent inactive — set <code>GEMINI_API_KEY</code> to enable auto-discovery. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Get a free key →</a></em></small>`;
+                        statusMessage += `<br><small>🔗 <em>Link Fallback Agent inactive. Set <code>GEMINI_API_KEY</code> to enable auto-discovery. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Get a free key</a></em></small>`;
                     } else if (lfb.attempted && Array.isArray(lfb.not_found) && lfb.not_found.length > 0) {
                         const labels = lfb.not_found.map(n =>
                             n === 'huggingface' ? 'HuggingFace' : n === 'arxiv' ? 'ArXiv' : 'GitHub'
                         );
                         statusMessage += `<br><small>⚠️ Link Fallback Agent could not auto-discover: ${labels.join(', ')}</small>`;
+                    }
+
+                    // Show link-validation rejections / warnings
+                    const lstat = (lfb.link_status || {});
+                    const rejected = [];
+                    if (lstat.hf_rejected) rejected.push(`HuggingFace (${lstat.hf_rejected})`);
+                    if (lstat.arxiv_rejected) rejected.push(`arXiv (${lstat.arxiv_rejected})`);
+                    if (lstat.github_rejected) rejected.push(`GitHub (${lstat.github_rejected})`);
+                    if (rejected.length > 0) {
+                        statusMessage += `<br><small>🛑 Validator rejected discovered links: ${rejected.join('; ')}</small>`;
+                    }
+                    if (Array.isArray(lstat.warnings) && lstat.warnings.length > 0) {
+                        const warns = lstat.warnings.map(w => `${w.link} (${w.reason})`);
+                        statusMessage += `<br><small>⚠️ Validator flagged user-provided links: ${warns.join('; ')}</small>`;
                     }
 
                     showStatus('success', statusMessage);
@@ -1033,7 +1187,48 @@
                             : 'SPDX output not available';
                         jsonViewerSPDX.innerHTML = `<div class="json-placeholder">${errMsg}</div>`;
                     }
-                    
+
+                    // CycloneDX 1.7
+                    if (result.cyclonedx_download_url && result.cyclonedx_data) {
+                        downloadCDX.href = result.cyclonedx_download_url;
+                        downloadCDX.style.display = 'inline-block';
+                        displayJSON(result.cyclonedx_data, jsonViewerCDX);
+                    } else {
+                        downloadCDX.style.display = 'none';
+                        const cdxErr = result.cyclonedx_error
+                            ? `CycloneDX conversion failed: ${result.cyclonedx_error}`
+                            : 'CycloneDX output not available';
+                        jsonViewerCDX.innerHTML = `<div class="json-placeholder">${cdxErr}</div>`;
+                    }
+
+                    // Populate Conflicts tab + update tab badge
+                    const conflictsViewer = document.getElementById('conflictsViewer');
+                    const conflictsTabBtn = document.getElementById('conflictsTabBtn');
+                    const conflicts = result.conflicts || [];
+                    conflictsTabBtn.textContent = `Conflicts (${conflicts.length})`;
+                    conflictsTabBtn.classList.remove('has-conflicts', 'no-conflicts');
+                    conflictsTabBtn.classList.add(conflicts.length > 0 ? 'has-conflicts' : 'no-conflicts');
+                    if (conflicts.length > 0) {
+                        let html = `<div style="margin-bottom:12px;"><strong>⚠️ ${conflicts.length} conflict(s) detected</strong></div>`;
+                        html += '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
+                        html += '<tr style="background:#f0f0f0;"><th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Field</th><th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Chosen</th><th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Conflicting</th><th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Type</th></tr>';
+                        conflicts.forEach(c => {
+                            const typeLabel = c.conflict_type === 'intra'
+                                ? '<span style="color:#e67e22;">intra-source</span>'
+                                : '<span style="color:#e74c3c;">inter-source</span>';
+                            html += `<tr style="border-bottom:1px solid #eee;">`;
+                            html += `<td style="padding:8px;"><strong>${c.field}</strong><br><small style="color:#888;">${c.section}</small></td>`;
+                            html += `<td style="padding:8px;">${c.chosen_value || '—'}<br><small style="color:#888;">from ${c.chosen_source || '?'}</small></td>`;
+                            html += `<td style="padding:8px;color:#c0392b;">${c.conflict_value || '—'}<br><small style="color:#888;">from ${c.conflict_source || '?'}</small></td>`;
+                            html += `<td style="padding:8px;">${typeLabel}</td>`;
+                            html += `</tr>`;
+                        });
+                        html += '</table>';
+                        conflictsViewer.innerHTML = html;
+                    } else {
+                        conflictsViewer.innerHTML = '<div style="padding:20px;text-align:center;color:#27ae60;">✅ No conflicts detected — all sources agree.</div>';
+                    }
+
                     downloadButtons.style.display = 'flex';
                 } else {
                     showStatus('error', `❌ Error: ${result.message}`);
@@ -1043,6 +1238,7 @@
                 showStatus('error', `❌ Network error: ${error.message}`);
             } finally {
                 processBtn.disabled = false;
+                if (window._logSource) { window._logSource.close(); window._logSource = null; }
             }
         });
 

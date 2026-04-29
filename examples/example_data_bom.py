@@ -2,7 +2,7 @@
 """
 Example script for processing a dataset BOM
 """
-from bom_tools.core.processors import DATABOMProcessor
+from aikaboom.core.processors import DATABOMProcessor
 import json
 
 def main():

@@ -28,7 +28,7 @@ echo "📦 Installing dependencies..."
 pip install -r requirements.txt
 
 # Install package in development mode
-echo "📦 Installing bom-tools in development mode..."
+echo "📦 Installing aikaboom in development mode..."
 pip install -e .
 
 # Copy .env.example to .env if not exists
@@ -47,5 +47,5 @@ echo "Next steps:"
 echo "1. Edit .env file and add your API keys"
 echo "2. Activate the virtual environment: source venv/bin/activate"
 echo "3. Run the web app: python run.py"
-echo "   or use: bom-tools"
+echo "   or use: aikaboom"
 echo ""

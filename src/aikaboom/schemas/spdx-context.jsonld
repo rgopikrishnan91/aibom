@@ -1,0 +1,187 @@
+{
+  "@context": {
+    "Agent": "https://spdx.org/rdf/3.0.1/terms/Core/Agent",
+    "Bom": "https://spdx.org/rdf/3.0.1/terms/Core/Bom",
+    "CreationInfo": "https://spdx.org/rdf/3.0.1/terms/Core/CreationInfo",
+    "Organization": "https://spdx.org/rdf/3.0.1/terms/Core/Organization",
+    "Person": "https://spdx.org/rdf/3.0.1/terms/Core/Person",
+    "Relationship": "https://spdx.org/rdf/3.0.1/terms/Core/Relationship",
+    "SpdxDocument": "https://spdx.org/rdf/3.0.1/terms/Core/SpdxDocument",
+    "ai_AIPackage": "https://spdx.org/rdf/3.0.1/terms/AI/AIPackage",
+    "dataset_DatasetPackage": "https://spdx.org/rdf/3.0.1/terms/Dataset/DatasetPackage",
+    "simplelicensing_LicenseExpression": "https://spdx.org/rdf/3.0.1/terms/SimpleLicensing/LicenseExpression",
+    "spdxId": "@id",
+    "type": "@type",
+    "name": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Core/name"
+    },
+    "comment": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Core/comment"
+    },
+    "created": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Core/created"
+    },
+    "createdBy": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Core/createdBy",
+      "@type": "@vocab"
+    },
+    "creationInfo": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Core/creationInfo",
+      "@type": "@vocab"
+    },
+    "description": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Core/description"
+    },
+    "from": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Core/from",
+      "@type": "@vocab"
+    },
+    "to": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Core/to",
+      "@type": "@vocab"
+    },
+    "originatedBy": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Core/originatedBy",
+      "@type": "@vocab"
+    },
+    "suppliedBy": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Core/suppliedBy",
+      "@type": "@vocab"
+    },
+    "profileConformance": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Core/profileConformance"
+    },
+    "relationshipType": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Core/relationshipType"
+    },
+    "releaseTime": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Core/releaseTime"
+    },
+    "rootElement": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Core/rootElement",
+      "@type": "@vocab"
+    },
+    "specVersion": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Core/specVersion"
+    },
+    "builtTime": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Core/builtTime"
+    },
+    "ai_autonomyType": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/AI/autonomyType"
+    },
+    "ai_domain": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/AI/domain"
+    },
+    "ai_energyConsumption": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/AI/energyConsumption"
+    },
+    "ai_hyperparameter": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/AI/hyperparameter"
+    },
+    "ai_informationAboutApplication": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/AI/informationAboutApplication"
+    },
+    "ai_informationAboutTraining": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/AI/informationAboutTraining"
+    },
+    "ai_limitation": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/AI/limitation"
+    },
+    "ai_metric": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/AI/metric"
+    },
+    "ai_metricDecisionThreshold": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/AI/metricDecisionThreshold"
+    },
+    "ai_modelDataPreprocessing": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/AI/modelDataPreprocessing"
+    },
+    "ai_modelExplainability": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/AI/modelExplainability"
+    },
+    "ai_safetyRiskAssessment": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/AI/safetyRiskAssessment"
+    },
+    "ai_standardCompliance": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/AI/standardCompliance"
+    },
+    "ai_typeOfModel": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/AI/typeOfModel"
+    },
+    "ai_useSensitivePersonalInformation": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/AI/useSensitivePersonalInformation"
+    },
+    "software_downloadLocation": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Software/downloadLocation"
+    },
+    "software_packageVersion": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Software/packageVersion"
+    },
+    "software_primaryPurpose": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Software/primaryPurpose"
+    },
+    "simplelicensing_licenseExpression": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/SimpleLicensing/licenseExpression"
+    },
+    "simplelicensing_licenseListVersion": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/SimpleLicensing/licenseListVersion"
+    },
+    "dataset_datasetType": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Dataset/datasetType"
+    },
+    "dataset_intendedUse": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Dataset/intendedUse"
+    },
+    "dataset_datasetSize": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Dataset/datasetSize"
+    },
+    "dataset_knownBias": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Dataset/knownBias"
+    },
+    "dataset_dataPreprocessing": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Dataset/dataPreprocessing"
+    },
+    "dataset_dataCollectionProcess": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Dataset/dataCollectionProcess"
+    },
+    "dataset_datasetAvailability": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Dataset/datasetAvailability"
+    },
+    "dataset_datasetNoise": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Dataset/datasetNoise"
+    },
+    "dataset_anonymizationMethodUsed": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Dataset/anonymizationMethodUsed"
+    },
+    "dataset_confidentialityLevel": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Dataset/confidentialityLevel"
+    },
+    "dataset_datasetUpdateMechanism": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Dataset/datasetUpdateMechanism"
+    },
+    "dataset_hasSensitivePersonalInformation": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Dataset/hasSensitivePersonalInformation"
+    },
+    "dataset_sensor": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Dataset/sensor"
+    },
+    "ExternalIdentifier": "https://spdx.org/rdf/3.0.1/terms/Core/ExternalIdentifier",
+    "externalIdentifierType": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Core/externalIdentifierType"
+    },
+    "identifier": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Core/identifier"
+    },
+    "identifierLocator": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Core/identifierLocator"
+    },
+    "issuingAuthority": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Core/issuingAuthority"
+    },
+    "externalIdentifier": {
+      "@id": "https://spdx.org/rdf/3.0.1/terms/Core/externalIdentifier",
+      "@type": "@vocab"
+    }
+  }
+}

@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 @pytest.fixture
 def client():
-    from bom_tools.web.app import app
+    from aikaboom.web.app import app
     app.config["TESTING"] = True
     with app.test_client() as c:
         yield c
@@ -61,7 +61,7 @@ class TestSPDXAlwaysGenerated:
         We can't actually run the LLM in tests, but we can verify the code path
         builds the correct response_data shape via mocking.
         """
-        from bom_tools.web import app as app_module
+        from aikaboom.web import app as app_module
 
         # Build a fake metadata dict matching processor output
         fake_metadata = {
@@ -77,7 +77,7 @@ class TestSPDXAlwaysGenerated:
         }
 
         # Verify SPDX validator can handle it without raising
-        from bom_tools.utils.spdx_validator import SPDXValidator
+        from aikaboom.utils.spdx_validator import SPDXValidator
         validator = SPDXValidator(bom_type="ai")
         spdx = validator.validate_and_convert(fake_metadata)
         assert "@context" in spdx

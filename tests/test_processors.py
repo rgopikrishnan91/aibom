@@ -2,7 +2,7 @@
 Unit tests for AIBOMProcessor and DATABOMProcessor
 """
 import pytest
-from bom_tools.core.processors import AIBOMProcessor, DATABOMProcessor
+from aikaboom.core.processors import AIBOMProcessor, DATABOMProcessor
 
 
 class TestAIBOMProcessor:

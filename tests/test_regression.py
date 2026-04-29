@@ -14,46 +14,46 @@ class TestProcessorInitWithoutAPIKey:
     the LLM creation so we can test processor logic without API keys.
     """
 
-    @patch("bom_tools.core.agentic_rag.create_llm")
-    @patch("bom_tools.core.agentic_rag.HuggingFaceEmbeddings")
+    @patch("aikaboom.core.agentic_rag.create_llm")
+    @patch("aikaboom.core.agentic_rag.HuggingFaceEmbeddings")
     def test_ai_processor_init_rag(self, mock_embeddings, mock_llm):
         """AIBOMProcessor initializes in RAG mode without API key."""
         mock_llm.return_value = MagicMock()
         mock_embeddings.return_value = MagicMock()
 
-        from bom_tools.core.processors import AIBOMProcessor
+        from aikaboom.core.processors import AIBOMProcessor
         proc = AIBOMProcessor(model="gpt-4o", mode="rag", use_case="complete")
         assert proc.mode == "rag"
         assert proc.model == "gpt-4o"
         assert proc.use_case == "complete"
 
-    @patch("bom_tools.core.agentic_rag.create_llm")
+    @patch("aikaboom.core.agentic_rag.create_llm")
     def test_ai_processor_init_direct(self, mock_llm):
         """AIBOMProcessor initializes in direct mode without API key."""
         mock_llm.return_value = MagicMock()
 
-        from bom_tools.core.processors import AIBOMProcessor
+        from aikaboom.core.processors import AIBOMProcessor
         proc = AIBOMProcessor(model="gpt-4o", mode="direct", use_case="safety")
         assert proc.mode == "direct"
         assert proc.use_case == "safety"
 
-    @patch("bom_tools.core.agentic_rag.create_llm")
-    @patch("bom_tools.core.agentic_rag.HuggingFaceEmbeddings")
+    @patch("aikaboom.core.agentic_rag.create_llm")
+    @patch("aikaboom.core.agentic_rag.HuggingFaceEmbeddings")
     def test_data_processor_init_rag(self, mock_embeddings, mock_llm):
         """DATABOMProcessor initializes in RAG mode without API key."""
         mock_llm.return_value = MagicMock()
         mock_embeddings.return_value = MagicMock()
 
-        from bom_tools.core.processors import DATABOMProcessor
+        from aikaboom.core.processors import DATABOMProcessor
         proc = DATABOMProcessor(model="gpt-4o", mode="rag", use_case="complete")
         assert proc.mode == "rag"
 
-    @patch("bom_tools.core.agentic_rag.create_llm")
+    @patch("aikaboom.core.agentic_rag.create_llm")
     def test_data_processor_init_direct(self, mock_llm):
         """DATABOMProcessor initializes in direct mode without API key."""
         mock_llm.return_value = MagicMock()
 
-        from bom_tools.core.processors import DATABOMProcessor
+        from aikaboom.core.processors import DATABOMProcessor
         proc = DATABOMProcessor(model="gpt-4o", mode="direct", use_case="lineage")
         assert proc.mode == "direct"
         assert proc.use_case == "lineage"
@@ -66,39 +66,39 @@ class TestProcessorIDGeneration:
     These mock the LLM so we can test ID generation.
     """
 
-    @patch("bom_tools.core.agentic_rag.create_llm")
-    @patch("bom_tools.core.agentic_rag.HuggingFaceEmbeddings")
+    @patch("aikaboom.core.agentic_rag.create_llm")
+    @patch("aikaboom.core.agentic_rag.HuggingFaceEmbeddings")
     def test_model_id_from_repo(self, mock_emb, mock_llm):
         mock_llm.return_value = MagicMock()
         mock_emb.return_value = MagicMock()
 
-        from bom_tools.core.processors import AIBOMProcessor
+        from aikaboom.core.processors import AIBOMProcessor
         proc = AIBOMProcessor()
         model_id = proc.generate_model_id(
             repo_id="microsoft/DialoGPT-medium", github_url=None
         )
         assert model_id == "microsoft_DialoGPT-medium"
 
-    @patch("bom_tools.core.agentic_rag.create_llm")
-    @patch("bom_tools.core.agentic_rag.HuggingFaceEmbeddings")
+    @patch("aikaboom.core.agentic_rag.create_llm")
+    @patch("aikaboom.core.agentic_rag.HuggingFaceEmbeddings")
     def test_model_id_from_github(self, mock_emb, mock_llm):
         mock_llm.return_value = MagicMock()
         mock_emb.return_value = MagicMock()
 
-        from bom_tools.core.processors import AIBOMProcessor
+        from aikaboom.core.processors import AIBOMProcessor
         proc = AIBOMProcessor()
         model_id = proc.generate_model_id(
             repo_id=None, github_url="https://github.com/microsoft/DialoGPT"
         )
         assert model_id == "microsoft_DialoGPT"
 
-    @patch("bom_tools.core.agentic_rag.create_llm")
-    @patch("bom_tools.core.agentic_rag.HuggingFaceEmbeddings")
+    @patch("aikaboom.core.agentic_rag.create_llm")
+    @patch("aikaboom.core.agentic_rag.HuggingFaceEmbeddings")
     def test_dataset_id_from_hf(self, mock_emb, mock_llm):
         mock_llm.return_value = MagicMock()
         mock_emb.return_value = MagicMock()
 
-        from bom_tools.core.processors import DATABOMProcessor
+        from aikaboom.core.processors import DATABOMProcessor
         proc = DATABOMProcessor()
         dataset_id = proc.generate_dataset_id(
             arxiv_url=None, github_url=None,
@@ -155,14 +155,14 @@ class TestNoSecurityRegressions:
 
     def test_metadata_fetcher_no_module_level_token(self):
         """GITHUB_TOKEN should not be a module-level constant anymore."""
-        import bom_tools.utils.metadata_fetcher as mf
+        import aikaboom.utils.metadata_fetcher as mf
         assert not hasattr(mf, "GITHUB_TOKEN"), "GITHUB_TOKEN should not be a module-level variable"
         assert not hasattr(mf, "GITHUB_HEADERS"), "GITHUB_HEADERS should not be a module-level variable"
         assert hasattr(mf, "_get_github_headers"), "_get_github_headers function should exist"
 
     def test_web_app_uses_secure_filename(self):
         """Download endpoint should sanitize filenames."""
-        from bom_tools.web.app import app
+        from aikaboom.web.app import app
         app.config["TESTING"] = True
         with app.test_client() as client:
             resp = client.get("/download/../../../etc/passwd")
