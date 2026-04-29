@@ -10,7 +10,7 @@
 
 - [Installation Instructions](../README.md#installation)
 - [Examples](../examples/)
-- [GitHub Repository](https://github.com/rgopikrishnan91/aibom)
+- [GitHub Repository](https://github.com/rgopikrishnan91/aikaboom)
 
 ## Overview
 

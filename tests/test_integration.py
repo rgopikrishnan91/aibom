@@ -55,9 +55,9 @@ class TestSPDXPipeline:
         # Check AI package has correct fields
         ai_pkg = next(e for e in spdx["@graph"] if e["type"] == "ai_AIPackage")
         assert ai_pkg["name"] == "TestModel"
-        assert ai_pkg["ai_domain"] == "NLP"
-        assert ai_pkg["ai_typeOfModel"] == "transformer"
-        assert ai_pkg["suppliedBy"] == "TestOrg"
+        assert ai_pkg["ai_domain"] == ["NLP"]
+        assert ai_pkg["ai_typeOfModel"] == ["transformer"]
+        assert ai_pkg["suppliedBy"].startswith("urn:spdx:Organization-")
 
     def test_dataset_bom_to_spdx_roundtrip(self):
         """Complete Dataset BOM → SPDX conversion produces valid SPDX."""
@@ -288,7 +288,7 @@ class TestSPDXFieldMapping:
         ai_pkg = next(e for e in spdx["@graph"] if e["type"] == "ai_AIPackage")
 
         assert ai_pkg["name"] == "TestModel"
-        assert ai_pkg["ai_domain"] == "CV"
+        assert ai_pkg["ai_domain"] == ["CV"]
         assert ai_pkg["ai_informationAboutApplication"] == "classification"
-        assert ai_pkg["ai_typeOfModel"] == "CNN"
+        assert ai_pkg["ai_typeOfModel"] == ["CNN"]
         assert ai_pkg["ai_limitation"] == "bias in data"

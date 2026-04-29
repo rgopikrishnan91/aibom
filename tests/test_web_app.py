@@ -118,3 +118,55 @@ class TestFlaskApp:
         """Test that downloading a non-existent file returns 404."""
         response = client.get('/download/nonexistent_file_12345.json')
         assert response.status_code == 404
+
+    def test_process_returns_spdx_validation(self, client, monkeypatch):
+        """Successful /process responses include structured SPDX validation."""
+        import importlib
+
+        web_app_module = importlib.import_module("aikaboom.web.app")
+
+        class DummyProcessor:
+            use_case = "complete"
+
+            def process_ai_model(self, repo_id=None, arxiv_url=None, github_url=None):
+                return {
+                    "model_id": "test_model",
+                    "direct_fields": {"license": "MIT"},
+                    "rag_fields": {
+                        "model_name": "Test Model",
+                        "trainedOnDatasets": "squad",
+                    },
+                }
+
+        monkeypatch.setattr(
+            web_app_module,
+            "get_processor",
+            lambda **kwargs: DummyProcessor(),
+        )
+
+        response = client.post(
+            "/process",
+            json={
+                "bom_type": "ai",
+                "mode": "rag",
+                "repo_id": "test/model",
+                "skip_fallback": True,
+                "validate_spdx": True,
+                "strict_spdx_validation": False,
+                "recursive_bom": True,
+                "recursive_depth": 1,
+            },
+            content_type="application/json",
+        )
+
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data["status"] == "success"
+        assert data["spdx_validation"]["valid"] is True
+        assert data["spdx_validation"]["strict"] is False
+        assert data["spdx_validation"]["validator"] == "jsonschema"
+        assert data["spdx_validation"]["errors"] == []
+        assert data["cyclonedx_beta"] is True
+        assert data["recursive_bom"]["beta"] is True
+        assert data["recursive_bom"]["enabled"] is True
+        assert data["recursive_bom"]["generated_count"] == 1

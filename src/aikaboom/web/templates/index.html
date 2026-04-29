@@ -707,6 +707,36 @@
                     <div class="url-hint">Example: https://github.com/username/repo</div>
                 </div>
                 
+                <div class="form-group">
+                    <label>SPDX validation</label>
+                    <div style="display:flex;gap:14px;flex-wrap:wrap;color:#333;font-size:0.92em;">
+                        <label style="display:flex;align-items:center;gap:6px;font-weight:500;">
+                            <input type="checkbox" id="validate_spdx" checked>
+                            Validate SPDX export
+                        </label>
+                        <label style="display:flex;align-items:center;gap:6px;font-weight:500;">
+                            <input type="checkbox" id="strict_spdx_validation">
+                            Deep SHACL validation (beta)
+                        </label>
+                    </div>
+                    <div class="url-hint">JSON Schema runs by default; SHACL is slower and best for final checks.</div>
+                </div>
+
+                <div class="form-group">
+                    <label>Beta exports</label>
+                    <div style="display:flex;gap:14px;flex-wrap:wrap;color:#333;font-size:0.92em;">
+                        <label style="display:flex;align-items:center;gap:6px;font-weight:500;">
+                            <input type="checkbox" id="recursive_bom">
+                            Recursive BOM generation
+                        </label>
+                        <label style="display:flex;align-items:center;gap:6px;font-weight:500;">
+                            Depth
+                            <input type="number" id="recursive_depth" min="1" max="3" value="1" style="width:64px;padding:6px 8px;">
+                        </label>
+                    </div>
+                    <div class="url-hint">CycloneDX, recursive BOM generation, and strict SHACL validation are beta.</div>
+                </div>
+
                 <div class="button-group">
                     <button type="button" class="btn-process" id="processBtn">🚀 Process Model or Dataset</button>
                     <button type="button" class="btn-reset" onclick="resetForm()">🔄 Reset</button>
@@ -724,14 +754,16 @@
                 <button class="tab active" onclick="switchTab('complete')" title="Source-traced fields with conflict detection">BOM with Provenance</button>
                 <button class="tab" id="conflictsTabBtn" onclick="switchTab('conflicts')" title="Summary of all detected conflicts">Conflicts</button>
                 <button class="tab" onclick="switchTab('spdx')" title="Standards-compliant SPDX 3.0.1 export">SPDX 3.0.1</button>
-                <button class="tab" onclick="switchTab('cyclonedx')" title="CycloneDX 1.7 ML-BOM export">CycloneDX 1.7</button>
+                <button class="tab" onclick="switchTab('cyclonedx')" title="CycloneDX 1.7 ML-BOM export">CycloneDX 1.7 Beta</button>
+                <button class="tab" onclick="switchTab('recursive')" title="Recursive child BOM seed exports">Recursive Beta</button>
                 <button class="tab" onclick="switchTab('logs')" title="Server processing logs">Logs</button>
             </div>
 
             <div class="download-buttons" id="downloadButtons" style="display: none;">
                 <a id="downloadComplete" href="#" class="download-btn" target="_blank" style="display: none;">📥 Download Provenance BOM</a>
                 <a id="downloadSPDX" href="#" class="download-btn spdx" target="_blank" style="display: none;">📄 Download SPDX 3.0.1</a>
-                <a id="downloadCDX" href="#" class="download-btn spdx" target="_blank" style="display: none;">📦 Download CycloneDX 1.7</a>
+                <a id="downloadCDX" href="#" class="download-btn spdx" target="_blank" style="display: none;">📦 Download CycloneDX 1.7 Beta</a>
+                <a id="downloadRecursive" href="#" class="download-btn spdx" target="_blank" style="display: none;">Download Recursive BOM Beta</a>
             </div>
 
             <div id="completeTab" class="tab-content active">
@@ -756,6 +788,7 @@
 
             <div id="spdxTab" class="tab-content">
                 <div class="json-container">
+                    <div id="spdxValidationStatus" class="status" style="display:none;margin-top:0;margin-bottom:10px;"></div>
                     <div id="jsonViewerSPDX" class="json-viewer">
                         <div class="json-placeholder">
                             SPDX 3.0.1 JSON-LD export will appear here.
@@ -768,7 +801,17 @@
                 <div class="json-container">
                     <div id="jsonViewerCDX" class="json-viewer">
                         <div class="json-placeholder">
-                            CycloneDX 1.7 ML-BOM export will appear here.
+                            CycloneDX 1.7 beta ML-BOM export will appear here.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="recursiveTab" class="tab-content">
+                <div class="json-container">
+                    <div id="jsonViewerRecursive" class="json-viewer">
+                        <div class="json-placeholder">
+                            Recursive BOM beta outputs will appear here when enabled.
                         </div>
                     </div>
                 </div>
@@ -790,11 +833,14 @@
         const jsonViewerComplete = document.getElementById('jsonViewerComplete');
         const jsonViewerSPDX = document.getElementById('jsonViewerSPDX');
         const jsonViewerCDX = document.getElementById('jsonViewerCDX');
+        const jsonViewerRecursive = document.getElementById('jsonViewerRecursive');
         const processBtn = document.getElementById('processBtn');
         const downloadButtons = document.getElementById('downloadButtons');
         const downloadComplete = document.getElementById('downloadComplete');
         const downloadCDX = document.getElementById('downloadCDX');
         const downloadSPDX = document.getElementById('downloadSPDX');
+        const downloadRecursive = document.getElementById('downloadRecursive');
+        const spdxValidationStatus = document.getElementById('spdxValidationStatus');
         const useCaseDropdownBtn = document.getElementById('useCaseDropdownBtn');
         const useCaseContainer = document.getElementById('useCaseContainer');
         const useCaseDropdownMenu = document.getElementById('useCaseDropdownMenu');
@@ -976,6 +1022,10 @@
                 model: selectedModel,
                 ollama_model: document.getElementById('ollama_model_input').value,
                 openrouter_model: document.getElementById('openrouter_model').value,
+                validate_spdx: document.getElementById('validate_spdx').checked,
+                strict_spdx_validation: document.getElementById('strict_spdx_validation').checked,
+                recursive_bom: document.getElementById('recursive_bom').checked,
+                recursive_depth: parseInt(document.getElementById('recursive_depth').value || '1', 10),
                 format: 'both'
             };
 
@@ -1180,15 +1230,17 @@
                         // Display SPDX JSON directly from response
                         spdxData = result.spdx_data;
                         displayJSON(spdxData, jsonViewerSPDX);
+                        renderSpdxValidation(result.spdx_validation);
                     } else {
                         downloadSPDX.style.display = 'none';
                         const errMsg = result.spdx_error
                             ? `SPDX conversion failed: ${result.spdx_error}`
                             : 'SPDX output not available';
                         jsonViewerSPDX.innerHTML = `<div class="json-placeholder">${errMsg}</div>`;
+                        renderSpdxValidation(result.spdx_validation);
                     }
 
-                    // CycloneDX 1.7
+                    // CycloneDX 1.7 beta
                     if (result.cyclonedx_download_url && result.cyclonedx_data) {
                         downloadCDX.href = result.cyclonedx_download_url;
                         downloadCDX.style.display = 'inline-block';
@@ -1199,6 +1251,17 @@
                             ? `CycloneDX conversion failed: ${result.cyclonedx_error}`
                             : 'CycloneDX output not available';
                         jsonViewerCDX.innerHTML = `<div class="json-placeholder">${cdxErr}</div>`;
+                    }
+
+                    if (result.recursive_bom && result.recursive_bom.enabled) {
+                        displayJSON(result.recursive_bom, jsonViewerRecursive);
+                        if (result.recursive_bom_download_url) {
+                            downloadRecursive.href = result.recursive_bom_download_url;
+                            downloadRecursive.style.display = 'inline-block';
+                        }
+                    } else {
+                        downloadRecursive.style.display = 'none';
+                        jsonViewerRecursive.innerHTML = '<div class="json-placeholder">Recursive BOM beta generation was not enabled.</div>';
                     }
 
                     // Populate Conflicts tab + update tab badge
@@ -1268,6 +1331,28 @@
             statusDiv.className = `status ${type}`;
             statusDiv.innerHTML = message;
             statusDiv.style.display = 'block';
+        }
+
+        function renderSpdxValidation(validation) {
+            if (!spdxValidationStatus) return;
+            if (!validation) {
+                spdxValidationStatus.style.display = 'none';
+                return;
+            }
+            if (validation.valid === null) {
+                spdxValidationStatus.className = 'status processing';
+                spdxValidationStatus.innerHTML = 'SPDX validation skipped.';
+            } else if (validation.valid) {
+                spdxValidationStatus.className = 'status success';
+                spdxValidationStatus.innerHTML = `SPDX validation passed (${validation.validator}).`;
+            } else {
+                const errors = (validation.errors || []).slice(0, 5)
+                    .map(e => `<li>${escapeHtml(e)}</li>`).join('');
+                spdxValidationStatus.className = 'status error';
+                spdxValidationStatus.innerHTML =
+                    `SPDX validation failed (${validation.validator}).<ul style="margin:8px 0 0 18px;">${errors}</ul>`;
+            }
+            spdxValidationStatus.style.display = 'block';
         }
         
         function displayJSON(data, targetElement) {
@@ -1368,9 +1453,18 @@
             downloadButtons.style.display = 'none';
             downloadComplete.style.display = 'none';
             downloadSPDX.style.display = 'none';
+            downloadCDX.style.display = 'none';
+            downloadRecursive.style.display = 'none';
+            spdxValidationStatus.style.display = 'none';
             jsonViewerComplete.innerHTML = '<div class="json-placeholder">Process a dataset to view the complete BOM JSON output here</div>';
             jsonViewerSPDX.innerHTML = '<div class="json-placeholder">Process a dataset to view the SPDX-compliant JSON output here</div>';
+            jsonViewerCDX.innerHTML = '<div class="json-placeholder">CycloneDX 1.7 beta ML-BOM export will appear here.</div>';
+            jsonViewerRecursive.innerHTML = '<div class="json-placeholder">Recursive BOM beta outputs will appear here when enabled.</div>';
             spdxData = null;
+            document.getElementById('validate_spdx').checked = true;
+            document.getElementById('strict_spdx_validation').checked = false;
+            document.getElementById('recursive_bom').checked = false;
+            document.getElementById('recursive_depth').value = 1;
             
             // Reset to complete tab
             switchTab('complete');
@@ -1388,3 +1482,4 @@
     </script>
 </body>
 </html>
+

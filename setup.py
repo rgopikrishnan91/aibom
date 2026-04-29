@@ -16,7 +16,7 @@ setup(
     description="Unified AI Model and Dataset BOM Generator with RAG",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/rgopikrishnan91/aibom",
+    url="https://github.com/rgopikrishnan91/aikaboom",
     package_dir={"": "src"},
     packages=find_packages(where="src"),
     classifiers=[
@@ -79,5 +79,6 @@ setup(
     include_package_data=True,
     package_data={
         "aikaboom.web": ["templates/*.html", "static/*"],
+        "aikaboom": ["schemas/*.json", "schemas/*.ttl", "schemas/*.jsonld", "schemas/*.md"],
     },
 )

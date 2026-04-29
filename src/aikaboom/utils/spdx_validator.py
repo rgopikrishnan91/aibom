@@ -12,7 +12,9 @@ import os
 import re
 import tempfile
 from datetime import datetime
-from typing import Dict, Any, Optional
+from functools import lru_cache
+from importlib import resources
+from typing import Dict, Any, Optional, Iterable, List
 import uuid
 
 # URLs for official SPDX 3.0.1 validation artifacts
@@ -20,6 +22,25 @@ SPDX_SHACL_URL = "https://spdx.org/rdf/3.0.1/spdx-model.ttl"
 SPDX_JSON_SCHEMA_URL = "https://spdx.org/schema/3.0.1/spdx-json-schema.json"
 _SCHEMA_CACHE_DIR = os.path.join(tempfile.gettempdir(), "aikaboom_spdx_schemas")
 _BUNDLED_SCHEMAS_DIR = os.path.join(os.path.dirname(__file__), '..', 'schemas')
+_SCHEMA_PACKAGE = "aikaboom.schemas"
+
+_SOFTWARE_PURPOSES = {
+    "application", "archive", "bom", "configuration", "container", "data", "device",
+    "deviceDriver", "diskImage", "documentation", "evidence", "executable", "file",
+    "filesystemImage", "firmware", "framework", "install", "library", "manifest",
+    "model", "module", "operatingSystem", "other", "patch", "platform", "requirement",
+    "source", "specification", "test",
+}
+_PRESENCE_VALUES = {"yes", "no", "noAssertion"}
+_AI_SAFETY_VALUES = {"low", "medium", "high", "serious"}
+_DATASET_AVAILABILITY_VALUES = {
+    "clickthrough", "directDownload", "query", "registration", "scrapingScript",
+}
+_DATASET_CONFIDENTIALITY_VALUES = {"amber", "clear", "green", "red"}
+_DATASET_TYPES = {
+    "audio", "categorical", "graph", "image", "noAssertion", "numeric", "other",
+    "sensor", "structured", "syntactic", "text", "timeseries", "timestamp", "video",
+}
 
 
 def _get_schema_path(url: str, filename: str) -> Optional[str]:
@@ -48,6 +69,28 @@ def _get_schema_path(url: str, filename: str) -> Optional[str]:
         pass
 
     return None
+
+
+def _get_bundled_schema_path(filename: str) -> str:
+    """Return a filesystem path for a bundled SPDX validation artifact."""
+    try:
+        schema_ref = resources.files(_SCHEMA_PACKAGE).joinpath(filename)
+        with resources.as_file(schema_ref) as path:
+            if path.exists() and path.stat().st_size > 100:
+                return str(path)
+    except Exception:
+        pass
+
+    path = os.path.abspath(os.path.join(_BUNDLED_SCHEMAS_DIR, filename))
+    if os.path.exists(path) and os.path.getsize(path) > 100:
+        return path
+    raise FileNotFoundError(f"Bundled SPDX schema not found: {filename}")
+
+
+@lru_cache(maxsize=1)
+def _load_json_schema() -> Dict[str, Any]:
+    with open(_get_bundled_schema_path("spdx-json-schema.json"), encoding="utf-8") as f:
+        return json.load(f)
 
 
 class SPDXValidator:
@@ -158,6 +201,90 @@ class SPDXValidator:
         if isinstance(field_data, dict) and "value" in field_data:
             return field_data["value"]
         return field_data
+
+    def _as_list(self, value: Any) -> List[Any]:
+        """Normalize scalar/list SPDX properties to a clean list."""
+        value = self._extract_value(value)
+        if value is None or value == "":
+            return []
+        if isinstance(value, list):
+            return [v for v in (self._extract_value(item) for item in value) if v not in (None, "")]
+        if isinstance(value, str):
+            parts = [p.strip() for p in re.split(r"[;,\n]+", value) if p.strip()]
+            return parts or [value]
+        return [value]
+
+    def _normalize_timestamp(self, value: Any, default: Optional[str] = None) -> str:
+        """Return an SPDX timestamp with second precision and a Z suffix."""
+        value = self._extract_value(value)
+        if not value:
+            return default or self._get_current_timestamp()
+        if isinstance(value, str):
+            if re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$", value):
+                return value
+            if re.match(r"^\d{4}-\d{2}-\d{2}$", value):
+                return f"{value}T00:00:00Z"
+        return default or self._get_current_timestamp()
+
+    def _normalize_enum(self, value: Any, allowed: Iterable[str], default: str) -> str:
+        value = self._extract_value(value)
+        if value is None:
+            return default
+        text = str(value).strip()
+        if not text:
+            return default
+        aliases = {
+            "no assertion": "noAssertion",
+            "no_assertion": "noAssertion",
+            "noassertion": "noAssertion",
+            "none": "noAssertion",
+            "unknown": "noAssertion",
+            "true": "yes",
+            "false": "no",
+        }
+        normalized = aliases.get(text.lower(), text)
+        allowed_set = set(allowed)
+        if normalized in allowed_set:
+            return normalized
+        lower_map = {item.lower(): item for item in allowed_set}
+        return lower_map.get(normalized.lower(), default)
+
+    def _normalize_enum_list(
+        self, value: Any, allowed: Iterable[str], default: str = "other"
+    ) -> List[str]:
+        out = []
+        for item in self._as_list(value):
+            normalized = self._normalize_enum(item, allowed, default)
+            if normalized not in out:
+                out.append(normalized)
+        return out or [default]
+
+    def _dictionary_entries(self, value: Any) -> List[Dict[str, str]]:
+        """Convert loose metadata into SPDX DictionaryEntry objects."""
+        value = self._extract_value(value)
+        if not value:
+            return []
+        if isinstance(value, dict):
+            if "key" in value:
+                key = str(value.get("key") or "").strip()
+                if not key:
+                    return []
+                entry = {"type": "DictionaryEntry", "key": key}
+                if value.get("value") not in (None, ""):
+                    entry["value"] = str(value["value"])
+                return [entry]
+            return [
+                {"type": "DictionaryEntry", "key": str(k), "value": str(v)}
+                for k, v in value.items()
+                if k not in (None, "") and v not in (None, "")
+            ]
+        entries = []
+        for index, item in enumerate(self._as_list(value), start=1):
+            if isinstance(item, dict) and "key" in item:
+                entries.extend(self._dictionary_entries(item))
+            else:
+                entries.append({"type": "DictionaryEntry", "key": f"value{index}", "value": str(item)})
+        return entries
     
     def _generate_uuid(self) -> str:
         """Generate UUID for SPDX IDs"""
@@ -256,7 +383,7 @@ class SPDXValidator:
                     "type": "SpdxDocument",
                     "spdxId": f"urn:spdx:Document-{doc_uuid}",
                     "creationInfo": f"_:creationinfo-{creation_uuid}",
-                    "profileConformance": ["core", "AI"],
+                    "profileConformance": ["core", "ai"],
                     "rootElement": [f"urn:spdx:Bom-{bom_uuid}"]
                 },
                 # 5. Bom
@@ -264,7 +391,7 @@ class SPDXValidator:
                     "type": "Bom",
                     "spdxId": f"urn:spdx:Bom-{bom_uuid}",
                     "creationInfo": f"_:creationinfo-{creation_uuid}",
-                    "profileConformance": ["core", "AI"],
+                    "profileConformance": ["core", "ai"],
                     "rootElement": [f"urn:spdx:AIPackage-{package_uuid}"]
                 },
                 # 6. AIPackage
@@ -353,7 +480,9 @@ class SPDXValidator:
                 "spdxId": ds_id,
                 "creationInfo": f"_:creationinfo-{creation_uuid}",
                 "name": name,
-                "downloadLocation": "NOASSERTION",
+                "software_downloadLocation": "NOASSERTION",
+                "software_primaryPurpose": "data",
+                "dataset_datasetType": ["noAssertion"],
             })
             rels.append({
                 "type": "Relationship",
@@ -375,13 +504,13 @@ class SPDXValidator:
             "type": "ai_AIPackage",
             "spdxId": f"urn:spdx:AIPackage-{package_uuid}",
             "creationInfo": f"_:creationinfo-{creation_uuid}",
-            "originatedBy": [f"urn:spdx:Organization-{org_uuid}"]
+            "originatedBy": [f"urn:spdx:Organization-{org_uuid}"],
+            "suppliedBy": f"urn:spdx:Organization-{org_uuid}",
         }
         
         # Map direct fields (using official SPDX 3.0.1 property names)
         direct_mapping = {
             "releaseTime": "releaseTime",
-            "suppliedBy": "suppliedBy",
             "downloadLocation": "software_downloadLocation",
             "packageVersion": "software_packageVersion",
             "primaryPurpose": "software_primaryPurpose",
@@ -390,45 +519,79 @@ class SPDXValidator:
         for our_field, spdx_field in direct_mapping.items():
             value = self._extract_value(direct_fields.get(our_field))
             if value is not None and value != "":
-                ai_package[spdx_field] = value
+                if spdx_field == "releaseTime":
+                    ai_package[spdx_field] = self._normalize_timestamp(value)
+                elif spdx_field == "software_primaryPurpose":
+                    ai_package[spdx_field] = self._normalize_enum(
+                        value, _SOFTWARE_PURPOSES, "model"
+                    )
+                else:
+                    ai_package[spdx_field] = value
             else:
                 if spdx_field == "software_downloadLocation":
                     ai_package[spdx_field] = "NOASSERTION"
                 elif spdx_field == "software_primaryPurpose":
-                    ai_package[spdx_field] = "data"
+                    ai_package[spdx_field] = "model"
 
         # Set name (standard SPDX Core property)
         model_name_value = self._extract_value(rag_fields.get("model_name"))
         ai_package["name"] = model_name_value or repo_id or "AI Model Name Placeholder"
 
-        # Map RAG fields (using official ai_ prefix)
-        rag_mapping = {
-            "autonomy_type": "ai_autonomyType",
-            "domain": "ai_domain",
-            "energy_consumption": "ai_energyConsumption",
-            "hyperparameters": "ai_hyperparameter",
+        scalar_mapping = {
             "intended_use": "ai_informationAboutApplication",
             "training_information": "ai_informationAboutTraining",
             "limitations": "ai_limitation",
-            "performance_metrics": "ai_metric",
-            "decision_threshold": "ai_metricDecisionThreshold",
+        }
+        list_mapping = {
+            "domain": "ai_domain",
             "data_preprocessing": "ai_modelDataPreprocessing",
             "model_explainability": "ai_modelExplainability",
-            "safety_risk_assessment": "ai_safetyRiskAssessment",
             "standard_compliance": "ai_standardCompliance",
             "model_type": "ai_typeOfModel",
-            "sensitive_personal_information": "ai_useSensitivePersonalInformation"
         }
-        
-        for our_field, spdx_field in rag_mapping.items():
+        dictionary_mapping = {
+            "hyperparameters": "ai_hyperparameter",
+            "performance_metrics": "ai_metric",
+            "decision_threshold": "ai_metricDecisionThreshold",
+        }
+
+        for our_field, spdx_field in scalar_mapping.items():
             value = self._extract_value(rag_fields.get(our_field))
-            if value is not None and value != "":
-                ai_package[spdx_field] = value
+            if value not in (None, ""):
+                ai_package[spdx_field] = str(value)
+
+        for our_field, spdx_field in list_mapping.items():
+            values = [str(v) for v in self._as_list(rag_fields.get(our_field))]
+            if values:
+                ai_package[spdx_field] = values
+
+        for our_field, spdx_field in dictionary_mapping.items():
+            entries = self._dictionary_entries(rag_fields.get(our_field))
+            if entries:
+                ai_package[spdx_field] = entries
+
+        autonomy = self._extract_value(rag_fields.get("autonomy_type"))
+        if autonomy not in (None, ""):
+            ai_package["ai_autonomyType"] = self._normalize_enum(
+                autonomy, _PRESENCE_VALUES, "noAssertion"
+            )
+
+        sensitive_pii = self._extract_value(rag_fields.get("sensitive_personal_information"))
+        if sensitive_pii not in (None, ""):
+            ai_package["ai_useSensitivePersonalInformation"] = self._normalize_enum(
+                sensitive_pii, _PRESENCE_VALUES, "noAssertion"
+            )
+
+        safety = self._extract_value(rag_fields.get("safety_risk_assessment"))
+        if safety not in (None, ""):
+            normalized_safety = self._normalize_enum(safety, _AI_SAFETY_VALUES, "")
+            if normalized_safety:
+                ai_package["ai_safetyRiskAssessment"] = normalized_safety
         
         # Set builtTime if not present
         if "builtTime" not in ai_package:
             built_time = self._extract_value(direct_fields.get("builtTime"))
-            ai_package["builtTime"] = built_time or self._get_current_timestamp()
+            ai_package["builtTime"] = self._normalize_timestamp(built_time)
         
         ai_package["comment"] = "This results are generated by AI tools."
         
@@ -458,12 +621,20 @@ class SPDXValidator:
         # Extract values with fallbacks
         dataset_name = self._extract_value(direct.get('name') or rag.get('name') or dataset_id)
         originated_by = self._extract_value(direct.get('originatedBy') or rag.get('originatedBy') or "Unknown")
-        built_time = self._extract_value(direct.get('builtTime') or rag.get('builtTime') or created_time)
-        release_time = self._extract_value(direct.get('releaseTime') or rag.get('releaseTime') or created_time)
+        built_time = self._normalize_timestamp(direct.get('builtTime') or rag.get('builtTime'), created_time)
+        release_time = self._normalize_timestamp(direct.get('releaseTime') or rag.get('releaseTime'), created_time)
         download_location = self._extract_value(direct.get('downloadLocation') or urls.get('github') or urls.get('huggingface') or "NOASSERTION")
-        primary_purpose = self._extract_value(direct.get('primaryPurpose') or rag.get('primaryPurpose') or "data")
+        primary_purpose = self._normalize_enum(
+            direct.get('primaryPurpose') or rag.get('primaryPurpose') or "data",
+            _SOFTWARE_PURPOSES,
+            "data",
+        )
         license_expr = self._extract_value(direct.get('license') or rag.get('license') or "NOASSERTION")
-        dataset_availability = self._extract_value(direct.get('datasetAvailability') or rag.get('datasetAvailability') or "directDownload")
+        dataset_availability = self._normalize_enum(
+            direct.get('datasetAvailability') or rag.get('datasetAvailability') or "directDownload",
+            _DATASET_AVAILABILITY_VALUES,
+            "directDownload",
+        )
         
         # RAG-specific fields with type conversion
         data_preprocessing = self._extract_value(rag.get('dataPreprocessing', []))
@@ -479,12 +650,16 @@ class SPDXValidator:
             except (ValueError, TypeError):
                 dataset_size = 0
         
-        dataset_type = self._extract_value(rag.get('datasetType', []))
-        if isinstance(dataset_type, str):
-            dataset_type = [dataset_type] if dataset_type else []
+        dataset_type = self._normalize_enum_list(
+            rag.get('datasetType', []), _DATASET_TYPES, "other"
+        )
         
         dataset_update = self._extract_value(rag.get('datasetUpdateMechanism') or "")
-        has_pii = self._extract_value(rag.get('hasSensitivePersonalInformation') or "no")
+        has_pii = self._normalize_enum(
+            rag.get('hasSensitivePersonalInformation') or "no",
+            _PRESENCE_VALUES,
+            "no",
+        )
         intended_use = self._extract_value(rag.get('intendedUse') or "")
         
         known_bias = self._extract_value(rag.get('knownBias', []))
@@ -556,8 +731,12 @@ class SPDXValidator:
                     "releaseTime": release_time,
                     "software_downloadLocation": download_location,
                     "software_primaryPurpose": primary_purpose,
-                    "dataset_anonymizationMethodUsed": self._extract_value(rag.get('anonymizationMethodUsed', "")),
-                    "dataset_confidentialityLevel": self._extract_value(rag.get('confidentialityLevel', "clear")),
+                    "dataset_anonymizationMethodUsed": self._as_list(rag.get('anonymizationMethodUsed', "")),
+                    "dataset_confidentialityLevel": self._normalize_enum(
+                        rag.get('confidentialityLevel', "clear"),
+                        _DATASET_CONFIDENTIALITY_VALUES,
+                        "clear",
+                    ),
                     "dataset_dataPreprocessing": data_preprocessing,
                     "dataset_datasetAvailability": dataset_availability,
                     "dataset_dataCollectionProcess": data_collection,
@@ -568,7 +747,7 @@ class SPDXValidator:
                     "dataset_hasSensitivePersonalInformation": has_pii,
                     "dataset_intendedUse": intended_use,
                     "dataset_knownBias": known_bias,
-                    "dataset_sensor": self._extract_value(rag.get('sensorUsed', "")),
+                    "dataset_sensor": self._dictionary_entries(rag.get('sensorUsed', "")),
                     "comment": "Generated by AIkaBoOM."
                 },
                 # 7. LicenseExpression
@@ -613,6 +792,84 @@ class SPDXValidator:
         return output_path
     
     def validate_spdx_bom(self, spdx_bom: Dict, strict: bool = False) -> tuple:
+        """Validate an SPDX 3.0.1 JSON-LD document with official artifacts.
+
+        Default validation uses the bundled SPDX 3.0.1 JSON Schema. Strict
+        validation runs JSON Schema first and then the bundled SHACL shapes.
+        The private structural validator is only used if official validation
+        cannot run in the current environment.
+        """
+        errors: List[str] = []
+
+        try:
+            import jsonschema
+
+            schema = _load_json_schema()
+            validator = jsonschema.Draft202012Validator(schema)
+            for error in sorted(validator.iter_errors(spdx_bom), key=lambda e: list(e.path)):
+                path = ".".join(str(p) for p in error.path) or "$"
+                errors.append(f"JSON Schema: {path}: {error.message}")
+        except Exception as exc:
+            fallback_ok, fallback_errors = self._validate_spdx_bom_structural(spdx_bom, strict=False)
+            if fallback_ok:
+                return False, [f"JSON Schema validation unavailable: {exc}"]
+            return False, [f"JSON Schema validation unavailable: {exc}", *fallback_errors]
+
+        _integrity_ok, integrity_errors = self._validate_spdx_bom_structural(
+            spdx_bom,
+            strict=False,
+        )
+        errors.extend(f"SPDX Integrity: {error}" for error in integrity_errors)
+
+        if errors:
+            return False, errors
+
+        if strict:
+            try:
+                from pyshacl import validate as shacl_validate
+                from rdflib import Graph
+
+                shacl_input = json.loads(json.dumps(spdx_bom))
+                with open(_get_bundled_schema_path("spdx-context.jsonld"), encoding="utf-8") as f:
+                    shacl_input["@context"] = json.load(f).get("@context")
+                data_graph = Graph()
+                data_graph.parse(data=json.dumps(shacl_input), format="json-ld")
+                shacl_graph = Graph()
+                shacl_graph.parse(_get_bundled_schema_path("spdx-model.ttl"), format="turtle")
+                conforms, _results_graph, results_text = shacl_validate(
+                    data_graph=data_graph,
+                    shacl_graph=shacl_graph,
+                    ont_graph=shacl_graph,
+                    inference="none",
+                    serialize_report_graph=False,
+                )
+                if not conforms:
+                    errors.extend(self._summarize_shacl_report(results_text))
+            except ImportError as exc:
+                return False, [f"SHACL validation unavailable: {exc}"]
+            except Exception as exc:
+                return False, [f"SHACL validation error: {exc}"]
+
+        return len(errors) == 0, errors
+
+    def _summarize_shacl_report(self, results_text: str) -> List[str]:
+        messages = []
+        current = []
+        for line in (results_text or "").splitlines():
+            stripped = line.strip()
+            if stripped.startswith("Constraint Violation"):
+                if current:
+                    messages.append("SHACL: " + " | ".join(current[:3]))
+                current = [stripped]
+            elif stripped.startswith(("Message:", "Focus Node:", "Result Path:", "Value Node:")):
+                current.append(stripped)
+        if current:
+            messages.append("SHACL: " + " | ".join(current[:3]))
+        if not messages and results_text:
+            messages.append("SHACL: " + results_text.strip().replace("\n", " ")[:500])
+        return messages or ["SHACL: validation failed"]
+
+    def _validate_spdx_bom_structural(self, spdx_bom: Dict, strict: bool = False) -> tuple:
         """Structural validation of an SPDX 3.0.1 JSON-LD document.
 
         Checks required top-level keys, required element types, ID
@@ -717,21 +974,15 @@ class SPDXValidator:
                     if root not in id_index:
                         errors.append(f"Bom {eid}: rootElement references unknown ID: {root}")
 
-        is_valid = len(errors) == 0
-        if is_valid:
-            print("✅ SPDX BOM validation passed")
-        else:
-            print(f"❌ SPDX BOM validation failed with {len(errors)} error(s)")
-            for e in errors:
-                print(f"  - {e}")
-
-        return is_valid, errors
+        return len(errors) == 0, errors
 
 
 def validate_bom_to_spdx(
     bom_data: Dict[str, Any], 
     bom_type: str = 'ai',
-    output_path: Optional[str] = None
+    output_path: Optional[str] = None,
+    validate: bool = True,
+    strict: bool = False,
 ) -> Dict[str, Any]:
     """
     Convenience function to validate and convert BOM data to SPDX format
@@ -740,17 +991,49 @@ def validate_bom_to_spdx(
         bom_data: BOM metadata dictionary
         bom_type: Type of BOM ('ai' or 'data')
         output_path: Optional path to save SPDX JSON
+        validate: Validate generated SPDX before returning
+        strict: Also run beta SHACL validation when validate is True
         
     Returns:
         SPDX 3.0.1 compliant dictionary
     """
     validator = SPDXValidator(bom_type=bom_type)
     spdx_data = validator.validate_and_convert(bom_data, bom_type=bom_type)
+
+    if validate:
+        ok, errors = validator.validate_spdx_bom(spdx_data, strict=strict)
+        if ok:
+            print("SPDX 3.0.1 validation passed")
+        else:
+            print(f"SPDX 3.0.1 validation failed with {len(errors)} error(s)")
+            for error in errors[:10]:
+                print(f"  - {error}")
     
     if output_path:
         validator.save_spdx(spdx_data, output_path)
     
     return spdx_data
+
+
+def validate_spdx_export(
+    spdx_data: Dict[str, Any],
+    strict: bool = False,
+    bom_type: str = "ai",
+) -> Dict[str, Any]:
+    """Validate an SPDX export and return a structured status payload.
+
+    The default validator is the bundled SPDX 3.0.1 JSON Schema. Passing
+    strict=True enables the slower beta SHACL pass.
+    """
+    validator = SPDXValidator(bom_type=bom_type)
+    valid, errors = validator.validate_spdx_bom(spdx_data, strict=strict)
+    return {
+        "valid": valid,
+        "strict": strict,
+        "beta": strict,
+        "validator": "jsonschema+shacl" if strict else "jsonschema",
+        "errors": errors,
+    }
 
 
 if __name__ == "__main__":

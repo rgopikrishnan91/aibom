@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "aikaboom"
 version = "1.0.0"
-description = "AIkaBoOM - AI Bills of Materials with conflict detection and SPDX 3.0.1"
+description = "AIkaBoOM - AI Bills of Materials with conflict detection, SPDX 3.0.1, and beta CycloneDX"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
@@ -69,16 +69,17 @@ dev = [
 aikaboom = "aikaboom.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/rgopikrishnan91/aibom"
-Documentation = "https://github.com/rgopikrishnan91/aibom/docs"
-Repository = "https://github.com/rgopikrishnan91/aibom"
-Issues = "https://github.com/rgopikrishnan91/aibom/issues"
+Homepage = "https://github.com/rgopikrishnan91/aikaboom"
+Documentation = "https://github.com/rgopikrishnan91/aikaboom/docs"
+Repository = "https://github.com/rgopikrishnan91/aikaboom"
+Issues = "https://github.com/rgopikrishnan91/aikaboom/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
 "aikaboom.web" = ["templates/*.html", "static/*"]
+"aikaboom" = ["schemas/*.json", "schemas/*.ttl", "schemas/*.jsonld", "schemas/*.md"]
 
 [tool.black]
 line-length = 100

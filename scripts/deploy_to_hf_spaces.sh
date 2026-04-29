@@ -3,7 +3,7 @@
 # README so the Space picks up the required YAML frontmatter.
 #
 # Prerequisites:
-#   - `git remote add hf https://huggingface.co/spaces/<you>/aibom`
+#   - `git remote add hf https://huggingface.co/spaces/<you>/aikaboom`
 #   - HF access token with write permission, configured for git auth.
 #
 # Usage: bash scripts/deploy_to_hf_spaces.sh
@@ -15,7 +15,7 @@ if ! git remote get-url hf >/dev/null 2>&1; then
 Error: no 'hf' git remote found.
 
 Add it first:
-  git remote add hf https://huggingface.co/spaces/<your-username>/aibom
+  git remote add hf https://huggingface.co/spaces/<your-username>/aikaboom
 EOF
   exit 1
 fi

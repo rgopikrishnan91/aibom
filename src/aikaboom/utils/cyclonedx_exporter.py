@@ -1,5 +1,5 @@
 """
-CycloneDX 1.7 exporter for AIkaBoOM.
+Beta CycloneDX 1.7 exporter for AIkaBoOM.
 
 Converts AIkaBoOM provenance BOM data (with triplet fields) into
 CycloneDX 1.7 JSON, using the modelCard extension for AI/ML metadata.

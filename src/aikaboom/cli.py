@@ -186,15 +186,56 @@ def cmd_generate(args):
 
     # Optionally convert to SPDX
     if args.spdx:
-        from aikaboom.utils.spdx_validator import validate_bom_to_spdx
-        validate_bom_to_spdx(result, bom_type=bom_type, output_path=args.spdx)
+        from aikaboom.utils.spdx_validator import validate_bom_to_spdx, validate_spdx_export
+        spdx_data = validate_bom_to_spdx(
+            result,
+            bom_type=bom_type,
+            output_path=args.spdx,
+            validate=False,
+        )
         print(f"SPDX 3.0.1 BOM saved to {args.spdx}")
+        if args.validate_spdx:
+            validation = validate_spdx_export(
+                spdx_data,
+                strict=args.strict_spdx_validation,
+                bom_type=bom_type,
+            )
+            if validation["valid"]:
+                beta = " beta" if validation.get("beta") else ""
+                print(f"SPDX validation passed ({validation['validator']}{beta})")
+            else:
+                beta = " beta" if validation.get("beta") else ""
+                print(
+                    f"SPDX validation failed ({validation['validator']}{beta}) "
+                    f"with {len(validation['errors'])} error(s)"
+                )
+                for error in validation["errors"][:10]:
+                    print(f"  - {error}")
 
     # Optionally convert to CycloneDX
     if args.cyclonedx:
         from aikaboom.utils.cyclonedx_exporter import bom_to_cyclonedx
         bom_to_cyclonedx(result, bom_type=bom_type, output_path=args.cyclonedx)
-        print(f"CycloneDX 1.7 BOM saved to {args.cyclonedx}")
+        print(f"CycloneDX 1.7 BOM saved to {args.cyclonedx} (beta)")
+
+    if args.recursive_bom:
+        from aikaboom.utils.recursive_bom import generate_recursive_boms
+
+        recursive_result = generate_recursive_boms(
+            result,
+            bom_type=bom_type,
+            max_depth=args.recursive_depth,
+            validate_spdx=args.validate_spdx,
+            strict_spdx=args.strict_spdx_validation,
+        )
+        if args.recursive_output:
+            with open(args.recursive_output, "w", encoding="utf-8") as f:
+                json.dump(recursive_result, f, indent=2, ensure_ascii=False)
+            print(f"Recursive BOM bundle saved to {args.recursive_output} (beta)")
+        print(
+            "Recursive BOM generation beta produced "
+            f"{recursive_result['generated_count']} child BOM seed export(s)."
+        )
 
 
 def cmd_serve(args):
@@ -279,7 +320,34 @@ def main():
     )
     gen.add_argument("-o", "--output", help="Output JSON file path (default: stdout)")
     gen.add_argument("--spdx", help="Also generate SPDX 3.0.1 output at this path")
-    gen.add_argument("--cyclonedx", help="Also generate CycloneDX 1.7 output at this path")
+    gen.add_argument(
+        "--no-validate-spdx",
+        dest="validate_spdx",
+        action="store_false",
+        help="Skip validation of generated SPDX output.",
+    )
+    gen.add_argument(
+        "--strict-spdx-validation",
+        action="store_true",
+        help="Run slower SHACL validation after the default SPDX JSON Schema validation (beta).",
+    )
+    gen.set_defaults(validate_spdx=True)
+    gen.add_argument("--cyclonedx", help="Also generate CycloneDX 1.7 output at this path (beta)")
+    gen.add_argument(
+        "--recursive-bom",
+        action="store_true",
+        help="Generate child BOM seed exports from trainedOn/testedOn/dependsOn targets (beta).",
+    )
+    gen.add_argument(
+        "--recursive-depth",
+        type=int,
+        default=1,
+        help="Maximum recursive BOM depth for --recursive-bom (default: 1, beta).",
+    )
+    gen.add_argument(
+        "--recursive-output",
+        help="Write the recursive BOM beta bundle to this JSON file.",
+    )
     gen.add_argument(
         "-y", "--yes",
         action="store_true",
