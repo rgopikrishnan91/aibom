@@ -55,6 +55,30 @@ This keeps the Space well within the free-tier 16 GB RAM / 8 GB image
 limits and avoids cold-start costs of downloading a multi-billion-parameter
 model.
 
+## Choosing a free model — how it works on this Space
+
+The free-models picker is identical to the local experience:
+
+1. Click **🎯 Pick a free model** in the OpenRouter section.
+2. The browser hits `/models?provider=openrouter&free_only=true` on this
+   Space.
+3. The Space's backend fetches `https://openrouter.ai/api/v1/models`
+   (public, unauthenticated) and returns the free subset, sorted by
+   context window.
+4. The dropdown populates. Pick one, click **Generate**.
+
+**Important:** listing free models needs no API key, but **running** one
+does. Set `OPENROUTER_API_KEY` in the Space's secrets. OpenRouter
+charges $0 for `:free` models but enforces account-level rate limits
+(~50 requests/day without credits, ~1000/day with $10+ in credits).
+
+If the key is missing, the picker still works but the **Generate** call
+will surface a `401` error in the **Logs** tab.
+
+The model list is cached for 1 hour in memory. If OpenRouter is
+unreachable, a curated fallback of 5 known-free models is shown so the
+picker never appears empty.
+
 ## Source code & docs
 
 - GitHub: <https://github.com/rgopikrishnan91/aibom>

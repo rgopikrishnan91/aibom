@@ -66,6 +66,52 @@ and faiss). Subsequent builds are faster thanks to Docker layer caching.
 Open the Space URL. You should see the AIkaBoOM web UI. Try generating
 a BOM for `microsoft/DialoGPT-medium` to confirm everything works.
 
+## 5. Choosing a model on the Space
+
+The free-models picker works exactly the same on a Space as it does
+locally. Concretely:
+
+1. The user opens `https://huggingface.co/spaces/<you>/aikaboom`.
+2. They pick **OpenRouter** as the provider.
+3. They click **🎯 Pick a free model**.
+4. The browser calls `/models?provider=openrouter&free_only=true` on the
+   Space.
+5. The Space's Flask backend fetches
+   `https://openrouter.ai/api/v1/models` (public endpoint, no auth needed
+   for listing) and returns the filtered free list.
+6. The dropdown populates with free models sorted by context window. The
+   user picks one.
+7. They click **Generate**; the BOM is built using their selected model.
+
+### Important nuance
+
+Listing free models is unauthenticated. **Actually running** any of them
+still requires a valid `OPENROUTER_API_KEY` set in the Space's
+**Settings -> Variables and secrets**. OpenRouter charges $0 for `:free`
+models but enforces account-level rate limits (~50 requests/day without
+credits, ~1000/day after purchasing $10+ in credits).
+
+If the user has not set the key yet:
+
+- The picker will still list models (it calls a public endpoint).
+- The actual Generate call will fail with a clear `401` / "no API key"
+  error from OpenRouter, surfaced in the **Logs** tab of the UI.
+
+### Caching
+
+The Space caches the model list for 1 hour in memory. The first user to
+click "Pick a free model" triggers a live fetch (~200 ms); everyone after
+that gets it instantly until the cache expires or the Space restarts.
+
+### What if OpenRouter is unreachable from the Space?
+
+A curated fallback of 5 known-free models is returned, and the UI hint
+shows "Loaded N free models". The picker degrades gracefully and never
+shows an empty dropdown.
+
+So nothing about this flow changes when you deploy. The only
+Space-specific config is setting `OPENROUTER_API_KEY` in secrets.
+
 ## Known limitations on the free tier
 
 - **Ephemeral storage.** The container's filesystem is wiped on restart and
