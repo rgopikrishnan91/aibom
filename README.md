@@ -192,33 +192,45 @@ Every field is a **triplet** - the value, where it came from, and whether source
 
 A complete sample lives at [`examples/sample-output.json`](examples/sample-output.json).
 
-## Conflict Detection
+## Conflict Detection and Value Selection
 
 AIkaBoOM detects two kinds of conflicts and surfaces both in the `conflict` field of every triplet.
 
 **Inter-source.** Different sources report different values:
 > HuggingFace says `license: MIT` but the GitHub LICENSE file says `Apache-2.0`.
 
-Resolution: majority voting when 3+ sources agree, priority ordering otherwise.
-
 **Intra-source.** A single source contradicts itself:
 > HuggingFace metadata says `MIT` but the README text says "licensed under Apache 2.0."
 
-Resolution: similarity scoring (difflib) between structured metadata and extracted free text. Flagged when similarity drops below 80%.
+Even when a conflict is flagged, AIkaBoOM still has to pick one value to put in the `value` slot of the triplet (and into the SPDX/CycloneDX exports). The resolution rules differ by field type:
+
+**Direct fields** (license, suppliedBy, downloadLocation, packageVersion, releaseTime, primaryPurpose, originatedBy, datasetAvailability, …). Resolved by `SourceHandler.get_field_conflict` in [`src/aikaboom/core/source_handler.py`](src/aikaboom/core/source_handler.py):
+
+1. If only one source has a non-null value, use it.
+2. If two of three sources agree on a normalised (lowercased, stripped) value, take the majority — priority is ignored.
+3. Otherwise fall back to **priority by argument order** at the call site in `processors.py` (currently `huggingface_metadata, github_metadata`, i.e. HF wins ties).
+4. Tag-like fields (`primaryPurpose`) use Jaccard similarity on tokenised values with a threshold of 0.5 instead of exact-match grouping.
+5. The conflict string preserves every non-chosen source as `"src: value, src: value"` so nothing is lost.
+
+**RAG-extracted fields** (intended_use, model_type, hyperparameters, trainedOnDatasets, testedOnDatasets, modelLineage, …). Each question in `FIXED_QUESTIONS_AI` / `FIXED_QUESTIONS_DATA` (see [`src/aikaboom/core/agentic_rag.py`](src/aikaboom/core/agentic_rag.py)) carries its own `'priority': ['arxiv', 'huggingface', 'github']` ordering, hand-tuned per field — for example `trainedOnDatasets` prefers HuggingFace, while `limitations` prefers arXiv. The RAG pipeline detects internal/external conflicts in the LLM responses and uses that per-question priority to pick which chunk's answer surfaces in `value`.
+
+**Intra-source resolution.** Similarity scoring (difflib) between structured metadata and extracted free text. Flagged when similarity drops below 80%.
 
 Discovered links are also LLM-validated against the target model: if the link agent returns an arXiv paper for the wrong model version, AIkaBoOM rejects it before fetching.
 
+> **Source ranking is currently hard-coded in two places** — argument order in `processors.py` for direct fields and the per-question `priority` lists in `agentic_rag.py` for RAG fields. There is no single community-editable config for the source ranking yet; if you want to change a priority you edit those files. Externalising this into one ranking config is on the roadmap.
+
 ## Export Formats
 
-AIkaBoOM always produces the native Provenance BOM and can emit standards-focused exports for downstream consumers. Each captures the same underlying data in a different shape.
+AIkaBoOM always produces the native Provenance BOM and can emit standards-focused exports for downstream consumers. SPDX and CycloneDX are both AI BOMs and cover the same use cases — regulatory compliance (EU AI Act, NIST AI RMF), supply-chain transparency, DevSecOps, vulnerability management — they just express the same content in different vocabularies. Pick whichever your downstream tooling already speaks.
 
-| Format | Standard | Use case |
-|--------|----------|----------|
-| **Provenance BOM** | AIkaBoOM JSON | Field-level source attribution + conflict detection (our native format) |
-| **SPDX 3.0.1** | [SPDX AI Profile](https://spdx.github.io/spdx-spec/v3.0.1/) JSON-LD | Regulatory compliance (EU AI Act, NIST), supply chain transparency |
-| **CycloneDX 1.7 (beta)** | [CycloneDX ML-BOM](https://cyclonedx.org/) JSON | DevSecOps integration, vulnerability management workflows |
-| **Recursive BOMs (beta)** | AIkaBoOM JSON bundle | Per-child BOMs for every `trainedOn` / `testedOn` / `dependsOn` target discovered in the dependency tree |
-| **Linked SPDX bundle (beta)** | SPDX 3.0.1 JSON-LD | Single `@graph` merging the parent and every recursive child with explicit Relationship edges; passes both lightweight and strict SPDX validation |
+| Format | Standard | Notes |
+|--------|----------|-------|
+| **Provenance BOM** | AIkaBoOM JSON | Native format. Field-level source attribution + structured conflict triplets. |
+| **SPDX 3.0.1** | [SPDX AI Profile](https://spdx.github.io/spdx-spec/v3.0.1/) JSON-LD | The same content as the Provenance BOM, expressed using the SPDX 3.0.1 AI Profile (`ai_AIPackage`, `dataset_DatasetPackage`, `trainedOn`/`testedOn`/`dependsOn`). |
+| **CycloneDX 1.7 (beta)** | [CycloneDX ML-BOM](https://cyclonedx.org/) JSON | The same content as the Provenance BOM, expressed using the CycloneDX 1.7 ML-BOM (`modelCard`, `pedigree.ancestors`, `quantitativeAnalysis`). |
+| **Recursive BOMs (beta)** | AIkaBoOM JSON bundle | Per-child BOMs for every `trainedOn` / `testedOn` / `dependsOn` target discovered in the dependency tree. |
+| **Linked SPDX bundle (beta)** | SPDX 3.0.1 JSON-LD | Single `@graph` merging the parent and every recursive child with explicit Relationship edges; passes both lightweight and strict SPDX validation. |
 
 ```bash
 aikaboom generate --type ai --repo org/model \
@@ -230,9 +242,7 @@ aikaboom generate --type ai --repo org/model \
     --linked-bom-output result.linked.spdx.json
 ```
 
-**SPDX 3.0.1** output includes `ai_AIPackage` elements, `trainedOn`/`testedOn`/`dependsOn` relationships to dataset/model stubs, license relationships, and JSON-LD validated by the bundled SPDX 3.0.1 JSON Schema. With `--strict-spdx-validation` the same document also runs through the official SPDX SHACL shapes (beta). The CLI and web UI report pass/fail without blocking export. The same validators apply to the linked SPDX bundle.
-
-**CycloneDX 1.7 is beta.** It uses the `modelCard` extension: `modelParameters.task`, `modelParameters.architectureFamily`, `modelParameters.datasets`, `quantitativeAnalysis.performanceMetrics`, `considerations.technicalLimitations`, and `pedigree.ancestors` for model lineage. Conflict data is preserved as `aikaboom:conflict:*` properties.
+Both SPDX and CycloneDX exports preserve the same fields, the same provenance information, and the same conflict triplets — SPDX through `ai_AIPackage` / `dataset_DatasetPackage` and the SPDX `trainedOn` / `testedOn` / `dependsOn` relationships; CycloneDX through the `modelCard` extension (`modelParameters.task`, `modelParameters.architectureFamily`, `modelParameters.datasets`, `quantitativeAnalysis.performanceMetrics`, `considerations.technicalLimitations`) and `pedigree.ancestors` for lineage. Conflict triplets are carried in SPDX core fields and as `aikaboom:conflict:*` properties in CycloneDX. SPDX exports run through the bundled SPDX 3.0.1 JSON Schema by default; `--strict-spdx-validation` adds the official SHACL pass (beta). The same validators apply to the linked SPDX bundle.
 
 **Recursive BOM generation is beta.** It walks the dependency tree of an AI BOM:
 
