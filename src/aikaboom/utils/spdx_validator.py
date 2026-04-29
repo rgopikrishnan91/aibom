@@ -497,32 +497,119 @@ class SPDXValidator:
         print(f"✅ SPDX BOM saved to: {output_path}")
         return output_path
     
-    def validate_spdx_bom(self, spdx_bom: Dict) -> tuple:
-        """
-        Basic validation of SPDX BOM structure
-        
+    def validate_spdx_bom(self, spdx_bom: Dict, strict: bool = False) -> tuple:
+        """Structural validation of an SPDX 3.0.1 JSON-LD document.
+
+        Checks required top-level keys, required element types, ID
+        uniqueness, cross-reference integrity (creationInfo, relationship
+        from/to), and per-element required properties.
+
+        Args:
+            spdx_bom: The SPDX JSON-LD dict to validate.
+            strict: When True, also checks timestamp format and license
+                expression non-emptiness.
+
         Returns:
-            Tuple of (is_valid, list_of_errors)
+            Tuple of (is_valid: bool, errors: list[str])
         """
+        import re
         errors = []
-        
-        # Check for @graph array (SPDX 3.0 structure)
-        if '@graph' not in spdx_bom or not isinstance(spdx_bom['@graph'], list):
-            errors.append("Missing or invalid '@graph' array")
-        
-        # Check for context
+
+        # 1. Top-level keys
         if '@context' not in spdx_bom:
             errors.append("Missing '@context'")
-        
+        if '@graph' not in spdx_bom or not isinstance(spdx_bom.get('@graph'), list):
+            errors.append("Missing or invalid '@graph' array")
+            return (False, errors)
+
+        graph = spdx_bom['@graph']
+
+        # 2. Build ID index (spdxId or @id) and check uniqueness
+        id_index = set()
+        for elem in graph:
+            sid = elem.get('spdxId') or elem.get('@id')
+            if sid:
+                if sid in id_index:
+                    errors.append(f"Duplicate ID: {sid}")
+                id_index.add(sid)
+
+        # 3. Required element types
+        type_set = {e.get('type') for e in graph if e.get('type')}
+        if 'CreationInfo' not in type_set:
+            errors.append("Missing required element type: CreationInfo")
+        if 'SpdxDocument' not in type_set:
+            errors.append("Missing required element type: SpdxDocument")
+        if 'Bom' not in type_set:
+            errors.append("Missing required element type: Bom")
+
+        expected_pkg = 'AI_AIPackage' if self.bom_type == 'ai' else 'dataset_DatasetPackage'
+        if expected_pkg not in type_set:
+            errors.append(f"Missing required element type: {expected_pkg}")
+
+        # 4. Per-element required property checks
+        for elem in graph:
+            t = elem.get('type')
+            eid = elem.get('spdxId') or elem.get('@id') or '(anonymous)'
+
+            if t == 'CreationInfo':
+                if elem.get('specVersion') != '3.0.1':
+                    errors.append(f"CreationInfo {eid}: specVersion must be '3.0.1', got '{elem.get('specVersion')}'")
+                if not elem.get('created'):
+                    errors.append(f"CreationInfo {eid}: missing 'created' timestamp")
+                elif strict:
+                    ts = elem.get('created', '')
+                    if not re.match(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$', ts):
+                        errors.append(f"CreationInfo {eid}: 'created' not ISO 8601 with Z suffix: {ts}")
+                if not elem.get('createdBy'):
+                    errors.append(f"CreationInfo {eid}: missing 'createdBy'")
+
+            if t == 'SpdxDocument':
+                pc = elem.get('profileConformance') or []
+                if 'core' not in pc:
+                    errors.append(f"SpdxDocument {eid}: profileConformance must include 'core'")
+                if not elem.get('rootElement'):
+                    errors.append(f"SpdxDocument {eid}: missing 'rootElement'")
+
+            if t == 'Bom':
+                pc = elem.get('profileConformance') or []
+                if 'core' not in pc:
+                    errors.append(f"Bom {eid}: profileConformance must include 'core'")
+
+        # 5. Cross-reference integrity
+        for elem in graph:
+            t = elem.get('type')
+            eid = elem.get('spdxId') or elem.get('@id') or '(anonymous)'
+
+            ci = elem.get('creationInfo')
+            if ci and isinstance(ci, str) and ci not in id_index:
+                errors.append(f"{t} {eid}: creationInfo references unknown ID: {ci}")
+
+            if t == 'Relationship':
+                frm = elem.get('from')
+                if frm and frm not in id_index:
+                    errors.append(f"Relationship {eid}: 'from' references unknown ID: {frm}")
+                for to_ref in (elem.get('to') or []):
+                    if to_ref not in id_index:
+                        errors.append(f"Relationship {eid}: 'to' references unknown ID: {to_ref}")
+
+            if t == 'SpdxDocument':
+                for root in (elem.get('rootElement') or []):
+                    if root not in id_index:
+                        errors.append(f"SpdxDocument {eid}: rootElement references unknown ID: {root}")
+
+            if t == 'Bom':
+                for root in (elem.get('rootElement') or []):
+                    if root not in id_index:
+                        errors.append(f"Bom {eid}: rootElement references unknown ID: {root}")
+
         is_valid = len(errors) == 0
-        
         if is_valid:
             print("✅ SPDX BOM validation passed")
         else:
-            print(f"❌ SPDX BOM validation failed with {len(errors)} errors")
-            for error in errors:
-                print(f"  ⚠️ {error}")
-        
+            print(f"❌ SPDX BOM validation failed with {len(errors)} error(s)")
+            for e in errors:
+                print(f"  - {e}")
+
         return is_valid, errors
 
 

@@ -104,9 +104,15 @@ class TestValidateSpdxBom:
         self.validator = SPDXValidator(bom_type='ai')
 
     def test_valid_bom(self):
-        spdx = {"@context": "https://spdx.org/...", "@graph": [{"type": "SpdxDocument"}]}
+        """A structurally complete AI BOM must pass the hardened validator."""
+        bom_data = {
+            "repo_id": "test/model",
+            "direct_fields": {"suppliedBy": "Org", "license": "MIT"},
+            "rag_fields": {"model_name": "Test"},
+        }
+        spdx = self.validator.validate_and_convert(bom_data)
         is_valid, errors = self.validator.validate_spdx_bom(spdx)
-        assert is_valid is True
+        assert is_valid is True, f"Validator errors: {errors}"
         assert len(errors) == 0
 
     def test_missing_graph(self):
