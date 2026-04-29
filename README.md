@@ -78,6 +78,10 @@ bom-tools generate --type data \
     --github https://github.com/rajpurkar/SQuAD-explorer \
     --output result.json
 
+# List free OpenRouter models, then pick one automatically
+bom-tools list-models --free --limit 10
+bom-tools generate --type ai --repo org/model --pick-free-model
+
 # Start web UI
 bom-tools serve --port 5000
 ```
@@ -276,6 +280,22 @@ pip install -e .
 ```
 
 Requires Python 3.8+. Tested on Linux, macOS, and Windows.
+
+## Deploy to HuggingFace Spaces
+
+You can host the BOM Tools web UI on a free HuggingFace Space (Docker SDK)
+so anyone can use it from a public URL with no local setup. See
+[docs/HF_SPACES.md](docs/HF_SPACES.md) for the full walk-through. Short
+version:
+
+```bash
+git remote add hf https://huggingface.co/spaces/<you>/aibom
+bash scripts/deploy_to_hf_spaces.sh
+```
+
+The repo ships with a `Dockerfile` and `README_HF.md` (HF Spaces YAML
+frontmatter). Set your provider key (`OPENROUTER_API_KEY` is recommended
+for the free tier) in the Space's secrets and you are done.
 
 ## Testing
 

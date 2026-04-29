@@ -17,9 +17,11 @@ load_dotenv()
 
 
 # Provider -> (env var, default model) mapping for auto-detection.
+# OpenRouter default uses the :free variant so users without credits can run
+# the tool out of the box.
 PROVIDER_ENV = {
     "openai": ("OPENAI_API_KEY", "gpt-4o"),
-    "openrouter": ("OPENROUTER_API_KEY", "qwen/qwen-2.5-72b-instruct"),
+    "openrouter": ("OPENROUTER_API_KEY", "qwen/qwen-2.5-72b-instruct:free"),
     "ollama": ("OLLAMA_BASE_URL", "llama3:8b"),
 }
 
@@ -118,6 +120,20 @@ def _resolve_provider_and_model(args):
 
 def cmd_generate(args):
     """Generate a BOM for an AI model or dataset."""
+    if getattr(args, "pick_free_model", False):
+        if args.model:
+            print("Error: --pick-free-model is mutually exclusive with --model", file=sys.stderr)
+            sys.exit(1)
+        # If provider isn't openrouter, force-select openrouter so the
+        # picker has somewhere to dispatch to.
+        if args.provider and args.provider != "openrouter":
+            print(f"Error: --pick-free-model requires --provider openrouter (got {args.provider})", file=sys.stderr)
+            sys.exit(1)
+        args.provider = "openrouter"
+        from bom_tools.utils.openrouter_models import pick_free_openrouter_model
+        args.model = pick_free_openrouter_model()
+        print(f"Picked free OpenRouter model: {args.model}")
+
     provider, model = _resolve_provider_and_model(args)
     print(f"Provider: {provider} | Model: {model} | Mode: {args.mode}")
 
@@ -185,6 +201,40 @@ def cmd_serve(args):
     app.run(host=host, port=port, debug=False, threaded=True)
 
 
+def cmd_list_models(args):
+    """Print available models for the requested provider."""
+    if args.provider != "openrouter":
+        print(f"Error: list-models only supports openrouter (got {args.provider})", file=sys.stderr)
+        sys.exit(1)
+
+    from bom_tools.utils.openrouter_models import (
+        list_free_openrouter_models,
+        list_openrouter_models,
+    )
+    fn = list_free_openrouter_models if args.free else list_openrouter_models
+    models = fn()
+    if args.limit:
+        models = models[: args.limit]
+
+    if args.json:
+        print(json.dumps(models, indent=2))
+        return
+
+    if not models:
+        print("No models returned.")
+        return
+
+    # Plain-text table
+    print(f"{'ID':<55} {'CTX':<8} {'PRICING':<25} NAME")
+    print("-" * 110)
+    for m in models:
+        ctx = m.get("context_length")
+        ctx_s = f"{ctx//1000}K" if isinstance(ctx, int) and ctx >= 1000 else (str(ctx) if ctx else "-")
+        p = m.get("pricing") or {}
+        pricing_s = f"in:{p.get('prompt', '?')} out:{p.get('completion', '?')}"
+        print(f"{m.get('id', '')[:54]:<55} {ctx_s:<8} {pricing_s:<25} {m.get('name', '')}")
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog="bom-tools",
@@ -225,11 +275,29 @@ def main():
         action="store_true",
         help="Skip provider confirmation prompt when multiple keys are set.",
     )
+    gen.add_argument(
+        "--pick-free-model",
+        action="store_true",
+        help="Auto-select the highest-context free model from OpenRouter "
+             "(forces --provider openrouter; mutually exclusive with --model).",
+    )
 
     # --- serve ---
     srv = subparsers.add_parser("serve", help="Start the web UI")
     srv.add_argument("--host", help="Bind address (default: 127.0.0.1)")
     srv.add_argument("--port", type=int, help="Port (default: 5000)")
+
+    # --- list-models ---
+    lm = subparsers.add_parser("list-models", help="List available models for a provider")
+    lm.add_argument(
+        "--provider",
+        default="openrouter",
+        choices=["openrouter"],
+        help="Provider to list models for (default: openrouter).",
+    )
+    lm.add_argument("--free", action="store_true", help="Only show free models.")
+    lm.add_argument("--limit", type=int, default=None, help="Max number of models to show.")
+    lm.add_argument("--json", action="store_true", help="Output JSON instead of a table.")
 
     args = parser.parse_args()
 
@@ -237,6 +305,8 @@ def main():
         cmd_generate(args)
     elif args.command == "serve":
         cmd_serve(args)
+    elif args.command == "list-models":
+        cmd_list_models(args)
     else:
         parser.print_help()
         sys.exit(1)

@@ -389,6 +389,34 @@ def get_config():
     return jsonify(config)
 
 
+@app.route('/models', methods=['GET'])
+def list_models_endpoint():
+    """Return a model catalog for the requested provider.
+
+    Query params:
+        provider: 'openrouter' (default). Other providers return [] for now.
+        free_only: 'true' to only return free models.
+        force_refresh: 'true' to bypass the in-memory cache.
+    """
+    provider = request.args.get('provider', 'openrouter').lower()
+    free_only = request.args.get('free_only', 'false').lower() == 'true'
+    force_refresh = request.args.get('force_refresh', 'false').lower() == 'true'
+
+    if provider != 'openrouter':
+        return jsonify({'provider': provider, 'models': []})
+
+    from bom_tools.utils.openrouter_models import (
+        list_free_openrouter_models,
+        list_openrouter_models,
+    )
+    fn = list_free_openrouter_models if free_only else list_openrouter_models
+    try:
+        models = fn(force_refresh=force_refresh)
+        return jsonify({'provider': provider, 'free_only': free_only, 'models': models})
+    except Exception as exc:
+        return jsonify({'provider': provider, 'models': [], 'error': str(exc)}), 500
+
+
 @app.route('/process', methods=['POST'])
 def process():
     """Handle processing request for both AI and Data BOMs"""

@@ -625,12 +625,20 @@
 
                 <!-- Model Selection (dynamic based on provider) -->
                 <div class="form-group" id="model_group_openrouter">
-                    <label for="openrouter_model">🤖 OpenRouter Model</label>
+                    <label for="openrouter_model_select">🤖 OpenRouter Model</label>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+                        <button type="button" id="btn_load_free_models" style="padding:6px 10px;border:1px solid #1e8449;background:#e8f5e9;color:#1e8449;border-radius:6px;cursor:pointer;font-size:0.85em;">🎯 Pick a free model</button>
+                        <button type="button" id="btn_load_all_models" style="padding:6px 10px;border:1px solid #888;background:#f5f5f5;color:#333;border-radius:6px;cursor:pointer;font-size:0.85em;">📋 Show all models</button>
+                    </div>
+                    <select id="openrouter_model_select" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:0.95em;margin-bottom:6px;">
+                        <option value="qwen/qwen-2.5-72b-instruct:free">qwen/qwen-2.5-72b-instruct:free (free, default)</option>
+                        <option value="__custom__">Custom model ID...</option>
+                    </select>
                     <input type="text" id="openrouter_model" name="openrouter_model"
-                           value="qwen/qwen-2.5-72b-instruct"
-                           placeholder="e.g. qwen/qwen-2.5-72b-instruct"
-                           style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:0.95em;box-sizing:border-box;">
-                    <div class="url-hint">Type any OpenRouter model ID (e.g. meta-llama/llama-3.3-70b-instruct)</div>
+                           value="qwen/qwen-2.5-72b-instruct:free"
+                           placeholder="e.g. meta-llama/llama-3.3-70b-instruct:free"
+                           style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:0.95em;box-sizing:border-box;display:none;">
+                    <div class="url-hint" id="openrouter_model_hint">Click "Pick a free model" to load free models from OpenRouter.</div>
                 </div>
 
                 <div class="form-group" id="model_group_openai" style="display:none;">
@@ -801,6 +809,75 @@
             r.addEventListener('change', updateModelVisibility);
         });
         updateModelVisibility();
+
+        // OpenRouter model dropdown wiring
+        (function setupOpenRouterPicker() {
+            const select = document.getElementById('openrouter_model_select');
+            const hidden = document.getElementById('openrouter_model');
+            const customInput = hidden;  // same element repurposed for custom
+            const hint = document.getElementById('openrouter_model_hint');
+            const btnFree = document.getElementById('btn_load_free_models');
+            const btnAll = document.getElementById('btn_load_all_models');
+
+            function setHint(msg, color) {
+                hint.textContent = msg;
+                hint.style.color = color || '';
+            }
+
+            function fmtCtx(ctx) {
+                if (!ctx) return '';
+                if (ctx >= 1000) return Math.round(ctx / 1000) + 'K';
+                return String(ctx);
+            }
+
+            function applySelectedModel() {
+                if (select.value === '__custom__') {
+                    customInput.style.display = '';
+                    setHint('Type a custom OpenRouter model ID.');
+                } else {
+                    customInput.value = select.value;
+                    customInput.style.display = 'none';
+                }
+            }
+
+            select.addEventListener('change', applySelectedModel);
+            applySelectedModel();
+
+            async function loadModels(freeOnly) {
+                setHint(freeOnly ? '🎯 Loading free models...' : '📋 Loading all models...', '#666');
+                try {
+                    const url = `/models?provider=openrouter&free_only=${freeOnly}`;
+                    const resp = await fetch(url);
+                    const data = await resp.json();
+                    const models = data.models || [];
+                    if (!models.length) {
+                        setHint('No models returned from OpenRouter.', '#c0392b');
+                        return;
+                    }
+                    // Rebuild dropdown
+                    select.innerHTML = '';
+                    models.forEach(function(m) {
+                        const opt = document.createElement('option');
+                        opt.value = m.id;
+                        const ctx = fmtCtx(m.context_length);
+                        opt.textContent = ctx ? `${m.name || m.id} (ctx: ${ctx})` : (m.name || m.id);
+                        select.appendChild(opt);
+                    });
+                    const customOpt = document.createElement('option');
+                    customOpt.value = '__custom__';
+                    customOpt.textContent = 'Custom model ID...';
+                    select.appendChild(customOpt);
+                    select.value = models[0].id;
+                    applySelectedModel();
+                    setHint(`✓ Loaded ${models.length} ${freeOnly ? 'free' : ''} model(s) from OpenRouter.`, '#1e8449');
+                } catch (err) {
+                    setHint('Could not load models: ' + err.message, '#c0392b');
+                }
+            }
+
+            btnFree.addEventListener('click', function() { loadModels(true); });
+            btnAll.addEventListener('click', function() { loadModels(false); });
+        })();
 
         // Debugging: Ensure the script is loaded
         console.log("🚀 Script loaded successfully!");

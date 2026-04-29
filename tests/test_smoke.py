@@ -161,3 +161,49 @@ class TestSPDXSmoke:
         v = SPDXValidator(bom_type="data")
         result = v.validate_and_convert({"direct_metadata": {}, "rag_metadata": {}, "urls": {}})
         assert "@context" in result
+
+
+class TestHFSpacesArtifacts:
+    """Verify the HF Spaces deployment files exist and are configured correctly."""
+
+    @staticmethod
+    def _repo_root():
+        import os
+        return os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
+
+    def test_dockerfile_exists(self):
+        import os
+        path = os.path.join(self._repo_root(), "Dockerfile")
+        assert os.path.exists(path), "Dockerfile missing at repo root"
+
+    def test_dockerfile_has_required_directives(self):
+        import os
+        with open(os.path.join(self._repo_root(), "Dockerfile")) as f:
+            content = f.read()
+        # HF Spaces requires UID 1000 and port 7860
+        assert "USER user" in content
+        assert "EXPOSE 7860" in content
+        assert "BOM_PORT=7860" in content
+        assert "BOM_HOST=0.0.0.0" in content
+
+    def test_readme_hf_exists_with_docker_sdk(self):
+        import os
+        path = os.path.join(self._repo_root(), "README_HF.md")
+        assert os.path.exists(path), "README_HF.md missing"
+        with open(path) as f:
+            content = f.read()
+        # YAML frontmatter must include sdk: docker and app_port: 7860
+        assert content.startswith("---")
+        assert "sdk: docker" in content
+        assert "app_port: 7860" in content
+
+    def test_deploy_script_exists_and_executable(self):
+        import os
+        path = os.path.join(self._repo_root(), "scripts", "deploy_to_hf_spaces.sh")
+        assert os.path.exists(path), "scripts/deploy_to_hf_spaces.sh missing"
+        assert os.access(path, os.X_OK), "deploy_to_hf_spaces.sh not executable"
+
+    def test_hf_spaces_doc_exists(self):
+        import os
+        path = os.path.join(self._repo_root(), "docs", "HF_SPACES.md")
+        assert os.path.exists(path), "docs/HF_SPACES.md missing"
