@@ -170,3 +170,7 @@ class TestFlaskApp:
         assert data["recursive_bom"]["beta"] is True
         assert data["recursive_bom"]["enabled"] is True
         assert data["recursive_bom"]["generated_count"] == 1
+        assert data["recursive_bom"]["strategy"] == "conflict-gated dependency-tree recursion"
+        assert data.get("linked_bom_download_url", "").endswith(".linked.spdx.json")
+        assert data["linked_bom"]["beta"] is True
+        assert data["linked_bom"]["recursive_edge_count"] >= 1

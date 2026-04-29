@@ -2,7 +2,11 @@
 __version__ = "1.0.0"
 
 from aikaboom.utils.spdx_validator import validate_bom_to_spdx, validate_spdx_export
-from aikaboom.utils.recursive_bom import discover_recursive_targets, generate_recursive_boms
+from aikaboom.utils.recursive_bom import (
+    discover_recursive_targets,
+    generate_recursive_boms,
+    build_linked_spdx_bundle,
+)
 
 # Optional dependencies that may legitimately be missing in slim install
 # profiles (HF Spaces base images, schema-only consumers, etc). We only
@@ -73,4 +77,5 @@ __all__ = [
     "validate_spdx_export",
     "discover_recursive_targets",
     "generate_recursive_boms",
+    "build_linked_spdx_bundle",
 ]

@@ -219,8 +219,18 @@ def cmd_generate(args):
         print(f"CycloneDX 1.7 BOM saved to {args.cyclonedx} (beta)")
 
     if args.recursive_bom:
-        from aikaboom.utils.recursive_bom import generate_recursive_boms
+        from aikaboom.utils.recursive_bom import (
+            build_linked_spdx_bundle,
+            generate_recursive_boms,
+        )
 
+        print(
+            "[recursive-bom beta] Walking the dependency tree. Each discovered "
+            "trainedOn / testedOn / dependsOn target produces another BOM, which "
+            "may itself reference more dependencies. Targets are deduplicated and "
+            "the walk stops at --recursive-depth or when the unique-target set is "
+            "exhausted."
+        )
         recursive_result = generate_recursive_boms(
             result,
             bom_type=bom_type,
@@ -233,9 +243,21 @@ def cmd_generate(args):
                 json.dump(recursive_result, f, indent=2, ensure_ascii=False)
             print(f"Recursive BOM bundle saved to {args.recursive_output} (beta)")
         print(
-            "Recursive BOM generation beta produced "
-            f"{recursive_result['generated_count']} child BOM seed export(s)."
+            f"Recursive BOM beta walked {recursive_result['deepest_level_reached']} "
+            f"level(s) and emitted {recursive_result['generated_count']} child BOM "
+            f"seed export(s); skipped {len(recursive_result['skipped_due_to_conflict'])} "
+            f"field(s) due to conflicts."
         )
+
+        if args.linked_bom_output:
+            linked = build_linked_spdx_bundle(result, recursive_result, bom_type=bom_type)
+            with open(args.linked_bom_output, "w", encoding="utf-8") as f:
+                json.dump(linked, f, indent=2, ensure_ascii=False)
+            print(
+                f"Linked SPDX BOM bundle saved to {args.linked_bom_output} (beta) — "
+                f"{linked['_aikaboom_linked']['recursive_edge_count']} dependency "
+                f"edge(s) across {linked['_aikaboom_linked']['node_count']} elements."
+            )
 
 
 def cmd_serve(args):
@@ -342,11 +364,23 @@ def main():
         "--recursive-depth",
         type=int,
         default=1,
-        help="Maximum recursive BOM depth for --recursive-bom (default: 1, beta).",
+        help=(
+            "Maximum dependency-tree depth for --recursive-bom (default: 1, beta). "
+            "Walking deeper extracts BOMs for the dependencies of each dependency, "
+            "which can be expensive — recursion stops naturally when the unique-"
+            "target set is exhausted."
+        ),
     )
     gen.add_argument(
         "--recursive-output",
-        help="Write the recursive BOM beta bundle to this JSON file.",
+        help="Write the recursive BOM beta bundle (per-child JSON) to this file.",
+    )
+    gen.add_argument(
+        "--linked-bom-output",
+        help=(
+            "Write a single linked SPDX BOM (parent + every recursive child + "
+            "Relationship edges) to this JSON-LD file (beta)."
+        ),
     )
     gen.add_argument(
         "-y", "--yes",

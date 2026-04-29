@@ -136,6 +136,14 @@ class TestUITemplateContent:
         assert "recursive_bom" in html
         assert "Recursive Beta" in html
 
+    def test_index_html_warns_before_recursion(self, client):
+        resp = client.get("/")
+        html = resp.data.decode()
+        assert "confirmRecursive" in html
+        assert "walks the dependency tree" in html
+        assert "unique-target set" in html
+        assert "Download Linked SPDX Beta" in html
+
     def test_index_html_has_gemini_help_link(self, client):
         """When showing 'agent inactive', UI should link to a free-key signup."""
         resp = client.get("/")

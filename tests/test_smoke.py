@@ -85,6 +85,7 @@ class TestCLISmoke:
         assert "--strict-spdx-validation" in result.stdout
         assert "--recursive-bom" in result.stdout
         assert "--recursive-output" in result.stdout
+        assert "--linked-bom-output" in result.stdout
         assert "--provider" in result.stdout
 
     def test_cli_serve_help(self):

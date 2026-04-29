@@ -1,27 +1,33 @@
 """Beta recursive BOM generation gated on relationship conflicts.
 
-The recursion strategy follows the design discussed during the SPDX work:
+The recursion walks the dependency tree of an AI BOM:
 
-1. ``trainedOnDatasets`` / ``testedOnDatasets`` / ``modelLineage`` are extracted
-   by the existing RAG question bank in :mod:`aikaboom.core.agentic_rag`.
-   Those fields land in ``rag_fields`` as ``{value, source, conflict}``
-   triplets, with both inter-source and intra-source conflicts already
-   detected against the README, arXiv, GitHub and HuggingFace model tree
-   sources.
-2. For each relationship field, if a conflict is present the field is
-   skipped — we cannot safely recurse on contested data. The skip and the
-   underlying conflict are reported back to the caller.
-3. For conflict-free fields, the named targets are split out and used to
-   seed child Provenance / SPDX / CycloneDX exports.
+* ``trainedOnDatasets`` and ``testedOnDatasets`` produce *data* BOM children.
+* ``modelLineage`` produces *ai* BOM children that can themselves be
+  expanded one level deeper.
 
-The module never performs additional network or LLM enrichment on its own.
-Callers can feed the seed records back into the full pipeline if they want
-deeper recursion.
+Each level reuses the existing RAG question bank in
+:mod:`aikaboom.core.agentic_rag` to build conflict-aware triplets — fields
+with internal or external conflicts are *skipped*, so we never recurse on
+contested data.
+
+Recursion runs until one of three things happens:
+
+1. ``max_depth`` is reached.
+2. The unique-target set is exhausted (the natural end of the tree).
+3. Every newly discovered field is conflict-flagged or already visited.
+
+The module performs no network/LLM calls on its own. Callers can pass an
+``enrich_fn`` callback to fetch the full metadata of a discovered target
+(e.g. by running the existing ``AIBOMProcessor`` / ``DATABOMProcessor``);
+without it the children are seed records derived from the parent's
+relationship strings, which means the tree typically terminates after one
+level.
 """
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple
 
 
 AI_RELATIONSHIP_FIELDS = {
@@ -31,21 +37,17 @@ AI_RELATIONSHIP_FIELDS = {
 }
 
 
+EnrichFn = Callable[[Dict[str, Any]], Optional[Dict[str, Any]]]
+
+
 def _extract_value(value: Any) -> Any:
-    if isinstance(value, dict) and "value" in value and "conflict" in value:
-        return value.get("value")
-    if isinstance(value, dict) and "value" in value and len(value) <= 3:
+    if isinstance(value, dict) and "value" in value:
         return value.get("value")
     return value
 
 
 def _conflict_of(triplet: Any) -> Optional[Dict[str, Any]]:
-    """Return a structured conflict dict if the triplet has one, else None.
-
-    Handles both shapes that flow through the pipeline:
-      * RAG-style: ``{'internal': 'No|Yes...', 'external': 'No|Yes...'}``
-      * Parsed-style: ``{'value': ..., 'source': ..., 'type': 'inter'|'intra'}``
-    """
+    """Return a structured conflict dict if the triplet has one, else None."""
     if not isinstance(triplet, dict):
         return None
     raw = triplet.get("conflict")
@@ -100,15 +102,18 @@ def _safe_id(text: str) -> str:
     return slug or "related-artifact"
 
 
+def _visit_key(bom_type: str, target: str) -> Tuple[str, str]:
+    return (bom_type.lower(), target.strip().lower())
+
+
 def discover_recursive_targets(
     metadata: Dict[str, Any],
     bom_type: str = "ai",
 ) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
     """Find conflict-free relationship targets that can seed child BOMs.
 
-    Returns a tuple of ``(targets, audit)`` where ``audit`` contains any
-    fields that were skipped because the parent BOM reported a conflict on
-    that relationship.
+    Returns ``(targets, audit)`` where ``audit`` lists fields skipped
+    because the parent BOM reported a conflict on that relationship.
     """
     audit: Dict[str, Any] = {"skipped_due_to_conflict": [], "considered": []}
     if bom_type != "ai":
@@ -147,6 +152,7 @@ def discover_recursive_targets(
 
 
 def _build_child_metadata(target: Dict[str, Any]) -> Dict[str, Any]:
+    """Seed-level metadata for a target when no enrich callback is provided."""
     name = target["target"]
     safe_id = _safe_id(name)
     if target["bom_type"] == "data":
@@ -179,78 +185,316 @@ def _build_child_metadata(target: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+def _build_node(
+    target: Dict[str, Any],
+    child_metadata: Dict[str, Any],
+    depth: int,
+    validate_spdx: bool,
+    strict_spdx: bool,
+    enrichment_error: Optional[str] = None,
+    enriched: bool = False,
+) -> Dict[str, Any]:
+    item: Dict[str, Any] = {
+        "beta": True,
+        "depth": depth,
+        "relationship_type": target["relationship_type"],
+        "source_field": target["source_field"],
+        "target": target["target"],
+        "bom_type": target["bom_type"],
+        "parent": target["parent"],
+        "metadata": child_metadata,
+        "enriched": enriched,
+    }
+    if enrichment_error:
+        item["enrichment_error"] = enrichment_error
+
+    try:
+        from aikaboom.utils.spdx_validator import SPDXValidator, validate_spdx_export
+
+        spdx = SPDXValidator(bom_type=target["bom_type"]).validate_and_convert(child_metadata)
+        item["spdx_data"] = spdx
+        if validate_spdx:
+            item["spdx_validation"] = validate_spdx_export(
+                spdx, strict=strict_spdx, bom_type=target["bom_type"]
+            )
+    except Exception as exc:
+        item["spdx_error"] = str(exc)
+
+    try:
+        from aikaboom.utils.cyclonedx_exporter import bom_to_cyclonedx
+
+        item["cyclonedx_data"] = bom_to_cyclonedx(child_metadata, bom_type=target["bom_type"])
+    except Exception as exc:
+        item["cyclonedx_error"] = str(exc)
+
+    return item
+
+
 def generate_recursive_boms(
     metadata: Dict[str, Any],
     bom_type: str = "ai",
     max_depth: int = 1,
     validate_spdx: bool = True,
     strict_spdx: bool = False,
+    enrich_fn: Optional[EnrichFn] = None,
 ) -> Dict[str, Any]:
-    """Generate beta recursive child BOM exports from discovered relationships.
+    """Walk the dependency tree of an AI BOM and emit child BOMs.
 
-    Children are only generated for relationship fields that have no
-    conflict in the parent BOM. Skipped fields are reported in
-    ``skipped_due_to_conflict``. ``max_depth`` currently controls a single
-    recursion level; values >1 are accepted but do not yet trigger deeper
-    expansion (beta).
+    Args:
+        metadata: Parent BOM metadata dict (with ``rag_fields``).
+        bom_type: Parent BOM type. Recursion only descends through AI BOMs;
+            ``data`` parents are leaves.
+        max_depth: Maximum tree depth (1 = direct children only). Recursion
+            also stops naturally when the unique-target set is exhausted.
+        validate_spdx: Validate each generated child SPDX export.
+        strict_spdx: Use the SHACL strict pass (beta).
+        enrich_fn: Optional callable ``(target_dict) -> metadata_dict`` that
+            fetches full metadata for a discovered target. Without it,
+            children carry only seed metadata and recursion typically stops
+            after one level.
     """
     max_depth = max(0, int(max_depth or 0))
-    if max_depth > 0:
-        targets, audit = discover_recursive_targets(metadata, bom_type=bom_type)
-    else:
-        targets, audit = [], {"skipped_due_to_conflict": [], "considered": []}
+    parent_id = metadata.get("model_id") or metadata.get("repo_id") or "parent-bom"
+    visited: Set[Tuple[str, str]] = {_visit_key(bom_type, parent_id)}
 
     generated: List[Dict[str, Any]] = []
+    skipped: List[Dict[str, Any]] = []
+    duplicates: List[Dict[str, Any]] = []
 
-    for target in targets:
-        child_metadata = _build_child_metadata(target)
-        child_type = target["bom_type"]
-        item: Dict[str, Any] = {
-            "beta": True,
-            "depth": 1,
-            "relationship_type": target["relationship_type"],
-            "source_field": target["source_field"],
-            "target": target["target"],
-            "bom_type": child_type,
-            "metadata": child_metadata,
-        }
+    # Frontier of (parent_metadata, parent_target_label, parent_bom_type, current_depth)
+    frontier: List[Tuple[Dict[str, Any], str, str, int]] = []
+    if max_depth > 0 and bom_type == "ai":
+        frontier.append((metadata, parent_id, "ai", 0))
 
-        try:
-            from aikaboom.utils.spdx_validator import SPDXValidator, validate_spdx_export
+    tree_exhausted = True
 
-            spdx = SPDXValidator(bom_type=child_type).validate_and_convert(child_metadata)
-            item["spdx_data"] = spdx
-            if validate_spdx:
-                item["spdx_validation"] = validate_spdx_export(
-                    spdx,
-                    strict=strict_spdx,
-                    bom_type=child_type,
-                )
-        except Exception as exc:
-            item["spdx_error"] = str(exc)
+    while frontier:
+        parent_meta, parent_label, parent_bom_type, depth = frontier.pop(0)
+        if depth >= max_depth:
+            # We could still discover more but are truncating
+            targets, audit = discover_recursive_targets(parent_meta, bom_type=parent_bom_type)
+            if targets:
+                tree_exhausted = False
+            for skip in audit.get("skipped_due_to_conflict", []):
+                skipped.append({**skip, "parent": parent_label, "depth": depth + 1})
+            continue
 
-        try:
-            from aikaboom.utils.cyclonedx_exporter import bom_to_cyclonedx
+        targets, audit = discover_recursive_targets(parent_meta, bom_type=parent_bom_type)
+        for skip in audit.get("skipped_due_to_conflict", []):
+            skipped.append({**skip, "parent": parent_label, "depth": depth + 1})
 
-            item["cyclonedx_data"] = bom_to_cyclonedx(child_metadata, bom_type=child_type)
-        except Exception as exc:
-            item["cyclonedx_error"] = str(exc)
+        for t in targets:
+            key = _visit_key(t["bom_type"], t["target"])
+            if key in visited:
+                duplicates.append({
+                    "target": t["target"],
+                    "bom_type": t["bom_type"],
+                    "relationship_type": t["relationship_type"],
+                    "parent": parent_label,
+                    "depth": depth + 1,
+                })
+                continue
+            visited.add(key)
+            t_with_parent = {**t, "parent": parent_label}
 
-        generated.append(item)
+            enriched = False
+            enrichment_error: Optional[str] = None
+            child_metadata: Dict[str, Any]
+            if enrich_fn is not None:
+                try:
+                    enriched_metadata = enrich_fn(t_with_parent)
+                except Exception as exc:
+                    enriched_metadata = None
+                    enrichment_error = str(exc)
+                if enriched_metadata:
+                    child_metadata = enriched_metadata
+                    enriched = True
+                else:
+                    child_metadata = _build_child_metadata(t_with_parent)
+            else:
+                child_metadata = _build_child_metadata(t_with_parent)
 
+            node = _build_node(
+                t_with_parent, child_metadata, depth + 1,
+                validate_spdx, strict_spdx,
+                enrichment_error=enrichment_error, enriched=enriched,
+            )
+            generated.append(node)
+
+            # Only AI children carry relationship fields worth descending into.
+            if t["bom_type"] == "ai":
+                frontier.append((child_metadata, t["target"], "ai", depth + 1))
+
+    deepest = max((n["depth"] for n in generated), default=0)
     return {
         "beta": True,
         "enabled": True,
         "max_depth": max_depth,
-        "strategy": "conflict-gated relationship recursion",
+        "deepest_level_reached": deepest,
+        "tree_exhausted": tree_exhausted,
+        "strategy": "conflict-gated dependency-tree recursion",
         "generated_count": len(generated),
         "generated": generated,
-        "skipped_due_to_conflict": audit.get("skipped_due_to_conflict", []),
-        "considered_fields": audit.get("considered", []),
+        "skipped_due_to_conflict": skipped,
+        "duplicates": duplicates,
+        "visited": sorted(f"{bt}:{name}" for bt, name in visited),
         "warnings": [
             "Recursive BOM generation is beta.",
-            "Fields with internal or external conflicts are skipped; resolve "
+            "Each level walks the unique-target set: trainedOn/testedOn "
+            "produce data BOM leaves; modelLineage produces AI BOM nodes "
+            "that may themselves have dependencies.",
+            "Fields with internal/external conflicts are skipped; resolve "
             "the conflict in the parent BOM before recursing.",
-            "max_depth>1 is accepted but currently produces a single recursion level.",
+            "Without an enrich callback, children only carry seed metadata "
+            "and the tree usually terminates after one level. Provide a "
+            "real enricher to walk the full dependency tree.",
         ],
     }
+
+
+# ---------------------------------------------------------------------------
+# Linked SPDX bundle
+# ---------------------------------------------------------------------------
+
+
+def build_linked_spdx_bundle(
+    parent_metadata: Dict[str, Any],
+    recursive_result: Dict[str, Any],
+    bom_type: str = "ai",
+) -> Dict[str, Any]:
+    """Combine the parent BOM and all recursive children into a single SPDX
+    JSON-LD document where every parent→child relationship is an SPDX
+    Relationship element pointing at the child's spdxId.
+
+    The resulting document has one ``@context`` and one ``@graph`` containing:
+      * the parent SPDX elements (CreationInfo, Person, Organization,
+        SpdxDocument, Bom, AIPackage/DatasetPackage, license),
+      * every child element from each recursive node, and
+      * a Relationship element per non-duplicate edge in the dependency
+        tree, using the SPDX 3.0.1 vocab (``trainedOn``, ``testedOn``,
+        ``dependsOn``).
+    """
+    from aikaboom.utils.spdx_validator import SPDXValidator
+
+    parent_spdx = SPDXValidator(bom_type=bom_type).validate_and_convert(parent_metadata)
+
+    # Suppress the parent's auto-generated stub DatasetPackages (and the
+    # relationships pointing at them) when a recursive child already covers
+    # that target — the recursive child carries richer metadata so it is
+    # the canonical node for that name in the linked bundle.
+    suppressed_names = {
+        str(n["target"]).strip().lower() for n in recursive_result.get("generated", [])
+    }
+    stub_ids_to_drop = set()
+    for elem in parent_spdx.get("@graph", []):
+        if elem.get("type") == "dataset_DatasetPackage":
+            name = str(elem.get("name") or "").strip().lower()
+            if name in suppressed_names:
+                stub_ids_to_drop.add(elem.get("spdxId") or elem.get("@id"))
+
+    graph: List[Dict[str, Any]] = []
+    for elem in parent_spdx.get("@graph", []):
+        sid = elem.get("spdxId") or elem.get("@id")
+        if sid in stub_ids_to_drop:
+            continue
+        if elem.get("type") == "Relationship":
+            tos = elem.get("to") or []
+            if any(t in stub_ids_to_drop for t in tos):
+                continue
+        graph.append(elem)
+
+    # Map (bom_type, target_name_lower) -> root spdxId in the merged graph,
+    # so child→grandchild relationships resolve correctly.
+    root_id_by_target: Dict[Tuple[str, str], str] = {}
+    parent_root = _root_package_id(parent_spdx)
+    if parent_root is not None:
+        parent_label = parent_metadata.get("model_id") or parent_metadata.get("repo_id") or "parent-bom"
+        root_id_by_target[_visit_key(bom_type, parent_label)] = parent_root
+
+    seen_node_ids = {e.get("spdxId") or e.get("@id") for e in graph}
+
+    relationships: List[Dict[str, Any]] = []
+
+    for node in recursive_result.get("generated", []):
+        spdx_doc = node.get("spdx_data")
+        if not isinstance(spdx_doc, dict):
+            continue
+        child_root = _root_package_id(spdx_doc)
+        if child_root is None:
+            continue
+        root_id_by_target[_visit_key(node["bom_type"], node["target"])] = child_root
+
+        # Append child elements (skip duplicate CreationInfo / Person /
+        # Organization that the parent already contributed; rebind their
+        # creationInfo references to the parent's CreationInfo).
+        parent_creation_id = _creation_info_id(parent_spdx)
+        child_creation_id = _creation_info_id(spdx_doc)
+        for elem in spdx_doc.get("@graph", []):
+            t = elem.get("type")
+            if t in {"CreationInfo", "Person", "Organization", "SpdxDocument", "Bom"}:
+                continue
+            sid = elem.get("spdxId") or elem.get("@id")
+            if sid in seen_node_ids:
+                continue
+            seen_node_ids.add(sid)
+            new_elem = dict(elem)
+            ci = new_elem.get("creationInfo")
+            if (
+                parent_creation_id
+                and child_creation_id
+                and ci == child_creation_id
+            ):
+                new_elem["creationInfo"] = parent_creation_id
+            graph.append(new_elem)
+
+    # Emit relationship objects for each parent->child edge.
+    parent_creation_id = _creation_info_id(parent_spdx)
+    for node in recursive_result.get("generated", []):
+        from_key = _visit_key("ai", node.get("parent", ""))
+        from_id = root_id_by_target.get(from_key) or parent_root
+        to_key = _visit_key(node["bom_type"], node["target"])
+        to_id = root_id_by_target.get(to_key)
+        if not from_id or not to_id:
+            continue
+        rel_id = f"urn:spdx:Relationship-{node['relationship_type']}-{_safe_id(node['target'])}-d{node['depth']}"
+        if rel_id in seen_node_ids:
+            continue
+        seen_node_ids.add(rel_id)
+        relationships.append({
+            "type": "Relationship",
+            "spdxId": rel_id,
+            "creationInfo": parent_creation_id,
+            "relationshipType": node["relationship_type"],
+            "from": from_id,
+            "to": [to_id],
+            "description": (
+                f"{node['relationship_type']} relationship from {node['parent']} "
+                f"to {node['target']} (depth {node['depth']})"
+            ),
+        })
+
+    return {
+        "@context": parent_spdx.get("@context"),
+        "@graph": graph + relationships,
+        "_aikaboom_linked": {
+            "beta": True,
+            "node_count": len(graph) + len(relationships),
+            "recursive_edge_count": len(relationships),
+            "deepest_level_reached": recursive_result.get("deepest_level_reached", 0),
+            "tree_exhausted": recursive_result.get("tree_exhausted", True),
+        },
+    }
+
+
+def _root_package_id(spdx_doc: Dict[str, Any]) -> Optional[str]:
+    for elem in spdx_doc.get("@graph", []):
+        if elem.get("type") in {"ai_AIPackage", "dataset_DatasetPackage"}:
+            return elem.get("spdxId") or elem.get("@id")
+    return None
+
+
+def _creation_info_id(spdx_doc: Dict[str, Any]) -> Optional[str]:
+    for elem in spdx_doc.get("@graph", []):
+        if elem.get("type") == "CreationInfo":
+            return elem.get("spdxId") or elem.get("@id")
+    return None

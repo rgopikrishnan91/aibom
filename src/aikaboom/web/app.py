@@ -438,7 +438,7 @@ def process():
         strict_spdx_validation = bool(data.get('strict_spdx_validation', False))
         recursive_bom = bool(data.get('recursive_bom', False))
         try:
-            recursive_depth = max(0, min(int(data.get('recursive_depth', 1)), 3))
+            recursive_depth = max(0, min(int(data.get('recursive_depth', 1)), 5))
         except (TypeError, ValueError):
             recursive_depth = 1
         
@@ -747,7 +747,10 @@ def process():
 
         if recursive_bom:
             try:
-                from aikaboom.utils.recursive_bom import generate_recursive_boms
+                from aikaboom.utils.recursive_bom import (
+                    build_linked_spdx_bundle,
+                    generate_recursive_boms,
+                )
 
                 recursive_output = generate_recursive_boms(
                     metadata,
@@ -762,6 +765,19 @@ def process():
                     json.dump(recursive_output, f, indent=2, ensure_ascii=False)
                 response_data['recursive_bom'] = recursive_output
                 response_data['recursive_bom_download_url'] = f'/download/{recursive_filename}'
+
+                try:
+                    linked_bundle = build_linked_spdx_bundle(
+                        metadata, recursive_output, bom_type=bom_type
+                    )
+                    linked_filename = filename.replace('.json', '.linked.spdx.json')
+                    linked_path = os.path.join(app.config['UPLOAD_FOLDER'], linked_filename)
+                    with open(linked_path, 'w', encoding='utf-8') as f:
+                        json.dump(linked_bundle, f, indent=2, ensure_ascii=False)
+                    response_data['linked_bom'] = linked_bundle.get('_aikaboom_linked', {})
+                    response_data['linked_bom_download_url'] = f'/download/{linked_filename}'
+                except Exception as linked_exc:
+                    response_data['linked_bom'] = {'error': str(linked_exc), 'beta': True}
             except Exception as recursive_exc:
                 import traceback
                 print(f"⚠️ Recursive BOM beta generation failed: {recursive_exc}")

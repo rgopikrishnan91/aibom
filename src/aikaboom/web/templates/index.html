@@ -726,13 +726,23 @@
                     <label>Beta exports</label>
                     <div style="display:flex;gap:14px;flex-wrap:wrap;color:#333;font-size:0.92em;">
                         <label style="display:flex;align-items:center;gap:6px;font-weight:500;">
-                            <input type="checkbox" id="recursive_bom">
+                            <input type="checkbox" id="recursive_bom" onclick="confirmRecursive(this)">
                             Recursive BOM generation
                         </label>
                         <label style="display:flex;align-items:center;gap:6px;font-weight:500;">
                             Depth
-                            <input type="number" id="recursive_depth" min="1" max="3" value="1" style="width:64px;padding:6px 8px;">
+                            <input type="number" id="recursive_depth" min="1" max="5" value="1" style="width:64px;padding:6px 8px;">
                         </label>
+                    </div>
+                    <div class="url-hint" style="color:#a04500;">
+                        <strong>Heads up:</strong> recursive generation walks the
+                        dependency tree — each <code>trainedOn</code> /
+                        <code>testedOn</code> / <code>dependsOn</code> target
+                        produces another BOM, which may itself reference more
+                        dependencies. AIkaBoOM keeps a unique-target set so each
+                        artefact is fetched once, and stops at <em>Depth</em> or
+                        when the set is exhausted. Higher depths cost more time,
+                        bandwidth, and LLM tokens.
                     </div>
                     <div class="url-hint">CycloneDX, recursive BOM generation, and strict SHACL validation are beta.</div>
                 </div>
@@ -764,6 +774,7 @@
                 <a id="downloadSPDX" href="#" class="download-btn spdx" target="_blank" style="display: none;">📄 Download SPDX 3.0.1</a>
                 <a id="downloadCDX" href="#" class="download-btn spdx" target="_blank" style="display: none;">📦 Download CycloneDX 1.7 Beta</a>
                 <a id="downloadRecursive" href="#" class="download-btn spdx" target="_blank" style="display: none;">Download Recursive BOM Beta</a>
+                <a id="downloadLinked" href="#" class="download-btn spdx" target="_blank" style="display: none;">Download Linked SPDX Beta</a>
             </div>
 
             <div id="completeTab" class="tab-content active">
@@ -840,6 +851,21 @@
         const downloadCDX = document.getElementById('downloadCDX');
         const downloadSPDX = document.getElementById('downloadSPDX');
         const downloadRecursive = document.getElementById('downloadRecursive');
+        const downloadLinked = document.getElementById('downloadLinked');
+
+        function confirmRecursive(checkbox) {
+            if (!checkbox.checked) return;
+            const ok = window.confirm(
+                "Recursive BOM generation walks the dependency tree:\n\n" +
+                "• Each trainedOn / testedOn / dependsOn target produces another BOM\n" +
+                "• Those children may themselves have dependencies\n" +
+                "• A unique-target set deduplicates artefacts; the walk stops at the\n" +
+                "  configured depth or when the set is exhausted\n\n" +
+                "Higher depths cost more time, bandwidth, and LLM tokens.\n\n" +
+                "Proceed?"
+            );
+            if (!ok) checkbox.checked = false;
+        }
         const spdxValidationStatus = document.getElementById('spdxValidationStatus');
         const useCaseDropdownBtn = document.getElementById('useCaseDropdownBtn');
         const useCaseContainer = document.getElementById('useCaseContainer');
@@ -1259,8 +1285,15 @@
                             downloadRecursive.href = result.recursive_bom_download_url;
                             downloadRecursive.style.display = 'inline-block';
                         }
+                        if (result.linked_bom_download_url) {
+                            downloadLinked.href = result.linked_bom_download_url;
+                            downloadLinked.style.display = 'inline-block';
+                        } else {
+                            downloadLinked.style.display = 'none';
+                        }
                     } else {
                         downloadRecursive.style.display = 'none';
+                        downloadLinked.style.display = 'none';
                         jsonViewerRecursive.innerHTML = '<div class="json-placeholder">Recursive BOM beta generation was not enabled.</div>';
                     }
 
@@ -1455,6 +1488,7 @@
             downloadSPDX.style.display = 'none';
             downloadCDX.style.display = 'none';
             downloadRecursive.style.display = 'none';
+            downloadLinked.style.display = 'none';
             spdxValidationStatus.style.display = 'none';
             jsonViewerComplete.innerHTML = '<div class="json-placeholder">Process a dataset to view the complete BOM JSON output here</div>';
             jsonViewerSPDX.innerHTML = '<div class="json-placeholder">Process a dataset to view the SPDX-compliant JSON output here</div>';
