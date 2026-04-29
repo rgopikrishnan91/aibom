@@ -55,6 +55,8 @@ setup(
         "certifi>=2023.0.0",
         "google-genai>=0.3.0",
         "httpx>=0.25.0",
+        "pyshacl>=0.30.0",
+        "jsonschema>=4.0.0",
     ],
     extras_require={
         "link_fallback": [

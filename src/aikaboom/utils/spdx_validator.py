@@ -1,12 +1,53 @@
 """
 Unified SPDX 3.0.1 BOM Validator
-Converts AI and Dataset BOM metadata to SPDX 3.0.1 compliant format
+Converts AI and Dataset BOM metadata to SPDX 3.0.1 compliant format.
+
+Validation uses the official SPDX 3.0.1 SHACL shapes and JSON Schema
+when available (pyshacl + jsonschema). Falls back to built-in structural
+checks when those deps or schema files are missing.
 """
 
 import json
+import os
+import re
+import tempfile
 from datetime import datetime
 from typing import Dict, Any, Optional
 import uuid
+
+# URLs for official SPDX 3.0.1 validation artifacts
+SPDX_SHACL_URL = "https://spdx.org/rdf/3.0.1/spdx-model.ttl"
+SPDX_JSON_SCHEMA_URL = "https://spdx.org/schema/3.0.1/spdx-json-schema.json"
+_SCHEMA_CACHE_DIR = os.path.join(tempfile.gettempdir(), "aikaboom_spdx_schemas")
+_BUNDLED_SCHEMAS_DIR = os.path.join(os.path.dirname(__file__), '..', 'schemas')
+
+
+def _get_schema_path(url: str, filename: str) -> Optional[str]:
+    """Get schema file path: try cache, then bundled, then download."""
+    # 1. Check disk cache
+    os.makedirs(_SCHEMA_CACHE_DIR, exist_ok=True)
+    cached = os.path.join(_SCHEMA_CACHE_DIR, filename)
+    if os.path.exists(cached) and os.path.getsize(cached) > 100:
+        return cached
+
+    # 2. Check bundled copy
+    bundled = os.path.join(_BUNDLED_SCHEMAS_DIR, filename)
+    if os.path.exists(bundled) and os.path.getsize(bundled) > 100:
+        return bundled
+
+    # 3. Try downloading
+    try:
+        import requests
+        resp = requests.get(url, timeout=15)
+        resp.raise_for_status()
+        if len(resp.text) > 100:
+            with open(cached, 'w') as f:
+                f.write(resp.text)
+            return cached
+    except Exception:
+        pass
+
+    return None
 
 
 class SPDXValidator:

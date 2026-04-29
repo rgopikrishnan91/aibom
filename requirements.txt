@@ -32,3 +32,7 @@ certifi>=2023.0.0
 # Link Fallback Agent (uses Gemini for missing-link auto-discovery)
 google-genai>=0.3.0
 httpx>=0.25.0
+
+# SPDX 3.0.1 Validation (official SHACL shapes + JSON Schema)
+pyshacl>=0.30.0
+jsonschema>=4.0.0
