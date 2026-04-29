@@ -48,7 +48,7 @@ class TestValidateAndConvert:
 
         # Check that AI Package exists in graph
         types = [elem.get("type") for elem in result["@graph"]]
-        assert "AI_AIPackage" in types
+        assert "ai_AIPackage" in types
         assert "SpdxDocument" in types
         assert "Bom" in types
 
@@ -90,11 +90,11 @@ class TestValidateAndConvert:
         result = validator.validate_and_convert(bom_data)
 
         # Find the AI package
-        ai_pkg = next(e for e in result["@graph"] if e["type"] == "AI_AIPackage")
+        ai_pkg = next(e for e in result["@graph"] if e["type"] == "ai_AIPackage")
         assert ai_pkg["suppliedBy"] == "DeepOrg"
-        assert ai_pkg["downloadLocation"] == "https://example.com"
-        assert ai_pkg["AI-Model-Name"] == "MyModel"
-        assert ai_pkg["typeOfModel"] == "transformer"
+        assert ai_pkg["software_downloadLocation"] == "https://example.com"
+        assert ai_pkg["name"] == "MyModel"
+        assert ai_pkg["ai_typeOfModel"] == "transformer"
 
 
 class TestValidateSpdxBom:

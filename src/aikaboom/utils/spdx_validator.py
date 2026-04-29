@@ -53,64 +53,73 @@ def _get_schema_path(url: str, filename: str) -> Optional[str]:
 class SPDXValidator:
     """Unified validator that converts both AI and Dataset BOM data to SPDX 3.0.1 format"""
     
+    # Official SPDX 3.0.1 @context URL
+    SPDX_CONTEXT_URL = "https://spdx.org/rdf/3.0.1/spdx-context.jsonld"
+
+    # Official SPDX 3.0.1 type names (from the JSON Schema / JSON-LD context)
+    AI_PACKAGE_TYPE = "ai_AIPackage"
+    DATASET_PACKAGE_TYPE = "dataset_DatasetPackage"
+
     # Field mappings for AI BOM
+    # Property names follow the official SPDX 3.0.1 JSON-LD context:
+    #   Core properties: no prefix (name, suppliedBy, releaseTime, etc.)
+    #   AI properties: ai_ prefix (ai_domain, ai_typeOfModel, etc.)
+    #   Software properties: software_ prefix (software_downloadLocation, etc.)
     AI_FIELD_MAPPING = {
-        # Direct fields
+        # Direct fields (core + software namespace)
         "releaseTime": "releaseTime",
         "suppliedBy": "suppliedBy",
-        "downloadLocation": "downloadLocation",
-        "packageVersion": "packageVersion",
-        "primaryPurpose": "primaryPurpose",
+        "downloadLocation": "software_downloadLocation",
+        "packageVersion": "software_packageVersion",
+        "primaryPurpose": "software_primaryPurpose",
         "license": "license",
-        
-        # RAG fields for AI models
-        "model_name": "AI-Model-Name",
-        "autonomy_type": "autonomyType",
-        "domain": "domain",
-        "energy_consumption": "energyConsumption",
-        "hyperparameters": "hyperparameter",
-        "intended_use": "informationAboutApplication",
-        "training_information": "informationAboutTraining",
-        "limitations": "limitation",
-        "performance_metrics": "metric",
-        "decision_threshold": "metricDecisionThreshold",
-        "data_preprocessing": "modelDataPreprocessing",
-        "model_explainability": "modelExplainability",
-        "safety_risk_assessment": "safetyRiskAssessment",
-        "standard_compliance": "standardCompliance",
-        "model_type": "typeOfModel",
-        "sensitive_personal_information": "useSensitivePersonalInformation",
-        # Relationship fields (not AIPackage properties -- emitted as SPDX Relationships)
-        # "trainedOnDatasets": emitted as Relationship(trainedOn) -> DatasetPackage stubs
-        # "testedOnDatasets": emitted as Relationship(testedOn) -> DatasetPackage stubs
-        # "modelLineage": emitted as Relationship(dependsOn) -> Package stubs
+
+        # RAG fields for AI models (ai_ namespace)
+        "model_name": "name",
+        "autonomy_type": "ai_autonomyType",
+        "domain": "ai_domain",
+        "energy_consumption": "ai_energyConsumption",
+        "hyperparameters": "ai_hyperparameter",
+        "intended_use": "ai_informationAboutApplication",
+        "training_information": "ai_informationAboutTraining",
+        "limitations": "ai_limitation",
+        "performance_metrics": "ai_metric",
+        "decision_threshold": "ai_metricDecisionThreshold",
+        "data_preprocessing": "ai_modelDataPreprocessing",
+        "model_explainability": "ai_modelExplainability",
+        "safety_risk_assessment": "ai_safetyRiskAssessment",
+        "standard_compliance": "ai_standardCompliance",
+        "model_type": "ai_typeOfModel",
+        "sensitive_personal_information": "ai_useSensitivePersonalInformation",
     }
     
     # Field mappings for Dataset BOM
+    # Property names follow the official SPDX 3.0.1 JSON-LD context:
+    #   Dataset properties: dataset_ prefix
     DATASET_FIELD_MAPPING = {
-        # Direct fields
-        "name": "dataset_name",
+        # Direct fields (core + software namespace)
+        "name": "name",
         "originatedBy": "originatedBy",
         "builtTime": "builtTime",
         "releaseTime": "releaseTime",
-        "downloadLocation": "downloadLocation",
-        "primaryPurpose": "primaryPurpose",
+        "downloadLocation": "software_downloadLocation",
+        "primaryPurpose": "software_primaryPurpose",
         "license": "license",
-        
-        # RAG fields for datasets
-        "dataPreprocessing": "dataPreprocessing",
-        "datasetAvailability": "datasetAvailability",
-        "dataCollectionProcess": "dataCollectionProcess",
-        "datasetSize": "datasetSize",
-        "datasetType": "datasetType",
-        "datasetUpdateMechanism": "datasetUpdateMechanism",
-        "hasSensitivePersonalInformation": "hasSensitivePersonalInformation",
-        "intendedUse": "intendedUse",
-        "knownBias": "knownBias",
-        "anonymizationMethodUsed": "anonymizationMethodUsed",
-        "confidentialityLevel": "confidentialityLevel",
-        "datasetNoise": "datasetNoise",
-        "sensorUsed": "sensorUsed"
+
+        # RAG fields for datasets (dataset_ namespace)
+        "dataPreprocessing": "dataset_dataPreprocessing",
+        "datasetAvailability": "dataset_datasetAvailability",
+        "dataCollectionProcess": "dataset_dataCollectionProcess",
+        "datasetSize": "dataset_datasetSize",
+        "datasetType": "dataset_datasetType",
+        "datasetUpdateMechanism": "dataset_datasetUpdateMechanism",
+        "hasSensitivePersonalInformation": "dataset_hasSensitivePersonalInformation",
+        "intendedUse": "dataset_intendedUse",
+        "knownBias": "dataset_knownBias",
+        "anonymizationMethodUsed": "dataset_anonymizationMethodUsed",
+        "confidentialityLevel": "dataset_confidentialityLevel",
+        "datasetNoise": "dataset_datasetNoise",
+        "sensorUsed": "dataset_sensor",
     }
     
     def __init__(self, template_path: str = None, bom_type: str = 'ai'):
@@ -363,55 +372,52 @@ class SPDXValidator:
     ) -> Dict[str, Any]:
         """Build AI Package element with all mapped fields"""
         ai_package = {
-            "type": "AI_AIPackage",
+            "type": "ai_AIPackage",
             "spdxId": f"urn:spdx:AIPackage-{package_uuid}",
             "creationInfo": f"_:creationinfo-{creation_uuid}",
             "originatedBy": [f"urn:spdx:Organization-{org_uuid}"]
         }
         
-        # Map direct fields
+        # Map direct fields (using official SPDX 3.0.1 property names)
         direct_mapping = {
             "releaseTime": "releaseTime",
             "suppliedBy": "suppliedBy",
-            "downloadLocation": "downloadLocation",
-            "packageVersion": "packageVersion",
-            "primaryPurpose": "primaryPurpose"
+            "downloadLocation": "software_downloadLocation",
+            "packageVersion": "software_packageVersion",
+            "primaryPurpose": "software_primaryPurpose",
         }
-        
+
         for our_field, spdx_field in direct_mapping.items():
             value = self._extract_value(direct_fields.get(our_field))
             if value is not None and value != "":
                 ai_package[spdx_field] = value
             else:
-                if spdx_field == "downloadLocation":
+                if spdx_field == "software_downloadLocation":
                     ai_package[spdx_field] = "NOASSERTION"
-                elif spdx_field in ["suppliedBy", "packageVersion"]:
-                    ai_package[spdx_field] = ""
-                elif spdx_field == "primaryPurpose":
+                elif spdx_field == "software_primaryPurpose":
                     ai_package[spdx_field] = "data"
-        
-        # Set name (standard SPDX property) + AI-Model-Name (legacy, kept for compatibility)
+
+        # Set name (standard SPDX Core property)
         model_name_value = self._extract_value(rag_fields.get("model_name"))
         ai_package["name"] = model_name_value or repo_id or "AI Model Name Placeholder"
-        ai_package["AI-Model-Name"] = ai_package["name"]
-        
-        # Map RAG fields
+
+        # Map RAG fields (using official ai_ prefix)
         rag_mapping = {
-            "autonomy_type": "autonomyType",
-            "domain": "domain",
-            "energy_consumption": "energyConsumption",
-            "hyperparameters": "hyperparameter",
-            "intended_use": "informationAboutApplication",
-            "training_information": "informationAboutTraining",
-            "limitations": "limitation",
-            "performance_metrics": "metric",
-            "decision_threshold": "metricDecisionThreshold",
-            "data_preprocessing": "modelDataPreprocessing",
-            "model_explainability": "modelExplainability",
-            "safety_risk_assessment": "safetyRiskAssessment",
-            "standard_compliance": "standardCompliance",
-            "model_type": "typeOfModel",
-            "sensitive_personal_information": "useSensitivePersonalInformation"
+            "autonomy_type": "ai_autonomyType",
+            "domain": "ai_domain",
+            "energy_consumption": "ai_energyConsumption",
+            "hyperparameters": "ai_hyperparameter",
+            "intended_use": "ai_informationAboutApplication",
+            "training_information": "ai_informationAboutTraining",
+            "limitations": "ai_limitation",
+            "performance_metrics": "ai_metric",
+            "decision_threshold": "ai_metricDecisionThreshold",
+            "data_preprocessing": "ai_modelDataPreprocessing",
+            "model_explainability": "ai_modelExplainability",
+            "safety_risk_assessment": "ai_safetyRiskAssessment",
+            "standard_compliance": "ai_standardCompliance",
+            "model_type": "ai_typeOfModel",
+            "sensitive_personal_information": "ai_useSensitivePersonalInformation"
         }
         
         for our_field, spdx_field in rag_mapping.items():
@@ -544,26 +550,26 @@ class SPDXValidator:
                     "type": "dataset_DatasetPackage",
                     "spdxId": f"https://spdx.org/spdxdocs/DatasetPackage1-{dataset_uuid}",
                     "creationInfo": "_:creationinfo",
-                    "dataset_name": dataset_name,
+                    "name": dataset_name,
                     "originatedBy": [f"https://spdx.org/spdxdocs/Organization1-{org_uuid}"],
                     "builtTime": built_time,
                     "releaseTime": release_time,
-                    "downloadLocation": download_location,
-                    "primaryPurpose": primary_purpose,
-                    "anonymizationMethodUsed": self._extract_value(rag.get('anonymizationMethodUsed', "")),
-                    "confidentialityLevel": self._extract_value(rag.get('confidentialityLevel', "clear")),
-                    "dataPreprocessing": data_preprocessing,
-                    "datasetAvailability": dataset_availability,
-                    "dataCollectionProcess": data_collection,
-                    "datasetNoise": self._extract_value(rag.get('datasetNoise', "")),
-                    "datasetSize": dataset_size,
-                    "datasetType": dataset_type,
-                    "datasetUpdateMechanism": dataset_update,
-                    "hasSensitivePersonalInformation": has_pii,
-                    "intendedUse": intended_use,
-                    "knownBias": known_bias,
-                    "sensorUsed": self._extract_value(rag.get('sensorUsed', "")),
-                    "comment": "This results are generated by AI tools."
+                    "software_downloadLocation": download_location,
+                    "software_primaryPurpose": primary_purpose,
+                    "dataset_anonymizationMethodUsed": self._extract_value(rag.get('anonymizationMethodUsed', "")),
+                    "dataset_confidentialityLevel": self._extract_value(rag.get('confidentialityLevel', "clear")),
+                    "dataset_dataPreprocessing": data_preprocessing,
+                    "dataset_datasetAvailability": dataset_availability,
+                    "dataset_dataCollectionProcess": data_collection,
+                    "dataset_datasetNoise": self._extract_value(rag.get('datasetNoise', "")),
+                    "dataset_datasetSize": dataset_size,
+                    "dataset_datasetType": dataset_type,
+                    "dataset_datasetUpdateMechanism": dataset_update,
+                    "dataset_hasSensitivePersonalInformation": has_pii,
+                    "dataset_intendedUse": intended_use,
+                    "dataset_knownBias": known_bias,
+                    "dataset_sensor": self._extract_value(rag.get('sensorUsed', "")),
+                    "comment": "Generated by AIkaBoOM."
                 },
                 # 7. LicenseExpression
                 {
@@ -651,7 +657,7 @@ class SPDXValidator:
         if 'Bom' not in type_set:
             errors.append("Missing required element type: Bom")
 
-        expected_pkg = 'AI_AIPackage' if self.bom_type == 'ai' else 'dataset_DatasetPackage'
+        expected_pkg = 'ai_AIPackage' if self.bom_type == 'ai' else 'dataset_DatasetPackage'
         if expected_pkg not in type_set:
             errors.append(f"Missing required element type: {expected_pkg}")
 

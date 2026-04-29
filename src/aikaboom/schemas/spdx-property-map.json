@@ -1,0 +1,66 @@
+{
+  "_comment": "Maps our internal field names to official SPDX 3.0.1 JSON-LD property names",
+  "_source": "Derived from official spdx-context.jsonld and spdx-json-schema.json",
+  "context_url": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "type_names": {
+    "our_ai_package": "ai_AIPackage",
+    "our_dataset_package": "dataset_DatasetPackage",
+    "our_license_expression": "simplelicensing_LicenseExpression"
+  },
+  "ai_field_map": {
+    "autonomyType": "ai_autonomyType",
+    "domain": "ai_domain",
+    "energyConsumption": "ai_energyConsumption",
+    "hyperparameter": "ai_hyperparameter",
+    "informationAboutApplication": "ai_informationAboutApplication",
+    "informationAboutTraining": "ai_informationAboutTraining",
+    "limitation": "ai_limitation",
+    "metric": "ai_metric",
+    "metricDecisionThreshold": "ai_metricDecisionThreshold",
+    "modelDataPreprocessing": "ai_modelDataPreprocessing",
+    "modelExplainability": "ai_modelExplainability",
+    "safetyRiskAssessment": "ai_safetyRiskAssessment",
+    "standardCompliance": "ai_standardCompliance",
+    "typeOfModel": "ai_typeOfModel",
+    "useSensitivePersonalInformation": "ai_useSensitivePersonalInformation"
+  },
+  "software_field_map": {
+    "downloadLocation": "software_downloadLocation",
+    "packageVersion": "software_packageVersion",
+    "primaryPurpose": "software_primaryPurpose"
+  },
+  "dataset_field_map": {
+    "anonymizationMethodUsed": "dataset_anonymizationMethodUsed",
+    "confidentialityLevel": "dataset_confidentialityLevel",
+    "dataCollectionProcess": "dataset_dataCollectionProcess",
+    "dataPreprocessing": "dataset_dataPreprocessing",
+    "datasetAvailability": "dataset_datasetAvailability",
+    "datasetNoise": "dataset_datasetNoise",
+    "datasetSize": "dataset_datasetSize",
+    "datasetType": "dataset_datasetType",
+    "datasetUpdateMechanism": "dataset_datasetUpdateMechanism",
+    "hasSensitivePersonalInformation": "dataset_hasSensitivePersonalInformation",
+    "intendedUse": "dataset_intendedUse",
+    "knownBias": "dataset_knownBias",
+    "sensor": "dataset_sensor"
+  },
+  "core_fields_no_prefix": [
+    "name",
+    "comment",
+    "created",
+    "createdBy",
+    "creationInfo",
+    "description",
+    "from",
+    "to",
+    "originatedBy",
+    "suppliedBy",
+    "profileConformance",
+    "relationshipType",
+    "releaseTime",
+    "rootElement",
+    "specVersion",
+    "builtTime",
+    "spdxId"
+  ]
+}

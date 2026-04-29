@@ -43,7 +43,7 @@ class TestSPDXPipeline:
 
         # Check AI-specific elements exist
         types = [e["type"] for e in spdx["@graph"]]
-        assert "AI_AIPackage" in types
+        assert "ai_AIPackage" in types
         assert "SpdxDocument" in types
         assert "Bom" in types
         assert "simplelicensing_LicenseExpression" in types
@@ -53,10 +53,10 @@ class TestSPDXPipeline:
         assert license_elem["simplelicensing_licenseExpression"] == "MIT"
 
         # Check AI package has correct fields
-        ai_pkg = next(e for e in spdx["@graph"] if e["type"] == "AI_AIPackage")
-        assert ai_pkg["AI-Model-Name"] == "TestModel"
-        assert ai_pkg["domain"] == "NLP"
-        assert ai_pkg["typeOfModel"] == "transformer"
+        ai_pkg = next(e for e in spdx["@graph"] if e["type"] == "ai_AIPackage")
+        assert ai_pkg["name"] == "TestModel"
+        assert ai_pkg["ai_domain"] == "NLP"
+        assert ai_pkg["ai_typeOfModel"] == "transformer"
         assert ai_pkg["suppliedBy"] == "TestOrg"
 
     def test_dataset_bom_to_spdx_roundtrip(self):
@@ -89,9 +89,9 @@ class TestSPDXPipeline:
         assert "dataset_DatasetPackage" in types
 
         ds_pkg = next(e for e in spdx["@graph"] if e["type"] == "dataset_DatasetPackage")
-        assert ds_pkg["dataset_name"] == "TestDataset"
-        assert ds_pkg["datasetSize"] == 50000
-        assert ds_pkg["intendedUse"] == "Research"
+        assert ds_pkg["name"] == "TestDataset"
+        assert ds_pkg["dataset_datasetSize"] == 50000
+        assert ds_pkg["dataset_intendedUse"] == "Research"
 
     def test_spdx_save_to_file(self):
         """SPDX output can be saved and re-read as valid JSON."""
@@ -285,10 +285,10 @@ class TestSPDXFieldMapping:
         }
 
         spdx = SPDXValidator(bom_type="ai").validate_and_convert(bom)
-        ai_pkg = next(e for e in spdx["@graph"] if e["type"] == "AI_AIPackage")
+        ai_pkg = next(e for e in spdx["@graph"] if e["type"] == "ai_AIPackage")
 
-        assert ai_pkg["AI-Model-Name"] == "TestModel"
-        assert ai_pkg["domain"] == "CV"
-        assert ai_pkg["informationAboutApplication"] == "classification"
-        assert ai_pkg["typeOfModel"] == "CNN"
-        assert ai_pkg["limitation"] == "bias in data"
+        assert ai_pkg["name"] == "TestModel"
+        assert ai_pkg["ai_domain"] == "CV"
+        assert ai_pkg["ai_informationAboutApplication"] == "classification"
+        assert ai_pkg["ai_typeOfModel"] == "CNN"
+        assert ai_pkg["ai_limitation"] == "bias in data"

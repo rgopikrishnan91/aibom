@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "AIkaBoOM subset of the official SPDX 3.0.1 JSON Schema (from shacl2code). Full schema at https://spdx.org/schema/3.0.1/spdx-json-schema.json",
+  "type": "object",
+  "properties": {
+    "@context": {
+      "const": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld"
+    }
+  },
+  "required": [
+    "@context"
+  ],
+  "$defs": {
+    "valid_types": {
+      "enum": [
+        "ai_AIPackage",
+        "dataset_DatasetPackage",
+        "CreationInfo",
+        "SpdxDocument",
+        "Bom",
+        "Relationship",
+        "Person",
+        "Organization",
+        "Agent",
+        "Tool",
+        "simplelicensing_LicenseExpression",
+        "ExternalIdentifier",
+        "DictionaryEntry",
+        "Hash",
+        "software_Package",
+        "software_File",
+        "software_Sbom"
+      ]
+    },
+    "ai_AIPackage_properties": {
+      "description": "Properties allowed on ai_AIPackage per the SPDX 3.0.1 schema",
+      "enum": [
+        "ai_autonomyType",
+        "ai_domain",
+        "ai_energyConsumption",
+        "ai_hyperparameter",
+        "ai_informationAboutApplication",
+        "ai_informationAboutTraining",
+        "ai_limitation",
+        "ai_metric",
+        "ai_metricDecisionThreshold",
+        "ai_modelDataPreprocessing",
+        "ai_modelExplainability",
+        "ai_safetyRiskAssessment",
+        "ai_standardCompliance",
+        "ai_typeOfModel",
+        "ai_useSensitivePersonalInformation"
+      ]
+    },
+    "dataset_DatasetPackage_properties": {
+      "description": "Properties allowed on dataset_DatasetPackage per the SPDX 3.0.1 schema",
+      "enum": [
+        "dataset_anonymizationMethodUsed",
+        "dataset_confidentialityLevel",
+        "dataset_dataCollectionProcess",
+        "dataset_dataPreprocessing",
+        "dataset_datasetAvailability",
+        "dataset_datasetNoise",
+        "dataset_datasetSize",
+        "dataset_datasetType",
+        "dataset_datasetUpdateMechanism",
+        "dataset_hasSensitivePersonalInformation",
+        "dataset_intendedUse",
+        "dataset_knownBias",
+        "dataset_sensor"
+      ]
+    },
+    "software_Package_properties": {
+      "enum": [
+        "software_downloadLocation",
+        "software_homePage",
+        "software_packageUrl",
+        "software_packageVersion",
+        "software_sourceInfo",
+        "software_primaryPurpose",
+        "software_additionalPurpose",
+        "software_copyrightText"
+      ]
+    },
+    "CreationInfo_required": [
+      "created",
+      "createdBy",
+      "specVersion"
+    ],
+    "Relationship_required": [
+      "from",
+      "relationshipType",
+      "to"
+    ],
+    "valid_relationship_types": {
+      "enum": [
+        "affects",
+        "amendedBy",
+        "ancestorOf",
+        "availableFrom",
+        "configures",
+        "contains",
+        "coordinatedBy",
+        "copiedTo",
+        "delegatedTo",
+        "dependsOn",
+        "descendantOf",
+        "describes",
+        "doesNotAffect",
+        "expandsTo",
+        "exploitCreatedBy",
+        "fixedBy",
+        "fixedIn",
+        "foundBy",
+        "generates",
+        "hasAddedFile",
+        "hasAssessmentFor",
+        "hasAssociatedVulnerability",
+        "hasConcludedLicense",
+        "hasDataFile",
+        "hasDeclaredLicense",
+        "hasDeletedFile",
+        "hasDependencyManifest",
+        "hasDistributionArtifact",
+        "hasDocumentation",
+        "hasDynamicLink",
+        "hasEvidence",
+        "hasExample",
+        "hasHost",
+        "hasInput",
+        "hasMetadata",
+        "hasOptionalComponent",
+        "hasOptionalDependency",
+        "hasOutput",
+        "hasPrerequisite",
+        "hasProvidedDependency",
+        "hasRequirement",
+        "hasSpecification",
+        "hasStaticLink",
+        "hasTest",
+        "hasTestCase",
+        "hasVariant",
+        "invokedBy",
+        "modifiedBy",
+        "other",
+        "packagedBy",
+        "patchedBy",
+        "publishedBy",
+        "reportedBy",
+        "republishedBy",
+        "serializedInArtifact",
+        "testedOn",
+        "trainedOn",
+        "underInvestigationFor",
+        "usesTool"
+      ]
+    },
+    "valid_profiles": {
+      "enum": [
+        "ai",
+        "build",
+        "core",
+        "dataset",
+        "expandedLicensing",
+        "extension",
+        "lite",
+        "security",
+        "simpleLicensing",
+        "software"
+      ]
+    },
+    "IRI": {
+      "type": "string",
+      "pattern": "^(?!_:).+:.+"
+    },
+    "BlankNode": {
+      "type": "string",
+      "pattern": "^_:.+"
+    }
+  }
+}

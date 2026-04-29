@@ -94,10 +94,10 @@ class TestMissingRequiredElements:
         assert any('Bom' in e for e in errs)
 
     def test_missing_ai_package(self):
-        spdx = _remove_elem(_make_valid_ai_spdx(), 'AI_AIPackage')
+        spdx = _remove_elem(_make_valid_ai_spdx(), 'ai_AIPackage')
         ok, errs = SPDXValidator(bom_type='ai').validate_spdx_bom(spdx)
         assert not ok
-        assert any('AI_AIPackage' in e for e in errs)
+        assert any('ai_AIPackage' in e for e in errs)
 
     def test_missing_dataset_package(self):
         spdx = _remove_elem(_make_valid_dataset_spdx(), 'dataset_DatasetPackage')
@@ -145,7 +145,7 @@ class TestCrossReferenceIntegrity:
 
     def test_broken_creation_info_ref(self):
         spdx = copy.deepcopy(_make_valid_ai_spdx())
-        pkg = _find_elem(spdx['@graph'], 'AI_AIPackage')
+        pkg = _find_elem(spdx['@graph'], 'ai_AIPackage')
         pkg['creationInfo'] = 'urn:spdx:NONEXISTENT'
         ok, errs = SPDXValidator(bom_type='ai').validate_spdx_bom(spdx)
         assert not ok
