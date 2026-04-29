@@ -2,7 +2,9 @@ from aikaboom.utils.recursive_bom import (
     build_linked_spdx_bundle,
     discover_recursive_targets,
     generate_recursive_boms,
+    linked_bundle_summary,
 )
+from aikaboom.utils.spdx_validator import validate_spdx_export
 
 
 def _clean_triplet(value):
@@ -252,10 +254,89 @@ def test_linked_spdx_bundle_links_parent_to_children_with_relationships():
     assert pkg_types.count("ai_AIPackage") >= 2  # parent + lineage child
     assert "dataset_DatasetPackage" in pkg_types
 
-    # _aikaboom_linked.recursive_edge_count counts only the new tree edges
-    recursive_edges = [
-        e for e in bundle["@graph"]
-        if e.get("type") == "Relationship"
-        and e.get("relationshipType") in {"trainedOn", "testedOn", "dependsOn"}
-    ]
-    assert bundle["_aikaboom_linked"]["recursive_edge_count"] == len(recursive_edges)
+    # The bundle is spec-clean (no AIkaBoOM-private keys at root).
+    assert set(bundle.keys()) == {"@context", "@graph"}
+
+    summary = linked_bundle_summary(bundle, rec)
+    assert summary["beta"] is True
+    assert summary["recursive_edge_count"] >= 2
+    assert summary["node_count"] == len(bundle["@graph"])
+
+
+def test_linked_spdx_bundle_passes_lightweight_validation():
+    parent = {
+        "model_id": "parent-model",
+        "repo_id": "org/parent",
+        "direct_fields": {"license": "MIT"},
+        "rag_fields": {
+            "model_name": "Parent",
+            "trainedOnDatasets": _clean_triplet("squad"),
+            "modelLineage": _clean_triplet("meta-llama/Llama-3"),
+        },
+    }
+    rec = generate_recursive_boms(parent, bom_type="ai", max_depth=1)
+    bundle = build_linked_spdx_bundle(parent, rec, bom_type="ai")
+
+    out = validate_spdx_export(bundle, strict=False, bom_type="ai")
+    assert out["valid"], f"Linked bundle failed lightweight validation: {out['errors']}"
+    assert out["validator"] == "jsonschema"
+    assert out["errors"] == []
+
+
+def test_linked_spdx_bundle_passes_strict_validation():
+    parent = {
+        "model_id": "parent-model",
+        "repo_id": "org/parent",
+        "direct_fields": {"license": "MIT"},
+        "rag_fields": {
+            "model_name": "Parent",
+            "trainedOnDatasets": _clean_triplet("squad"),
+            "modelLineage": _clean_triplet("meta-llama/Llama-3"),
+        },
+    }
+    rec = generate_recursive_boms(parent, bom_type="ai", max_depth=1)
+    bundle = build_linked_spdx_bundle(parent, rec, bom_type="ai")
+
+    out = validate_spdx_export(bundle, strict=True, bom_type="ai")
+    assert out["valid"], f"Linked bundle failed strict validation: {out['errors']}"
+    assert out["validator"] == "jsonschema+shacl"
+
+
+def test_linked_spdx_bundle_validates_after_multi_level_walk():
+    """A multi-level enriched walk must still produce a spec-conformant bundle."""
+    grand = {
+        "meta-llama/Llama-3": {
+            "model_id": "L3", "repo_id": "meta-llama/Llama-3",
+            "rag_fields": {
+                "trainedOnDatasets": _clean_triplet("the-pile"),
+                "modelLineage": _clean_triplet("meta-llama/Llama-2"),
+            },
+        },
+        "meta-llama/Llama-2": {
+            "model_id": "L2", "repo_id": "meta-llama/Llama-2",
+            "rag_fields": {"trainedOnDatasets": _clean_triplet("c4")},
+        },
+    }
+    parent = {
+        "model_id": "parent", "repo_id": "org/parent",
+        "direct_fields": {"license": "MIT"},
+        "rag_fields": {
+            "model_name": "Parent",
+            "trainedOnDatasets": _clean_triplet("squad"),
+            "modelLineage": _clean_triplet("meta-llama/Llama-3"),
+        },
+    }
+    rec = generate_recursive_boms(
+        parent, bom_type="ai", max_depth=4,
+        enrich_fn=lambda t: grand.get(t["target"]),
+    )
+    bundle = build_linked_spdx_bundle(parent, rec, bom_type="ai")
+
+    light = validate_spdx_export(bundle, strict=False, bom_type="ai")
+    assert light["valid"], f"3-deep bundle lightweight failed: {light['errors']}"
+    strict = validate_spdx_export(bundle, strict=True, bom_type="ai")
+    assert strict["valid"], f"3-deep bundle strict failed: {strict['errors']}"
+
+    summary = linked_bundle_summary(bundle, rec)
+    assert summary["deepest_level_reached"] == 3
+    assert summary["recursive_edge_count"] >= 5

@@ -6,6 +6,7 @@ from aikaboom.utils.recursive_bom import (
     discover_recursive_targets,
     generate_recursive_boms,
     build_linked_spdx_bundle,
+    linked_bundle_summary,
 )
 
 # Optional dependencies that may legitimately be missing in slim install
@@ -78,4 +79,5 @@ __all__ = [
     "discover_recursive_targets",
     "generate_recursive_boms",
     "build_linked_spdx_bundle",
+    "linked_bundle_summary",
 ]

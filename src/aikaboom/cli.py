@@ -222,7 +222,9 @@ def cmd_generate(args):
         from aikaboom.utils.recursive_bom import (
             build_linked_spdx_bundle,
             generate_recursive_boms,
+            linked_bundle_summary,
         )
+        from aikaboom.utils.spdx_validator import validate_spdx_export
 
         print(
             "[recursive-bom beta] Walking the dependency tree. Each discovered "
@@ -253,11 +255,27 @@ def cmd_generate(args):
             linked = build_linked_spdx_bundle(result, recursive_result, bom_type=bom_type)
             with open(args.linked_bom_output, "w", encoding="utf-8") as f:
                 json.dump(linked, f, indent=2, ensure_ascii=False)
+            summary = linked_bundle_summary(linked, recursive_result)
             print(
                 f"Linked SPDX BOM bundle saved to {args.linked_bom_output} (beta) — "
-                f"{linked['_aikaboom_linked']['recursive_edge_count']} dependency "
-                f"edge(s) across {linked['_aikaboom_linked']['node_count']} elements."
+                f"{summary['recursive_edge_count']} dependency edge(s) across "
+                f"{summary['node_count']} elements."
             )
+            if args.validate_spdx:
+                v = validate_spdx_export(
+                    linked, strict=args.strict_spdx_validation, bom_type=bom_type,
+                )
+                if v["valid"]:
+                    beta = " beta" if v.get("beta") else ""
+                    print(f"Linked SPDX bundle validation passed ({v['validator']}{beta})")
+                else:
+                    beta = " beta" if v.get("beta") else ""
+                    print(
+                        f"Linked SPDX bundle validation failed ({v['validator']}{beta}) "
+                        f"with {len(v['errors'])} error(s)"
+                    )
+                    for error in v["errors"][:10]:
+                        print(f"  - {error}")
 
 
 def cmd_serve(args):

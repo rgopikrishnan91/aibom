@@ -750,6 +750,7 @@ def process():
                 from aikaboom.utils.recursive_bom import (
                     build_linked_spdx_bundle,
                     generate_recursive_boms,
+                    linked_bundle_summary,
                 )
 
                 recursive_output = generate_recursive_boms(
@@ -774,7 +775,14 @@ def process():
                     linked_path = os.path.join(app.config['UPLOAD_FOLDER'], linked_filename)
                     with open(linked_path, 'w', encoding='utf-8') as f:
                         json.dump(linked_bundle, f, indent=2, ensure_ascii=False)
-                    response_data['linked_bom'] = linked_bundle.get('_aikaboom_linked', {})
+                    summary = linked_bundle_summary(linked_bundle, recursive_output)
+                    if validate_spdx:
+                        summary['validation'] = validate_spdx_export(
+                            linked_bundle,
+                            strict=strict_spdx_validation,
+                            bom_type=bom_type,
+                        )
+                    response_data['linked_bom'] = summary
                     response_data['linked_bom_download_url'] = f'/download/{linked_filename}'
                 except Exception as linked_exc:
                     response_data['linked_bom'] = {'error': str(linked_exc), 'beta': True}

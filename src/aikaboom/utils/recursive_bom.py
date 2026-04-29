@@ -362,17 +362,22 @@ def build_linked_spdx_bundle(
     recursive_result: Dict[str, Any],
     bom_type: str = "ai",
 ) -> Dict[str, Any]:
-    """Combine the parent BOM and all recursive children into a single SPDX
-    JSON-LD document where every parent→child relationship is an SPDX
-    Relationship element pointing at the child's spdxId.
+    """Combine the parent BOM and all recursive children into a single
+    spec-clean SPDX 3.0.1 JSON-LD document.
 
-    The resulting document has one ``@context`` and one ``@graph`` containing:
+    The returned dict has only ``@context`` and ``@graph`` — the SPDX 3.0.1
+    JSON Schema rejects unknown root keys, so AIkaBoOM-private metadata is
+    available separately via :func:`linked_bundle_summary`.
+
+    The merged ``@graph`` contains:
       * the parent SPDX elements (CreationInfo, Person, Organization,
         SpdxDocument, Bom, AIPackage/DatasetPackage, license),
       * every child element from each recursive node, and
-      * a Relationship element per non-duplicate edge in the dependency
+      * a Relationship element per parent→child edge in the dependency
         tree, using the SPDX 3.0.1 vocab (``trainedOn``, ``testedOn``,
-        ``dependsOn``).
+        ``dependsOn``). Stub packages auto-emitted by the parent SPDX
+        validator are suppressed when a recursive child covers the same
+        target so the merged graph is properly de-duplicated.
     """
     from aikaboom.utils.spdx_validator import SPDXValidator
 
@@ -415,6 +420,10 @@ def build_linked_spdx_bundle(
 
     relationships: List[Dict[str, Any]] = []
 
+    parent_creation_id = _creation_info_id(parent_spdx)
+    parent_person_id = _first_id_of_type(parent_spdx, "Person")
+    parent_org_id = _first_id_of_type(parent_spdx, "Organization")
+
     for node in recursive_result.get("generated", []):
         spdx_doc = node.get("spdx_data")
         if not isinstance(spdx_doc, dict):
@@ -424,11 +433,23 @@ def build_linked_spdx_bundle(
             continue
         root_id_by_target[_visit_key(node["bom_type"], node["target"])] = child_root
 
-        # Append child elements (skip duplicate CreationInfo / Person /
-        # Organization that the parent already contributed; rebind their
-        # creationInfo references to the parent's CreationInfo).
-        parent_creation_id = _creation_info_id(parent_spdx)
+        # The child SPDX has its own CreationInfo / Person / Organization
+        # / SpdxDocument / Bom which we don't want to duplicate. Skip them
+        # but rebind every reference to those IDs in the rest of the
+        # child's graph onto the parent's equivalents so the merged graph
+        # stays referentially intact (otherwise SHACL flags the package's
+        # originatedBy / suppliedBy as pointing at undeclared resources).
+        rebind = {}
         child_creation_id = _creation_info_id(spdx_doc)
+        if parent_creation_id and child_creation_id and child_creation_id != parent_creation_id:
+            rebind[child_creation_id] = parent_creation_id
+        child_person_id = _first_id_of_type(spdx_doc, "Person")
+        if parent_person_id and child_person_id and child_person_id != parent_person_id:
+            rebind[child_person_id] = parent_person_id
+        child_org_id = _first_id_of_type(spdx_doc, "Organization")
+        if parent_org_id and child_org_id and child_org_id != parent_org_id:
+            rebind[child_org_id] = parent_org_id
+
         for elem in spdx_doc.get("@graph", []):
             t = elem.get("type")
             if t in {"CreationInfo", "Person", "Organization", "SpdxDocument", "Bom"}:
@@ -437,18 +458,9 @@ def build_linked_spdx_bundle(
             if sid in seen_node_ids:
                 continue
             seen_node_ids.add(sid)
-            new_elem = dict(elem)
-            ci = new_elem.get("creationInfo")
-            if (
-                parent_creation_id
-                and child_creation_id
-                and ci == child_creation_id
-            ):
-                new_elem["creationInfo"] = parent_creation_id
-            graph.append(new_elem)
+            graph.append(_rebind_refs(elem, rebind))
 
     # Emit relationship objects for each parent->child edge.
-    parent_creation_id = _creation_info_id(parent_spdx)
     for node in recursive_result.get("generated", []):
         from_key = _visit_key("ai", node.get("parent", ""))
         from_id = root_id_by_target.get(from_key) or parent_root
@@ -476,13 +488,35 @@ def build_linked_spdx_bundle(
     return {
         "@context": parent_spdx.get("@context"),
         "@graph": graph + relationships,
-        "_aikaboom_linked": {
-            "beta": True,
-            "node_count": len(graph) + len(relationships),
-            "recursive_edge_count": len(relationships),
-            "deepest_level_reached": recursive_result.get("deepest_level_reached", 0),
-            "tree_exhausted": recursive_result.get("tree_exhausted", True),
-        },
+    }
+
+
+def linked_bundle_summary(
+    linked_bundle: Dict[str, Any],
+    recursive_result: Dict[str, Any],
+) -> Dict[str, Any]:
+    """AIkaBoOM-private sidecar metadata for a linked SPDX bundle.
+
+    Kept out of the SPDX document itself because the official SPDX 3.0.1
+    JSON Schema rejects unknown root keys. Use this for UI summaries,
+    download manifests, and tests.
+    """
+    graph = linked_bundle.get("@graph", []) or []
+    recursive_edges = [
+        e for e in graph
+        if isinstance(e, dict)
+        and e.get("type") == "Relationship"
+        and e.get("relationshipType") in {"trainedOn", "testedOn", "dependsOn"}
+        and isinstance(e.get("spdxId"), str)
+        and e.get("spdxId", "").startswith("urn:spdx:Relationship-")
+        and re.search(r"-d\d+$", e.get("spdxId", "")) is not None
+    ]
+    return {
+        "beta": True,
+        "node_count": len(graph),
+        "recursive_edge_count": len(recursive_edges),
+        "deepest_level_reached": recursive_result.get("deepest_level_reached", 0),
+        "tree_exhausted": recursive_result.get("tree_exhausted", True),
     }
 
 
@@ -498,3 +532,27 @@ def _creation_info_id(spdx_doc: Dict[str, Any]) -> Optional[str]:
         if elem.get("type") == "CreationInfo":
             return elem.get("spdxId") or elem.get("@id")
     return None
+
+
+def _first_id_of_type(spdx_doc: Dict[str, Any], type_name: str) -> Optional[str]:
+    for elem in spdx_doc.get("@graph", []):
+        if elem.get("type") == type_name:
+            return elem.get("spdxId") or elem.get("@id")
+    return None
+
+
+def _rebind_refs(elem: Dict[str, Any], rebind: Dict[str, str]) -> Dict[str, Any]:
+    """Return a copy of ``elem`` with every string/list-of-strings value
+    rewritten through ``rebind`` (other types are left alone).
+    """
+    if not rebind:
+        return dict(elem)
+    out: Dict[str, Any] = {}
+    for k, v in elem.items():
+        if isinstance(v, str) and v in rebind:
+            out[k] = rebind[v]
+        elif isinstance(v, list):
+            out[k] = [rebind.get(item, item) if isinstance(item, str) else item for item in v]
+        else:
+            out[k] = v
+    return out

@@ -174,3 +174,6 @@ class TestFlaskApp:
         assert data.get("linked_bom_download_url", "").endswith(".linked.spdx.json")
         assert data["linked_bom"]["beta"] is True
         assert data["linked_bom"]["recursive_edge_count"] >= 1
+        # The sidecar must include validation status when validate_spdx is on.
+        assert data["linked_bom"]["validation"]["valid"] is True
+        assert data["linked_bom"]["validation"]["validator"] == "jsonschema"
