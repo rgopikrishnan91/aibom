@@ -1,0 +1,141 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:cc7b265a-7272-4b69-88d6-645b30abbb40",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-04-30T20:36:11+00:00",
+    "tools": {
+      "components": [
+        {
+          "bom-ref": "pkg:generic/owasp-genai/owasp-aibom-generator@1.0.2",
+          "type": "application",
+          "name": "owasp-aibom-generator",
+          "version": "1.0.2",
+          "manufacturer": {
+            "name": "OWASP GenAI Security Project"
+          }
+        }
+      ]
+    },
+    "component": {
+      "bom-ref": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:11@1777581371",
+      "type": "application",
+      "name": "job-2026-04-30-16:36:11",
+      "description": "Generating SBOM for Bingsu/adetailer",
+      "version": "1777581371",
+      "purl": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:11@1777581371",
+      "manufacturer": {
+        "name": "OWASP AIBOM Generator"
+      },
+      "supplier": {
+        "name": "OWASP AIBOM Generator"
+      }
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "pkg:huggingface/Bingsu/adetailer@53cc19de",
+      "type": "machine-learning-model",
+      "group": "Bingsu",
+      "name": "adetailer",
+      "version": "53cc19de",
+      "purl": "pkg:huggingface/Bingsu/adetailer@53cc19de",
+      "description": "No description available",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "modelCard": {
+        "modelParameters": {
+          "task": "text-generation",
+          "modelArchitecture": "transformer",
+          "datasets": [
+            {
+              "type": "dataset",
+              "name": "wider_face",
+              "contents": {
+                "url": "https://huggingface.co/datasets/wider_face"
+              }
+            },
+            {
+              "type": "dataset",
+              "name": "skytnt/anime-segmentation",
+              "contents": {
+                "url": "https://huggingface.co/datasets/skytnt/anime-segmentation"
+              }
+            }
+          ],
+          "inputs": [
+            {
+              "format": "string"
+            }
+          ],
+          "outputs": [
+            {
+              "format": "string"
+            }
+          ]
+        },
+        "properties": [
+          {
+            "name": "serialNumber",
+            "value": "urn:uuid:Bingsu-adetailer"
+          }
+        ]
+      },
+      "manufacturer": {
+        "name": "Bingsu",
+        "url": [
+          "https://huggingface.co/Bingsu"
+        ]
+      },
+      "supplier": {
+        "name": "Bingsu"
+      },
+      "authors": [
+        {
+          "name": "Bingsu"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://huggingface.co/Bingsu/adetailer",
+          "comment": "Model repository"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/Bingsu/adetailer/tree/main",
+          "comment": "Model files"
+        },
+        {
+          "type": "vcs",
+          "url": "https://huggingface.co/Bingsu/adetailer/commit/53cc19de382014514d9d4038601d261a7faa9b7b",
+          "comment": "Specific commit"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/wider_face",
+          "comment": "Training dataset: wider_face"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/skytnt/anime-segmentation",
+          "comment": "Training dataset: skytnt/anime-segmentation"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg:generic/Bingsu/adetailer@53cc19de",
+      "dependsOn": [
+        "pkg:huggingface/Bingsu/adetailer@53cc19de"
+      ]
+    }
+  ]
+}

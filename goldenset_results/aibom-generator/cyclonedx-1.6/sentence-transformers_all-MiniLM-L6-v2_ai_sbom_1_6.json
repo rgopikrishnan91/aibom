@@ -1,0 +1,392 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:d34f5c8f-08ee-44de-b501-05349bfa8822",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-04-30T20:35:52+00:00",
+    "tools": {
+      "components": [
+        {
+          "bom-ref": "pkg:generic/owasp-genai/owasp-aibom-generator@1.0.2",
+          "type": "application",
+          "name": "owasp-aibom-generator",
+          "version": "1.0.2",
+          "manufacturer": {
+            "name": "OWASP GenAI Security Project"
+          }
+        }
+      ]
+    },
+    "component": {
+      "bom-ref": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:35:52@1777581352",
+      "type": "application",
+      "name": "job-2026-04-30-16:35:52",
+      "description": "Generating SBOM for sentence-transformers/all-MiniLM-L6-v2",
+      "version": "1777581352",
+      "purl": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:35:52@1777581352",
+      "manufacturer": {
+        "name": "OWASP AIBOM Generator"
+      },
+      "supplier": {
+        "name": "OWASP AIBOM Generator"
+      }
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "pkg:huggingface/sentence-transformers/all-MiniLM-L6-v2@c9745ed1",
+      "type": "machine-learning-model",
+      "group": "sentence-transformers",
+      "name": "all-MiniLM-L6-v2",
+      "version": "c9745ed1",
+      "purl": "pkg:huggingface/sentence-transformers/all-MiniLM-L6-v2@c9745ed1",
+      "description": "No description available",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "modelCard": {
+        "modelParameters": {
+          "task": "sentence-similarity",
+          "modelArchitecture": "bert",
+          "datasets": [
+            {
+              "type": "dataset",
+              "name": "s2orc",
+              "contents": {
+                "url": "https://huggingface.co/datasets/s2orc"
+              }
+            },
+            {
+              "type": "dataset",
+              "name": "flax-sentence-embeddings/stackexchange_xml",
+              "contents": {
+                "url": "https://huggingface.co/datasets/flax-sentence-embeddings/stackexchange_xml"
+              }
+            },
+            {
+              "type": "dataset",
+              "name": "ms_marco",
+              "contents": {
+                "url": "https://huggingface.co/datasets/ms_marco"
+              }
+            },
+            {
+              "type": "dataset",
+              "name": "gooaq",
+              "contents": {
+                "url": "https://huggingface.co/datasets/gooaq"
+              }
+            },
+            {
+              "type": "dataset",
+              "name": "yahoo_answers_topics",
+              "contents": {
+                "url": "https://huggingface.co/datasets/yahoo_answers_topics"
+              }
+            },
+            {
+              "type": "dataset",
+              "name": "code_search_net",
+              "contents": {
+                "url": "https://huggingface.co/datasets/code_search_net"
+              }
+            },
+            {
+              "type": "dataset",
+              "name": "search_qa",
+              "contents": {
+                "url": "https://huggingface.co/datasets/search_qa"
+              }
+            },
+            {
+              "type": "dataset",
+              "name": "eli5",
+              "contents": {
+                "url": "https://huggingface.co/datasets/eli5"
+              }
+            },
+            {
+              "type": "dataset",
+              "name": "snli",
+              "contents": {
+                "url": "https://huggingface.co/datasets/snli"
+              }
+            },
+            {
+              "type": "dataset",
+              "name": "multi_nli",
+              "contents": {
+                "url": "https://huggingface.co/datasets/multi_nli"
+              }
+            },
+            {
+              "type": "dataset",
+              "name": "wikihow",
+              "contents": {
+                "url": "https://huggingface.co/datasets/wikihow"
+              }
+            },
+            {
+              "type": "dataset",
+              "name": "natural_questions",
+              "contents": {
+                "url": "https://huggingface.co/datasets/natural_questions"
+              }
+            },
+            {
+              "type": "dataset",
+              "name": "trivia_qa",
+              "contents": {
+                "url": "https://huggingface.co/datasets/trivia_qa"
+              }
+            },
+            {
+              "type": "dataset",
+              "name": "embedding-data/sentence-compression",
+              "contents": {
+                "url": "https://huggingface.co/datasets/embedding-data/sentence-compression"
+              }
+            },
+            {
+              "type": "dataset",
+              "name": "embedding-data/flickr30k-captions",
+              "contents": {
+                "url": "https://huggingface.co/datasets/embedding-data/flickr30k-captions"
+              }
+            },
+            {
+              "type": "dataset",
+              "name": "embedding-data/altlex",
+              "contents": {
+                "url": "https://huggingface.co/datasets/embedding-data/altlex"
+              }
+            },
+            {
+              "type": "dataset",
+              "name": "embedding-data/simple-wiki",
+              "contents": {
+                "url": "https://huggingface.co/datasets/embedding-data/simple-wiki"
+              }
+            },
+            {
+              "type": "dataset",
+              "name": "embedding-data/QQP",
+              "contents": {
+                "url": "https://huggingface.co/datasets/embedding-data/QQP"
+              }
+            },
+            {
+              "type": "dataset",
+              "name": "embedding-data/SPECTER",
+              "contents": {
+                "url": "https://huggingface.co/datasets/embedding-data/SPECTER"
+              }
+            },
+            {
+              "type": "dataset",
+              "name": "embedding-data/PAQ_pairs",
+              "contents": {
+                "url": "https://huggingface.co/datasets/embedding-data/PAQ_pairs"
+              }
+            },
+            {
+              "type": "dataset",
+              "name": "embedding-data/WikiAnswers",
+              "contents": {
+                "url": "https://huggingface.co/datasets/embedding-data/WikiAnswers"
+              }
+            }
+          ]
+        },
+        "properties": [
+          {
+            "name": "genai:aibom:modelcard:vocabSize",
+            "value": "30522"
+          },
+          {
+            "name": "genai:aibom:modelcard:tokenizerClass",
+            "value": "BertTokenizer"
+          },
+          {
+            "name": "serialNumber",
+            "value": "urn:uuid:sentence-transformers-all-MiniLM-L6-v2"
+          }
+        ]
+      },
+      "manufacturer": {
+        "name": "sentence-transformers",
+        "url": [
+          "https://huggingface.co/sentence-transformers"
+        ]
+      },
+      "supplier": {
+        "name": "sentence-transformers"
+      },
+      "authors": [
+        {
+          "name": "sentence-transformers"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2",
+          "comment": "Model repository"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/tree/main",
+          "comment": "Model files"
+        },
+        {
+          "type": "vcs",
+          "url": "https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/commit/c9745ed1d9f207416be6d2e6f8de32d1f16199bf",
+          "comment": "Specific commit"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/s2orc",
+          "comment": "Training dataset: s2orc"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/flax-sentence-embeddings/stackexchange_xml",
+          "comment": "Training dataset: flax-sentence-embeddings/stackexchange_xml"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/ms_marco",
+          "comment": "Training dataset: ms_marco"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/gooaq",
+          "comment": "Training dataset: gooaq"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/yahoo_answers_topics",
+          "comment": "Training dataset: yahoo_answers_topics"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/code_search_net",
+          "comment": "Training dataset: code_search_net"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/search_qa",
+          "comment": "Training dataset: search_qa"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/eli5",
+          "comment": "Training dataset: eli5"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/snli",
+          "comment": "Training dataset: snli"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/multi_nli",
+          "comment": "Training dataset: multi_nli"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/wikihow",
+          "comment": "Training dataset: wikihow"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/natural_questions",
+          "comment": "Training dataset: natural_questions"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/trivia_qa",
+          "comment": "Training dataset: trivia_qa"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/embedding-data/sentence-compression",
+          "comment": "Training dataset: embedding-data/sentence-compression"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/embedding-data/flickr30k-captions",
+          "comment": "Training dataset: embedding-data/flickr30k-captions"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/embedding-data/altlex",
+          "comment": "Training dataset: embedding-data/altlex"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/embedding-data/simple-wiki",
+          "comment": "Training dataset: embedding-data/simple-wiki"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/embedding-data/QQP",
+          "comment": "Training dataset: embedding-data/QQP"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/embedding-data/SPECTER",
+          "comment": "Training dataset: embedding-data/SPECTER"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/embedding-data/PAQ_pairs",
+          "comment": "Training dataset: embedding-data/PAQ_pairs"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/embedding-data/WikiAnswers",
+          "comment": "Training dataset: embedding-data/WikiAnswers"
+        },
+        {
+          "type": "documentation",
+          "url": "https://arxiv.org/abs/1904.06472",
+          "comment": "ArXiv Paper"
+        },
+        {
+          "type": "documentation",
+          "url": "https://arxiv.org/abs/2102.07033",
+          "comment": "ArXiv Paper"
+        },
+        {
+          "type": "documentation",
+          "url": "https://arxiv.org/abs/2104.08727",
+          "comment": "ArXiv Paper"
+        },
+        {
+          "type": "documentation",
+          "url": "https://arxiv.org/abs/1704.05179",
+          "comment": "ArXiv Paper"
+        },
+        {
+          "type": "documentation",
+          "url": "https://arxiv.org/abs/1810.09305",
+          "comment": "ArXiv Paper"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg:generic/sentence-transformers/all-MiniLM-L6-v2@c9745ed1",
+      "dependsOn": [
+        "pkg:huggingface/sentence-transformers/all-MiniLM-L6-v2@c9745ed1"
+      ]
+    }
+  ]
+}

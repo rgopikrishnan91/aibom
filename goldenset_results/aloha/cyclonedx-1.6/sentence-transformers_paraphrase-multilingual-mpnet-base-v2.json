@@ -1,0 +1,114 @@
+{
+    "bomFormat": "CycloneDX",
+    "specVersion": "1.6",
+    "serialNumber": "urn:uuid:5a2e68a0-af49-40da-b523-e4a3a0a4c39b",
+    "version": 1,
+    "metadata": {
+        "timestamp": "2026-04-30T20:36:29.128644+00:00",
+        "component": {
+            "type": "machine-learning-model",
+            "bom-ref": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2-a99ea92e-86cf-5a14-82e1-38fd4ba87b3f",
+            "name": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
+            "externalReferences": [
+                {
+                    "url": "https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
+                    "type": "documentation"
+                }
+            ],
+            "modelCard": {
+                "modelParameters": {
+                    "task": "sentence-similarity",
+                    "architectureFamily": "xlm-roberta",
+                    "modelArchitecture": "XLMRobertaModel"
+                },
+                "properties": [
+                    {
+                        "name": "library_name",
+                        "value": "sentence-transformers"
+                    }
+                ]
+            },
+            "authors": [
+                {
+                    "name": "sentence-transformers"
+                }
+            ],
+            "licenses": [
+                {
+                    "license": {
+                        "id": "Apache-2.0",
+                        "url": "https://spdx.org/licenses/Apache-2.0.html"
+                    }
+                }
+            ],
+            "tags": [
+                "sentence-transformers",
+                "pytorch",
+                "tf",
+                "onnx",
+                "safetensors",
+                "openvino",
+                "xlm-roberta",
+                "feature-extraction",
+                "sentence-similarity",
+                "transformers",
+                "text-embeddings-inference",
+                "multilingual",
+                "ar",
+                "bg",
+                "ca",
+                "cs",
+                "da",
+                "de",
+                "el",
+                "en",
+                "es",
+                "et",
+                "fa",
+                "fi",
+                "fr",
+                "gl",
+                "gu",
+                "he",
+                "hi",
+                "hr",
+                "hu",
+                "hy",
+                "id",
+                "it",
+                "ja",
+                "ka",
+                "ko",
+                "ku",
+                "lt",
+                "lv",
+                "mk",
+                "mn",
+                "mr",
+                "ms",
+                "my",
+                "nb",
+                "nl",
+                "pl",
+                "pt",
+                "ro",
+                "ru",
+                "sk",
+                "sl",
+                "sq",
+                "sr",
+                "sv",
+                "th",
+                "tr",
+                "uk",
+                "ur",
+                "vi",
+                "arxiv:1908.10084",
+                "license:apache-2.0",
+                "eval-results",
+                "endpoints_compatible",
+                "region:us"
+            ]
+        }
+    }
+}

@@ -1,0 +1,108 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:4e82c4b9-b0c6-4951-87d4-ba1bfaed4768",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-04-30T20:36:26+00:00",
+    "tools": {
+      "components": [
+        {
+          "bom-ref": "pkg:generic/owasp-genai/owasp-aibom-generator@1.0.2",
+          "type": "application",
+          "name": "owasp-aibom-generator",
+          "version": "1.0.2",
+          "manufacturer": {
+            "name": "OWASP GenAI Security Project"
+          }
+        }
+      ]
+    },
+    "component": {
+      "bom-ref": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:26@1777581386",
+      "type": "application",
+      "name": "job-2026-04-30-16:36:26",
+      "description": "Generating SBOM for Kijai/WanVideo_comfy",
+      "version": "1777581386",
+      "purl": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:26@1777581386",
+      "manufacturer": {
+        "name": "OWASP AIBOM Generator"
+      },
+      "supplier": {
+        "name": "OWASP AIBOM Generator"
+      }
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "pkg:huggingface/Kijai/WanVideo_comfy@87badb1f",
+      "type": "machine-learning-model",
+      "group": "Kijai",
+      "name": "WanVideo_comfy",
+      "version": "87badb1f",
+      "purl": "pkg:huggingface/Kijai/WanVideo_comfy@87badb1f",
+      "description": "No description available",
+      "modelCard": {
+        "modelParameters": {
+          "task": "text-generation",
+          "modelArchitecture": "transformer",
+          "inputs": [
+            {
+              "format": "string"
+            }
+          ],
+          "outputs": [
+            {
+              "format": "string"
+            }
+          ]
+        },
+        "properties": [
+          {
+            "name": "serialNumber",
+            "value": "urn:uuid:Kijai-WanVideo_comfy"
+          }
+        ]
+      },
+      "manufacturer": {
+        "name": "Kijai",
+        "url": [
+          "https://huggingface.co/Kijai"
+        ]
+      },
+      "supplier": {
+        "name": "Kijai"
+      },
+      "authors": [
+        {
+          "name": "Kijai"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://huggingface.co/Kijai/WanVideo_comfy",
+          "comment": "Model repository"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/Kijai/WanVideo_comfy/tree/main",
+          "comment": "Model files"
+        },
+        {
+          "type": "vcs",
+          "url": "https://huggingface.co/Kijai/WanVideo_comfy/commit/87badb1f794c15daf51db60838a433ca08bb218f",
+          "comment": "Specific commit"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg:generic/Kijai/WanVideo_comfy@87badb1f",
+      "dependsOn": [
+        "pkg:huggingface/Kijai/WanVideo_comfy@87badb1f"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+    "bomFormat": "CycloneDX",
+    "specVersion": "1.6",
+    "serialNumber": "urn:uuid:e6e5d0d1-3a20-468b-a7ba-7ca36564410f",
+    "version": 1,
+    "metadata": {
+        "timestamp": "2026-04-30T20:36:20.278780+00:00",
+        "component": {
+            "type": "machine-learning-model",
+            "bom-ref": "omni-research/Tarsier2-Recap-7b-f4957ec9-2e75-5611-8f29-d6ef504a5c38",
+            "name": "omni-research/Tarsier2-Recap-7b",
+            "externalReferences": [
+                {
+                    "url": "https://huggingface.co/omni-research/Tarsier2-Recap-7b",
+                    "type": "documentation"
+                }
+            ],
+            "authors": [
+                {
+                    "name": "omni-research"
+                }
+            ],
+            "licenses": [
+                {
+                    "license": {
+                        "id": "Apache-2.0",
+                        "url": "https://spdx.org/licenses/Apache-2.0.html"
+                    }
+                }
+            ],
+            "tags": [
+                "safetensors",
+                "video LLM",
+                "arxiv:2501.07888",
+                "license:apache-2.0",
+                "region:us"
+            ]
+        }
+    }
+}

@@ -1,0 +1,114 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:a84cd85f-8636-4f72-9bac-925a73a07faa",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-04-30T20:36:28+00:00",
+    "tools": {
+      "components": [
+        {
+          "bom-ref": "pkg:generic/owasp-genai/owasp-aibom-generator@1.0.2",
+          "type": "application",
+          "name": "owasp-aibom-generator",
+          "version": "1.0.2",
+          "manufacturer": {
+            "name": "OWASP GenAI Security Project"
+          }
+        }
+      ]
+    },
+    "component": {
+      "bom-ref": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:28@1777581388",
+      "type": "application",
+      "name": "job-2026-04-30-16:36:28",
+      "description": "Generating SBOM for sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
+      "version": "1777581388",
+      "purl": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:28@1777581388",
+      "manufacturer": {
+        "name": "OWASP AIBOM Generator"
+      },
+      "supplier": {
+        "name": "OWASP AIBOM Generator"
+      }
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "pkg:huggingface/sentence-transformers/paraphrase-multilingual-mpnet-base-v2@4328cf26",
+      "type": "machine-learning-model",
+      "group": "sentence-transformers",
+      "name": "paraphrase-multilingual-mpnet-base-v2",
+      "version": "4328cf26",
+      "purl": "pkg:huggingface/sentence-transformers/paraphrase-multilingual-mpnet-base-v2@4328cf26",
+      "description": "No description available",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "modelCard": {
+        "modelParameters": {
+          "task": "sentence-similarity",
+          "modelArchitecture": "xlm-roberta"
+        },
+        "properties": [
+          {
+            "name": "genai:aibom:modelcard:vocabSize",
+            "value": "250002"
+          },
+          {
+            "name": "serialNumber",
+            "value": "urn:uuid:sentence-transformers-paraphrase-multilingual-mpnet-base-v2"
+          }
+        ]
+      },
+      "manufacturer": {
+        "name": "sentence-transformers",
+        "url": [
+          "https://huggingface.co/sentence-transformers"
+        ]
+      },
+      "supplier": {
+        "name": "sentence-transformers"
+      },
+      "authors": [
+        {
+          "name": "sentence-transformers"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
+          "comment": "Model repository"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2/tree/main",
+          "comment": "Model files"
+        },
+        {
+          "type": "vcs",
+          "url": "https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2/commit/4328cf26390c98c5e3c738b4460a05b95f4911f5",
+          "comment": "Specific commit"
+        },
+        {
+          "type": "documentation",
+          "url": "https://arxiv.org/abs/1908.10084",
+          "comment": "ArXiv Paper"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg:generic/sentence-transformers/paraphrase-multilingual-mpnet-base-v2@4328cf26",
+      "dependsOn": [
+        "pkg:huggingface/sentence-transformers/paraphrase-multilingual-mpnet-base-v2@4328cf26"
+      ]
+    }
+  ]
+}

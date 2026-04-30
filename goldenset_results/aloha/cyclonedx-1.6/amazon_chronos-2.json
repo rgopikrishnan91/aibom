@@ -1,0 +1,433 @@
+{
+    "bomFormat": "CycloneDX",
+    "specVersion": "1.6",
+    "serialNumber": "urn:uuid:b40aaf49-3ec2-4db0-9807-663bb7e28961",
+    "version": 1,
+    "metadata": {
+        "timestamp": "2026-04-30T20:36:15.485010+00:00",
+        "component": {
+            "type": "machine-learning-model",
+            "bom-ref": "amazon/chronos-2-8d293a1c-5f4f-582d-9759-9a91c799b765",
+            "name": "amazon/chronos-2",
+            "externalReferences": [
+                {
+                    "url": "https://huggingface.co/amazon/chronos-2",
+                    "type": "documentation"
+                }
+            ],
+            "modelCard": {
+                "modelParameters": {
+                    "task": "time-series-forecasting",
+                    "architectureFamily": "t5",
+                    "modelArchitecture": "Chronos2Model",
+                    "datasets": [
+                        {
+                            "ref": "autogluon/chronos_datasets-86e62bf2-edab-508b-9dfd-6219dd21c48f"
+                        },
+                        {
+                            "ref": "Salesforce/GiftEvalPretrain-c316cfa2-ab26-5cc7-bcbd-8f599f2c9bb5"
+                        }
+                    ]
+                },
+                "properties": [
+                    {
+                        "name": "library_name",
+                        "value": "chronos-forecasting"
+                    }
+                ]
+            },
+            "authors": [
+                {
+                    "name": "amazon"
+                }
+            ],
+            "licenses": [
+                {
+                    "license": {
+                        "id": "Apache-2.0",
+                        "url": "https://spdx.org/licenses/Apache-2.0.html"
+                    }
+                }
+            ],
+            "description": "| Capability | Chronos-2 | Chronos-Bolt | Chronos ||------------|-----------|--------------|----------|| Univariate Forecasting | \u2705 | \u2705 | \u2705 || Cross-learning across items | \u2705 | \u274c | \u274c || Multivariate Forecasting | \u2705 | \u274c | \u274c || Past-only (real/categorical) covariates | \u2705 | \u274c | \u274c || Known future (real/categorical) covariates | \u2705 | \ud83e\udde9 | \ud83e\udde9 || Max. Context Length | 8192 | 2048 | 512 || Max. Prediction Length | 1024 | 64 | 64 |\ud83e\udde9 Chronos & Chronos-Bolt do not natively support future covariates, but they can be combined with external covariate regressors (see [AutoGluon tutorial](https://auto.gluon.ai/1.4.0/tutorials/timeseries/forecasting-chronos.html#incorporating-the-covariates)). This only models per-timestep effects, not effects across time. In contrast, Chronos-2 supports all covariate types natively.",
+            "tags": [
+                "chronos-forecasting",
+                "safetensors",
+                "t5",
+                "time series",
+                "forecasting",
+                "foundation models",
+                "pretrained models",
+                "time-series-forecasting",
+                "dataset:autogluon/chronos_datasets",
+                "dataset:Salesforce/GiftEvalPretrain",
+                "arxiv:2403.07815",
+                "arxiv:2510.15821",
+                "license:apache-2.0",
+                "region:us"
+            ]
+        }
+    },
+    "components": [
+        {
+            "type": "data",
+            "bom-ref": "autogluon/chronos_datasets-86e62bf2-edab-508b-9dfd-6219dd21c48f",
+            "name": "autogluon/chronos_datasets",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "autogluon/chronos_datasets-86e62bf2-edab-508b-9dfd-6219dd21c48f",
+                    "name": "autogluon/chronos_datasets",
+                    "contents": {
+                        "url": "https://huggingface.co/datasets/autogluon/chronos_datasets",
+                        "properties": [
+                            {
+                                "name": "task_categories",
+                                "value": "time-series-forecasting"
+                            },
+                            {
+                                "name": "task_ids",
+                                "value": "univariate-time-series-forecasting, multivariate-time-series-forecasting"
+                            },
+                            {
+                                "name": "annotations_creators",
+                                "value": "no-annotation"
+                            },
+                            {
+                                "name": "pretty_name",
+                                "value": "Chronos datasets"
+                            },
+                            {
+                                "name": "source_datasets",
+                                "value": "original"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: dominick {\"split\": \"train\", \"path\": \"dominick/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: electricity_15min {\"split\": \"train\", \"path\": \"electricity_15min/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: ercot {\"split\": \"train\", \"path\": \"ercot/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: exchange_rate {\"split\": \"train\", \"path\": \"exchange_rate/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: m4_daily {\"split\": \"train\", \"path\": \"m4_daily/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: m4_hourly {\"split\": \"train\", \"path\": \"m4_hourly/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: m4_monthly {\"split\": \"train\", \"path\": \"m4_monthly/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: m4_quarterly {\"split\": \"train\", \"path\": \"m4_quarterly/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: m4_weekly {\"split\": \"train\", \"path\": \"m4_weekly/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: m4_yearly {\"split\": \"train\", \"path\": \"m4_yearly/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: m5 {\"split\": \"train\", \"path\": \"m5/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: mexico_city_bikes {\"split\": \"train\", \"path\": \"mexico_city_bikes/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: monash_australian_electricity {\"split\": \"train\", \"path\": \"monash_australian_electricity/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: monash_car_parts {\"split\": \"train\", \"path\": \"monash_car_parts/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: monash_cif_2016 {\"split\": \"train\", \"path\": \"monash_cif_2016/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: monash_covid_deaths {\"split\": \"train\", \"path\": \"monash_covid_deaths/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: monash_electricity_hourly {\"split\": \"train\", \"path\": \"monash_electricity_hourly/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: monash_electricity_weekly {\"split\": \"train\", \"path\": \"monash_electricity_weekly/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: monash_fred_md {\"split\": \"train\", \"path\": \"monash_fred_md/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: monash_hospital {\"split\": \"train\", \"path\": \"monash_hospital/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: monash_kdd_cup_2018 {\"split\": \"train\", \"path\": \"monash_kdd_cup_2018/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: monash_london_smart_meters {\"split\": \"train\", \"path\": \"monash_london_smart_meters/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: monash_m1_monthly {\"split\": \"train\", \"path\": \"monash_m1_monthly/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: monash_m1_quarterly {\"split\": \"train\", \"path\": \"monash_m1_quarterly/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: monash_m1_yearly {\"split\": \"train\", \"path\": \"monash_m1_yearly/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: monash_m3_monthly {\"split\": \"train\", \"path\": \"monash_m3_monthly/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: monash_m3_quarterly {\"split\": \"train\", \"path\": \"monash_m3_quarterly/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: monash_m3_yearly {\"split\": \"train\", \"path\": \"monash_m3_yearly/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: monash_nn5_weekly {\"split\": \"train\", \"path\": \"monash_nn5_weekly/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: monash_pedestrian_counts {\"split\": \"train\", \"path\": \"monash_pedestrian_counts/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: monash_rideshare {\"split\": \"train\", \"path\": \"monash_rideshare/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: monash_saugeenday {\"split\": \"train\", \"path\": \"monash_saugeenday/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: monash_temperature_rain {\"split\": \"train\", \"path\": \"monash_temperature_rain/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: monash_tourism_monthly {\"split\": \"train\", \"path\": \"monash_tourism_monthly/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: monash_tourism_quarterly {\"split\": \"train\", \"path\": \"monash_tourism_quarterly/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: monash_tourism_yearly {\"split\": \"train\", \"path\": \"monash_tourism_yearly/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: monash_traffic {\"split\": \"train\", \"path\": \"monash_traffic/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: monash_weather {\"split\": \"train\", \"path\": \"monash_weather/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: nn5 {\"split\": \"train\", \"path\": \"nn5/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: solar {\"split\": \"train\", \"path\": \"solar/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: solar_1h {\"split\": \"train\", \"path\": \"solar_1h/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: taxi_1h {\"split\": \"train\", \"path\": \"taxi_1h/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: taxi_30min {\"split\": \"train\", \"path\": \"taxi_30min/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: training_corpus_kernel_synth_1m {\"split\": \"train\", \"path\": \"training_corpus/kernel_synth_1m/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: training_corpus_tsmixup_10m {\"split\": \"train\", \"path\": \"training_corpus/tsmixup_10m/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: uber_tlc_daily {\"split\": \"train\", \"path\": \"uber_tlc_daily/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: uber_tlc_hourly {\"split\": \"train\", \"path\": \"uber_tlc_hourly/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: ushcn_daily {\"split\": \"train\", \"path\": \"ushcn_daily/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: weatherbench_daily {\"split\": \"train\", \"path\": \"weatherbench_daily/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: weatherbench_hourly_10m_u_component_of_wind {\"split\": \"train\", \"path\": \"weatherbench_hourly/10m_u_component_of_wind/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: weatherbench_hourly_10m_v_component_of_wind {\"split\": \"train\", \"path\": \"weatherbench_hourly/10m_v_component_of_wind/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: weatherbench_hourly_2m_temperature {\"split\": \"train\", \"path\": \"weatherbench_hourly/2m_temperature/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: weatherbench_hourly_geopotential {\"split\": \"train\", \"path\": \"weatherbench_hourly/geopotential/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: weatherbench_hourly_potential_vorticity {\"split\": \"train\", \"path\": \"weatherbench_hourly/potential_vorticity/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: weatherbench_hourly_relative_humidity {\"split\": \"train\", \"path\": \"weatherbench_hourly/relative_humidity/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: weatherbench_hourly_specific_humidity {\"split\": \"train\", \"path\": \"weatherbench_hourly/specific_humidity/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: weatherbench_hourly_temperature {\"split\": \"train\", \"path\": \"weatherbench_hourly/temperature/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: weatherbench_hourly_toa_incident_solar_radiation {\"split\": \"train\", \"path\": \"weatherbench_hourly/toa_incident_solar_radiation/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: weatherbench_hourly_total_cloud_cover {\"split\": \"train\", \"path\": \"weatherbench_hourly/total_cloud_cover/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: weatherbench_hourly_total_precipitation {\"split\": \"train\", \"path\": \"weatherbench_hourly/total_precipitation/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: weatherbench_hourly_u_component_of_wind {\"split\": \"train\", \"path\": \"weatherbench_hourly/u_component_of_wind/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: weatherbench_hourly_v_component_of_wind {\"split\": \"train\", \"path\": \"weatherbench_hourly/v_component_of_wind/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: weatherbench_hourly_vorticity {\"split\": \"train\", \"path\": \"weatherbench_hourly/vorticity/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: weatherbench_weekly {\"split\": \"train\", \"path\": \"weatherbench_weekly/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: wiki_daily_100k {\"split\": \"train\", \"path\": \"wiki_daily_100k/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: wind_farms_daily {\"split\": \"train\", \"path\": \"wind_farms_daily/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: wind_farms_hourly {\"split\": \"train\", \"path\": \"wind_farms_hourly/train-*\"}"
+                            },
+                            {
+                                "name": "license",
+                                "value": "other"
+                            }
+                        ]
+                    },
+                    "governance": {
+                        "owners": [
+                            {
+                                "organization": {
+                                    "name": "autogluon",
+                                    "url": "https://huggingface.co/autogluon"
+                                }
+                            }
+                        ]
+                    },
+                    "description": "\n\t\n\t\t\n\t\tChronos datasets\n\t\n\nTime series datasets used for training and evaluation of the Chronos forecasting models.\nNote that some Chronos datasets (ETTh, ETTm, brazilian_cities_temperature and spanish_energy_and_weather) that rely on a custom builder script are available in the companion repo autogluon/chronos_datasets_extra.\nSee the paper for more information.\n\n\t\n\t\t\n\t\n\t\n\t\tData format and usage\n\t\n\nThe recommended way to use these datasets is via https://github.com/autogluon/fev.\nAll datasets\u2026 See the full description on the dataset page: https://huggingface.co/datasets/autogluon/chronos_datasets."
+                }
+            ]
+        },
+        {
+            "type": "data",
+            "bom-ref": "Salesforce/GiftEvalPretrain-c316cfa2-ab26-5cc7-bcbd-8f599f2c9bb5",
+            "name": "Salesforce/GiftEvalPretrain",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "Salesforce/GiftEvalPretrain-c316cfa2-ab26-5cc7-bcbd-8f599f2c9bb5",
+                    "name": "Salesforce/GiftEvalPretrain",
+                    "contents": {
+                        "url": "https://huggingface.co/datasets/Salesforce/GiftEvalPretrain",
+                        "properties": [
+                            {
+                                "name": "task_categories",
+                                "value": "time-series-forecasting"
+                            },
+                            {
+                                "name": "size_categories",
+                                "value": "1M<n<10M"
+                            },
+                            {
+                                "name": "license",
+                                "value": "apache-2.0"
+                            }
+                        ]
+                    },
+                    "governance": {
+                        "owners": [
+                            {
+                                "organization": {
+                                    "name": "Salesforce",
+                                    "url": "https://huggingface.co/Salesforce"
+                                }
+                            }
+                        ]
+                    },
+                    "description": "\n\t\n\t\t\n\t\tGIFT-Eval Pre-training Datasets\n\t\n\nPretraining dataset aligned with GIFT-Eval that has 71 univariate and 17 multivariate datasets, spanning seven domains and 13 frequencies, totaling 4.5 million time series and 230 billion data points. Notably this collection of data has no leakage issue with the train/test split and can be used to pretrain foundation models that can be fairly evaluated on GIFT-Eval.\n\ud83d\udcc4 Paper\n\ud83d\udda5\ufe0f Code\n\ud83d\udcd4 Blog Post\n\ud83c\udfce\ufe0f Leader Board\n\n\t\n\t\n\t\n\t\tEthical Considerations\u2026 See the full description on the dataset page: https://huggingface.co/datasets/Salesforce/GiftEvalPretrain."
+                }
+            ]
+        }
+    ]
+}

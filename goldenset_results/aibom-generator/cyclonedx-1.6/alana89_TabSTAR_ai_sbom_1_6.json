@@ -1,0 +1,126 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:90abe43e-a0a3-46e8-99b2-d268aaa6acd9",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-04-30T20:36:21+00:00",
+    "tools": {
+      "components": [
+        {
+          "bom-ref": "pkg:generic/owasp-genai/owasp-aibom-generator@1.0.2",
+          "type": "application",
+          "name": "owasp-aibom-generator",
+          "version": "1.0.2",
+          "manufacturer": {
+            "name": "OWASP GenAI Security Project"
+          }
+        }
+      ]
+    },
+    "component": {
+      "bom-ref": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:21@1777581381",
+      "type": "application",
+      "name": "job-2026-04-30-16:36:21",
+      "description": "Generating SBOM for alana89/TabSTAR",
+      "version": "1777581381",
+      "purl": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:21@1777581381",
+      "manufacturer": {
+        "name": "OWASP AIBOM Generator"
+      },
+      "supplier": {
+        "name": "OWASP AIBOM Generator"
+      }
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "pkg:huggingface/alana89/TabSTAR@73560fb2",
+      "type": "machine-learning-model",
+      "group": "alana89",
+      "name": "TabSTAR",
+      "version": "73560fb2",
+      "purl": "pkg:huggingface/alana89/TabSTAR@73560fb2",
+      "description": "No description available",
+      "licenses": [
+        {
+          "license": {
+            "id": "CC-BY-4.0"
+          }
+        }
+      ],
+      "modelCard": {
+        "modelParameters": {
+          "task": "tabular-classification",
+          "modelArchitecture": "tabstar",
+          "inputs": [
+            {
+              "format": "csv"
+            },
+            {
+              "format": "json"
+            }
+          ],
+          "outputs": [
+            {
+              "format": "string"
+            },
+            {
+              "format": "number"
+            }
+          ]
+        },
+        "properties": [
+          {
+            "name": "serialNumber",
+            "value": "urn:uuid:alana89-TabSTAR"
+          }
+        ]
+      },
+      "manufacturer": {
+        "name": "alana89",
+        "url": [
+          "https://huggingface.co/alana89"
+        ]
+      },
+      "supplier": {
+        "name": "alana89"
+      },
+      "authors": [
+        {
+          "name": "alana89"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://huggingface.co/alana89/TabSTAR",
+          "comment": "Model repository"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/alana89/TabSTAR/tree/main",
+          "comment": "Model files"
+        },
+        {
+          "type": "vcs",
+          "url": "https://huggingface.co/alana89/TabSTAR/commit/73560fb23d34307f4b6fa849f38f8299a8980a4a",
+          "comment": "Specific commit"
+        },
+        {
+          "type": "documentation",
+          "url": "https://arxiv.org/abs/2505.18125",
+          "comment": "ArXiv Paper"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg:generic/alana89/TabSTAR@73560fb2",
+      "dependsOn": [
+        "pkg:huggingface/alana89/TabSTAR@73560fb2"
+      ]
+    }
+  ]
+}

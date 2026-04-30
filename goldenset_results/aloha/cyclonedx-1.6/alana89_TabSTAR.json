@@ -1,0 +1,56 @@
+{
+    "bomFormat": "CycloneDX",
+    "specVersion": "1.6",
+    "serialNumber": "urn:uuid:e03525db-d124-47fc-bf4d-5e0435f045cd",
+    "version": 1,
+    "metadata": {
+        "timestamp": "2026-04-30T20:36:22.068248+00:00",
+        "component": {
+            "type": "machine-learning-model",
+            "bom-ref": "alana89/TabSTAR-30f04899-faee-52ec-9c39-eb8392181f20",
+            "name": "alana89/TabSTAR",
+            "externalReferences": [
+                {
+                    "url": "https://huggingface.co/alana89/TabSTAR",
+                    "type": "documentation"
+                }
+            ],
+            "modelCard": {
+                "modelParameters": {
+                    "task": "tabular-classification",
+                    "architectureFamily": "tabstar",
+                    "modelArchitecture": "TabStarModel"
+                },
+                "properties": [
+                    {
+                        "name": "base_model",
+                        "value": "intfloat/e5-small-v2"
+                    }
+                ]
+            },
+            "authors": [
+                {
+                    "name": "alana89"
+                }
+            ],
+            "licenses": [
+                {
+                    "license": {
+                        "id": "CC-BY-4.0",
+                        "url": "https://spdx.org/licenses/CC-BY-4.0.html"
+                    }
+                }
+            ],
+            "tags": [
+                "safetensors",
+                "tabstar",
+                "tabular-classification",
+                "arxiv:2505.18125",
+                "base_model:intfloat/e5-small-v2",
+                "base_model:finetune:intfloat/e5-small-v2",
+                "license:cc-by-4.0",
+                "region:us"
+            ]
+        }
+    }
+}

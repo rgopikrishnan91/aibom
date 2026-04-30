@@ -1,0 +1,153 @@
+{
+    "bomFormat": "CycloneDX",
+    "specVersion": "1.6",
+    "serialNumber": "urn:uuid:cccc64ed-063a-45c0-9c9d-3552470f601c",
+    "version": 1,
+    "metadata": {
+        "timestamp": "2026-04-30T20:36:23.794747+00:00",
+        "component": {
+            "type": "machine-learning-model",
+            "bom-ref": "cross-encoder/ms-marco-MiniLM-L6-v2-47f9c8c8-9a84-50ed-9cc1-d6b98b4fcb10",
+            "name": "cross-encoder/ms-marco-MiniLM-L6-v2",
+            "externalReferences": [
+                {
+                    "url": "https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2",
+                    "type": "documentation"
+                }
+            ],
+            "modelCard": {
+                "modelParameters": {
+                    "task": "text-ranking",
+                    "architectureFamily": "bert",
+                    "modelArchitecture": "BertForSequenceClassification",
+                    "datasets": [
+                        {
+                            "ref": "sentence-transformers/msmarco-c6ade5ab-d668-519c-9116-836b68fa4270"
+                        }
+                    ]
+                },
+                "properties": [
+                    {
+                        "name": "library_name",
+                        "value": "sentence-transformers"
+                    },
+                    {
+                        "name": "base_model",
+                        "value": "cross-encoder/ms-marco-MiniLM-L12-v2"
+                    }
+                ]
+            },
+            "authors": [
+                {
+                    "name": "cross-encoder"
+                }
+            ],
+            "licenses": [
+                {
+                    "license": {
+                        "id": "Apache-2.0",
+                        "url": "https://spdx.org/licenses/Apache-2.0.html"
+                    }
+                }
+            ],
+            "tags": [
+                "sentence-transformers",
+                "pytorch",
+                "jax",
+                "onnx",
+                "safetensors",
+                "openvino",
+                "bert",
+                "text-classification",
+                "transformers",
+                "text-ranking",
+                "en",
+                "dataset:sentence-transformers/msmarco",
+                "base_model:cross-encoder/ms-marco-MiniLM-L12-v2",
+                "base_model:quantized:cross-encoder/ms-marco-MiniLM-L12-v2",
+                "license:apache-2.0",
+                "text-embeddings-inference",
+                "endpoints_compatible",
+                "region:us"
+            ]
+        }
+    },
+    "components": [
+        {
+            "type": "data",
+            "bom-ref": "sentence-transformers/msmarco-c6ade5ab-d668-519c-9116-836b68fa4270",
+            "name": "sentence-transformers/msmarco",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "sentence-transformers/msmarco-c6ade5ab-d668-519c-9116-836b68fa4270",
+                    "name": "sentence-transformers/msmarco",
+                    "contents": {
+                        "url": "https://huggingface.co/datasets/sentence-transformers/msmarco",
+                        "properties": [
+                            {
+                                "name": "task_categories",
+                                "value": "feature-extraction, sentence-similarity, text-classification"
+                            },
+                            {
+                                "name": "language",
+                                "value": "en"
+                            },
+                            {
+                                "name": "size_categories",
+                                "value": "100M<n<1B"
+                            },
+                            {
+                                "name": "pretty_name",
+                                "value": "MS MARCO"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: bert-ensemble-margin-mse {\"split\": \"train\", \"path\": \"bert-ensemble-margin-mse/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: bert-ensemble-mse {\"split\": \"train\", \"path\": \"bert-ensemble-mse/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: corpus {\"split\": \"train\", \"path\": \"corpus/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: labeled-list {\"split\": \"train\", \"path\": \"labeled-list/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: queries {\"split\": \"train\", \"path\": \"queries/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: rankgpt4-colbert {\"split\": \"train\", \"path\": \"rankgpt4-colbert/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: rankzephyr-colbert {\"split\": \"train\", \"path\": \"rankzephyr-colbert/train-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: triplets {\"split\": \"train\", \"path\": \"triplets/train-*\"}"
+                            }
+                        ]
+                    },
+                    "governance": {
+                        "owners": [
+                            {
+                                "organization": {
+                                    "name": "sentence-transformers",
+                                    "url": "https://huggingface.co/sentence-transformers"
+                                }
+                            }
+                        ]
+                    },
+                    "description": "\n\t\n\t\t\n\t\tMS MARCO Training Dataset\n\t\n\nThis dataset consists of 4 separate datasets, each using the MS MARCO Queries and passages:\n\ntriplets: This subset contains triplets of query-id, positive-id, negative-id as provided in qidpidtriples.train.full.2.tsv.gz from the MS MARCO Website. The only change is that this dataset has been reshuffled. This dataset can easily be used with an MultipleNegativesRankingLoss a.k.a. InfoNCE loss.\nlabeled-list: This subset contains triplets of query-id, doc-ids\u2026 See the full description on the dataset page: https://huggingface.co/datasets/sentence-transformers/msmarco."
+                }
+            ]
+        }
+    ]
+}

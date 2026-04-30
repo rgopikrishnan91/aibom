@@ -1,0 +1,179 @@
+{
+    "bomFormat": "CycloneDX",
+    "specVersion": "1.6",
+    "serialNumber": "urn:uuid:b06ea83f-2f2b-403c-8eb6-dfc0ee22a00b",
+    "version": 1,
+    "metadata": {
+        "timestamp": "2026-04-30T20:36:42.312942+00:00",
+        "component": {
+            "type": "machine-learning-model",
+            "bom-ref": "cardiffnlp/twitter-roberta-base-sentiment-latest-bed0bf3e-09cc-5ab3-b574-1e563a8febb6",
+            "name": "cardiffnlp/twitter-roberta-base-sentiment-latest",
+            "externalReferences": [
+                {
+                    "url": "https://huggingface.co/cardiffnlp/twitter-roberta-base-sentiment-latest",
+                    "type": "documentation"
+                }
+            ],
+            "modelCard": {
+                "modelParameters": {
+                    "task": "text-classification",
+                    "architectureFamily": "roberta",
+                    "modelArchitecture": "RobertaForSequenceClassification",
+                    "datasets": [
+                        {
+                            "ref": "tweet_eval-2a48b8e0-af85-5c55-93d6-70d9620e1beb"
+                        }
+                    ]
+                },
+                "properties": [
+                    {
+                        "name": "library_name",
+                        "value": "transformers"
+                    }
+                ]
+            },
+            "authors": [
+                {
+                    "name": "cardiffnlp"
+                }
+            ],
+            "licenses": [
+                {
+                    "license": {
+                        "id": "CC-BY-4.0",
+                        "url": "https://spdx.org/licenses/CC-BY-4.0.html"
+                    }
+                }
+            ],
+            "tags": [
+                "transformers",
+                "pytorch",
+                "tf",
+                "roberta",
+                "text-classification",
+                "en",
+                "dataset:tweet_eval",
+                "arxiv:2202.03829",
+                "license:cc-by-4.0",
+                "endpoints_compatible",
+                "deploy:azure",
+                "region:us"
+            ]
+        }
+    },
+    "components": [
+        {
+            "type": "data",
+            "bom-ref": "tweet_eval-2a48b8e0-af85-5c55-93d6-70d9620e1beb",
+            "name": "tweet_eval",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "tweet_eval-2a48b8e0-af85-5c55-93d6-70d9620e1beb",
+                    "name": "tweet_eval",
+                    "contents": {
+                        "url": "https://huggingface.co/datasets/tweet_eval",
+                        "properties": [
+                            {
+                                "name": "task_categories",
+                                "value": "text-classification"
+                            },
+                            {
+                                "name": "task_ids",
+                                "value": "intent-classification, multi-class-classification, sentiment-classification"
+                            },
+                            {
+                                "name": "language",
+                                "value": "en"
+                            },
+                            {
+                                "name": "size_categories",
+                                "value": "100K<n<1M, 10K<n<100K, 1K<n<10K, n<1K"
+                            },
+                            {
+                                "name": "annotations_creators",
+                                "value": "found"
+                            },
+                            {
+                                "name": "language_creators",
+                                "value": "found"
+                            },
+                            {
+                                "name": "pretty_name",
+                                "value": "TweetEval"
+                            },
+                            {
+                                "name": "source_datasets",
+                                "value": "extended|other-tweet-datasets"
+                            },
+                            {
+                                "name": "paperswithcode_id",
+                                "value": "tweeteval"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: emoji {\"split\": \"train\", \"path\": \"emoji/train-*\"}, {\"split\": \"test\", \"path\": \"emoji/test-*\"}, {\"split\": \"validation\", \"path\": \"emoji/validation-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: emotion {\"split\": \"train\", \"path\": \"emotion/train-*\"}, {\"split\": \"test\", \"path\": \"emotion/test-*\"}, {\"split\": \"validation\", \"path\": \"emotion/validation-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: hate {\"split\": \"train\", \"path\": \"hate/train-*\"}, {\"split\": \"test\", \"path\": \"hate/test-*\"}, {\"split\": \"validation\", \"path\": \"hate/validation-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: irony {\"split\": \"train\", \"path\": \"irony/train-*\"}, {\"split\": \"test\", \"path\": \"irony/test-*\"}, {\"split\": \"validation\", \"path\": \"irony/validation-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: offensive {\"split\": \"train\", \"path\": \"offensive/train-*\"}, {\"split\": \"test\", \"path\": \"offensive/test-*\"}, {\"split\": \"validation\", \"path\": \"offensive/validation-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: sentiment {\"split\": \"train\", \"path\": \"sentiment/train-*\"}, {\"split\": \"test\", \"path\": \"sentiment/test-*\"}, {\"split\": \"validation\", \"path\": \"sentiment/validation-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: stance_abortion {\"split\": \"train\", \"path\": \"stance_abortion/train-*\"}, {\"split\": \"test\", \"path\": \"stance_abortion/test-*\"}, {\"split\": \"validation\", \"path\": \"stance_abortion/validation-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: stance_atheism {\"split\": \"train\", \"path\": \"stance_atheism/train-*\"}, {\"split\": \"test\", \"path\": \"stance_atheism/test-*\"}, {\"split\": \"validation\", \"path\": \"stance_atheism/validation-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: stance_climate {\"split\": \"train\", \"path\": \"stance_climate/train-*\"}, {\"split\": \"test\", \"path\": \"stance_climate/test-*\"}, {\"split\": \"validation\", \"path\": \"stance_climate/validation-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: stance_feminist {\"split\": \"train\", \"path\": \"stance_feminist/train-*\"}, {\"split\": \"test\", \"path\": \"stance_feminist/test-*\"}, {\"split\": \"validation\", \"path\": \"stance_feminist/validation-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: stance_hillary {\"split\": \"train\", \"path\": \"stance_hillary/train-*\"}, {\"split\": \"test\", \"path\": \"stance_hillary/test-*\"}, {\"split\": \"validation\", \"path\": \"stance_hillary/validation-*\"}"
+                            },
+                            {
+                                "name": "license",
+                                "value": "unknown"
+                            }
+                        ]
+                    },
+                    "governance": {
+                        "owners": [
+                            {
+                                "organization": {
+                                    "name": "cardiffnlp",
+                                    "url": "https://huggingface.co/cardiffnlp"
+                                }
+                            }
+                        ]
+                    },
+                    "description": "\n\t\n\t\t\n\t\tDataset Card for tweet_eval\n\t\n\n\n\t\n\t\t\n\t\tDataset Summary\n\t\n\nTweetEval consists of seven heterogenous tasks in Twitter, all framed as multi-class tweet classification. The tasks include - irony, hate, offensive, stance, emoji, emotion, and sentiment. All tasks have been unified into the same benchmark, with each dataset presented in the same format and with fixed training, validation and test splits.\n\n\t\n\t\t\n\t\tSupported Tasks and Leaderboards\n\t\n\n\ntext_classification: The dataset can be\u2026 See the full description on the dataset page: https://huggingface.co/datasets/cardiffnlp/tweet_eval."
+                }
+            ]
+        }
+    ]
+}

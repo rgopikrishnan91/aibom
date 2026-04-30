@@ -1,0 +1,140 @@
+{
+    "bomFormat": "CycloneDX",
+    "specVersion": "1.6",
+    "serialNumber": "urn:uuid:65969427-cb38-43cc-9662-a18feaf6d32c",
+    "version": 1,
+    "metadata": {
+        "timestamp": "2026-04-30T20:36:03.427373+00:00",
+        "component": {
+            "type": "machine-learning-model",
+            "bom-ref": "timm/mobilenetv3_small_100.lamb_in1k-862a4e42-67a4-5612-97f5-e9b7b46a25a5",
+            "name": "timm/mobilenetv3_small_100.lamb_in1k",
+            "externalReferences": [
+                {
+                    "url": "https://huggingface.co/timm/mobilenetv3_small_100.lamb_in1k",
+                    "type": "documentation"
+                }
+            ],
+            "modelCard": {
+                "modelParameters": {
+                    "task": "image-classification",
+                    "datasets": [
+                        {
+                            "ref": "imagenet-1k-d590ae39-7061-555c-8b41-9aeadd4245c4"
+                        }
+                    ]
+                },
+                "properties": [
+                    {
+                        "name": "library_name",
+                        "value": "timm"
+                    }
+                ]
+            },
+            "authors": [
+                {
+                    "name": "timm"
+                }
+            ],
+            "licenses": [
+                {
+                    "license": {
+                        "id": "Apache-2.0",
+                        "url": "https://spdx.org/licenses/Apache-2.0.html"
+                    }
+                }
+            ],
+            "description": "- **Model Type:** Image classification / feature backbone- **Model Stats:**- Params (M): 2.5- GMACs: 0.1- Activations (M): 1.4- Image size: 224 x 224- **Papers:**- Searching for MobileNetV3: https://arxiv.org/abs/1905.02244- **Dataset:** ImageNet-1k- **Original:** https://github.com/huggingface/pytorch-image-models",
+            "tags": [
+                "timm",
+                "pytorch",
+                "safetensors",
+                "image-classification",
+                "transformers",
+                "dataset:imagenet-1k",
+                "arxiv:2110.00476",
+                "arxiv:1905.02244",
+                "license:apache-2.0",
+                "region:us"
+            ]
+        }
+    },
+    "components": [
+        {
+            "type": "data",
+            "bom-ref": "imagenet-1k-d590ae39-7061-555c-8b41-9aeadd4245c4",
+            "name": "imagenet-1k",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "imagenet-1k-d590ae39-7061-555c-8b41-9aeadd4245c4",
+                    "name": "imagenet-1k",
+                    "contents": {
+                        "url": "https://huggingface.co/datasets/imagenet-1k",
+                        "properties": [
+                            {
+                                "name": "task_categories",
+                                "value": "image-classification"
+                            },
+                            {
+                                "name": "task_ids",
+                                "value": "multi-class-image-classification"
+                            },
+                            {
+                                "name": "language",
+                                "value": "en"
+                            },
+                            {
+                                "name": "size_categories",
+                                "value": "1M<n<10M"
+                            },
+                            {
+                                "name": "annotations_creators",
+                                "value": "crowdsourced"
+                            },
+                            {
+                                "name": "language_creators",
+                                "value": "crowdsourced"
+                            },
+                            {
+                                "name": "pretty_name",
+                                "value": "ImageNet"
+                            },
+                            {
+                                "name": "source_datasets",
+                                "value": "original"
+                            },
+                            {
+                                "name": "paperswithcode_id",
+                                "value": "imagenet-1k-1"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: default {\"split\": \"train\", \"path\": \"data/train-*\"}, {\"split\": \"validation\", \"path\": \"data/validation-*\"}, {\"split\": \"test\", \"path\": \"data/test-*\"}"
+                            },
+                            {
+                                "name": "license",
+                                "value": "other"
+                            },
+                            {
+                                "name": "license_details",
+                                "value": "imagenet-agreement"
+                            }
+                        ]
+                    },
+                    "governance": {
+                        "owners": [
+                            {
+                                "organization": {
+                                    "name": "ILSVRC",
+                                    "url": "https://huggingface.co/ILSVRC"
+                                }
+                            }
+                        ]
+                    },
+                    "description": "\n\t\n\t\t\n\t\tDataset Card for ImageNet\n\t\n\n\n\t\n\t\t\n\t\tDataset Summary\n\t\n\nILSVRC 2012, commonly known as 'ImageNet' is an image dataset organized according to the WordNet hierarchy. Each meaningful concept in WordNet, possibly described by multiple words or word phrases, is called a \"synonym set\" or \"synset\". There are more than 100,000 synsets in WordNet, majority of them are nouns (80,000+). ImageNet aims to provide on average 1000 images to illustrate each synset. Images of each concept are\u2026 See the full description on the dataset page: https://huggingface.co/datasets/ILSVRC/imagenet-1k."
+                }
+            ]
+        }
+    ]
+}

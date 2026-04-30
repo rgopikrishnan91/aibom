@@ -1,0 +1,55 @@
+{
+    "bomFormat": "CycloneDX",
+    "specVersion": "1.6",
+    "serialNumber": "urn:uuid:6e92b1f2-7e71-4f1f-8c8f-76c737f49f7e",
+    "version": 1,
+    "metadata": {
+        "timestamp": "2026-04-30T20:36:17.203721+00:00",
+        "component": {
+            "type": "machine-learning-model",
+            "bom-ref": "autogluon/chronos-bolt-small-b96214d2-415e-5aad-87a6-48a62f92e24b",
+            "name": "autogluon/chronos-bolt-small",
+            "externalReferences": [
+                {
+                    "url": "https://huggingface.co/autogluon/chronos-bolt-small",
+                    "type": "documentation"
+                }
+            ],
+            "modelCard": {
+                "modelParameters": {
+                    "task": "time-series-forecasting",
+                    "architectureFamily": "t5",
+                    "modelArchitecture": "ChronosBoltModelForForecasting"
+                }
+            },
+            "authors": [
+                {
+                    "name": "autogluon"
+                }
+            ],
+            "licenses": [
+                {
+                    "license": {
+                        "id": "Apache-2.0",
+                        "url": "https://spdx.org/licenses/Apache-2.0.html"
+                    }
+                }
+            ],
+            "tags": [
+                "safetensors",
+                "t5",
+                "time series",
+                "forecasting",
+                "pretrained models",
+                "foundation models",
+                "time series foundation models",
+                "time-series",
+                "time-series-forecasting",
+                "arxiv:1910.10683",
+                "arxiv:2403.07815",
+                "license:apache-2.0",
+                "region:us"
+            ]
+        }
+    }
+}

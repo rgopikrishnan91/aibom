@@ -1,0 +1,1315 @@
+{
+    "bomFormat": "CycloneDX",
+    "specVersion": "1.6",
+    "serialNumber": "urn:uuid:20719461-da0b-4ca5-b3b4-1b2b0b55c895",
+    "version": 1,
+    "metadata": {
+        "timestamp": "2026-04-30T20:35:56.525337+00:00",
+        "component": {
+            "type": "machine-learning-model",
+            "bom-ref": "sentence-transformers/all-MiniLM-L6-v2-cb279e3b-49dd-5fdb-897e-ddee2b388c61",
+            "name": "sentence-transformers/all-MiniLM-L6-v2",
+            "externalReferences": [
+                {
+                    "url": "https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2",
+                    "type": "documentation"
+                }
+            ],
+            "modelCard": {
+                "modelParameters": {
+                    "task": "sentence-similarity",
+                    "architectureFamily": "bert",
+                    "modelArchitecture": "BertModel",
+                    "datasets": [
+                        {
+                            "ref": "s2orc-65a8fab1-76ce-5ee8-8f9f-ba89f6ce0d0a"
+                        },
+                        {
+                            "ref": "flax-sentence-embeddings/stackexchange_xml-9b89038e-3e3a-55a9-a9b2-033ecc06dfcd"
+                        },
+                        {
+                            "ref": "ms_marco-1f8fe88d-e054-5ae5-9b16-5fb183d502cf"
+                        },
+                        {
+                            "ref": "gooaq-4c22f730-8ab9-542c-8706-1b688bc27a25"
+                        },
+                        {
+                            "ref": "yahoo_answers_topics-1139ca63-1929-555c-b52a-b103ccd5d1fc"
+                        },
+                        {
+                            "ref": "code_search_net-d14328c4-fa8a-50ba-ab75-08f0d105523c"
+                        },
+                        {
+                            "ref": "search_qa-46cc9fa5-ebf6-5e77-8f95-5c6b89f20344"
+                        },
+                        {
+                            "ref": "eli5-50926124-b144-541c-ac0b-06c0aba5fc71"
+                        },
+                        {
+                            "ref": "snli-c86ca575-da1e-5d4c-bcd6-b1524781b717"
+                        },
+                        {
+                            "ref": "multi_nli-3f66ff16-a557-5dab-8458-0d3efcbec3da"
+                        },
+                        {
+                            "ref": "wikihow-54d44e57-cae1-5ebb-a347-f9da1e9d4053"
+                        },
+                        {
+                            "ref": "natural_questions-9d628078-279d-50b2-bdf4-02c911181e5e"
+                        },
+                        {
+                            "ref": "trivia_qa-3fc5035f-f820-55b6-82e8-0815843d1785"
+                        },
+                        {
+                            "ref": "embedding-data/sentence-compression-fb02b073-5608-5dda-9f1d-7e89d1f5726e"
+                        },
+                        {
+                            "ref": "embedding-data/flickr30k-captions-e230bb62-1c64-52b6-8c6d-ddce348416d2"
+                        },
+                        {
+                            "ref": "embedding-data/altlex-ea93bf58-483e-555f-a1cb-5e3252519b5b"
+                        },
+                        {
+                            "ref": "embedding-data/simple-wiki-60f5a61f-d184-575b-bc4b-ba0ea43067cb"
+                        },
+                        {
+                            "ref": "embedding-data/QQP-7344ce45-1630-5169-8400-c97ae34d3f53"
+                        },
+                        {
+                            "ref": "embedding-data/SPECTER-566e9a9a-0219-59ad-8b7e-9c0f11ec8af3"
+                        },
+                        {
+                            "ref": "embedding-data/PAQ_pairs-d382b21d-b46f-5379-967a-320e28b981b5"
+                        },
+                        {
+                            "ref": "embedding-data/WikiAnswers-38ebefc3-ab34-5b66-b64a-c52a9659c734"
+                        }
+                    ]
+                },
+                "properties": [
+                    {
+                        "name": "library_name",
+                        "value": "sentence-transformers"
+                    }
+                ],
+                "consideration": {
+                    "useCases": "Our model is intended to be used as a sentence and short paragraph encoder. Given an input text, it outputs a vector which capturesthe semantic information. The sentence vector may be used for information retrieval, clustering or sentence similarity tasks.By default, input text longer than 256 word pieces is truncated."
+                }
+            },
+            "authors": [
+                {
+                    "name": "sentence-transformers"
+                }
+            ],
+            "licenses": [
+                {
+                    "license": {
+                        "id": "Apache-2.0",
+                        "url": "https://spdx.org/licenses/Apache-2.0.html"
+                    }
+                }
+            ],
+            "tags": [
+                "sentence-transformers",
+                "pytorch",
+                "tf",
+                "rust",
+                "onnx",
+                "safetensors",
+                "openvino",
+                "bert",
+                "feature-extraction",
+                "sentence-similarity",
+                "transformers",
+                "en",
+                "dataset:s2orc",
+                "dataset:flax-sentence-embeddings/stackexchange_xml",
+                "dataset:ms_marco",
+                "dataset:gooaq",
+                "dataset:yahoo_answers_topics",
+                "dataset:code_search_net",
+                "dataset:search_qa",
+                "dataset:eli5",
+                "dataset:snli",
+                "dataset:multi_nli",
+                "dataset:wikihow",
+                "dataset:natural_questions",
+                "dataset:trivia_qa",
+                "dataset:embedding-data/sentence-compression",
+                "dataset:embedding-data/flickr30k-captions",
+                "dataset:embedding-data/altlex",
+                "dataset:embedding-data/simple-wiki",
+                "dataset:embedding-data/QQP",
+                "dataset:embedding-data/SPECTER",
+                "dataset:embedding-data/PAQ_pairs",
+                "dataset:embedding-data/WikiAnswers",
+                "arxiv:1904.06472",
+                "arxiv:2102.07033",
+                "arxiv:2104.08727",
+                "arxiv:1704.05179",
+                "arxiv:1810.09305",
+                "license:apache-2.0",
+                "eval-results",
+                "text-embeddings-inference",
+                "endpoints_compatible",
+                "deploy:azure",
+                "region:us"
+            ]
+        }
+    },
+    "components": [
+        {
+            "type": "data",
+            "bom-ref": "s2orc-65a8fab1-76ce-5ee8-8f9f-ba89f6ce0d0a",
+            "name": "s2orc",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "s2orc-65a8fab1-76ce-5ee8-8f9f-ba89f6ce0d0a",
+                    "name": "s2orc"
+                }
+            ]
+        },
+        null,
+        {
+            "type": "data",
+            "bom-ref": "ms_marco-1f8fe88d-e054-5ae5-9b16-5fb183d502cf",
+            "name": "ms_marco",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "ms_marco-1f8fe88d-e054-5ae5-9b16-5fb183d502cf",
+                    "name": "ms_marco",
+                    "contents": {
+                        "url": "https://huggingface.co/datasets/ms_marco",
+                        "properties": [
+                            {
+                                "name": "language",
+                                "value": "en"
+                            },
+                            {
+                                "name": "pretty_name",
+                                "value": "Microsoft Machine Reading Comprehension Dataset"
+                            },
+                            {
+                                "name": "paperswithcode_id",
+                                "value": "ms-marco"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: v1.1 {\"split\": \"validation\", \"path\": \"v1.1/validation-*\"}, {\"split\": \"train\", \"path\": \"v1.1/train-*\"}, {\"split\": \"test\", \"path\": \"v1.1/test-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: v2.1 {\"split\": \"validation\", \"path\": \"v2.1/validation-*\"}, {\"split\": \"train\", \"path\": \"v2.1/train-*\"}, {\"split\": \"test\", \"path\": \"v2.1/test-*\"}"
+                            }
+                        ]
+                    },
+                    "governance": {
+                        "owners": [
+                            {
+                                "organization": {
+                                    "name": "microsoft",
+                                    "url": "https://huggingface.co/microsoft"
+                                }
+                            }
+                        ]
+                    },
+                    "description": "\n\t\n\t\t\n\t\tDataset Card for \"ms_marco\"\n\t\n\n\n\t\n\t\t\n\t\tDataset Summary\n\t\n\nStarting with a paper released at NIPS 2016, MS MARCO is a collection of datasets focused on deep learning in search.\nThe first dataset was a question answering dataset featuring 100,000 real Bing questions and a human generated answer.\nSince then we released a 1,000,000 question dataset, a natural langauge generation dataset, a passage ranking dataset,\nkeyphrase extraction dataset, crawling dataset, and a conversational search.\u2026 See the full description on the dataset page: https://huggingface.co/datasets/microsoft/ms_marco."
+                }
+            ]
+        },
+        {
+            "type": "data",
+            "bom-ref": "gooaq-4c22f730-8ab9-542c-8706-1b688bc27a25",
+            "name": "gooaq",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "gooaq-4c22f730-8ab9-542c-8706-1b688bc27a25",
+                    "name": "gooaq",
+                    "contents": {
+                        "url": "https://huggingface.co/datasets/gooaq",
+                        "properties": [
+                            {
+                                "name": "task_categories",
+                                "value": "question-answering"
+                            },
+                            {
+                                "name": "task_ids",
+                                "value": "open-domain-qa"
+                            },
+                            {
+                                "name": "language",
+                                "value": "en"
+                            },
+                            {
+                                "name": "size_categories",
+                                "value": "1M<n<10M"
+                            },
+                            {
+                                "name": "annotations_creators",
+                                "value": "expert-generated"
+                            },
+                            {
+                                "name": "language_creators",
+                                "value": "machine-generated"
+                            },
+                            {
+                                "name": "pretty_name",
+                                "value": "GooAQ: Open Question Answering with Diverse Answer Types"
+                            },
+                            {
+                                "name": "source_datasets",
+                                "value": "original"
+                            },
+                            {
+                                "name": "paperswithcode_id",
+                                "value": "gooaq"
+                            },
+                            {
+                                "name": "license",
+                                "value": "apache-2.0"
+                            }
+                        ]
+                    },
+                    "governance": {
+                        "owners": [
+                            {
+                                "organization": {
+                                    "name": "allenai",
+                                    "url": "https://huggingface.co/allenai"
+                                }
+                            }
+                        ]
+                    },
+                    "description": "GooAQ is a large-scale dataset with a variety of answer types. This dataset contains over\n5 million questions and 3 million answers collected from Google. GooAQ questions are collected\nsemi-automatically from the Google search engine using its autocomplete feature. This results in\nnaturalistic questions of practical interest that are nonetheless short and expressed using simple\nlanguage. GooAQ answers are mined from Google's responses to our collected questions, specifically from\nthe answer boxes in the search results. This yields a rich space of answer types, containing both\ntextual answers (short and long) as well as more structured ones such as collections."
+                }
+            ]
+        },
+        {
+            "type": "data",
+            "bom-ref": "yahoo_answers_topics-1139ca63-1929-555c-b52a-b103ccd5d1fc",
+            "name": "yahoo_answers_topics",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "yahoo_answers_topics-1139ca63-1929-555c-b52a-b103ccd5d1fc",
+                    "name": "yahoo_answers_topics",
+                    "contents": {
+                        "url": "https://huggingface.co/datasets/yahoo_answers_topics",
+                        "properties": [
+                            {
+                                "name": "task_categories",
+                                "value": "text-classification"
+                            },
+                            {
+                                "name": "task_ids",
+                                "value": "topic-classification"
+                            },
+                            {
+                                "name": "language",
+                                "value": "en"
+                            },
+                            {
+                                "name": "size_categories",
+                                "value": "1M<n<10M"
+                            },
+                            {
+                                "name": "annotations_creators",
+                                "value": "found"
+                            },
+                            {
+                                "name": "language_creators",
+                                "value": "found"
+                            },
+                            {
+                                "name": "pretty_name",
+                                "value": "YahooAnswersTopics"
+                            },
+                            {
+                                "name": "source_datasets",
+                                "value": "extended|other-yahoo-answers-corpus"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: yahoo_answers_topics {\"split\": \"train\", \"path\": \"yahoo_answers_topics/train-*\"}, {\"split\": \"test\", \"path\": \"yahoo_answers_topics/test-*\"}"
+                            },
+                            {
+                                "name": "license",
+                                "value": "unknown"
+                            }
+                        ]
+                    },
+                    "governance": {
+                        "owners": [
+                            {
+                                "organization": {
+                                    "name": "community-datasets",
+                                    "url": "https://huggingface.co/community-datasets"
+                                }
+                            }
+                        ]
+                    },
+                    "description": "\n\t\n\t\t\n\t\tDataset Card for \"Yahoo Answers Topics\"\n\t\n\n\n\t\n\t\t\n\t\tDataset Summary\n\t\n\n[More Information Needed]\n\n\t\n\t\t\n\t\tSupported Tasks and Leaderboards\n\t\n\n[More Information Needed]\n\n\t\n\t\t\n\t\tLanguages\n\t\n\n[More Information Needed]\n\n\t\n\t\t\n\t\tDataset Structure\n\t\n\n\n\t\n\t\t\n\t\tData Instances\n\t\n\n[More Information Needed]\n\n\t\n\t\t\n\t\tData Fields\n\t\n\n[More Information Needed]\n\n\t\n\t\t\n\t\tData Splits\n\t\n\n[More Information Needed]\n\n\t\n\t\t\n\t\tDataset Creation\n\t\n\n\n\t\n\t\t\n\t\tCuration Rationale\n\t\n\n[More Information Needed]\n\n\t\n\t\t\n\t\tSource\u2026 See the full description on the dataset page: https://huggingface.co/datasets/community-datasets/yahoo_answers_topics."
+                }
+            ]
+        },
+        {
+            "type": "data",
+            "bom-ref": "code_search_net-d14328c4-fa8a-50ba-ab75-08f0d105523c",
+            "name": "code_search_net",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "code_search_net-d14328c4-fa8a-50ba-ab75-08f0d105523c",
+                    "name": "code_search_net",
+                    "contents": {
+                        "url": "https://huggingface.co/datasets/code_search_net",
+                        "properties": [
+                            {
+                                "name": "task_categories",
+                                "value": "text-generation, fill-mask"
+                            },
+                            {
+                                "name": "task_ids",
+                                "value": "language-modeling, masked-language-modeling"
+                            },
+                            {
+                                "name": "language",
+                                "value": "code"
+                            },
+                            {
+                                "name": "size_categories",
+                                "value": "100K<n<1M, 10K<n<100K, 1M<n<10M"
+                            },
+                            {
+                                "name": "annotations_creators",
+                                "value": "no-annotation"
+                            },
+                            {
+                                "name": "language_creators",
+                                "value": "machine-generated"
+                            },
+                            {
+                                "name": "pretty_name",
+                                "value": "CodeSearchNet"
+                            },
+                            {
+                                "name": "source_datasets",
+                                "value": "original"
+                            },
+                            {
+                                "name": "paperswithcode_id",
+                                "value": "codesearchnet"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: all {\"split\": \"train\", \"path\": \"all/train-*\"}, {\"split\": \"test\", \"path\": \"all/test-*\"}, {\"split\": \"validation\", \"path\": \"all/validation-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: go {\"split\": \"train\", \"path\": \"go/train-*\"}, {\"split\": \"test\", \"path\": \"go/test-*\"}, {\"split\": \"validation\", \"path\": \"go/validation-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: java {\"split\": \"train\", \"path\": \"java/train-*\"}, {\"split\": \"test\", \"path\": \"java/test-*\"}, {\"split\": \"validation\", \"path\": \"java/validation-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: javascript {\"split\": \"train\", \"path\": \"javascript/train-*\"}, {\"split\": \"test\", \"path\": \"javascript/test-*\"}, {\"split\": \"validation\", \"path\": \"javascript/validation-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: php {\"split\": \"train\", \"path\": \"php/train-*\"}, {\"split\": \"test\", \"path\": \"php/test-*\"}, {\"split\": \"validation\", \"path\": \"php/validation-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: python {\"split\": \"train\", \"path\": \"python/train-*\"}, {\"split\": \"test\", \"path\": \"python/test-*\"}, {\"split\": \"validation\", \"path\": \"python/validation-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: ruby {\"split\": \"train\", \"path\": \"ruby/train-*\"}, {\"split\": \"test\", \"path\": \"ruby/test-*\"}, {\"split\": \"validation\", \"path\": \"ruby/validation-*\"}"
+                            },
+                            {
+                                "name": "license",
+                                "value": "other"
+                            }
+                        ]
+                    },
+                    "governance": {
+                        "owners": [
+                            {
+                                "organization": {
+                                    "name": "code-search-net",
+                                    "url": "https://huggingface.co/code-search-net"
+                                }
+                            }
+                        ]
+                    },
+                    "description": "\n\t\n\t\t\n\t\tDataset Card for CodeSearchNet corpus\n\t\n\n\n\t\n\t\t\n\t\tDataset Summary\n\t\n\nCodeSearchNet corpus is a dataset of 2 milllion (comment, code) pairs from opensource libraries hosted on GitHub. It contains code and documentation for several programming languages.\nCodeSearchNet corpus was gathered to support the CodeSearchNet challenge, to explore the problem of code retrieval using natural language.\n\n\t\n\t\t\n\t\n\t\n\t\tSupported Tasks and Leaderboards\n\t\n\n\nlanguage-modeling: The dataset can be used to\u2026 See the full description on the dataset page: https://huggingface.co/datasets/code-search-net/code_search_net."
+                }
+            ]
+        },
+        {
+            "type": "data",
+            "bom-ref": "search_qa-46cc9fa5-ebf6-5e77-8f95-5c6b89f20344",
+            "name": "search_qa",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "search_qa-46cc9fa5-ebf6-5e77-8f95-5c6b89f20344",
+                    "name": "search_qa",
+                    "contents": {
+                        "url": "https://huggingface.co/datasets/search_qa",
+                        "properties": [
+                            {
+                                "name": "task_categories",
+                                "value": "question-answering"
+                            },
+                            {
+                                "name": "task_ids",
+                                "value": "extractive-qa"
+                            },
+                            {
+                                "name": "language",
+                                "value": "en"
+                            },
+                            {
+                                "name": "size_categories",
+                                "value": "100K<n<1M"
+                            },
+                            {
+                                "name": "annotations_creators",
+                                "value": "found"
+                            },
+                            {
+                                "name": "language_creators",
+                                "value": "found"
+                            },
+                            {
+                                "name": "pretty_name",
+                                "value": "SearchQA"
+                            },
+                            {
+                                "name": "source_datasets",
+                                "value": "original"
+                            },
+                            {
+                                "name": "paperswithcode_id",
+                                "value": "searchqa"
+                            },
+                            {
+                                "name": "license",
+                                "value": "unknown"
+                            }
+                        ]
+                    },
+                    "governance": {
+                        "owners": [
+                            {
+                                "organization": {
+                                    "name": "kyunghyuncho",
+                                    "url": "https://huggingface.co/kyunghyuncho"
+                                }
+                            }
+                        ]
+                    },
+                    "description": "We publicly release a new large-scale dataset, called SearchQA, for machine comprehension, or question-answering. Unlike recently released datasets, such as DeepMind\nCNN/DailyMail and SQuAD, the proposed SearchQA was constructed to reflect a full pipeline of general question-answering. That is, we start not from an existing article\nand generate a question-answer pair, but start from an existing question-answer pair, crawled from J! Archive, and augment it with text snippets retrieved by Google.\nFollowing this approach, we built SearchQA, which consists of more than 140k question-answer pairs with each pair having 49.6 snippets on average. Each question-answer-context\n tuple of the SearchQA comes with additional meta-data such as the snippet's URL, which we believe will be valuable resources for future research. We conduct human evaluation\n as well as test two baseline methods, one simple word selection and the other deep learning based, on the SearchQA. We show that there is a meaningful gap between the human\n and machine performances. This suggests that the proposed dataset could well serve as a benchmark for question-answering."
+                }
+            ]
+        },
+        {
+            "type": "data",
+            "bom-ref": "eli5-50926124-b144-541c-ac0b-06c0aba5fc71",
+            "name": "eli5",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "eli5-50926124-b144-541c-ac0b-06c0aba5fc71",
+                    "name": "eli5",
+                    "contents": {
+                        "url": "https://huggingface.co/datasets/eli5",
+                        "properties": [
+                            {
+                                "name": "task_categories",
+                                "value": "text2text-generation"
+                            },
+                            {
+                                "name": "task_ids",
+                                "value": "abstractive-qa, open-domain-abstractive-qa"
+                            },
+                            {
+                                "name": "language",
+                                "value": "en"
+                            },
+                            {
+                                "name": "size_categories",
+                                "value": "100K<n<1M"
+                            },
+                            {
+                                "name": "annotations_creators",
+                                "value": "no-annotation"
+                            },
+                            {
+                                "name": "language_creators",
+                                "value": "found"
+                            },
+                            {
+                                "name": "pretty_name",
+                                "value": "ELI5"
+                            },
+                            {
+                                "name": "source_datasets",
+                                "value": "original"
+                            },
+                            {
+                                "name": "paperswithcode_id",
+                                "value": "eli5"
+                            },
+                            {
+                                "name": "license",
+                                "value": "unknown"
+                            }
+                        ]
+                    },
+                    "governance": {
+                        "owners": [
+                            {
+                                "organization": {
+                                    "name": "defunct-datasets",
+                                    "url": "https://huggingface.co/defunct-datasets"
+                                }
+                            }
+                        ]
+                    },
+                    "description": "Explain Like I'm 5 long form QA dataset"
+                }
+            ]
+        },
+        {
+            "type": "data",
+            "bom-ref": "snli-c86ca575-da1e-5d4c-bcd6-b1524781b717",
+            "name": "snli",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "snli-c86ca575-da1e-5d4c-bcd6-b1524781b717",
+                    "name": "snli",
+                    "contents": {
+                        "url": "https://huggingface.co/datasets/snli",
+                        "properties": [
+                            {
+                                "name": "task_categories",
+                                "value": "text-classification"
+                            },
+                            {
+                                "name": "task_ids",
+                                "value": "natural-language-inference, multi-input-text-classification"
+                            },
+                            {
+                                "name": "language",
+                                "value": "en"
+                            },
+                            {
+                                "name": "size_categories",
+                                "value": "100K<n<1M"
+                            },
+                            {
+                                "name": "annotations_creators",
+                                "value": "crowdsourced"
+                            },
+                            {
+                                "name": "language_creators",
+                                "value": "crowdsourced"
+                            },
+                            {
+                                "name": "pretty_name",
+                                "value": "Stanford Natural Language Inference"
+                            },
+                            {
+                                "name": "source_datasets",
+                                "value": "extended|other-flicker-30k, extended|other-visual-genome"
+                            },
+                            {
+                                "name": "paperswithcode_id",
+                                "value": "snli"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: plain_text {\"split\": \"test\", \"path\": \"plain_text/test-*\"}, {\"split\": \"validation\", \"path\": \"plain_text/validation-*\"}, {\"split\": \"train\", \"path\": \"plain_text/train-*\"}"
+                            },
+                            {
+                                "name": "license",
+                                "value": "cc-by-sa-4.0"
+                            }
+                        ]
+                    },
+                    "governance": {
+                        "owners": [
+                            {
+                                "organization": {
+                                    "name": "stanfordnlp",
+                                    "url": "https://huggingface.co/stanfordnlp"
+                                }
+                            }
+                        ]
+                    },
+                    "description": "\n\t\n\t\t\n\t\tDataset Card for SNLI\n\t\n\n\n\t\n\t\t\n\t\tDataset Summary\n\t\n\nThe SNLI corpus (version 1.0) is a collection of 570k human-written English sentence pairs manually labeled for balanced classification with the labels entailment, contradiction, and neutral, supporting the task of natural language inference (NLI), also known as recognizing textual entailment (RTE).\n\n\t\n\t\t\n\t\tSupported Tasks and Leaderboards\n\t\n\nNatural Language Inference (NLI), also known as Recognizing Textual Entailment (RTE), is the\u2026 See the full description on the dataset page: https://huggingface.co/datasets/stanfordnlp/snli."
+                }
+            ]
+        },
+        {
+            "type": "data",
+            "bom-ref": "multi_nli-3f66ff16-a557-5dab-8458-0d3efcbec3da",
+            "name": "multi_nli",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "multi_nli-3f66ff16-a557-5dab-8458-0d3efcbec3da",
+                    "name": "multi_nli",
+                    "contents": {
+                        "url": "https://huggingface.co/datasets/multi_nli",
+                        "properties": [
+                            {
+                                "name": "task_categories",
+                                "value": "text-classification"
+                            },
+                            {
+                                "name": "task_ids",
+                                "value": "natural-language-inference, multi-input-text-classification"
+                            },
+                            {
+                                "name": "language",
+                                "value": "en"
+                            },
+                            {
+                                "name": "size_categories",
+                                "value": "100K<n<1M"
+                            },
+                            {
+                                "name": "annotations_creators",
+                                "value": "crowdsourced"
+                            },
+                            {
+                                "name": "language_creators",
+                                "value": "crowdsourced, found"
+                            },
+                            {
+                                "name": "pretty_name",
+                                "value": "Multi-Genre Natural Language Inference"
+                            },
+                            {
+                                "name": "source_datasets",
+                                "value": "original"
+                            },
+                            {
+                                "name": "paperswithcode_id",
+                                "value": "multinli"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: default {\"split\": \"train\", \"path\": \"data/train-*\"}, {\"split\": \"validation_matched\", \"path\": \"data/validation_matched-*\"}, {\"split\": \"validation_mismatched\", \"path\": \"data/validation_mismatched-*\"}"
+                            },
+                            {
+                                "name": "license",
+                                "value": "cc-by-3.0, cc-by-sa-3.0, mit, other"
+                            }
+                        ]
+                    },
+                    "governance": {
+                        "owners": [
+                            {
+                                "organization": {
+                                    "name": "nyu-mll",
+                                    "url": "https://huggingface.co/nyu-mll"
+                                }
+                            }
+                        ]
+                    },
+                    "description": "\n\t\n\t\t\n\t\tDataset Card for Multi-Genre Natural Language Inference (MultiNLI)\n\t\n\n\n\t\n\t\t\n\t\tDataset Summary\n\t\n\nThe Multi-Genre Natural Language Inference (MultiNLI) corpus is a\ncrowd-sourced collection of 433k sentence pairs annotated with textual\nentailment information. The corpus is modeled on the SNLI corpus, but differs in\nthat covers a range of genres of spoken and written text, and supports a\ndistinctive cross-genre generalization evaluation. The corpus served as the\nbasis for the shared task\u2026 See the full description on the dataset page: https://huggingface.co/datasets/nyu-mll/multi_nli."
+                }
+            ]
+        },
+        {
+            "type": "data",
+            "bom-ref": "wikihow-54d44e57-cae1-5ebb-a347-f9da1e9d4053",
+            "name": "wikihow",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "wikihow-54d44e57-cae1-5ebb-a347-f9da1e9d4053",
+                    "name": "wikihow",
+                    "contents": {
+                        "url": "https://huggingface.co/datasets/wikihow",
+                        "properties": [
+                            {
+                                "name": "pretty_name",
+                                "value": "WikiHow"
+                            },
+                            {
+                                "name": "paperswithcode_id",
+                                "value": "wikihow"
+                            }
+                        ]
+                    },
+                    "governance": {
+                        "owners": [
+                            {
+                                "organization": {
+                                    "name": "wangwilliamyang",
+                                    "url": "https://huggingface.co/wangwilliamyang"
+                                }
+                            }
+                        ]
+                    },
+                    "description": "WikiHow is a new large-scale dataset using the online WikiHow\n(http://www.wikihow.com/) knowledge base.\n\nThere are two features:\n  - text: wikihow answers texts.\n  - headline: bold lines as summary.\n\nThere are two separate versions:\n  - all: consisting of the concatenation of all paragraphs as the articles and\n         the bold lines as the reference summaries.\n  - sep: consisting of each paragraph and its summary.\n\nDownload \"wikihowAll.csv\" and \"wikihowSep.csv\" from\nhttps://github.com/mahnazkoupaee/WikiHow-Dataset and place them in manual folder\nhttps://www.tensorflow.org/datasets/api_docs/python/tfds/download/DownloadConfig.\nTrain/validation/test splits are provided by the authors.\nPreprocessing is applied to remove short articles\n(abstract length < 0.75 article length) and clean up extra commas."
+                }
+            ]
+        },
+        {
+            "type": "data",
+            "bom-ref": "natural_questions-9d628078-279d-50b2-bdf4-02c911181e5e",
+            "name": "natural_questions",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "natural_questions-9d628078-279d-50b2-bdf4-02c911181e5e",
+                    "name": "natural_questions",
+                    "contents": {
+                        "url": "https://huggingface.co/datasets/natural_questions",
+                        "properties": [
+                            {
+                                "name": "task_categories",
+                                "value": "question-answering"
+                            },
+                            {
+                                "name": "task_ids",
+                                "value": "open-domain-qa"
+                            },
+                            {
+                                "name": "language",
+                                "value": "en"
+                            },
+                            {
+                                "name": "size_categories",
+                                "value": "100K<n<1M"
+                            },
+                            {
+                                "name": "annotations_creators",
+                                "value": "no-annotation"
+                            },
+                            {
+                                "name": "language_creators",
+                                "value": "crowdsourced"
+                            },
+                            {
+                                "name": "pretty_name",
+                                "value": "Natural Questions"
+                            },
+                            {
+                                "name": "source_datasets",
+                                "value": "original"
+                            },
+                            {
+                                "name": "paperswithcode_id",
+                                "value": "natural-questions"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: default {\"split\": \"train\", \"path\": \"default/train-*\"}, {\"split\": \"validation\", \"path\": \"default/validation-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: dev {\"split\": \"validation\", \"path\": \"dev/validation-*\"}"
+                            },
+                            {
+                                "name": "license",
+                                "value": "cc-by-sa-3.0"
+                            }
+                        ]
+                    },
+                    "governance": {
+                        "owners": [
+                            {
+                                "organization": {
+                                    "name": "google-research-datasets",
+                                    "url": "https://huggingface.co/google-research-datasets"
+                                }
+                            }
+                        ]
+                    },
+                    "description": "\n\t\n\t\t\n\t\tDataset Card for Natural Questions\n\t\n\n\n\t\n\t\t\n\t\tDataset Summary\n\t\n\nThe NQ corpus contains questions from real users, and it requires QA systems to\nread and comprehend an entire Wikipedia article that may or may not contain the\nanswer to the question. The inclusion of real user questions, and the\nrequirement that solutions should read an entire page to find the answer, cause\nNQ to be a more realistic and challenging task than prior QA datasets.\n\n\t\n\t\t\n\t\tSupported Tasks and Leaderboards\u2026 See the full description on the dataset page: https://huggingface.co/datasets/google-research-datasets/natural_questions."
+                }
+            ]
+        },
+        {
+            "type": "data",
+            "bom-ref": "trivia_qa-3fc5035f-f820-55b6-82e8-0815843d1785",
+            "name": "trivia_qa",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "trivia_qa-3fc5035f-f820-55b6-82e8-0815843d1785",
+                    "name": "trivia_qa",
+                    "contents": {
+                        "url": "https://huggingface.co/datasets/trivia_qa",
+                        "properties": [
+                            {
+                                "name": "task_categories",
+                                "value": "question-answering, text2text-generation"
+                            },
+                            {
+                                "name": "task_ids",
+                                "value": "open-domain-qa, open-domain-abstractive-qa, extractive-qa, abstractive-qa"
+                            },
+                            {
+                                "name": "language",
+                                "value": "en"
+                            },
+                            {
+                                "name": "size_categories",
+                                "value": "10K<n<100K, 100K<n<1M"
+                            },
+                            {
+                                "name": "annotations_creators",
+                                "value": "crowdsourced"
+                            },
+                            {
+                                "name": "language_creators",
+                                "value": "machine-generated"
+                            },
+                            {
+                                "name": "pretty_name",
+                                "value": "TriviaQA"
+                            },
+                            {
+                                "name": "source_datasets",
+                                "value": "original"
+                            },
+                            {
+                                "name": "paperswithcode_id",
+                                "value": "triviaqa"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: rc {\"split\": \"train\", \"path\": \"rc/train-*\"}, {\"split\": \"validation\", \"path\": \"rc/validation-*\"}, {\"split\": \"test\", \"path\": \"rc/test-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: rc.nocontext {\"split\": \"train\", \"path\": \"rc.nocontext/train-*\"}, {\"split\": \"validation\", \"path\": \"rc.nocontext/validation-*\"}, {\"split\": \"test\", \"path\": \"rc.nocontext/test-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: rc.web {\"split\": \"train\", \"path\": \"rc.web/train-*\"}, {\"split\": \"validation\", \"path\": \"rc.web/validation-*\"}, {\"split\": \"test\", \"path\": \"rc.web/test-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: rc.web.nocontext {\"split\": \"train\", \"path\": \"rc.web.nocontext/train-*\"}, {\"split\": \"validation\", \"path\": \"rc.web.nocontext/validation-*\"}, {\"split\": \"test\", \"path\": \"rc.web.nocontext/test-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: rc.wikipedia {\"split\": \"train\", \"path\": \"rc.wikipedia/train-*\"}, {\"split\": \"validation\", \"path\": \"rc.wikipedia/validation-*\"}, {\"split\": \"test\", \"path\": \"rc.wikipedia/test-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: rc.wikipedia.nocontext {\"split\": \"train\", \"path\": \"rc.wikipedia.nocontext/train-*\"}, {\"split\": \"validation\", \"path\": \"rc.wikipedia.nocontext/validation-*\"}, {\"split\": \"test\", \"path\": \"rc.wikipedia.nocontext/test-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: unfiltered {\"split\": \"train\", \"path\": \"unfiltered/train-*\"}, {\"split\": \"validation\", \"path\": \"unfiltered/validation-*\"}, {\"split\": \"test\", \"path\": \"unfiltered/test-*\"}"
+                            },
+                            {
+                                "name": "configs",
+                                "value": "Name of the dataset subset: unfiltered.nocontext {\"split\": \"train\", \"path\": \"unfiltered.nocontext/train-*\"}, {\"split\": \"validation\", \"path\": \"unfiltered.nocontext/validation-*\"}, {\"split\": \"test\", \"path\": \"unfiltered.nocontext/test-*\"}"
+                            },
+                            {
+                                "name": "license",
+                                "value": "unknown"
+                            }
+                        ]
+                    },
+                    "governance": {
+                        "owners": [
+                            {
+                                "organization": {
+                                    "name": "mandarjoshi",
+                                    "url": "https://huggingface.co/mandarjoshi"
+                                }
+                            }
+                        ]
+                    },
+                    "description": "\n\t\n\t\t\n\t\tDataset Card for \"trivia_qa\"\n\t\n\n\n\t\n\t\t\n\t\tDataset Summary\n\t\n\nTriviaqQA is a reading comprehension dataset containing over 650K\nquestion-answer-evidence triples. TriviaqQA includes 95K question-answer\npairs authored by trivia enthusiasts and independently gathered evidence\ndocuments, six per question on average, that provide high quality distant\nsupervision for answering the questions.\n\n\t\n\t\t\n\t\tSupported Tasks and Leaderboards\n\t\n\nMore Information Needed\n\n\t\n\t\t\n\t\tLanguages\n\t\n\nEnglish.\u2026 See the full description on the dataset page: https://huggingface.co/datasets/mandarjoshi/trivia_qa."
+                }
+            ]
+        },
+        {
+            "type": "data",
+            "bom-ref": "embedding-data/sentence-compression-fb02b073-5608-5dda-9f1d-7e89d1f5726e",
+            "name": "embedding-data/sentence-compression",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "embedding-data/sentence-compression-fb02b073-5608-5dda-9f1d-7e89d1f5726e",
+                    "name": "embedding-data/sentence-compression",
+                    "contents": {
+                        "url": "https://huggingface.co/datasets/embedding-data/sentence-compression",
+                        "properties": [
+                            {
+                                "name": "task_categories",
+                                "value": "sentence-similarity, paraphrase-mining"
+                            },
+                            {
+                                "name": "task_ids",
+                                "value": "semantic-similarity-classification"
+                            },
+                            {
+                                "name": "language",
+                                "value": "en"
+                            },
+                            {
+                                "name": "pretty_name",
+                                "value": "sentence-compression"
+                            },
+                            {
+                                "name": "license",
+                                "value": "mit"
+                            }
+                        ]
+                    },
+                    "governance": {
+                        "owners": [
+                            {
+                                "organization": {
+                                    "name": "embedding-data",
+                                    "url": "https://huggingface.co/embedding-data"
+                                }
+                            }
+                        ]
+                    },
+                    "description": "\n\t\n\t\t\n\t\tDataset Card for \"sentence-compression\"\n\t\n\n\n\t\n\t\t\n\t\tDataset Summary\n\t\n\nDataset with pairs of equivalent sentences.\nThe dataset is provided \"AS IS\" without any warranty, express or implied. \nGoogle disclaims all liability for any damages, direct or indirect, resulting from using the dataset.\nDisclaimer: The team releasing sentence-compression did not upload the dataset to the Hub and did not write a dataset card. These steps were done by the Hugging Face team.\n\n\t\n\t\t\n\t\tSupported Tasks\u2026 See the full description on the dataset page: https://huggingface.co/datasets/embedding-data/sentence-compression."
+                }
+            ]
+        },
+        {
+            "type": "data",
+            "bom-ref": "embedding-data/flickr30k-captions-e230bb62-1c64-52b6-8c6d-ddce348416d2",
+            "name": "embedding-data/flickr30k-captions",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "embedding-data/flickr30k-captions-e230bb62-1c64-52b6-8c6d-ddce348416d2",
+                    "name": "embedding-data/flickr30k-captions",
+                    "contents": {
+                        "url": "https://huggingface.co/datasets/embedding-data/flickr30k-captions",
+                        "properties": [
+                            {
+                                "name": "language",
+                                "value": "en"
+                            },
+                            {
+                                "name": "pretty_name",
+                                "value": "flickr30k-captions"
+                            },
+                            {
+                                "name": "license",
+                                "value": "mit"
+                            }
+                        ]
+                    },
+                    "governance": {
+                        "owners": [
+                            {
+                                "organization": {
+                                    "name": "embedding-data",
+                                    "url": "https://huggingface.co/embedding-data"
+                                }
+                            }
+                        ]
+                    },
+                    "description": "\n\t\n\t\t\n\t\tDataset Card for \"flickr30k-captions\"\n\t\n\n\n\t\n\t\t\n\t\tDataset Summary\n\t\n\nWe propose to use the visual denotations of linguistic expressions (i.e. the set of images they describe) to define novel denotational similarity metrics, which we show to be at least as beneficial as distributional similarities for two tasks that require semantic inference. To compute these denotational similarities, we construct a denotation graph, i.e. a subsumption hierarchy over constituents and their denotations\u2026 See the full description on the dataset page: https://huggingface.co/datasets/embedding-data/flickr30k_captions_quintets."
+                }
+            ]
+        },
+        {
+            "type": "data",
+            "bom-ref": "embedding-data/altlex-ea93bf58-483e-555f-a1cb-5e3252519b5b",
+            "name": "embedding-data/altlex",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "embedding-data/altlex-ea93bf58-483e-555f-a1cb-5e3252519b5b",
+                    "name": "embedding-data/altlex",
+                    "contents": {
+                        "url": "https://huggingface.co/datasets/embedding-data/altlex",
+                        "properties": [
+                            {
+                                "name": "language",
+                                "value": "en"
+                            },
+                            {
+                                "name": "pretty_name",
+                                "value": "altlex"
+                            },
+                            {
+                                "name": "license",
+                                "value": "mit"
+                            }
+                        ]
+                    },
+                    "governance": {
+                        "owners": [
+                            {
+                                "organization": {
+                                    "name": "embedding-data",
+                                    "url": "https://huggingface.co/embedding-data"
+                                }
+                            }
+                        ]
+                    },
+                    "description": "\n\t\n\t\t\n\t\tDataset Card for \"altlex\"\n\t\n\n\n\t\n\t\t\n\t\tDataset Summary\n\t\n\nGit repository for software associated with the 2016 ACL paper \"Identifying Causal Relations Using Parallel Wikipedia Articles.\"\nDisclaimer: The team releasing altlex did not upload the dataset to the Hub and did not write a dataset card.\nThese steps were done by the Hugging Face team.\n\n\t\n\t\t\n\t\tSupported Tasks\n\t\n\n\nSentence Transformers training; useful for semantic search and sentence similarity.\n\n\n\t\n\t\t\n\t\tLanguages\n\t\n\n\nEnglish.\u2026 See the full description on the dataset page: https://huggingface.co/datasets/embedding-data/altlex."
+                }
+            ]
+        },
+        {
+            "type": "data",
+            "bom-ref": "embedding-data/simple-wiki-60f5a61f-d184-575b-bc4b-ba0ea43067cb",
+            "name": "embedding-data/simple-wiki",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "embedding-data/simple-wiki-60f5a61f-d184-575b-bc4b-ba0ea43067cb",
+                    "name": "embedding-data/simple-wiki",
+                    "contents": {
+                        "url": "https://huggingface.co/datasets/embedding-data/simple-wiki",
+                        "properties": [
+                            {
+                                "name": "task_categories",
+                                "value": "sentence-similarity, paraphrase-mining"
+                            },
+                            {
+                                "name": "task_ids",
+                                "value": "semantic-similarity-classification"
+                            },
+                            {
+                                "name": "language",
+                                "value": "en"
+                            },
+                            {
+                                "name": "pretty_name",
+                                "value": "simple-wiki"
+                            },
+                            {
+                                "name": "license",
+                                "value": "mit"
+                            }
+                        ]
+                    },
+                    "governance": {
+                        "owners": [
+                            {
+                                "organization": {
+                                    "name": "embedding-data",
+                                    "url": "https://huggingface.co/embedding-data"
+                                }
+                            }
+                        ]
+                    },
+                    "description": "\n\t\n\t\t\n\t\tDataset Card for \"simple-wiki\"\n\t\n\n\n\t\n\t\t\n\t\tDataset Summary\n\t\n\nThis dataset contains pairs of equivalent sentences obtained from Wikipedia.\n\n\t\n\t\t\n\t\tSupported Tasks\n\t\n\n\nSentence Transformers training; useful for semantic search and sentence similarity.\n\n\n\t\n\t\t\n\t\tLanguages\n\t\n\n\nEnglish.\n\n\n\t\n\t\t\n\t\tDataset Structure\n\t\n\nEach example in the dataset contains pairs of equivalent sentences and is formatted as a dictionary with the key \"set\" and a list with the sentences as \"value\".\n{\"set\":\u2026 See the full description on the dataset page: https://huggingface.co/datasets/embedding-data/simple-wiki."
+                }
+            ]
+        },
+        {
+            "type": "data",
+            "bom-ref": "embedding-data/QQP-7344ce45-1630-5169-8400-c97ae34d3f53",
+            "name": "embedding-data/QQP",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "embedding-data/QQP-7344ce45-1630-5169-8400-c97ae34d3f53",
+                    "name": "embedding-data/QQP",
+                    "contents": {
+                        "url": "https://huggingface.co/datasets/embedding-data/QQP",
+                        "properties": [
+                            {
+                                "name": "task_categories",
+                                "value": "sentence-similarity, paraphrase-mining"
+                            },
+                            {
+                                "name": "task_ids",
+                                "value": "semantic-similarity-classification"
+                            },
+                            {
+                                "name": "language",
+                                "value": "en"
+                            },
+                            {
+                                "name": "pretty_name",
+                                "value": "QQP_triplets"
+                            },
+                            {
+                                "name": "license",
+                                "value": "mit"
+                            }
+                        ]
+                    },
+                    "governance": {
+                        "owners": [
+                            {
+                                "organization": {
+                                    "name": "embedding-data",
+                                    "url": "https://huggingface.co/embedding-data"
+                                }
+                            }
+                        ]
+                    },
+                    "description": "\n\t\n\t\t\n\t\tDataset Card for \"QQP_triplets\"\n\t\n\n\n\t\n\t\t\n\t\tDataset Summary\n\t\n\nThis dataset will give anyone the opportunity to train and test models of semantic equivalence, based on actual Quora data. The data is organized as triplets (anchor, positive, negative).\nDisclaimer: The team releasing Quora data did not upload the dataset to the Hub and did not write a dataset card. \nThese steps were done by the Hugging Face team.\n\n\t\n\t\t\n\t\tSupported Tasks\n\t\n\n\nSentence Transformers training; useful for\u2026 See the full description on the dataset page: https://huggingface.co/datasets/embedding-data/QQP_triplets."
+                }
+            ]
+        },
+        {
+            "type": "data",
+            "bom-ref": "embedding-data/SPECTER-566e9a9a-0219-59ad-8b7e-9c0f11ec8af3",
+            "name": "embedding-data/SPECTER",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "embedding-data/SPECTER-566e9a9a-0219-59ad-8b7e-9c0f11ec8af3",
+                    "name": "embedding-data/SPECTER",
+                    "contents": {
+                        "url": "https://huggingface.co/datasets/embedding-data/SPECTER",
+                        "properties": [
+                            {
+                                "name": "task_categories",
+                                "value": "sentence-similarity, paraphrase-mining"
+                            },
+                            {
+                                "name": "task_ids",
+                                "value": "semantic-similarity-classification"
+                            },
+                            {
+                                "name": "language",
+                                "value": "en"
+                            },
+                            {
+                                "name": "pretty_name",
+                                "value": "SPECTER"
+                            },
+                            {
+                                "name": "license",
+                                "value": "mit"
+                            }
+                        ]
+                    },
+                    "governance": {
+                        "owners": [
+                            {
+                                "organization": {
+                                    "name": "embedding-data",
+                                    "url": "https://huggingface.co/embedding-data"
+                                }
+                            }
+                        ]
+                    },
+                    "description": "\n\t\n\t\t\n\t\tDataset Card for \"SPECTER\"\n\t\n\n\n\t\n\t\t\n\t\tDataset Summary\n\t\n\nDataset containing triplets (three sentences): anchor, positive, and negative. Contains titles of papers.\nDisclaimer: The team releasing SPECTER did not upload the dataset to the Hub and did not write a dataset card. \nThese steps were done by the Hugging Face team.\n\n\t\n\t\t\n\t\tDataset Structure\n\t\n\nEach example in the dataset contains triplets of equivalent sentences and is formatted as a dictionary with the key \"set\" and a list with\u2026 See the full description on the dataset page: https://huggingface.co/datasets/embedding-data/SPECTER."
+                }
+            ]
+        },
+        {
+            "type": "data",
+            "bom-ref": "embedding-data/PAQ_pairs-d382b21d-b46f-5379-967a-320e28b981b5",
+            "name": "embedding-data/PAQ_pairs",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "embedding-data/PAQ_pairs-d382b21d-b46f-5379-967a-320e28b981b5",
+                    "name": "embedding-data/PAQ_pairs",
+                    "contents": {
+                        "url": "https://huggingface.co/datasets/embedding-data/PAQ_pairs",
+                        "properties": [
+                            {
+                                "name": "task_categories",
+                                "value": "sentence-similarity, paraphrase-mining"
+                            },
+                            {
+                                "name": "task_ids",
+                                "value": "semantic-similarity-classification"
+                            },
+                            {
+                                "name": "language",
+                                "value": "en"
+                            },
+                            {
+                                "name": "pretty_name",
+                                "value": "PAQ_pairs"
+                            },
+                            {
+                                "name": "license",
+                                "value": "mit"
+                            }
+                        ]
+                    },
+                    "governance": {
+                        "owners": [
+                            {
+                                "organization": {
+                                    "name": "embedding-data",
+                                    "url": "https://huggingface.co/embedding-data"
+                                }
+                            }
+                        ]
+                    },
+                    "description": "\n\t\n\t\t\n\t\tDataset Card for \"PAQ_pairs\"\n\t\n\n\n\t\n\t\t\n\t\tDataset Summary\n\t\n\nPairs questions and answers obtained from Wikipedia.\nDisclaimer: The team releasing PAQ QA pairs did not upload the dataset to the Hub and did not write a dataset card. \nThese steps were done by the Hugging Face team.\n\n\t\n\t\t\n\t\tSupported Tasks\n\t\n\n\nSentence Transformers training; useful for semantic search and sentence similarity.\n\n\n\t\n\t\t\n\t\tLanguages\n\t\n\n\nEnglish.\n\n\n\t\n\t\t\n\t\tDataset Structure\n\t\n\nEach example in the dataset contains\u2026 See the full description on the dataset page: https://huggingface.co/datasets/embedding-data/PAQ_pairs."
+                }
+            ]
+        },
+        {
+            "type": "data",
+            "bom-ref": "embedding-data/WikiAnswers-38ebefc3-ab34-5b66-b64a-c52a9659c734",
+            "name": "embedding-data/WikiAnswers",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "embedding-data/WikiAnswers-38ebefc3-ab34-5b66-b64a-c52a9659c734",
+                    "name": "embedding-data/WikiAnswers",
+                    "contents": {
+                        "url": "https://huggingface.co/datasets/embedding-data/WikiAnswers",
+                        "properties": [
+                            {
+                                "name": "task_categories",
+                                "value": "sentence-similarity, paraphrase-mining"
+                            },
+                            {
+                                "name": "task_ids",
+                                "value": "semantic-similarity-classification"
+                            },
+                            {
+                                "name": "language",
+                                "value": "en"
+                            },
+                            {
+                                "name": "pretty_name",
+                                "value": "WikiAnswers"
+                            },
+                            {
+                                "name": "license",
+                                "value": "mit"
+                            }
+                        ]
+                    },
+                    "governance": {
+                        "owners": [
+                            {
+                                "organization": {
+                                    "name": "embedding-data",
+                                    "url": "https://huggingface.co/embedding-data"
+                                }
+                            }
+                        ]
+                    },
+                    "description": "\n\t\n\t\t\n\t\tDataset Card for \"WikiAnswers\"\n\t\n\n\n\t\n\t\t\n\t\tDataset Summary\n\t\n\nThe WikiAnswers corpus contains clusters of questions tagged by WikiAnswers users as paraphrases. \nEach cluster optionally contains an answer provided by WikiAnswers users. There are 30,370,994 clusters containing an average of 25 questions per cluster. 3,386,256 (11%) of the clusters have an answer.\n\n\t\n\t\t\n\t\tSupported Tasks\n\t\n\n\nSentence Transformers training; useful for semantic search and sentence similarity.\u2026 See the full description on the dataset page: https://huggingface.co/datasets/embedding-data/WikiAnswers."
+                }
+            ]
+        }
+    ]
+}

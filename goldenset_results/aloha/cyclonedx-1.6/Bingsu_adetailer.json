@@ -1,0 +1,194 @@
+{
+    "bomFormat": "CycloneDX",
+    "specVersion": "1.6",
+    "serialNumber": "urn:uuid:29d64969-9406-40c7-a16b-16d4a734efd2",
+    "version": 1,
+    "metadata": {
+        "timestamp": "2026-04-30T20:36:12.747487+00:00",
+        "component": {
+            "type": "machine-learning-model",
+            "bom-ref": "Bingsu/adetailer-a154275e-92be-5049-be56-3692a9268d3d",
+            "name": "Bingsu/adetailer",
+            "externalReferences": [
+                {
+                    "url": "https://huggingface.co/Bingsu/adetailer",
+                    "type": "documentation"
+                }
+            ],
+            "modelCard": {
+                "properties": [
+                    {
+                        "name": "library_name",
+                        "value": "ultralytics"
+                    }
+                ],
+                "modelParameters": {
+                    "datasets": [
+                        {
+                            "ref": "wider_face-5020c7ea-eb77-5164-b80a-684427671cc3"
+                        },
+                        {
+                            "ref": "skytnt/anime-segmentation-ecf1a6ad-107d-5f96-be10-d44c1c54c3ab"
+                        }
+                    ]
+                }
+            },
+            "authors": [
+                {
+                    "name": "Bingsu"
+                }
+            ],
+            "licenses": [
+                {
+                    "license": {
+                        "id": "Apache-2.0",
+                        "url": "https://spdx.org/licenses/Apache-2.0.html"
+                    }
+                }
+            ],
+            "tags": [
+                "ultralytics",
+                "pytorch",
+                "dataset:wider_face",
+                "dataset:skytnt/anime-segmentation",
+                "doi:10.57967/hf/3633",
+                "license:apache-2.0",
+                "region:us"
+            ]
+        }
+    },
+    "components": [
+        {
+            "type": "data",
+            "bom-ref": "wider_face-5020c7ea-eb77-5164-b80a-684427671cc3",
+            "name": "wider_face",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "wider_face-5020c7ea-eb77-5164-b80a-684427671cc3",
+                    "name": "wider_face",
+                    "contents": {
+                        "url": "https://huggingface.co/datasets/wider_face",
+                        "properties": [
+                            {
+                                "name": "task_categories",
+                                "value": "object-detection"
+                            },
+                            {
+                                "name": "task_ids",
+                                "value": "face-detection"
+                            },
+                            {
+                                "name": "language",
+                                "value": "en"
+                            },
+                            {
+                                "name": "size_categories",
+                                "value": "10K<n<100K"
+                            },
+                            {
+                                "name": "annotations_creators",
+                                "value": "expert-generated"
+                            },
+                            {
+                                "name": "language_creators",
+                                "value": "found"
+                            },
+                            {
+                                "name": "pretty_name",
+                                "value": "WIDER FACE"
+                            },
+                            {
+                                "name": "source_datasets",
+                                "value": "extended|other-wider"
+                            },
+                            {
+                                "name": "paperswithcode_id",
+                                "value": "wider-face-1"
+                            },
+                            {
+                                "name": "license",
+                                "value": "cc-by-nc-nd-4.0"
+                            }
+                        ]
+                    },
+                    "governance": {
+                        "owners": [
+                            {
+                                "organization": {
+                                    "name": "CUHK-CSE",
+                                    "url": "https://huggingface.co/CUHK-CSE"
+                                }
+                            }
+                        ]
+                    },
+                    "description": "WIDER FACE dataset is a face detection benchmark dataset, of which images are\nselected from the publicly available WIDER dataset. We choose 32,203 images and\nlabel 393,703 faces with a high degree of variability in scale, pose and\nocclusion as depicted in the sample images. WIDER FACE dataset is organized\nbased on 61 event classes. For each event class, we randomly select 40%/10%/50%\ndata as training, validation and testing sets. We adopt the same evaluation\nmetric employed in the PASCAL VOC dataset. Similar to MALF and Caltech datasets,\nwe do not release bounding box ground truth for the test images. Users are\nrequired to submit final prediction files, which we shall proceed to evaluate."
+                }
+            ]
+        },
+        {
+            "type": "data",
+            "bom-ref": "skytnt/anime-segmentation-ecf1a6ad-107d-5f96-be10-d44c1c54c3ab",
+            "name": "skytnt/anime-segmentation",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "skytnt/anime-segmentation-ecf1a6ad-107d-5f96-be10-d44c1c54c3ab",
+                    "name": "skytnt/anime-segmentation",
+                    "contents": {
+                        "url": "https://huggingface.co/datasets/skytnt/anime-segmentation",
+                        "properties": [
+                            {
+                                "name": "task_categories",
+                                "value": "image-segmentation"
+                            },
+                            {
+                                "name": "task_ids",
+                                "value": "semantic-segmentation"
+                            },
+                            {
+                                "name": "language",
+                                "value": ""
+                            },
+                            {
+                                "name": "size_categories",
+                                "value": "10K<n<100K"
+                            },
+                            {
+                                "name": "annotations_creators",
+                                "value": ""
+                            },
+                            {
+                                "name": "language_creators",
+                                "value": ""
+                            },
+                            {
+                                "name": "pretty_name",
+                                "value": "Anime Segmentation"
+                            },
+                            {
+                                "name": "source_datasets",
+                                "value": "original"
+                            },
+                            {
+                                "name": "license",
+                                "value": "cc0-1.0"
+                            }
+                        ]
+                    },
+                    "governance": {
+                        "owners": [
+                            {
+                                "organization": {
+                                    "name": "skytnt",
+                                    "url": "https://huggingface.co/skytnt"
+                                }
+                            }
+                        ]
+                    },
+                    "description": "A segmentation dataset for anime character"
+                }
+            ]
+        }
+    ]
+}

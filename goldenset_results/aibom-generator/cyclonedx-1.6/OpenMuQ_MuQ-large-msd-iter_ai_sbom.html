@@ -1,0 +1,1910 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIBOM Generated</title>
+    <link rel="stylesheet" href="static/css/style.css?v=2.0">
+
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+    <div class="header-left">
+        <a href="https://genai.owasp.org/" target="_blank">
+            <img src="static/images/genai_security_project_logo.webp"
+                alt="OWASP GenAI Security Project logo">
+        </a>
+    </div>
+    <div class="header-content">
+        <h1>AIBOM Generator</h1>
+    </div>
+    
+    <div class="header-right">
+        <a href="/" class="generate-another-btn">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path
+                    d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z">
+                </path>
+                <path d="M5 3v4"></path>
+                <path d="M19 17v4"></path>
+                <path d="M3 5h4"></path>
+                <path d="M17 19h4"></path>
+            </svg>
+            Generate Another AIBOM
+        </a>
+    </div>
+    
+</div>
+
+        <!-- Success Message
+        <div class="success-message">
+            <h2>✅&nbsp;&nbsp;AIBOM is Generated Successfully for <span class="model-name">OpenMuQ/MuQ-large-msd-iter</span></h2>
+        </div>  -->
+
+        <!-- Key Information -->
+        <div class="key-info">
+            <h3>📋&nbsp;&nbsp;AIBOM Summary</h3>
+            <div class="aibom-property">
+                <span class="property-name">Model:</span>
+                <span class="property-value"><a href="https://huggingface.co/OpenMuQ/MuQ-large-msd-iter" target="_blank">OpenMuQ/MuQ-large-msd-iter</a></span>
+            </div>
+            <div class="aibom-property">
+                <span class="property-name">Generated:</span>
+                <span class="property-value">2026-04-30T20:36:24+00:00</span>
+            </div>
+            <div class="aibom-property">
+                <span class="property-name">SBOM Format:</span>
+                <span class="property-value">
+                    <a href="https://cyclonedx.org/docs/1.6/json/#components_items_modelCard" target="_blank">CycloneDX 1.6</a>,
+                    <a href="https://cyclonedx.org/docs/1.7/json/#components_items_modelCard" target="_blank">CycloneDX 1.7</a>
+                </span>
+            </div>
+            <div class="aibom-property">
+                <span class="property-name">Serial Number:</span>
+                <span class="property-value">urn:uuid:14660477-e0cf-43e9-9ce2-9dafb36fe447</span>
+            </div>
+        </div>
+
+        <!-- Calculate Shared Score State -->
+        
+        
+        
+        
+        
+
+        <!-- Completeness Profile & Download Section -->
+        <div class="completeness-profile progress-fair-border"
+            style="display: flex; flex-wrap: wrap; gap: 0; align-items: center;">
+            <div class="completeness-left"
+                style="flex: 1 1 50%; min-width: 300px; padding-right: 20px; box-sizing: border-box;">
+                
+                <h3 style="margin-top:0; margin-bottom:15px;">📊&nbsp;&nbsp;Completeness Assessment</h3>
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <span class="profile-badge profile-basic">
+                        Basic
+                    </span>
+                    <span>Minimal fields required for identification</span>
+                </div>
+                
+            </div>
+
+            <div class="completeness-right" style="flex: 1 1 50%; min-width: 300px; box-sizing: border-box;">
+                <div class="download-section-inner">
+                    <h3 style="margin-top:0; margin-bottom:15px;">💾&nbsp;&nbsp;Download your AIBOM</h3>
+                    <div class="download-buttons" style="display: flex; gap: 10px;">
+                        <button onclick="downloadJSON(AIBOM_CDX_JSON_1_6, FILENAME_BASE + '_aibom_1_6.json')">
+                            <img src="static/images/cdx.webp" alt="CycloneDX Logo"
+                                width="16" height="16" style="filter: brightness(0) invert(1);">
+                            CycloneDX 1.6
+                        </button>
+                        <button onclick="downloadJSON(AIBOM_CDX_JSON_1_7, FILENAME_BASE + '_aibom_1_7.json')">
+                            <img src="static/images/cdx.webp" alt="CycloneDX Logo"
+                                width="16" height="16" style="filter: brightness(0) invert(1);">
+                            CycloneDX 1.7
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabbed Content -->
+        <div class="aibom-viewer">
+            <div class="aibom-tabs">
+                <div class="aibom-tab active" onclick="switchTab('human-view')">Human-Friendly View</div>
+                <div class="aibom-tab" onclick="switchTab('field-checklist')">Field Checklist</div>
+                <div class="aibom-tab" onclick="switchTab('score-view')">Score Report</div>
+                <div class="aibom-tab" onclick="switchTab('json-view')">JSON View</div>
+            </div>
+
+            <!-- Human-Friendly View Tab -->
+            <div id="human-view" class="tab-content active">
+                <div class="aibom-section">
+                    <h4>🤖&nbsp;&nbsp;AI Model Information</h4>
+                    <div class="aibom-property">
+                        <span class="property-name">Name:</span>
+                        <span class="property-value">
+                            MuQ-large-msd-iter
+                        </span>
+                    </div>
+                    <div class="aibom-property">
+                        <span class="property-name">Type:</span>
+                        <span class="property-value">
+                            machine-learning-model
+                        </span>
+                    </div>
+                    <div class="aibom-property">
+                        <span class="property-name">Version:</span>
+                        <span class="property-value">0562a578</span>
+                    </div>
+                    <div class="aibom-property">
+                        <span class="property-name">Description:</span>
+                        <span class="property-value">No description available</span>
+                    </div>
+                    <div class="aibom-property">
+                        <span class="property-name">PURL:</span>
+                        <span class="property-value">pkg:huggingface/OpenMuQ/MuQ-large-msd-iter@0562a578</span>
+                    </div>
+                    
+                    <div class="aibom-property">
+                        <span class="property-name">Licenses:</span>
+                        <span class="property-value">
+                            
+                            <span class="tag">
+                                
+                                CC-BY-NC-4.0
+                                
+                            </span>
+                            
+                        </span>
+                    </div>
+                    
+                </div>
+
+                
+                <div class="aibom-section">
+                    <h4>📊&nbsp;&nbsp;Model Card</h4>
+                    
+                    <div class="aibom-property">
+                        <span class="property-name">Architecture:</span>
+                        <span class="property-value">
+                            transformer
+                        </span>
+                    </div>
+                    <div class="aibom-property">
+                        <span class="property-name">Task:</span>
+                        <span class="property-value">audio-classification</span>
+                    </div>
+                    
+                    
+                    <div class="aibom-property">
+                        <span class="property-name">Additional Properties:</span>
+                        <span class="property-value">
+                            
+                            <span class="tag">serialNumber: urn:uuid:OpenMuQ-MuQ-large-msd-iter</span>
+                            
+                        </span>
+                    </div>
+                    
+                    
+                    
+                    
+                    
+                    
+                </div>
+                
+
+                
+
+                <div class="aibom-section">
+                    <h4>🛠️&nbsp;&nbsp;Generation Metadata</h4>
+                    <div class="aibom-property">
+                        <span class="property-name">Generated by:</span>
+                        <span class="property-value">owasp-aibom-generator</span>
+                    </div>
+                    <div class="aibom-property">
+                        <span class="property-name">Timestamp:</span>
+                        <span class="property-value">2026-04-30T20:36:24+00:00</span>
+                    </div>
+                    
+                    <div class="aibom-property">
+                        <span class="property-name">Component PURL:</span>
+                        <span class="property-value"><a href="https://huggingface.co/OpenMuQ/MuQ-large-msd-iter" target="_blank">pkg:huggingface/OpenMuQ/MuQ-large-msd-iter@0562a578</a></span>
+                    </div>
+                    
+                </div>
+            </div>
+
+            <!-- Field Checklist Tab -->
+            <div id="field-checklist" class="tab-content">
+                <div class="content-section">
+                    <h3>Field Checklist & Mapping</h3>
+
+                    <!-- Field Type Legend -->
+                    <div class="field-type-legend">
+                        <h4>Legend</h4>
+                        <div class="legend-item">
+                            <span class="field-tier tier-critical"></span>
+                            <span>Critical</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="field-tier tier-important"></span>
+                            <span>Important</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="field-tier tier-supplementary"></span>
+                            <span>Supplementary</span>
+                        </div>
+                        <div class="legend-item">
+                            <strong>CDX</strong> = CycloneDX Standard
+                        </div>
+                        <div class="legend-item">
+                            <strong>AI</strong> = AI-Specific Extension
+                        </div>
+                    </div>
+
+                    <p>This breakdown outlines field categories and statuses in the AIBOM generated for model <strong><a
+                                href="https://huggingface.co/OpenMuQ/MuQ-large-msd-iter" target="_blank">OpenMuQ/MuQ-large-msd-iter</a></strong>, showing how each field impacts the completeness score.</p>
+
+                    
+                    <!-- Required Fields Category -->
+                    <div class="category-table">
+                        <h4>Required Fields Category</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Field Name</th>
+                                    <th>Actual Location</th>
+                                    <th>Tier</th>
+                                    <th>Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="check-mark">✔</span>
+                                        
+                                    </td>
+                                    <td>bomFormat</td>
+                                    <td>
+                                        
+                                        $.bomFormat
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-critical"></span> Critical</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://cyclonedx.org/docs/1.6/json/#bomFormat" target="_blank">CDX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="check-mark">✔</span>
+                                        
+                                    </td>
+                                    <td>specVersion</td>
+                                    <td>
+                                        
+                                        $.specVersion
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-critical"></span> Critical</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://cyclonedx.org/docs/1.6/json/#specVersion" target="_blank">CDX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="check-mark">✔</span>
+                                        
+                                    </td>
+                                    <td>serialNumber</td>
+                                    <td>
+                                        
+                                        $.serialNumber
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-critical"></span> Critical</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://cyclonedx.org/docs/1.6/json/#serialNumber" target="_blank">CDX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="check-mark">✔</span>
+                                        
+                                    </td>
+                                    <td>version</td>
+                                    <td>
+                                        
+                                        $.version
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-critical"></span> Critical</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://cyclonedx.org/docs/1.6/json/#version" target="_blank">CDX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                            </tbody>
+                        </table>
+                        <div class="category-result">
+                            Result: 4/4 present
+                            (100.0%) =
+                            20.0/20 points
+                        </div>
+                    </div>
+
+                    <!-- Metadata Category -->
+                    <div class="category-table">
+                        <h4>Metadata Category</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Field Name</th>
+                                    <th>Actual Location</th>
+                                    <th>Tier</th>
+                                    <th>Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="check-mark">✔</span>
+                                        
+                                    </td>
+                                    <td>primaryPurpose</td>
+                                    <td>
+                                        
+                                        
+                                        $.components[0].modelCard.modelParameters.task
+                                        
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-critical"></span> Critical</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://cyclonedx.org/docs/1.6/json/#components_items_modelCard_modelParameters_approach" target="_blank">CDX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="check-mark">✔</span>
+                                        
+                                    </td>
+                                    <td>suppliedBy</td>
+                                    <td>
+                                        
+                                        
+                                        $.components[0].supplier.name
+                                        
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-critical"></span> Critical</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://cyclonedx.org/docs/1.6/json/#components_items_supplier" target="_blank">CDX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="x-mark">✘</span>
+                                        
+                                    </td>
+                                    <td>standardCompliance</td>
+                                    <td>
+                                        
+                                        Not found
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-supplementary"></span> Supplementary</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://github.com/GenAI-Security-Project/cyclonedx-property-taxonomy" target="_blank">AITX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="x-mark">✘</span>
+                                        
+                                    </td>
+                                    <td>domain</td>
+                                    <td>
+                                        
+                                        Not found
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-supplementary"></span> Supplementary</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://github.com/GenAI-Security-Project/cyclonedx-property-taxonomy" target="_blank">AITX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="x-mark">✘</span>
+                                        
+                                    </td>
+                                    <td>autonomyType</td>
+                                    <td>
+                                        
+                                        Not found
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-supplementary"></span> Supplementary</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://github.com/GenAI-Security-Project/cyclonedx-property-taxonomy" target="_blank">AITX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                            </tbody>
+                        </table>
+                        <div class="category-result">
+                            Result: 2/5 present
+                            (40.0%) =
+                            8.0/20 points
+                        </div>
+                    </div>
+
+                    <!-- Component Basic Category -->
+                    <div class="category-table">
+                        <h4>Component Basic Category</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Field Name</th>
+                                    <th>Actual Location</th>
+                                    <th>Tier</th>
+                                    <th>Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="check-mark">✔</span>
+                                        
+                                    </td>
+                                    <td>name
+                                    </td>
+                                    <td>
+                                        
+                                        
+                                        $.components[0].name
+                                        
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-critical"></span> Critical</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://cyclonedx.org/docs/1.6/json/#components_items_name" target="_blank">CDX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="check-mark">✔</span>
+                                        
+                                    </td>
+                                    <td>type
+                                    </td>
+                                    <td>
+                                        
+                                        
+                                        $.components[0].type
+                                        
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-critical"></span> Critical</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://cyclonedx.org/docs/1.6/json/#components_items_type" target="_blank">CDX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="check-mark">✔</span>
+                                        
+                                    </td>
+                                    <td>version
+                                    </td>
+                                    <td>
+                                        
+                                        
+                                        $.components[0].version
+                                        
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-critical"></span> Critical</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://cyclonedx.org/docs/1.6/json/#components_items_version" target="_blank">CDX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="check-mark">✔</span>
+                                        
+                                    </td>
+                                    <td>purl
+                                    </td>
+                                    <td>
+                                        
+                                        
+                                        $.components[0].purl
+                                        
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-important"></span> Important</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://cyclonedx.org/docs/1.6/json/#components_items_purl" target="_blank">CDX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="check-mark">✔</span>
+                                        
+                                    </td>
+                                    <td>description
+                                    </td>
+                                    <td>
+                                        
+                                        
+                                        $.components[0].description
+                                        
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-important"></span> Important</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://cyclonedx.org/docs/1.6/json/#components_items_description" target="_blank">CDX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="check-mark">✔</span>
+                                        
+                                    </td>
+                                    <td>licenses
+                                    </td>
+                                    <td>
+                                        
+                                        
+                                        $.components[0].licenses
+                                        
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-important"></span> Important</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://cyclonedx.org/docs/1.6/json/#components_items_licenses" target="_blank">CDX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                            </tbody>
+                        </table>
+                        <div class="category-result">
+                            Result: 6/7 present
+                            (85.7%) =
+                            17.1/20 points
+                        </div>
+                    </div>
+
+                    <!-- Component Model Card Category -->
+                    <div class="category-table">
+                        <h4>Component Model Card Category</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Field Name</th>
+                                    <th>Actual Location</th>
+                                    <th>Tier</th>
+                                    <th>Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                
+                                
+                                
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="check-mark">✔</span>
+                                        
+                                    </td>
+                                    <td>datasets</td>
+                                    <td>
+                                        
+                                        component.modelCard.modelParameters.datasets
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-important"></span> Important</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://cyclonedx.org/docs/1.6/json/#components_items_modelCard_modelParameters_datasets" target="_blank">CDX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="x-mark">✘</span>
+                                        
+                                    </td>
+                                    <td>ethicalConsiderations</td>
+                                    <td>
+                                        
+                                        Not found
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-important"></span> Important</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://cyclonedx.org/docs/1.6/json/#components_items_modelCard_considerations_ethicalConsiderations" target="_blank">CDX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="x-mark">✘</span>
+                                        
+                                    </td>
+                                    <td>energyConsumption</td>
+                                    <td>
+                                        
+                                        Not found
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-important"></span> Important</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://cyclonedx.org/docs/1.6/json/#components_items_modelCard_considerations_environmentalConsiderations_energyConsumptions" target="_blank">AITX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="x-mark">✘</span>
+                                        
+                                    </td>
+                                    <td>hyperparameter</td>
+                                    <td>
+                                        
+                                        Not found
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-important"></span> Important</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://github.com/GenAI-Security-Project/cyclonedx-property-taxonomy" target="_blank">AITX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="x-mark">✘</span>
+                                        
+                                    </td>
+                                    <td>technicalLimitations</td>
+                                    <td>
+                                        
+                                        Not found
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-important"></span> Important</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://cyclonedx.org/docs/1.6/json/#components_items_modelCard_considerations_technicalLimitations" target="_blank">CDX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="x-mark">✘</span>
+                                        
+                                    </td>
+                                    <td>safetyRiskAssessment</td>
+                                    <td>
+                                        
+                                        Not found
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-important"></span> Important</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://github.com/GenAI-Security-Project/cyclonedx-property-taxonomy" target="_blank">AITX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="x-mark">✘</span>
+                                        
+                                    </td>
+                                    <td>intendedUse</td>
+                                    <td>
+                                        
+                                        Not found
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-important"></span> Important</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://cyclonedx.org/docs/1.6/json/#components_items_modelCard_considerations_useCases" target="_blank">CDX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="check-mark">✔</span>
+                                        
+                                    </td>
+                                    <td>typeOfModel</td>
+                                    <td>
+                                        
+                                        modelCard.modelParameters.modelArchitecture
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-important"></span> Important</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://cyclonedx.org/docs/1.6/json/#components_items_modelCard_modelParameters_approach" target="_blank">CDX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="x-mark">✘</span>
+                                        
+                                    </td>
+                                    <td>modelExplainability</td>
+                                    <td>
+                                        
+                                        Not found
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-supplementary"></span> Supplementary</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://github.com/GenAI-Security-Project/cyclonedx-property-taxonomy" target="_blank">AITX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="x-mark">✘</span>
+                                        
+                                    </td>
+                                    <td>energyQuantity</td>
+                                    <td>
+                                        
+                                        Not found
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-supplementary"></span> Supplementary</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://cyclonedx.org/docs/1.6/json/#components_items_modelCard_considerations_environmentalConsiderations_energyConsumptions_items_activityEnergyCost_value" target="_blank">AITX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="x-mark">✘</span>
+                                        
+                                    </td>
+                                    <td>energyUnit</td>
+                                    <td>
+                                        
+                                        Not found
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-supplementary"></span> Supplementary</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://cyclonedx.org/docs/1.6/json/#components_items_modelCard_considerations_environmentalConsiderations_energyConsumptions_items_activityEnergyCost_unit" target="_blank">AITX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="x-mark">✘</span>
+                                        
+                                    </td>
+                                    <td>informationAboutTraining</td>
+                                    <td>
+                                        
+                                        Not found
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-supplementary"></span> Supplementary</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://github.com/GenAI-Security-Project/cyclonedx-property-taxonomy" target="_blank">AITX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="x-mark">✘</span>
+                                        
+                                    </td>
+                                    <td>informationAboutApplication</td>
+                                    <td>
+                                        
+                                        Not found
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-supplementary"></span> Supplementary</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://cyclonedx.org/docs/1.6/json/#components_items_modelCard_considerations_useCases" target="_blank">AITX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="x-mark">✘</span>
+                                        
+                                    </td>
+                                    <td>metric</td>
+                                    <td>
+                                        
+                                        Not found
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-supplementary"></span> Supplementary</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://cyclonedx.org/docs/1.6/json/#components_items_modelCard_quantitativeAnalysis_performanceMetrics" target="_blank">AITX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="x-mark">✘</span>
+                                        
+                                    </td>
+                                    <td>metricDecisionThreshold</td>
+                                    <td>
+                                        
+                                        Not found
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-supplementary"></span> Supplementary</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://github.com/GenAI-Security-Project/cyclonedx-property-taxonomy" target="_blank">AITX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="x-mark">✘</span>
+                                        
+                                    </td>
+                                    <td>modelDataPreprocessing</td>
+                                    <td>
+                                        
+                                        Not found
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-supplementary"></span> Supplementary</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://github.com/GenAI-Security-Project/cyclonedx-property-taxonomy" target="_blank">AITX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="x-mark">✘</span>
+                                        
+                                    </td>
+                                    <td>useSensitivePersonalInformation</td>
+                                    <td>
+                                        
+                                        Not found
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-supplementary"></span> Supplementary</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://github.com/GenAI-Security-Project/cyclonedx-property-taxonomy" target="_blank">AITX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                            </tbody>
+                        </table>
+                        <div class="category-result">
+                            Result: 2/17 present
+                            (11.8%) =
+                            3.5/30 points
+                        </div>
+                    </div>
+
+                    <!-- External References Category -->
+                    <div class="category-table">
+                        <h4>External References Category</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Field Name</th>
+                                    <th>Actual Location</th>
+                                    <th>Tier</th>
+                                    <th>Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                
+                                
+                                
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="check-mark">✔</span>
+                                        
+                                    </td>
+                                    <td>paper</td>
+                                    <td>
+                                        
+                                        metadata.component.externalReferences[?(@.type==&#39;documentation&#39;)]
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-supplementary"></span> Supplementary</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://cyclonedx.org/docs/1.6/json/#components_items_externalReferences" target="_blank">CDX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="check-mark">✔</span>
+                                        
+                                    </td>
+                                    <td>vcs</td>
+                                    <td>
+                                        
+                                        externalReferences[?(@.type==&#39;vcs&#39;)].url
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-supplementary"></span> Supplementary</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://cyclonedx.org/docs/1.6/json/#components_items_externalReferences" target="_blank">CDX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="check-mark">✔</span>
+                                        
+                                    </td>
+                                    <td>website</td>
+                                    <td>
+                                        
+                                        externalReferences[?(@.type==&#39;website&#39;)].url
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-supplementary"></span> Supplementary</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://cyclonedx.org/docs/1.6/json/#components_items_externalReferences" target="_blank">CDX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                                
+                                
+                                <tr>
+                                    <td>
+                                        
+                                        <span class="check-mark">✔</span>
+                                        
+                                    </td>
+                                    <td>downloadLocation</td>
+                                    <td>
+                                        
+                                        externalReferences[?(@.type==&#39;distribution&#39; || @.type==&#39;website&#39;)].url
+                                        
+                                    </td>
+                                    <td><span class="field-tier tier-important"></span> Important</td>
+                                    <td>
+                                        
+                                        
+                                        
+                                        <a href="https://cyclonedx.org/docs/1.6/json/#components_items_externalReferences" target="_blank">CDX</a>
+                                        
+                                    </td>
+                                </tr>
+                                
+                            </tbody>
+                        </table>
+                        <div class="category-result">
+                            Result: 4/4 present
+                            (100.0%) =
+                            10.0/10 points
+                        </div>
+                    </div>
+
+                    
+                </div>
+            </div>
+
+            <!-- Score Report Tab -->
+            <div id="score-view" class="tab-content">
+                <div class="content-section">
+                    <h3>📊&nbsp;&nbsp;Completeness Score Report</h3>
+
+                    <!-- Total Score Display -->
+                    <div class="total-score-container">
+                        <div class="total-score">55.7/100</div>
+                        <div class="total-progress">
+                            <div class="progress-container">
+                                <div class="progress-bar progress-fair"
+                                    style="width: 56%">
+                                    55% Fair
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <!-- Specific Breakdown for This SBOM -->
+                    <div class="note-box">
+                        <h4>Your AIBOM Breakdown</h4>
+                        <p><strong>Model:</strong> <a href="https://huggingface.co/OpenMuQ/MuQ-large-msd-iter" target="_blank">OpenMuQ/MuQ-large-msd-iter</a></p>
+
+                        <table class="score-table">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Fields Present</th>
+                                    <th>Score</th>
+                                    <th>Progress</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                
+                                
+                                
+                                <tr>
+                                    <td>Required Fields</td>
+                                    <td>4/4</td>
+                                    <td>20.0/20</td>
+                                    <td>
+                                        <div class="progress-container">
+                                            
+                                            
+                                            
+                                            
+                                            <div class="progress-bar progress-excellent"
+                                                style="width: 100%">100%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>Metadata</td>
+                                    <td>2/5</td>
+                                    <td>8.0/20</td>
+                                    <td>
+                                        <div class="progress-container">
+                                            
+                                            
+                                            
+                                            
+                                            <div class="progress-bar progress-fair"
+                                                style="width: 40%">40%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>Component Basic</td>
+                                    <td>6/7</td>
+                                    <td>17.1/20</td>
+                                    <td>
+                                        <div class="progress-container">
+                                            
+                                            
+                                            
+                                            
+                                            <div class="progress-bar progress-excellent"
+                                                style="width: 86%">86%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>Model Card</td>
+                                    <td>2/17</td>
+                                    <td>3.5/30</td>
+                                    <td>
+                                        <div class="progress-container">
+                                            
+                                            
+                                            
+                                            
+                                            <div class="progress-bar progress-poor"
+                                                style="width: 12%">12%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>External References</td>
+                                    <td>4/4</td>
+                                    <td>10.0/10</td>
+                                    <td>
+                                        <div class="progress-container">
+                                            
+                                            
+                                            
+                                            
+                                            <div class="progress-bar progress-excellent"
+                                                style="width: 100%">100%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <p><strong>Calculation:</strong></p>
+                    <p>Subtotal:
+                        
+                        
+                        20.0 + 
+                        
+                        8.0 + 
+                        
+                        17.1 + 
+                        
+                        3.5 + 
+                        
+                        10.0
+                        
+                        = <strong>58.6/100</strong>
+                        
+                    </p>
+
+                    
+                    <p>Penalty Applied: <strong>-%</strong> (Several important fields missing)</p>
+                    <p>Final Score: 58.6 ×  = <strong>55.7/100</strong></p>
+                    
+                </div>
+
+                <!-- Missing Fields Analysis -->
+                
+
+                <!-- Recommendations -->
+                
+                <div class="recommendations">
+                    <h4>General Recommendations to Improve AIBOM Completeness</h4>
+                    <ul>
+                        <li><strong>Required Fields:</strong> Ensure the model is published with a clear name, version,
+                            and hosting platform information to allow proper SBOM structuring.</li>
+                        <li><strong>Metadata:</strong> Include author or organization name, purpose of the model, and
+                            relevant timestamps in the model repository or card.</li>
+                        <li><strong>Component Basic:</strong> Provide a descriptive model title, a meaningful
+                            description, a valid license, and a consistent version reference (e.g., tags or commits).
+                        </li>
+                        <li><strong>Model Card:</strong> Fill out structured sections for model parameters, evaluation
+                            metrics, limitations, and ethical considerations to enable full transparency.</li>
+                        <li><strong>External References:</strong> Add links to source code, datasets, documentation, and
+                            versioned download locations to support traceability and reproducibility.</li>
+                    </ul>
+                </div>
+
+                <!-- Generic Scoring Explanation -->
+                <div class="scoring-rubric">
+                    <h4>How AIBOM Completeness is Scored</h4>
+                    <p>The completeness score evaluates how well your AIBOM documents the model across five key
+                        categories:</p>
+                    <ul>
+                        <li><strong>Required Fields (20 points):</strong> Basic SBOM
+                            structure mandated by CycloneDX
+                        </li>
+                        <li><strong>Metadata (20 points):</strong> Information about
+                            the SBOM generation and model
+                            purpose</li>
+                        <li><strong>Component Basic (20 points):</strong> Essential model
+                            identification and licensing
+                        </li>
+                        <li><strong>Model Card (30 points):</strong> Detailed
+                            AI-specific documentation for transparency
+                        </li>
+                        <li><strong>External References (10 points):</strong> Links to model
+                            resources and documentation
+                        </li>
+                    </ul>
+
+                    <p><strong>Calculation Method:</strong></p>
+                    <p>Each category score = (Present Fields ÷ Total Fields) × Maximum Points</p>
+                    <p>Subtotal = Sum of all category scores</p>
+                    <p>Final Score = Subtotal × Penalty Factor (if applicable)</p>
+                    <h4>Penalty Structure:</h4>
+                    <p><strong>Critical Fields Missing:</strong></p>
+                    <ul>
+                        <li>0-1 missing: No penalty</li>
+                        <li>2-3 missing: 10% penalty (×0.9)</li>
+                        <li>4+ missing: 20% penalty (×0.8)</li>
+                    </ul>
+
+                    <p><strong>Important Fields Missing:</strong></p>
+                    <ul>
+                        <li>0-4 missing: No penalty</li>
+                        <li>5+ missing: 5% penalty (×0.95)</li>
+                    </ul>
+
+                    <p><strong>Note:</strong> Penalties are cumulative and applied to the subtotal. For example, if you
+                        have 3 critical fields missing AND 5 important fields missing, both penalties apply: Subtotal ×
+                        0.9 × 0.95 = Final Score.</p>
+
+                </div>
+                
+            </div>
+        </div>
+
+        <!-- JSON View Tab -->
+        <div id="json-view" class="tab-content">
+            <div class="content-section">
+                <h3>📄&nbsp;&nbsp;Raw JSON View</h3>
+                <p>This is the complete AIBOM components array in CycloneDX JSON format:</p>
+                <div class="json-view">
+                    <pre>[
+  {
+    &#34;bom-ref&#34;: &#34;pkg:huggingface/OpenMuQ/MuQ-large-msd-iter@0562a578&#34;,
+    &#34;type&#34;: &#34;machine-learning-model&#34;,
+    &#34;group&#34;: &#34;OpenMuQ&#34;,
+    &#34;name&#34;: &#34;MuQ-large-msd-iter&#34;,
+    &#34;version&#34;: &#34;0562a578&#34;,
+    &#34;purl&#34;: &#34;pkg:huggingface/OpenMuQ/MuQ-large-msd-iter@0562a578&#34;,
+    &#34;description&#34;: &#34;No description available&#34;,
+    &#34;licenses&#34;: [
+      {
+        &#34;license&#34;: {
+          &#34;id&#34;: &#34;CC-BY-NC-4.0&#34;
+        }
+      }
+    ],
+    &#34;modelCard&#34;: {
+      &#34;modelParameters&#34;: {
+        &#34;task&#34;: &#34;audio-classification&#34;,
+        &#34;modelArchitecture&#34;: &#34;transformer&#34;,
+        &#34;datasets&#34;: [
+          {
+            &#34;type&#34;: &#34;dataset&#34;,
+            &#34;name&#34;: &#34;size&#34;,
+            &#34;contents&#34;: {
+              &#34;url&#34;: &#34;https://huggingface.co/datasets/size&#34;
+            }
+          }
+        ],
+        &#34;inputs&#34;: [
+          {
+            &#34;format&#34;: &#34;audio&#34;
+          }
+        ],
+        &#34;outputs&#34;: [
+          {
+            &#34;format&#34;: &#34;string&#34;
+          }
+        ]
+      },
+      &#34;properties&#34;: [
+        {
+          &#34;name&#34;: &#34;serialNumber&#34;,
+          &#34;value&#34;: &#34;urn:uuid:OpenMuQ-MuQ-large-msd-iter&#34;
+        }
+      ]
+    },
+    &#34;manufacturer&#34;: {
+      &#34;name&#34;: &#34;OpenMuQ&#34;,
+      &#34;url&#34;: [
+        &#34;https://huggingface.co/OpenMuQ&#34;
+      ]
+    },
+    &#34;supplier&#34;: {
+      &#34;name&#34;: &#34;OpenMuQ&#34;
+    },
+    &#34;authors&#34;: [
+      {
+        &#34;name&#34;: &#34;OpenMuQ&#34;
+      }
+    ],
+    &#34;externalReferences&#34;: [
+      {
+        &#34;type&#34;: &#34;website&#34;,
+        &#34;url&#34;: &#34;https://huggingface.co/OpenMuQ/MuQ-large-msd-iter&#34;,
+        &#34;comment&#34;: &#34;Model repository&#34;
+      },
+      {
+        &#34;type&#34;: &#34;distribution&#34;,
+        &#34;url&#34;: &#34;https://huggingface.co/OpenMuQ/MuQ-large-msd-iter/tree/main&#34;,
+        &#34;comment&#34;: &#34;Model files&#34;
+      },
+      {
+        &#34;type&#34;: &#34;vcs&#34;,
+        &#34;url&#34;: &#34;https://huggingface.co/OpenMuQ/MuQ-large-msd-iter/commit/0562a57814f6f8bbd9fdea0a25921a2fce1a841a&#34;,
+        &#34;comment&#34;: &#34;Specific commit&#34;
+      },
+      {
+        &#34;type&#34;: &#34;documentation&#34;,
+        &#34;url&#34;: &#34;https://arxiv.org/abs/2501.01108&#34;,
+        &#34;comment&#34;: &#34;ArXiv Paper&#34;
+      }
+    ]
+  }
+]</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modern Footer -->
+        <footer class="footer-modern">
+    <div class="footer-modern-container">
+        <!-- Brand Column -->
+        <div class="footer-modern-col brand-col">
+            <a href="https://genai.owasp.org/" target="_blank">
+                <img src="static/images/genai_security_project_logo.webp"
+                    alt="OWASP GenAI Security Project" height="45">
+            </a>
+            <div class="footer-social-icons">
+                <a href="https://github.com/GenAI-Security-Project/aibom-generator" target="_blank"
+                    rel="noopener noreferrer" aria-label="GitHub">
+                    <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
+                        </path>
+                    </svg>
+                </a>
+                <a href="https://www.linkedin.com/company/owasp-aibom/" target="_blank" rel="noopener noreferrer"
+                    aria-label="LinkedIn">
+                    <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                        <rect x="2" y="9" width="4" height="12"></rect>
+                        <circle cx="4" cy="4" r="2"></circle>
+                    </svg>
+                </a>
+            </div>
+        </div>
+
+        <!-- Help Column -->
+        <div class="footer-modern-col help-col">
+            <h4>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                Support
+            </h4>
+            <p>If you encountered any problems, found a bug, or have suggestions for improvement, we'd love to hear from
+                you!</p>
+            <a href="https://github.com/GenAI-Security-Project/aibom-generator/issues" target="_blank"
+                title="Report an Issue" aria-label="Report an Issue" class="footer-btn-share">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                    </path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                <span style="font-weight: 700;">Report Issue</span>
+            </a>
+        </div>
+
+        <!-- Share Column -->
+        <div class="footer-modern-col share-col">
+            <h4>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="18" cy="5" r="3"></circle>
+                    <circle cx="6" cy="12" r="3"></circle>
+                    <circle cx="18" cy="19" r="3"></circle>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                </svg>
+                Spread the Word
+            </h4>
+            <p>If you find this tool useful, share it with your network!</p>
+            <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://www.linkedin.com/company/owasp-aibom/"
+                target="_blank" rel="noopener noreferrer" title="Share" aria-label="Share" class="footer-btn-share">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                    <rect x="2" y="9" width="4" height="12"></rect>
+                    <circle cx="4" cy="4" r="2"></circle>
+                </svg>
+                <span style="font-weight: 700;">Share</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="footer-modern-bottom">
+        <p>© 2026 OWASP GenAI Security Project - AIBOM Initiative</p>
+    </div>
+</footer>
+    </div>
+
+    <script>
+        const AIBOM_CDX_JSON_1_6 = {
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:14660477-e0cf-43e9-9ce2-9dafb36fe447",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-04-30T20:36:24+00:00",
+    "tools": {
+      "components": [
+        {
+          "bom-ref": "pkg:generic/owasp-genai/owasp-aibom-generator@1.0.2",
+          "type": "application",
+          "name": "owasp-aibom-generator",
+          "version": "1.0.2",
+          "manufacturer": {
+            "name": "OWASP GenAI Security Project"
+          }
+        }
+      ]
+    },
+    "component": {
+      "bom-ref": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:24@1777581384",
+      "type": "application",
+      "name": "job-2026-04-30-16:36:24",
+      "description": "Generating SBOM for OpenMuQ/MuQ-large-msd-iter",
+      "version": "1777581384",
+      "purl": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:24@1777581384",
+      "manufacturer": {
+        "name": "OWASP AIBOM Generator"
+      },
+      "supplier": {
+        "name": "OWASP AIBOM Generator"
+      }
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "pkg:huggingface/OpenMuQ/MuQ-large-msd-iter@0562a578",
+      "type": "machine-learning-model",
+      "group": "OpenMuQ",
+      "name": "MuQ-large-msd-iter",
+      "version": "0562a578",
+      "purl": "pkg:huggingface/OpenMuQ/MuQ-large-msd-iter@0562a578",
+      "description": "No description available",
+      "licenses": [
+        {
+          "license": {
+            "id": "CC-BY-NC-4.0"
+          }
+        }
+      ],
+      "modelCard": {
+        "modelParameters": {
+          "task": "audio-classification",
+          "modelArchitecture": "transformer",
+          "datasets": [
+            {
+              "type": "dataset",
+              "name": "size",
+              "contents": {
+                "url": "https://huggingface.co/datasets/size"
+              }
+            }
+          ],
+          "inputs": [
+            {
+              "format": "audio"
+            }
+          ],
+          "outputs": [
+            {
+              "format": "string"
+            }
+          ]
+        },
+        "properties": [
+          {
+            "name": "serialNumber",
+            "value": "urn:uuid:OpenMuQ-MuQ-large-msd-iter"
+          }
+        ]
+      },
+      "manufacturer": {
+        "name": "OpenMuQ",
+        "url": [
+          "https://huggingface.co/OpenMuQ"
+        ]
+      },
+      "supplier": {
+        "name": "OpenMuQ"
+      },
+      "authors": [
+        {
+          "name": "OpenMuQ"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://huggingface.co/OpenMuQ/MuQ-large-msd-iter",
+          "comment": "Model repository"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/OpenMuQ/MuQ-large-msd-iter/tree/main",
+          "comment": "Model files"
+        },
+        {
+          "type": "vcs",
+          "url": "https://huggingface.co/OpenMuQ/MuQ-large-msd-iter/commit/0562a57814f6f8bbd9fdea0a25921a2fce1a841a",
+          "comment": "Specific commit"
+        },
+        {
+          "type": "documentation",
+          "url": "https://arxiv.org/abs/2501.01108",
+          "comment": "ArXiv Paper"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg:generic/OpenMuQ/MuQ-large-msd-iter@0562a578",
+      "dependsOn": [
+        "pkg:huggingface/OpenMuQ/MuQ-large-msd-iter@0562a578"
+      ]
+    }
+  ]
+};
+        const AIBOM_CDX_JSON_1_7 = {
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.7",
+  "serialNumber": "urn:uuid:14660477-e0cf-43e9-9ce2-9dafb36fe447",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-04-30T20:36:24+00:00",
+    "tools": {
+      "components": [
+        {
+          "bom-ref": "pkg:generic/owasp-genai/owasp-aibom-generator@1.0.2",
+          "type": "application",
+          "name": "owasp-aibom-generator",
+          "version": "1.0.2",
+          "manufacturer": {
+            "name": "OWASP GenAI Security Project"
+          }
+        }
+      ]
+    },
+    "component": {
+      "bom-ref": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:24@1777581384",
+      "type": "application",
+      "name": "job-2026-04-30-16:36:24",
+      "description": "Generating SBOM for OpenMuQ/MuQ-large-msd-iter",
+      "version": "1777581384",
+      "purl": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:24@1777581384",
+      "manufacturer": {
+        "name": "OWASP AIBOM Generator"
+      },
+      "supplier": {
+        "name": "OWASP AIBOM Generator"
+      }
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "pkg:huggingface/OpenMuQ/MuQ-large-msd-iter@0562a578",
+      "type": "machine-learning-model",
+      "group": "OpenMuQ",
+      "name": "MuQ-large-msd-iter",
+      "version": "0562a578",
+      "purl": "pkg:huggingface/OpenMuQ/MuQ-large-msd-iter@0562a578",
+      "description": "No description available",
+      "licenses": [
+        {
+          "license": {
+            "id": "CC-BY-NC-4.0"
+          }
+        }
+      ],
+      "modelCard": {
+        "modelParameters": {
+          "task": "audio-classification",
+          "modelArchitecture": "transformer",
+          "datasets": [
+            {
+              "type": "dataset",
+              "name": "size",
+              "contents": {
+                "url": "https://huggingface.co/datasets/size"
+              }
+            }
+          ],
+          "inputs": [
+            {
+              "format": "audio"
+            }
+          ],
+          "outputs": [
+            {
+              "format": "string"
+            }
+          ]
+        },
+        "properties": [
+          {
+            "name": "serialNumber",
+            "value": "urn:uuid:OpenMuQ-MuQ-large-msd-iter"
+          }
+        ]
+      },
+      "manufacturer": {
+        "name": "OpenMuQ",
+        "url": [
+          "https://huggingface.co/OpenMuQ"
+        ]
+      },
+      "supplier": {
+        "name": "OpenMuQ"
+      },
+      "authors": [
+        {
+          "name": "OpenMuQ"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://huggingface.co/OpenMuQ/MuQ-large-msd-iter",
+          "comment": "Model repository"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/OpenMuQ/MuQ-large-msd-iter/tree/main",
+          "comment": "Model files"
+        },
+        {
+          "type": "vcs",
+          "url": "https://huggingface.co/OpenMuQ/MuQ-large-msd-iter/commit/0562a57814f6f8bbd9fdea0a25921a2fce1a841a",
+          "comment": "Specific commit"
+        },
+        {
+          "type": "documentation",
+          "url": "https://arxiv.org/abs/2501.01108",
+          "comment": "ArXiv Paper"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg:generic/OpenMuQ/MuQ-large-msd-iter@0562a578",
+      "dependsOn": [
+        "pkg:huggingface/OpenMuQ/MuQ-large-msd-iter@0562a578"
+      ]
+    }
+  ]
+};
+        const FILENAME_BASE = "OpenMuQ_MuQ-large-msd-iter";
+    </script>
+    <script src="static/js/script.js"></script>
+</body>
+
+</html>

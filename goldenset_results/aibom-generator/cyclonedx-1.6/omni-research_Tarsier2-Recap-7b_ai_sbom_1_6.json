@@ -1,0 +1,120 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:1a77f7eb-6d7a-4f2a-829b-335214e1bfca",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-04-30T20:36:19+00:00",
+    "tools": {
+      "components": [
+        {
+          "bom-ref": "pkg:generic/owasp-genai/owasp-aibom-generator@1.0.2",
+          "type": "application",
+          "name": "owasp-aibom-generator",
+          "version": "1.0.2",
+          "manufacturer": {
+            "name": "OWASP GenAI Security Project"
+          }
+        }
+      ]
+    },
+    "component": {
+      "bom-ref": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:19@1777581379",
+      "type": "application",
+      "name": "job-2026-04-30-16:36:19",
+      "description": "Generating SBOM for omni-research/Tarsier2-Recap-7b",
+      "version": "1777581379",
+      "purl": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:19@1777581379",
+      "manufacturer": {
+        "name": "OWASP AIBOM Generator"
+      },
+      "supplier": {
+        "name": "OWASP AIBOM Generator"
+      }
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "pkg:huggingface/omni-research/Tarsier2-Recap-7b@02908992",
+      "type": "machine-learning-model",
+      "group": "omni-research",
+      "name": "Tarsier2-Recap-7b",
+      "version": "02908992",
+      "purl": "pkg:huggingface/omni-research/Tarsier2-Recap-7b@02908992",
+      "description": "No description available",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "modelCard": {
+        "modelParameters": {
+          "task": "text-generation",
+          "modelArchitecture": "transformer",
+          "inputs": [
+            {
+              "format": "string"
+            }
+          ],
+          "outputs": [
+            {
+              "format": "string"
+            }
+          ]
+        },
+        "properties": [
+          {
+            "name": "serialNumber",
+            "value": "urn:uuid:omni-research-Tarsier2-Recap-7b"
+          }
+        ]
+      },
+      "manufacturer": {
+        "name": "omni-research",
+        "url": [
+          "https://huggingface.co/omni-research"
+        ]
+      },
+      "supplier": {
+        "name": "omni-research"
+      },
+      "authors": [
+        {
+          "name": "omni-research"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://huggingface.co/omni-research/Tarsier2-Recap-7b",
+          "comment": "Model repository"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/omni-research/Tarsier2-Recap-7b/tree/main",
+          "comment": "Model files"
+        },
+        {
+          "type": "vcs",
+          "url": "https://huggingface.co/omni-research/Tarsier2-Recap-7b/commit/0290899219478e6bd85ff1916d2549dc4d4f2e1c",
+          "comment": "Specific commit"
+        },
+        {
+          "type": "documentation",
+          "url": "https://arxiv.org/abs/2501.07888",
+          "comment": "ArXiv Paper"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg:generic/omni-research/Tarsier2-Recap-7b@02908992",
+      "dependsOn": [
+        "pkg:huggingface/omni-research/Tarsier2-Recap-7b@02908992"
+      ]
+    }
+  ]
+}

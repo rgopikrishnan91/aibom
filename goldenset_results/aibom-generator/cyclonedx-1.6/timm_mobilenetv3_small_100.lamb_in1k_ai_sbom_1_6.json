@@ -1,0 +1,142 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:e27a76ee-4e14-4ab3-bcea-dd10e348185e",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-04-30T20:36:02+00:00",
+    "tools": {
+      "components": [
+        {
+          "bom-ref": "pkg:generic/owasp-genai/owasp-aibom-generator@1.0.2",
+          "type": "application",
+          "name": "owasp-aibom-generator",
+          "version": "1.0.2",
+          "manufacturer": {
+            "name": "OWASP GenAI Security Project"
+          }
+        }
+      ]
+    },
+    "component": {
+      "bom-ref": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:02@1777581362",
+      "type": "application",
+      "name": "job-2026-04-30-16:36:02",
+      "description": "Generating SBOM for timm/mobilenetv3_small_100.lamb_in1k",
+      "version": "1777581362",
+      "purl": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:02@1777581362",
+      "manufacturer": {
+        "name": "OWASP AIBOM Generator"
+      },
+      "supplier": {
+        "name": "OWASP AIBOM Generator"
+      }
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "pkg:huggingface/timm/mobilenetv3_small_100.lamb_in1k@1824797e",
+      "type": "machine-learning-model",
+      "group": "timm",
+      "name": "mobilenetv3_small_100.lamb_in1k",
+      "version": "1824797e",
+      "purl": "pkg:huggingface/timm/mobilenetv3_small_100.lamb_in1k@1824797e",
+      "description": "No description available",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "modelCard": {
+        "modelParameters": {
+          "task": "image-classification",
+          "modelArchitecture": "transformer",
+          "datasets": [
+            {
+              "type": "dataset",
+              "name": "imagenet-1k",
+              "contents": {
+                "url": "https://huggingface.co/datasets/imagenet-1k"
+              }
+            }
+          ],
+          "inputs": [
+            {
+              "format": "image"
+            }
+          ],
+          "outputs": [
+            {
+              "format": "string"
+            },
+            {
+              "format": "json"
+            }
+          ]
+        },
+        "properties": [
+          {
+            "name": "serialNumber",
+            "value": "urn:uuid:timm-mobilenetv3_small_100.lamb_in1k"
+          }
+        ]
+      },
+      "manufacturer": {
+        "name": "timm",
+        "url": [
+          "https://huggingface.co/timm"
+        ]
+      },
+      "supplier": {
+        "name": "timm"
+      },
+      "authors": [
+        {
+          "name": "timm"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://huggingface.co/timm/mobilenetv3_small_100.lamb_in1k",
+          "comment": "Model repository"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/timm/mobilenetv3_small_100.lamb_in1k/tree/main",
+          "comment": "Model files"
+        },
+        {
+          "type": "vcs",
+          "url": "https://huggingface.co/timm/mobilenetv3_small_100.lamb_in1k/commit/1824797e7887cbec1990e4adbd6675960a36c589",
+          "comment": "Specific commit"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/imagenet-1k",
+          "comment": "Training dataset: imagenet-1k"
+        },
+        {
+          "type": "documentation",
+          "url": "https://arxiv.org/abs/2110.00476",
+          "comment": "ArXiv Paper"
+        },
+        {
+          "type": "documentation",
+          "url": "https://arxiv.org/abs/1905.02244",
+          "comment": "ArXiv Paper"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg:generic/timm/mobilenetv3_small_100.lamb_in1k@1824797e",
+      "dependsOn": [
+        "pkg:huggingface/timm/mobilenetv3_small_100.lamb_in1k@1824797e"
+      ]
+    }
+  ]
+}

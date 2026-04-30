@@ -1,0 +1,127 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:3d47d527-ca9c-41f7-8678-2652bc81ce81",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-04-30T20:36:22+00:00",
+    "tools": {
+      "components": [
+        {
+          "bom-ref": "pkg:generic/owasp-genai/owasp-aibom-generator@1.0.2",
+          "type": "application",
+          "name": "owasp-aibom-generator",
+          "version": "1.0.2",
+          "manufacturer": {
+            "name": "OWASP GenAI Security Project"
+          }
+        }
+      ]
+    },
+    "component": {
+      "bom-ref": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:22@1777581382",
+      "type": "application",
+      "name": "job-2026-04-30-16:36:22",
+      "description": "Generating SBOM for cross-encoder/ms-marco-MiniLM-L6-v2",
+      "version": "1777581382",
+      "purl": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:22@1777581382",
+      "manufacturer": {
+        "name": "OWASP AIBOM Generator"
+      },
+      "supplier": {
+        "name": "OWASP AIBOM Generator"
+      }
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "pkg:huggingface/cross-encoder/ms-marco-MiniLM-L6-v2@c5ee24cb",
+      "type": "machine-learning-model",
+      "group": "cross-encoder",
+      "name": "ms-marco-MiniLM-L6-v2",
+      "version": "c5ee24cb",
+      "purl": "pkg:huggingface/cross-encoder/ms-marco-MiniLM-L6-v2@c5ee24cb",
+      "description": "No description available",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "modelCard": {
+        "modelParameters": {
+          "task": "text-ranking",
+          "modelArchitecture": "bert",
+          "datasets": [
+            {
+              "type": "dataset",
+              "name": "sentence-transformers/msmarco",
+              "contents": {
+                "url": "https://huggingface.co/datasets/sentence-transformers/msmarco"
+              }
+            }
+          ]
+        },
+        "properties": [
+          {
+            "name": "genai:aibom:modelcard:vocabSize",
+            "value": "30522"
+          },
+          {
+            "name": "genai:aibom:modelcard:tokenizerClass",
+            "value": "BertTokenizer"
+          },
+          {
+            "name": "serialNumber",
+            "value": "urn:uuid:cross-encoder-ms-marco-MiniLM-L6-v2"
+          }
+        ]
+      },
+      "manufacturer": {
+        "name": "cross-encoder",
+        "url": [
+          "https://huggingface.co/cross-encoder"
+        ]
+      },
+      "supplier": {
+        "name": "cross-encoder"
+      },
+      "authors": [
+        {
+          "name": "cross-encoder"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2",
+          "comment": "Model repository"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/tree/main",
+          "comment": "Model files"
+        },
+        {
+          "type": "vcs",
+          "url": "https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/commit/c5ee24cb16019beea0893ab7796b1df96625c6b8",
+          "comment": "Specific commit"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/sentence-transformers/msmarco",
+          "comment": "Training dataset: sentence-transformers/msmarco"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg:generic/cross-encoder/ms-marco-MiniLM-L6-v2@c5ee24cb",
+      "dependsOn": [
+        "pkg:huggingface/cross-encoder/ms-marco-MiniLM-L6-v2@c5ee24cb"
+      ]
+    }
+  ]
+}

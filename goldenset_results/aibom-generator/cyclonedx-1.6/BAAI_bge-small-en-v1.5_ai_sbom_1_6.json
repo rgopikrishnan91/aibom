@@ -1,0 +1,147 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:efe98f7c-7467-4cad-9a61-6ff26e005d8a",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-04-30T20:36:47+00:00",
+    "tools": {
+      "components": [
+        {
+          "bom-ref": "pkg:generic/owasp-genai/owasp-aibom-generator@1.0.2",
+          "type": "application",
+          "name": "owasp-aibom-generator",
+          "version": "1.0.2",
+          "manufacturer": {
+            "name": "OWASP GenAI Security Project"
+          }
+        }
+      ]
+    },
+    "component": {
+      "bom-ref": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:47@1777581407",
+      "type": "application",
+      "name": "job-2026-04-30-16:36:47",
+      "description": "Generating SBOM for BAAI/bge-small-en-v1.5",
+      "version": "1777581407",
+      "purl": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:47@1777581407",
+      "manufacturer": {
+        "name": "OWASP AIBOM Generator"
+      },
+      "supplier": {
+        "name": "OWASP AIBOM Generator"
+      }
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "pkg:huggingface/BAAI/bge-small-en-v1.5@5c38ec7c",
+      "type": "machine-learning-model",
+      "group": "BAAI",
+      "name": "bge-small-en-v1.5",
+      "version": "5c38ec7c",
+      "purl": "pkg:huggingface/BAAI/bge-small-en-v1.5@5c38ec7c",
+      "description": "No description available",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "modelCard": {
+        "modelParameters": {
+          "task": "feature-extraction",
+          "modelArchitecture": "bert",
+          "datasets": [
+            {
+              "type": "dataset",
+              "name": "name",
+              "contents": {
+                "url": "https://huggingface.co/datasets/name"
+              }
+            }
+          ]
+        },
+        "properties": [
+          {
+            "name": "genai:aibom:modelcard:vocabSize",
+            "value": "30522"
+          },
+          {
+            "name": "genai:aibom:modelcard:tokenizerClass",
+            "value": "BertTokenizer"
+          },
+          {
+            "name": "serialNumber",
+            "value": "urn:uuid:BAAI-bge-small-en-v1.5"
+          }
+        ]
+      },
+      "manufacturer": {
+        "name": "BAAI",
+        "url": [
+          "https://huggingface.co/BAAI"
+        ]
+      },
+      "supplier": {
+        "name": "BAAI"
+      },
+      "authors": [
+        {
+          "name": "BAAI"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://huggingface.co/BAAI/bge-small-en-v1.5",
+          "comment": "Model repository"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/BAAI/bge-small-en-v1.5/tree/main",
+          "comment": "Model files"
+        },
+        {
+          "type": "vcs",
+          "url": "https://huggingface.co/BAAI/bge-small-en-v1.5/commit/5c38ec7c405ec4b44b94cc5a9bb96e735b38267a",
+          "comment": "Specific commit"
+        },
+        {
+          "type": "documentation",
+          "url": "https://arxiv.org/abs/2401.03462",
+          "comment": "ArXiv Paper"
+        },
+        {
+          "type": "documentation",
+          "url": "https://arxiv.org/abs/2312.15503",
+          "comment": "ArXiv Paper"
+        },
+        {
+          "type": "documentation",
+          "url": "https://arxiv.org/abs/2311.13534",
+          "comment": "ArXiv Paper"
+        },
+        {
+          "type": "documentation",
+          "url": "https://arxiv.org/abs/2310.07554",
+          "comment": "ArXiv Paper"
+        },
+        {
+          "type": "documentation",
+          "url": "https://arxiv.org/abs/2309.07597",
+          "comment": "ArXiv Paper"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg:generic/BAAI/bge-small-en-v1.5@5c38ec7c",
+      "dependsOn": [
+        "pkg:huggingface/BAAI/bge-small-en-v1.5@5c38ec7c"
+      ]
+    }
+  ]
+}

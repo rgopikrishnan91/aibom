@@ -1,0 +1,155 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:6958c554-5d98-4fef-b8d0-2147d6254b57",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-04-30T20:36:29+00:00",
+    "tools": {
+      "components": [
+        {
+          "bom-ref": "pkg:generic/owasp-genai/owasp-aibom-generator@1.0.2",
+          "type": "application",
+          "name": "owasp-aibom-generator",
+          "version": "1.0.2",
+          "manufacturer": {
+            "name": "OWASP GenAI Security Project"
+          }
+        }
+      ]
+    },
+    "component": {
+      "bom-ref": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:29@1777581389",
+      "type": "application",
+      "name": "job-2026-04-30-16:36:29",
+      "description": "Generating SBOM for meta-llama/Llama-3.1-8B-Instruct",
+      "version": "1777581389",
+      "purl": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:29@1777581389",
+      "manufacturer": {
+        "name": "OWASP AIBOM Generator"
+      },
+      "supplier": {
+        "name": "OWASP AIBOM Generator"
+      }
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "pkg:huggingface/meta-llama/Llama-3.1-8B-Instruct@0e9e39f2",
+      "type": "machine-learning-model",
+      "group": "meta-llama",
+      "name": "Llama-3.1-8B-Instruct",
+      "version": "0e9e39f2",
+      "purl": "pkg:huggingface/meta-llama/Llama-3.1-8B-Instruct@0e9e39f2",
+      "description": "No description available",
+      "licenses": [
+        {
+          "license": {
+            "name": "llama3.1"
+          }
+        }
+      ],
+      "modelCard": {
+        "modelParameters": {
+          "task": "text-generation",
+          "modelArchitecture": "transformer",
+          "datasets": [
+            {
+              "type": "dataset",
+              "name": "an",
+              "contents": {
+                "url": "https://huggingface.co/datasets/an"
+              }
+            },
+            {
+              "type": "dataset",
+              "name": "for",
+              "contents": {
+                "url": "https://huggingface.co/datasets/for"
+              }
+            }
+          ],
+          "inputs": [
+            {
+              "format": "string"
+            }
+          ],
+          "outputs": [
+            {
+              "format": "string"
+            }
+          ]
+        },
+        "considerations": {
+          "technicalLimitations": [
+            "of Liability"
+          ]
+        },
+        "properties": [
+          {
+            "name": "serialNumber",
+            "value": "urn:uuid:meta-llama-Llama-3.1-8B-Instruct"
+          },
+          {
+            "name": "safetyRiskAssessment",
+            "value": "with community feedback, ASSOCIATED WITH YOUR USE OF THE LLAMA\\ \\ MATERIALS AND ANY OUTPUT AND RESULTS"
+          }
+        ]
+      },
+      "manufacturer": {
+        "name": "meta-llama",
+        "url": [
+          "https://huggingface.co/meta-llama"
+        ]
+      },
+      "supplier": {
+        "name": "meta-llama"
+      },
+      "authors": [
+        {
+          "name": "meta-llama"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct",
+          "comment": "Model repository"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct/tree/main",
+          "comment": "Model files"
+        },
+        {
+          "type": "vcs",
+          "url": "https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct/commit/0e9e39f249a16976918f6564b8830bc894c89659",
+          "comment": "Specific commit"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/an",
+          "comment": "Training dataset: an"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/for",
+          "comment": "Training dataset: for"
+        },
+        {
+          "type": "documentation",
+          "url": "https://arxiv.org/abs/2204.05149",
+          "comment": "ArXiv Paper"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg:generic/meta-llama/Llama-3.1-8B-Instruct@0e9e39f2",
+      "dependsOn": [
+        "pkg:huggingface/meta-llama/Llama-3.1-8B-Instruct@0e9e39f2"
+      ]
+    }
+  ]
+}

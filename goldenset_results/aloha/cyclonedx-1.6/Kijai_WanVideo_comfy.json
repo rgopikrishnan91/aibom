@@ -1,0 +1,44 @@
+{
+    "bomFormat": "CycloneDX",
+    "specVersion": "1.6",
+    "serialNumber": "urn:uuid:bf7711bd-37f2-4136-8a1d-f91635a1da73",
+    "version": 1,
+    "metadata": {
+        "timestamp": "2026-04-30T20:36:27.434631+00:00",
+        "component": {
+            "type": "machine-learning-model",
+            "bom-ref": "Kijai/WanVideo_comfy-557a6bba-b141-5718-90fe-a5c247e0fcef",
+            "name": "Kijai/WanVideo_comfy",
+            "externalReferences": [
+                {
+                    "url": "https://huggingface.co/Kijai/WanVideo_comfy",
+                    "type": "documentation"
+                }
+            ],
+            "modelCard": {
+                "properties": [
+                    {
+                        "name": "library_name",
+                        "value": "diffusion-single-file"
+                    },
+                    {
+                        "name": "base_model",
+                        "value": "Wan-AI/Wan2.1-VACE-14B, Wan-AI/Wan2.1-VACE-1.3B"
+                    }
+                ]
+            },
+            "authors": [
+                {
+                    "name": "Kijai"
+                }
+            ],
+            "tags": [
+                "diffusion-single-file",
+                "comfyui",
+                "base_model:Wan-AI/Wan2.1-VACE-1.3B",
+                "base_model:finetune:Wan-AI/Wan2.1-VACE-1.3B",
+                "region:us"
+            ]
+        }
+    }
+}

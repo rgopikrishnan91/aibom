@@ -1,0 +1,216 @@
+{
+    "bomFormat": "CycloneDX",
+    "specVersion": "1.6",
+    "serialNumber": "urn:uuid:5c28874b-4642-476d-84cf-d56270bc7fa5",
+    "version": 1,
+    "metadata": {
+        "timestamp": "2026-04-30T20:36:10.850026+00:00",
+        "component": {
+            "type": "machine-learning-model",
+            "bom-ref": "FacebookAI/roberta-large-d8c746dd-0334-5660-87bd-d11b7d926f2d",
+            "name": "FacebookAI/roberta-large",
+            "externalReferences": [
+                {
+                    "url": "https://huggingface.co/FacebookAI/roberta-large",
+                    "type": "documentation"
+                }
+            ],
+            "modelCard": {
+                "modelParameters": {
+                    "task": "fill-mask",
+                    "architectureFamily": "roberta",
+                    "modelArchitecture": "RobertaForMaskedLM",
+                    "datasets": [
+                        {
+                            "ref": "bookcorpus-5b88b1fa-89d7-54e0-8076-a03aa22c33e0"
+                        },
+                        {
+                            "ref": "wikipedia-8c5eb686-d691-517b-aad7-040fa51febc3"
+                        }
+                    ]
+                },
+                "properties": [
+                    {
+                        "name": "library_name",
+                        "value": "transformers"
+                    }
+                ],
+                "consideration": {
+                    "useCases": "You can use the raw model for masked language modeling, but it's mostly intended to be fine-tuned on a downstream task.See the [model hub](https://huggingface.co/models?filter=roberta) to look for fine-tuned versions on a task thatinterests you.Note that this model is primarily aimed at being fine-tuned on tasks that use the whole sentence (potentially masked)to make decisions, such as sequence classification, token classification or question answering. For tasks such as textgeneration you should look at model like GPT2."
+                }
+            },
+            "authors": [
+                {
+                    "name": "FacebookAI"
+                }
+            ],
+            "licenses": [
+                {
+                    "license": {
+                        "id": "MIT",
+                        "url": "https://spdx.org/licenses/MIT.html"
+                    }
+                }
+            ],
+            "description": "RoBERTa is a transformers model pretrained on a large corpus of English data in a self-supervised fashion. This meansit was pretrained on the raw texts only, with no humans labelling them in any way (which is why it can use lots ofpublicly available data) with an automatic process to generate inputs and labels from those texts.More precisely, it was pretrained with the Masked language modeling (MLM) objective. Taking a sentence, the modelrandomly masks 15% of the words in the input then run the entire masked sentence through the model and has to predictthe masked words. This is different from traditional recurrent neural networks (RNNs) that usually see the words oneafter the other, or from autoregressive models like GPT which internally mask the future tokens. It allows the model tolearn a bidirectional representation of the sentence.This way, the model learns an inner representation of the English language that can then be used to extract featuresuseful for downstream tasks: if you have a dataset of labeled sentences for instance, you can train a standardclassifier using the features produced by the BERT model as inputs.",
+            "tags": [
+                "transformers",
+                "pytorch",
+                "tf",
+                "jax",
+                "onnx",
+                "safetensors",
+                "roberta",
+                "fill-mask",
+                "exbert",
+                "en",
+                "dataset:bookcorpus",
+                "dataset:wikipedia",
+                "arxiv:1907.11692",
+                "arxiv:1806.02847",
+                "license:mit",
+                "endpoints_compatible",
+                "deploy:azure",
+                "region:us"
+            ]
+        }
+    },
+    "components": [
+        {
+            "type": "data",
+            "bom-ref": "bookcorpus-5b88b1fa-89d7-54e0-8076-a03aa22c33e0",
+            "name": "bookcorpus",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "bookcorpus-5b88b1fa-89d7-54e0-8076-a03aa22c33e0",
+                    "name": "bookcorpus",
+                    "contents": {
+                        "url": "https://huggingface.co/datasets/bookcorpus",
+                        "properties": [
+                            {
+                                "name": "task_categories",
+                                "value": "text-generation, fill-mask"
+                            },
+                            {
+                                "name": "task_ids",
+                                "value": "language-modeling, masked-language-modeling"
+                            },
+                            {
+                                "name": "language",
+                                "value": "en"
+                            },
+                            {
+                                "name": "size_categories",
+                                "value": "10M<n<100M"
+                            },
+                            {
+                                "name": "annotations_creators",
+                                "value": "no-annotation"
+                            },
+                            {
+                                "name": "language_creators",
+                                "value": "found"
+                            },
+                            {
+                                "name": "pretty_name",
+                                "value": "BookCorpus"
+                            },
+                            {
+                                "name": "source_datasets",
+                                "value": "original"
+                            },
+                            {
+                                "name": "paperswithcode_id",
+                                "value": "bookcorpus"
+                            },
+                            {
+                                "name": "license",
+                                "value": "unknown"
+                            }
+                        ]
+                    },
+                    "governance": {
+                        "owners": [
+                            {
+                                "organization": {
+                                    "name": "bookcorpus",
+                                    "url": "https://huggingface.co/bookcorpus"
+                                }
+                            }
+                        ]
+                    },
+                    "description": "Books are a rich source of both fine-grained information, how a character, an object or a scene looks like, as well as high-level semantics, what someone is thinking, feeling and how these states evolve through a story.This work aims to align books to their movie releases in order to providerich descriptive explanations for visual content that go semantically farbeyond the captions available in current datasets. \\"
+                }
+            ]
+        },
+        {
+            "type": "data",
+            "bom-ref": "wikipedia-8c5eb686-d691-517b-aad7-040fa51febc3",
+            "name": "wikipedia",
+            "data": [
+                {
+                    "type": "dataset",
+                    "bom-ref": "wikipedia-8c5eb686-d691-517b-aad7-040fa51febc3",
+                    "name": "wikipedia",
+                    "contents": {
+                        "url": "https://huggingface.co/datasets/wikipedia",
+                        "properties": [
+                            {
+                                "name": "task_categories",
+                                "value": "text-generation, fill-mask"
+                            },
+                            {
+                                "name": "task_ids",
+                                "value": "language-modeling, masked-language-modeling"
+                            },
+                            {
+                                "name": "language",
+                                "value": "aa, ab, ace, af, ak, als, am, an, ang, ar, arc, arz, as, ast, atj, av, ay, az, azb, ba, bar, bcl, be, bg, bh, bi, bjn, bm, bn, bo, bpy, br, bs, bug, bxr, ca, cbk, cdo, ce, ceb, ch, cho, chr, chy, ckb, co, cr, crh, cs, csb, cu, cv, cy, da, de, din, diq, dsb, dty, dv, dz, ee, el, eml, en, eo, es, et, eu, ext, fa, ff, fi, fj, fo, fr, frp, frr, fur, fy, ga, gag, gan, gd, gl, glk, gn, gom, gor, got, gu, gv, ha, hak, haw, he, hi, hif, ho, hr, hsb, ht, hu, hy, ia, id, ie, ig, ii, ik, ilo, inh, io, is, it, iu, ja, jam, jbo, jv, ka, kaa, kab, kbd, kbp, kg, ki, kj, kk, kl, km, kn, ko, koi, krc, ks, ksh, ku, kv, kw, ky, la, lad, lb, lbe, lez, lfn, lg, li, lij, lmo, ln, lo, lrc, lt, ltg, lv, lzh, mai, mdf, mg, mh, mhr, mi, min, mk, ml, mn, mr, mrj, ms, mt, mus, mwl, my, myv, mzn, na, nah, nan, nap, nds, ne, new, ng, nl, nn, no, nov, nrf, nso, nv, ny, oc, olo, om, or, os, pa, pag, pam, pap, pcd, pdc, pfl, pi, pih, pl, pms, pnb, pnt, ps, pt, qu, rm, rmy, rn, ro, ru, rue, rup, rw, sa, sah, sat, sc, scn, sco, sd, se, sg, sgs, sh, si, sk, sl, sm, sn, so, sq, sr, srn, ss, st, stq, su, sv, sw, szl, ta, tcy, tdt, te, tg, th, ti, tk, tl, tn, to, tpi, tr, ts, tt, tum, tw, ty, tyv, udm, ug, uk, ur, uz, ve, vec, vep, vi, vls, vo, vro, wa, war, wo, wuu, xal, xh, xmf, yi, yo, yue, za, zea, zh, zu"
+                            },
+                            {
+                                "name": "size_categories",
+                                "value": "n<1K, 1K<n<10K, 10K<n<100K, 100K<n<1M, 1M<n<10M"
+                            },
+                            {
+                                "name": "annotations_creators",
+                                "value": "no-annotation"
+                            },
+                            {
+                                "name": "language_creators",
+                                "value": "crowdsourced"
+                            },
+                            {
+                                "name": "pretty_name",
+                                "value": "Wikipedia"
+                            },
+                            {
+                                "name": "source_datasets",
+                                "value": "original"
+                            },
+                            {
+                                "name": "paperswithcode_id",
+                                "value": null
+                            },
+                            {
+                                "name": "license",
+                                "value": "cc-by-sa-3.0, gfdl"
+                            }
+                        ]
+                    },
+                    "governance": {
+                        "owners": [
+                            {
+                                "organization": {
+                                    "name": "legacy-datasets",
+                                    "url": "https://huggingface.co/legacy-datasets"
+                                }
+                            }
+                        ]
+                    },
+                    "description": "Wikipedia dataset containing cleaned articles of all languages.\nThe datasets are built from the Wikipedia dump\n(https://dumps.wikimedia.org/) with one split per language. Each example\ncontains the content of one full Wikipedia article with cleaning to strip\nmarkdown and unwanted sections (references, etc.)."
+                }
+            ]
+        }
+    ]
+}

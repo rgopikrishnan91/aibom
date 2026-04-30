@@ -1,0 +1,158 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:2af9be01-b50e-469e-959b-ee879d6bfdb4",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-04-30T20:35:57+00:00",
+    "tools": {
+      "components": [
+        {
+          "bom-ref": "pkg:generic/owasp-genai/owasp-aibom-generator@1.0.2",
+          "type": "application",
+          "name": "owasp-aibom-generator",
+          "version": "1.0.2",
+          "manufacturer": {
+            "name": "OWASP GenAI Security Project"
+          }
+        }
+      ]
+    },
+    "component": {
+      "bom-ref": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:35:57@1777581357",
+      "type": "application",
+      "name": "job-2026-04-30-16:35:57",
+      "description": "Generating SBOM for Falconsai/nsfw_image_detection",
+      "version": "1777581357",
+      "purl": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:35:57@1777581357",
+      "manufacturer": {
+        "name": "OWASP AIBOM Generator"
+      },
+      "supplier": {
+        "name": "OWASP AIBOM Generator"
+      }
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "pkg:huggingface/Falconsai/nsfw_image_detection@04367978",
+      "type": "machine-learning-model",
+      "group": "Falconsai",
+      "name": "nsfw_image_detection",
+      "version": "04367978",
+      "purl": "pkg:huggingface/Falconsai/nsfw_image_detection@04367978",
+      "description": "No description available",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "modelCard": {
+        "modelParameters": {
+          "task": "image-classification",
+          "modelArchitecture": "vit",
+          "datasets": [
+            {
+              "type": "dataset",
+              "name": "a",
+              "contents": {
+                "url": "https://huggingface.co/datasets/a"
+              }
+            },
+            {
+              "type": "dataset",
+              "name": "are",
+              "contents": {
+                "url": "https://huggingface.co/datasets/are"
+              }
+            }
+          ],
+          "inputs": [
+            {
+              "format": "image"
+            }
+          ],
+          "outputs": [
+            {
+              "format": "string"
+            },
+            {
+              "format": "json"
+            }
+          ]
+        },
+        "considerations": {
+          "technicalLimitations": [
+            "### Intended Uses - **NSFW Image Classification**: The primary intended use of this model is for the classification of NSFW (Not Safe for Work) images"
+          ]
+        },
+        "properties": [
+          {
+            "name": "serialNumber",
+            "value": "urn:uuid:Falconsai-nsfw_image_detection"
+          },
+          {
+            "name": "safetyRiskAssessment",
+            "value": "and moderation, all while maintaining the highest standards of accuracy and reliability"
+          }
+        ]
+      },
+      "manufacturer": {
+        "name": "Falconsai",
+        "url": [
+          "https://huggingface.co/Falconsai"
+        ]
+      },
+      "supplier": {
+        "name": "Falconsai"
+      },
+      "authors": [
+        {
+          "name": "Falconsai"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://huggingface.co/Falconsai/nsfw_image_detection",
+          "comment": "Model repository"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/Falconsai/nsfw_image_detection/tree/main",
+          "comment": "Model files"
+        },
+        {
+          "type": "vcs",
+          "url": "https://huggingface.co/Falconsai/nsfw_image_detection/commit/04367978d3474804ab1a00a9bd6548b741764069",
+          "comment": "Specific commit"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/a",
+          "comment": "Training dataset: a"
+        },
+        {
+          "type": "distribution",
+          "url": "https://huggingface.co/datasets/are",
+          "comment": "Training dataset: are"
+        },
+        {
+          "type": "documentation",
+          "url": "https://arxiv.org/abs/2010.11929",
+          "comment": "ArXiv Paper"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg:generic/Falconsai/nsfw_image_detection@04367978",
+      "dependsOn": [
+        "pkg:huggingface/Falconsai/nsfw_image_detection@04367978"
+      ]
+    }
+  ]
+}
