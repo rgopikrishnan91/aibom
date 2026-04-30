@@ -1,10 +1,10 @@
 {
     "bomFormat": "CycloneDX",
     "specVersion": "1.6",
-    "serialNumber": "urn:uuid:e03525db-d124-47fc-bf4d-5e0435f045cd",
+    "serialNumber": "urn:uuid:c2426bb6-e784-4523-8744-c3e98d5b91eb",
     "version": 1,
     "metadata": {
-        "timestamp": "2026-04-30T20:36:22.068248+00:00",
+        "timestamp": "2026-04-30T21:04:55.090684+00:00",
         "component": {
             "type": "machine-learning-model",
             "bom-ref": "alana89/TabSTAR-30f04899-faee-52ec-9c39-eb8392181f20",

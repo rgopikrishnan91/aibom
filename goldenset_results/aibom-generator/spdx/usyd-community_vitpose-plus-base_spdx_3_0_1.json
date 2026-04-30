@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-vitpose-plus-base-29d56208-bd37-4670-929e-4edb36d9180b",
+      "spdxId": "urn:spdx:doc-vitpose-plus-base-d8547dc8-6eb9-4f79-a919-b8745b2f18a9",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,26 +13,26 @@
       "name": "AIBOM for vitpose-plus-base",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:36:45+00:00",
+        "created": "2026-04-30T21:05:17+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-vitpose-plus-base-bd89cfa0-3346-43e9-9220-8a510d382305"
+        "urn:spdx:ai-vitpose-plus-base-c0a5cd7c-cf40-4465-8429-1d96d62836c4"
       ],
       "element": [
-        "urn:spdx:vitpose-plus-base-9e81529d-322f-4136-b42b-f97bb4c4b0af",
-        "urn:spdx:ai-vitpose-plus-base-bd89cfa0-3346-43e9-9220-8a510d382305",
-        "urn:spdx:rel-8c84790f-ae61-4b9a-874f-afa192d3687c",
-        "urn:spdx:rel-001bd892-82f9-49f3-b80c-2e3b93cbe7fd",
-        "urn:spdx:rel-e852bea0-caa5-4159-bdad-7866f1f6ac9d",
-        "urn:spdx:rel-6fb7d932-e216-4f24-aff1-02f72d647d3b"
+        "urn:spdx:vitpose-plus-base-c0844e32-80a1-4564-94ba-4ced3fcc5017",
+        "urn:spdx:ai-vitpose-plus-base-c0a5cd7c-cf40-4465-8429-1d96d62836c4",
+        "urn:spdx:rel-8eac4a31-c272-4669-a4ce-b31942d60829",
+        "urn:spdx:rel-5554d320-b337-46b8-ad17-f699804aa53a",
+        "urn:spdx:rel-5e462025-dc1f-48a7-a870-c1dc93c8fc7a",
+        "urn:spdx:rel-8ae486a8-d17d-44f8-8141-5702b95ca7c2"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:vitpose-plus-base-9e81529d-322f-4136-b42b-f97bb4c4b0af",
+      "spdxId": "urn:spdx:vitpose-plus-base-c0844e32-80a1-4564-94ba-4ced3fcc5017",
       "name": "vitpose-plus-base",
       "packageVersion": "92be54d7",
       "downloadLocation": "https://huggingface.co/usyd-community/vitpose-plus-base/tree/main",
@@ -40,7 +40,7 @@
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-vitpose-plus-base-bd89cfa0-3346-43e9-9220-8a510d382305",
+      "spdxId": "urn:spdx:ai-vitpose-plus-base-c0a5cd7c-cf40-4465-8429-1d96d62836c4",
       "name": "vitpose-plus-base",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/usyd-community/vitpose-plus-base/tree/main",
@@ -54,34 +54,34 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-8c84790f-ae61-4b9a-874f-afa192d3687c",
+      "spdxId": "urn:spdx:rel-8eac4a31-c272-4669-a4ce-b31942d60829",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:vitpose-plus-base-9e81529d-322f-4136-b42b-f97bb4c4b0af",
+      "from": "urn:spdx:vitpose-plus-base-c0844e32-80a1-4564-94ba-4ced3fcc5017",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-001bd892-82f9-49f3-b80c-2e3b93cbe7fd",
+      "spdxId": "urn:spdx:rel-5554d320-b337-46b8-ad17-f699804aa53a",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-vitpose-plus-base-bd89cfa0-3346-43e9-9220-8a510d382305",
+      "from": "urn:spdx:ai-vitpose-plus-base-c0a5cd7c-cf40-4465-8429-1d96d62836c4",
       "to": [
         "person_boxes"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-e852bea0-caa5-4159-bdad-7866f1f6ac9d",
+      "spdxId": "urn:spdx:rel-5e462025-dc1f-48a7-a870-c1dc93c8fc7a",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-vitpose-plus-base-bd89cfa0-3346-43e9-9220-8a510d382305",
+      "from": "urn:spdx:ai-vitpose-plus-base-c0a5cd7c-cf40-4465-8429-1d96d62836c4",
       "to": [
         "8"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-6fb7d932-e216-4f24-aff1-02f72d647d3b",
+      "spdxId": "urn:spdx:rel-8ae486a8-d17d-44f8-8141-5702b95ca7c2",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/usyd-community/vitpose-plus-base@92be54d7",
       "to": [

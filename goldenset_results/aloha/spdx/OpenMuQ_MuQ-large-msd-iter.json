@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-OpenMuQ_MuQ-large-msd-iter-d08f33d0-4e9e-4d1d-a057-f251d3831d09",
+      "spdxId": "urn:spdx:doc-OpenMuQ_MuQ-large-msd-iter-654dde14-a23a-4623-b448-b4173022e7ab",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,29 +13,29 @@
       "name": "AIBOM for OpenMuQ/MuQ-large-msd-iter",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:36:25.532868+00:00",
+        "created": "2026-04-30T21:04:58.473504+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-OpenMuQ_MuQ-large-msd-iter-93809955-ae94-4a2c-967a-858b39679864"
+        "urn:spdx:ai-OpenMuQ_MuQ-large-msd-iter-a524dbf8-b576-4726-8600-34d9ce6f7305"
       ],
       "element": [
-        "urn:spdx:OpenMuQ_MuQ-large-msd-iter-f87c7e5b-a79d-4103-b7c5-9fa5029af1f5",
-        "urn:spdx:ai-OpenMuQ_MuQ-large-msd-iter-93809955-ae94-4a2c-967a-858b39679864",
-        "urn:spdx:rel-28e17fa3-31d4-48b3-943f-995f72c5ed4b"
+        "urn:spdx:OpenMuQ_MuQ-large-msd-iter-6b58b83a-4ed2-4795-ab99-4f9a84cbee73",
+        "urn:spdx:ai-OpenMuQ_MuQ-large-msd-iter-a524dbf8-b576-4726-8600-34d9ce6f7305",
+        "urn:spdx:rel-9ed336ea-777c-4d3d-8439-4b7a0a3dbf02"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:OpenMuQ_MuQ-large-msd-iter-f87c7e5b-a79d-4103-b7c5-9fa5029af1f5",
+      "spdxId": "urn:spdx:OpenMuQ_MuQ-large-msd-iter-6b58b83a-4ed2-4795-ab99-4f9a84cbee73",
       "name": "OpenMuQ/MuQ-large-msd-iter",
       "licenseDeclared": "CC-BY-NC-4.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-OpenMuQ_MuQ-large-msd-iter-93809955-ae94-4a2c-967a-858b39679864",
+      "spdxId": "urn:spdx:ai-OpenMuQ_MuQ-large-msd-iter-a524dbf8-b576-4726-8600-34d9ce6f7305",
       "name": "OpenMuQ/MuQ-large-msd-iter",
       "primaryPurpose": [
         "audio-classification"
@@ -54,9 +54,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-28e17fa3-31d4-48b3-943f-995f72c5ed4b",
+      "spdxId": "urn:spdx:rel-9ed336ea-777c-4d3d-8439-4b7a0a3dbf02",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:OpenMuQ_MuQ-large-msd-iter-f87c7e5b-a79d-4103-b7c5-9fa5029af1f5",
+      "from": "urn:spdx:OpenMuQ_MuQ-large-msd-iter-6b58b83a-4ed2-4795-ab99-4f9a84cbee73",
       "to": [
         "CC-BY-NC-4.0"
       ]

@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-Qwen_Qwen2.5-7B-Instruct-7dfeddbe-c938-48a1-9497-e42250223890",
+      "spdxId": "urn:spdx:doc-Qwen_Qwen2.5-7B-Instruct-b432014d-033c-4ccd-98dd-7fc9eac54308",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,29 +13,29 @@
       "name": "AIBOM for Qwen/Qwen2.5-7B-Instruct",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:36:18.752040+00:00",
+        "created": "2026-04-30T21:04:51.922508+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-Qwen_Qwen2.5-7B-Instruct-24ce7e97-f61c-4b7b-87b6-2257113c8cbf"
+        "urn:spdx:ai-Qwen_Qwen2.5-7B-Instruct-c7991a6a-2c99-4c51-932a-90c2b716a337"
       ],
       "element": [
-        "urn:spdx:Qwen_Qwen2.5-7B-Instruct-b3a5e100-44e1-43e6-9b4f-278ac8ffe762",
-        "urn:spdx:ai-Qwen_Qwen2.5-7B-Instruct-24ce7e97-f61c-4b7b-87b6-2257113c8cbf",
-        "urn:spdx:rel-7bb49ac0-6274-43ae-b15e-d2f16c97b087"
+        "urn:spdx:Qwen_Qwen2.5-7B-Instruct-c234626b-fa1b-4a87-8afc-1492dd232f5f",
+        "urn:spdx:ai-Qwen_Qwen2.5-7B-Instruct-c7991a6a-2c99-4c51-932a-90c2b716a337",
+        "urn:spdx:rel-f26faa46-e9c0-42d1-86e4-7fa9e1e845ac"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:Qwen_Qwen2.5-7B-Instruct-b3a5e100-44e1-43e6-9b4f-278ac8ffe762",
+      "spdxId": "urn:spdx:Qwen_Qwen2.5-7B-Instruct-c234626b-fa1b-4a87-8afc-1492dd232f5f",
       "name": "Qwen/Qwen2.5-7B-Instruct",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-Qwen_Qwen2.5-7B-Instruct-24ce7e97-f61c-4b7b-87b6-2257113c8cbf",
+      "spdxId": "urn:spdx:ai-Qwen_Qwen2.5-7B-Instruct-c7991a6a-2c99-4c51-932a-90c2b716a337",
       "name": "Qwen/Qwen2.5-7B-Instruct",
       "summary": "Qwen2.5 is the latest series of Qwen large language models. For Qwen2.5, we release a number of base language models and instruction-tuned language models ranging from 0.5 to 72 billion parameters. Qwen2.5 brings the following improvements upon Qwen2:- Significantly **more knowledge** and has greatly improved capabilities in **coding** and **mathematics**, thanks to our specialized expert models in these domains.- Significant improvements in **instruction following**, **generating long texts** (over 8K tokens), **understanding structured data** (e.g, tables), and **generating structured outputs** especially JSON. **More resilient to the diversity of system prompts**, enhancing role-play implementation and condition-setting for chatbots.- **Long-context Support** up to 128K tokens and can generate up to 8K tokens.- **Multilingual support** for over 29 languages, including Chinese, English, French, Spanish, Portuguese, German, Italian, Russian, Japanese, Korean, Vietnamese, Thai, Arabic, and more.**This repo contains the instruction-tuned 7B Qwen2.5 model**, which has the following features:- Type: Causal Language Models- Training Stage: Pretraining & Post-training- Architecture: transformers with RoPE, SwiGLU, RMSNorm, and Attention QKV bias- Number of Parameters: 7.61B- Number of Paramaters (Non-Embedding): 6.53B- Number of Layers: 28- Number of Attention Heads (GQA): 28 for Q and 4 for KV- Context Length: Full 131,072 tokens and generation 8192 tokens- Please refer to [this section](#processing-long-texts) for detailed instructions on how to deploy Qwen2.5 for handling long texts.For more details, please refer to our [blog](https://qwenlm.github.io/blog/qwen2.5/), [GitHub](https://github.com/QwenLM/Qwen2.5), and [Documentation](https://qwen.readthedocs.io/en/latest/).",
       "primaryPurpose": [
@@ -65,9 +65,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-7bb49ac0-6274-43ae-b15e-d2f16c97b087",
+      "spdxId": "urn:spdx:rel-f26faa46-e9c0-42d1-86e4-7fa9e1e845ac",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:Qwen_Qwen2.5-7B-Instruct-b3a5e100-44e1-43e6-9b4f-278ac8ffe762",
+      "from": "urn:spdx:Qwen_Qwen2.5-7B-Instruct-c234626b-fa1b-4a87-8afc-1492dd232f5f",
       "to": [
         "Apache-2.0"
       ]

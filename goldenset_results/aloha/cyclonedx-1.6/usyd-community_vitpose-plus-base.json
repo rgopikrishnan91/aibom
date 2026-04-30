@@ -1,10 +1,10 @@
 {
     "bomFormat": "CycloneDX",
     "specVersion": "1.6",
-    "serialNumber": "urn:uuid:aca28d20-37ea-4dfb-9c2d-0d2bf478cdef",
+    "serialNumber": "urn:uuid:eae952fa-6ec3-4a46-abb0-44779356223f",
     "version": 1,
     "metadata": {
-        "timestamp": "2026-04-30T20:36:45.782247+00:00",
+        "timestamp": "2026-04-30T21:05:18.475513+00:00",
         "component": {
             "type": "machine-learning-model",
             "bom-ref": "usyd-community/vitpose-plus-base-78d1da3a-4ec2-5571-9b1c-376fc203b7ff",

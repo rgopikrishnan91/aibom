@@ -1,10 +1,10 @@
 {
     "bomFormat": "CycloneDX",
     "specVersion": "1.6",
-    "serialNumber": "urn:uuid:8ce52336-cac9-4d1b-9feb-29f33c6d3062",
+    "serialNumber": "urn:uuid:8471ed80-691f-44c4-8e05-b313e34a6e83",
     "version": 1,
     "metadata": {
-        "timestamp": "2026-04-30T20:36:08.790892+00:00",
+        "timestamp": "2026-04-30T21:04:41.546018+00:00",
         "component": {
             "type": "machine-learning-model",
             "bom-ref": "distilbert/distilbert-base-uncased-4b02ff01-451e-5e2c-a5c7-7e7e56caff05",

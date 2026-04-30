@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-omni-research_Tarsier2-Recap-7b-6ad2851a-f1ec-4bae-8583-b654e12865be",
+      "spdxId": "urn:spdx:doc-omni-research_Tarsier2-Recap-7b-4c27f0be-56a1-4734-9daa-f94f54959622",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,29 +13,29 @@
       "name": "AIBOM for omni-research/Tarsier2-Recap-7b",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:36:20.278780+00:00",
+        "created": "2026-04-30T21:04:53.464224+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-omni-research_Tarsier2-Recap-7b-0ec4c708-4a9c-451f-93fd-6ef2005d56ea"
+        "urn:spdx:ai-omni-research_Tarsier2-Recap-7b-b9650fc3-3887-41b7-a9c8-ed5bfca02c78"
       ],
       "element": [
-        "urn:spdx:omni-research_Tarsier2-Recap-7b-7d755f75-a87b-42df-822d-732b32e499f7",
-        "urn:spdx:ai-omni-research_Tarsier2-Recap-7b-0ec4c708-4a9c-451f-93fd-6ef2005d56ea",
-        "urn:spdx:rel-bfb98ef4-2cd1-45bf-a773-6a5d6b1de83e"
+        "urn:spdx:omni-research_Tarsier2-Recap-7b-796b5b38-f01e-4f2c-b892-3d56e65cfa1c",
+        "urn:spdx:ai-omni-research_Tarsier2-Recap-7b-b9650fc3-3887-41b7-a9c8-ed5bfca02c78",
+        "urn:spdx:rel-13827a53-5efd-4cd7-8047-7d7afb68eb89"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:omni-research_Tarsier2-Recap-7b-7d755f75-a87b-42df-822d-732b32e499f7",
+      "spdxId": "urn:spdx:omni-research_Tarsier2-Recap-7b-796b5b38-f01e-4f2c-b892-3d56e65cfa1c",
       "name": "omni-research/Tarsier2-Recap-7b",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-omni-research_Tarsier2-Recap-7b-0ec4c708-4a9c-451f-93fd-6ef2005d56ea",
+      "spdxId": "urn:spdx:ai-omni-research_Tarsier2-Recap-7b-b9650fc3-3887-41b7-a9c8-ed5bfca02c78",
       "name": "omni-research/Tarsier2-Recap-7b",
       "domain": [
         "safetensors",
@@ -47,9 +47,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-bfb98ef4-2cd1-45bf-a773-6a5d6b1de83e",
+      "spdxId": "urn:spdx:rel-13827a53-5efd-4cd7-8047-7d7afb68eb89",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:omni-research_Tarsier2-Recap-7b-7d755f75-a87b-42df-822d-732b32e499f7",
+      "from": "urn:spdx:omni-research_Tarsier2-Recap-7b-796b5b38-f01e-4f2c-b892-3d56e65cfa1c",
       "to": [
         "Apache-2.0"
       ]

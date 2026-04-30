@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-autogluon_chronos-bolt-small-be645001-9778-45c8-afa8-50a1a6bf2d79",
+      "spdxId": "urn:spdx:doc-autogluon_chronos-bolt-small-3b8450ee-dce8-4162-afda-9c6cc1532f52",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,29 +13,29 @@
       "name": "AIBOM for autogluon/chronos-bolt-small",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:36:17.203721+00:00",
+        "created": "2026-04-30T21:04:50.379230+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-autogluon_chronos-bolt-small-2b29d4d5-b570-4cc6-9243-a69b3d39447e"
+        "urn:spdx:ai-autogluon_chronos-bolt-small-1fc4e28d-80d6-439f-8cfe-b6b2a31c30d6"
       ],
       "element": [
-        "urn:spdx:autogluon_chronos-bolt-small-58ef4366-8afb-4899-96d4-9baf672fb858",
-        "urn:spdx:ai-autogluon_chronos-bolt-small-2b29d4d5-b570-4cc6-9243-a69b3d39447e",
-        "urn:spdx:rel-059e918c-525d-451b-858c-c4872af7e2f1"
+        "urn:spdx:autogluon_chronos-bolt-small-c75a7ca2-eb61-4469-882d-68bd0339b893",
+        "urn:spdx:ai-autogluon_chronos-bolt-small-1fc4e28d-80d6-439f-8cfe-b6b2a31c30d6",
+        "urn:spdx:rel-cbc73b16-06a7-4c17-a120-33ec72fc5674"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:autogluon_chronos-bolt-small-58ef4366-8afb-4899-96d4-9baf672fb858",
+      "spdxId": "urn:spdx:autogluon_chronos-bolt-small-c75a7ca2-eb61-4469-882d-68bd0339b893",
       "name": "autogluon/chronos-bolt-small",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-autogluon_chronos-bolt-small-2b29d4d5-b570-4cc6-9243-a69b3d39447e",
+      "spdxId": "urn:spdx:ai-autogluon_chronos-bolt-small-1fc4e28d-80d6-439f-8cfe-b6b2a31c30d6",
       "name": "autogluon/chronos-bolt-small",
       "primaryPurpose": [
         "time-series-forecasting"
@@ -61,9 +61,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-059e918c-525d-451b-858c-c4872af7e2f1",
+      "spdxId": "urn:spdx:rel-cbc73b16-06a7-4c17-a120-33ec72fc5674",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:autogluon_chronos-bolt-small-58ef4366-8afb-4899-96d4-9baf672fb858",
+      "from": "urn:spdx:autogluon_chronos-bolt-small-c75a7ca2-eb61-4469-882d-68bd0339b893",
       "to": [
         "Apache-2.0"
       ]

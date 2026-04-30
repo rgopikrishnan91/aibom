@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-google-bert_bert-base-uncased-769e1735-bafe-459a-9752-f8125e6c1875",
+      "spdxId": "urn:spdx:doc-google-bert_bert-base-uncased-3e5e4db7-e2e7-4f45-81ea-d3ae09342adf",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,31 +13,31 @@
       "name": "AIBOM for google-bert/bert-base-uncased",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:36:00.056677+00:00",
+        "created": "2026-04-30T21:04:33.174197+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-google-bert_bert-base-uncased-bec86a02-d9ee-495d-b963-7a6fae815929"
+        "urn:spdx:ai-google-bert_bert-base-uncased-cf6b4cf5-0d8e-49c0-98d9-7e3665ee5952"
       ],
       "element": [
-        "urn:spdx:google-bert_bert-base-uncased-186a9469-eb81-48d5-9a64-9e5704dedd47",
-        "urn:spdx:ai-google-bert_bert-base-uncased-bec86a02-d9ee-495d-b963-7a6fae815929",
-        "urn:spdx:rel-b0b00826-a927-4115-a7de-7b6af54e43a9",
-        "urn:spdx:rel-26b29c53-2e76-4173-abc1-64c5c3b29245",
-        "urn:spdx:rel-589048cc-70bc-495a-b3bc-634f31a21eaf"
+        "urn:spdx:google-bert_bert-base-uncased-d9c23a25-16c6-4ff7-b830-e97ae41b43a9",
+        "urn:spdx:ai-google-bert_bert-base-uncased-cf6b4cf5-0d8e-49c0-98d9-7e3665ee5952",
+        "urn:spdx:rel-de5dba45-9c3f-4cd5-8a28-889cde47dcc7",
+        "urn:spdx:rel-3cb350de-0012-42b1-acd0-8bac6ee16d65",
+        "urn:spdx:rel-ecc0c1e2-23e6-4396-8554-b18b4e8b66eb"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:google-bert_bert-base-uncased-186a9469-eb81-48d5-9a64-9e5704dedd47",
+      "spdxId": "urn:spdx:google-bert_bert-base-uncased-d9c23a25-16c6-4ff7-b830-e97ae41b43a9",
       "name": "google-bert/bert-base-uncased",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-google-bert_bert-base-uncased-bec86a02-d9ee-495d-b963-7a6fae815929",
+      "spdxId": "urn:spdx:ai-google-bert_bert-base-uncased-cf6b4cf5-0d8e-49c0-98d9-7e3665ee5952",
       "name": "google-bert/bert-base-uncased",
       "summary": "BERT is a transformers model pretrained on a large corpus of English data in a self-supervised fashion. This means itwas pretrained on the raw texts only, with no humans labeling them in any way (which is why it can use lots ofpublicly available data) with an automatic process to generate inputs and labels from those texts. More precisely, itwas pretrained with two objectives:- Masked language modeling (MLM): taking a sentence, the model randomly masks 15% of the words in the input then runthe entire masked sentence through the model and has to predict the masked words. This is different from traditionalrecurrent neural networks (RNNs) that usually see the words one after the other, or from autoregressive models likeGPT which internally masks the future tokens. It allows the model to learn a bidirectional representation of thesentence.- Next sentence prediction (NSP): the models concatenates two masked sentences as inputs during pretraining. Sometimesthey correspond to sentences that were next to each other in the original text, sometimes not. The model then has topredict if the two sentences were following each other or not.This way, the model learns an inner representation of the English language that can then be used to extract featuresuseful for downstream tasks: if you have a dataset of labeled sentences, for instance, you can train a standardclassifier using the features produced by the BERT model as inputs.",
       "primaryPurpose": [
@@ -70,27 +70,27 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-b0b00826-a927-4115-a7de-7b6af54e43a9",
+      "spdxId": "urn:spdx:rel-de5dba45-9c3f-4cd5-8a28-889cde47dcc7",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:google-bert_bert-base-uncased-186a9469-eb81-48d5-9a64-9e5704dedd47",
+      "from": "urn:spdx:google-bert_bert-base-uncased-d9c23a25-16c6-4ff7-b830-e97ae41b43a9",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-26b29c53-2e76-4173-abc1-64c5c3b29245",
+      "spdxId": "urn:spdx:rel-3cb350de-0012-42b1-acd0-8bac6ee16d65",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-google-bert_bert-base-uncased-bec86a02-d9ee-495d-b963-7a6fae815929",
+      "from": "urn:spdx:ai-google-bert_bert-base-uncased-cf6b4cf5-0d8e-49c0-98d9-7e3665ee5952",
       "to": [
         "bookcorpus-5b88b1fa-89d7-54e0-8076-a03aa22c33e0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-589048cc-70bc-495a-b3bc-634f31a21eaf",
+      "spdxId": "urn:spdx:rel-ecc0c1e2-23e6-4396-8554-b18b4e8b66eb",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-google-bert_bert-base-uncased-bec86a02-d9ee-495d-b963-7a6fae815929",
+      "from": "urn:spdx:ai-google-bert_bert-base-uncased-cf6b4cf5-0d8e-49c0-98d9-7e3665ee5952",
       "to": [
         "wikipedia-8c5eb686-d691-517b-aad7-040fa51febc3"
       ]

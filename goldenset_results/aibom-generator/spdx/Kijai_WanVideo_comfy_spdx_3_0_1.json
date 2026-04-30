@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-WanVideo_comfy-38783de2-91b3-481b-b07b-1e46c0378224",
+      "spdxId": "urn:spdx:doc-WanVideo_comfy-64521dbb-34c6-4f28-b2c2-3d897acd76eb",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,30 +13,30 @@
       "name": "AIBOM for WanVideo_comfy",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:36:26+00:00",
+        "created": "2026-04-30T21:04:59+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-WanVideo_comfy-75b75188-1542-49de-aafe-abf8aa353266"
+        "urn:spdx:ai-WanVideo_comfy-0065f3b0-ecca-42c6-b9b2-b913e69de3da"
       ],
       "element": [
-        "urn:spdx:WanVideo_comfy-bd7660d6-7603-4739-81d5-408ad7c49afc",
-        "urn:spdx:ai-WanVideo_comfy-75b75188-1542-49de-aafe-abf8aa353266",
-        "urn:spdx:rel-8f905805-1cc9-4524-8549-173689027851"
+        "urn:spdx:WanVideo_comfy-0ad7151e-ed96-48e0-8527-a9572f08e742",
+        "urn:spdx:ai-WanVideo_comfy-0065f3b0-ecca-42c6-b9b2-b913e69de3da",
+        "urn:spdx:rel-88e0eef0-83fd-4a61-9fcb-af883cfeff98"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:WanVideo_comfy-bd7660d6-7603-4739-81d5-408ad7c49afc",
+      "spdxId": "urn:spdx:WanVideo_comfy-0ad7151e-ed96-48e0-8527-a9572f08e742",
       "name": "WanVideo_comfy",
       "packageVersion": "87badb1f",
       "downloadLocation": "https://huggingface.co/Kijai/WanVideo_comfy/tree/main"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-WanVideo_comfy-75b75188-1542-49de-aafe-abf8aa353266",
+      "spdxId": "urn:spdx:ai-WanVideo_comfy-0065f3b0-ecca-42c6-b9b2-b913e69de3da",
       "name": "WanVideo_comfy",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/Kijai/WanVideo_comfy/tree/main",
@@ -49,7 +49,7 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-8f905805-1cc9-4524-8549-173689027851",
+      "spdxId": "urn:spdx:rel-88e0eef0-83fd-4a61-9fcb-af883cfeff98",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/Kijai/WanVideo_comfy@87badb1f",
       "to": [

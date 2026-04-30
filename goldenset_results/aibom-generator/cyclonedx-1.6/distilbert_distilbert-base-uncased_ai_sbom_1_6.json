@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:7a248f16-f0ec-41be-ad70-6de418660753",
+  "serialNumber": "urn:uuid:7af61b96-00e2-41d3-9036-9046ccfdd32f",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-04-30T20:36:07+00:00",
+    "timestamp": "2026-04-30T21:04:40+00:00",
     "tools": {
       "components": [
         {
@@ -19,12 +19,12 @@
       ]
     },
     "component": {
-      "bom-ref": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:07@1777581367",
+      "bom-ref": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-17:04:40@1777583080",
       "type": "application",
-      "name": "job-2026-04-30-16:36:07",
+      "name": "job-2026-04-30-17:04:40",
       "description": "Generating SBOM for distilbert/distilbert-base-uncased",
-      "version": "1777581367",
-      "purl": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:07@1777581367",
+      "version": "1777583080",
+      "purl": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-17:04:40@1777583080",
       "manufacturer": {
         "name": "OWASP AIBOM Generator"
       },

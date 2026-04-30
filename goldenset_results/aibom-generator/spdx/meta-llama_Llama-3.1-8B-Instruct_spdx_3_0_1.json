@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-Llama-3.1-8B-Instruct-deab2590-10e4-4430-97b1-d3ec89899e3a",
+      "spdxId": "urn:spdx:doc-Llama-3.1-8B-Instruct-381dd52a-6e7c-463e-96eb-028171122dde",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,26 +13,26 @@
       "name": "AIBOM for Llama-3.1-8B-Instruct",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:36:29+00:00",
+        "created": "2026-04-30T21:05:02+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-Llama-3.1-8B-Instruct-29ac919b-b641-48f8-9938-945e90ae1c5d"
+        "urn:spdx:ai-Llama-3.1-8B-Instruct-beb76e63-26e5-4d3b-914d-8c48b1a54c5d"
       ],
       "element": [
-        "urn:spdx:Llama-3.1-8B-Instruct-84e95e4c-2867-4e67-b634-75d1416c311b",
-        "urn:spdx:ai-Llama-3.1-8B-Instruct-29ac919b-b641-48f8-9938-945e90ae1c5d",
-        "urn:spdx:rel-c3648957-8847-417e-b08f-5a357715aa69",
-        "urn:spdx:rel-58d375eb-ab44-4254-916f-8179ebb70280",
-        "urn:spdx:rel-6150d635-97cc-4bbd-aed4-715013e90aae",
-        "urn:spdx:rel-0e047b0d-4fc9-425e-84a0-8da7fcd34f88"
+        "urn:spdx:Llama-3.1-8B-Instruct-7c1a9ea1-e738-4c0d-acdc-27ea13dd31ce",
+        "urn:spdx:ai-Llama-3.1-8B-Instruct-beb76e63-26e5-4d3b-914d-8c48b1a54c5d",
+        "urn:spdx:rel-560ef005-d1d1-4e8e-853b-51af73df7edb",
+        "urn:spdx:rel-7203c204-b30a-4bda-9e8c-c49e23fc5c35",
+        "urn:spdx:rel-597b825e-561f-4ee6-97c7-58fe395376d6",
+        "urn:spdx:rel-44cf543a-5c15-45a5-a89a-8c690a2f1bea"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:Llama-3.1-8B-Instruct-84e95e4c-2867-4e67-b634-75d1416c311b",
+      "spdxId": "urn:spdx:Llama-3.1-8B-Instruct-7c1a9ea1-e738-4c0d-acdc-27ea13dd31ce",
       "name": "Llama-3.1-8B-Instruct",
       "packageVersion": "0e9e39f2",
       "downloadLocation": "https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct/tree/main",
@@ -40,7 +40,7 @@
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-Llama-3.1-8B-Instruct-29ac919b-b641-48f8-9938-945e90ae1c5d",
+      "spdxId": "urn:spdx:ai-Llama-3.1-8B-Instruct-beb76e63-26e5-4d3b-914d-8c48b1a54c5d",
       "name": "Llama-3.1-8B-Instruct",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct/tree/main",
@@ -51,38 +51,38 @@
         "text-generation"
       ],
       "limitation": "[\"of Liability\"]",
-      "safetyRiskAssessment": "with community feedback, ASSOCIATED WITH YOUR USE OF THE LLAMA\\ \\ MATERIALS AND ANY OUTPUT AND RESULTS"
+      "safetyRiskAssessment": "ASSOCIATED WITH YOUR USE OF THE LLAMA\\ \\ MATERIALS AND ANY OUTPUT AND RESULTS, with community feedback"
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-c3648957-8847-417e-b08f-5a357715aa69",
+      "spdxId": "urn:spdx:rel-560ef005-d1d1-4e8e-853b-51af73df7edb",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:Llama-3.1-8B-Instruct-84e95e4c-2867-4e67-b634-75d1416c311b",
+      "from": "urn:spdx:Llama-3.1-8B-Instruct-7c1a9ea1-e738-4c0d-acdc-27ea13dd31ce",
       "to": [
         "llama3.1"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-58d375eb-ab44-4254-916f-8179ebb70280",
+      "spdxId": "urn:spdx:rel-7203c204-b30a-4bda-9e8c-c49e23fc5c35",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-Llama-3.1-8B-Instruct-29ac919b-b641-48f8-9938-945e90ae1c5d",
-      "to": [
-        "an"
-      ]
-    },
-    {
-      "type": "Relationship",
-      "spdxId": "urn:spdx:rel-6150d635-97cc-4bbd-aed4-715013e90aae",
-      "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-Llama-3.1-8B-Instruct-29ac919b-b641-48f8-9938-945e90ae1c5d",
+      "from": "urn:spdx:ai-Llama-3.1-8B-Instruct-beb76e63-26e5-4d3b-914d-8c48b1a54c5d",
       "to": [
         "for"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-0e047b0d-4fc9-425e-84a0-8da7fcd34f88",
+      "spdxId": "urn:spdx:rel-597b825e-561f-4ee6-97c7-58fe395376d6",
+      "relationshipType": "trainedOn",
+      "from": "urn:spdx:ai-Llama-3.1-8B-Instruct-beb76e63-26e5-4d3b-914d-8c48b1a54c5d",
+      "to": [
+        "an"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-44cf543a-5c15-45a5-a89a-8c690a2f1bea",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/meta-llama/Llama-3.1-8B-Instruct@0e9e39f2",
       "to": [

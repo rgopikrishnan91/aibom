@@ -1,10 +1,10 @@
 {
     "bomFormat": "CycloneDX",
     "specVersion": "1.6",
-    "serialNumber": "urn:uuid:6e92b1f2-7e71-4f1f-8c8f-76c737f49f7e",
+    "serialNumber": "urn:uuid:973cb14f-071f-42dc-bcca-b7cc78810a57",
     "version": 1,
     "metadata": {
-        "timestamp": "2026-04-30T20:36:17.203721+00:00",
+        "timestamp": "2026-04-30T21:04:50.379230+00:00",
         "component": {
             "type": "machine-learning-model",
             "bom-ref": "autogluon/chronos-bolt-small-b96214d2-415e-5aad-87a6-48a62f92e24b",

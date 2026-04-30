@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-paraphrase-multilingual-mpnet-base-v2-9ca1109e-1f0d-48e9-a42d-9f4b0e97a4da",
+      "spdxId": "urn:spdx:doc-paraphrase-multilingual-mpnet-base-v2-4c7f4f28-1414-4c4d-8904-6ff18c999f15",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,24 +13,24 @@
       "name": "AIBOM for paraphrase-multilingual-mpnet-base-v2",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:36:28+00:00",
+        "created": "2026-04-30T21:05:01+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-paraphrase-multilingual-mpnet-base-v2-d850f190-cf0a-4890-ab7c-1a752dc00af8"
+        "urn:spdx:ai-paraphrase-multilingual-mpnet-base-v2-b617fcec-5e2c-4825-b4e0-a80366053b10"
       ],
       "element": [
-        "urn:spdx:paraphrase-multilingual-mpnet-base-v2-ba340d2a-2f35-4d7d-b0f0-55240053bc41",
-        "urn:spdx:ai-paraphrase-multilingual-mpnet-base-v2-d850f190-cf0a-4890-ab7c-1a752dc00af8",
-        "urn:spdx:rel-5a8916a4-492a-47db-8826-c99c670513eb",
-        "urn:spdx:rel-553835a7-8e85-4174-87a7-c486a9f469a8"
+        "urn:spdx:paraphrase-multilingual-mpnet-base-v2-2791a431-fc69-4308-9bb6-d72a83d8cd02",
+        "urn:spdx:ai-paraphrase-multilingual-mpnet-base-v2-b617fcec-5e2c-4825-b4e0-a80366053b10",
+        "urn:spdx:rel-f8ffa41b-3105-4d54-8253-be02e08ebb64",
+        "urn:spdx:rel-46576744-b985-4999-a350-1d6c924ea22b"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:paraphrase-multilingual-mpnet-base-v2-ba340d2a-2f35-4d7d-b0f0-55240053bc41",
+      "spdxId": "urn:spdx:paraphrase-multilingual-mpnet-base-v2-2791a431-fc69-4308-9bb6-d72a83d8cd02",
       "name": "paraphrase-multilingual-mpnet-base-v2",
       "packageVersion": "4328cf26",
       "downloadLocation": "https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2/tree/main",
@@ -38,7 +38,7 @@
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-paraphrase-multilingual-mpnet-base-v2-d850f190-cf0a-4890-ab7c-1a752dc00af8",
+      "spdxId": "urn:spdx:ai-paraphrase-multilingual-mpnet-base-v2-b617fcec-5e2c-4825-b4e0-a80366053b10",
       "name": "paraphrase-multilingual-mpnet-base-v2",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2/tree/main",
@@ -51,16 +51,16 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-5a8916a4-492a-47db-8826-c99c670513eb",
+      "spdxId": "urn:spdx:rel-f8ffa41b-3105-4d54-8253-be02e08ebb64",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:paraphrase-multilingual-mpnet-base-v2-ba340d2a-2f35-4d7d-b0f0-55240053bc41",
+      "from": "urn:spdx:paraphrase-multilingual-mpnet-base-v2-2791a431-fc69-4308-9bb6-d72a83d8cd02",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-553835a7-8e85-4174-87a7-c486a9f469a8",
+      "spdxId": "urn:spdx:rel-46576744-b985-4999-a350-1d6c924ea22b",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/sentence-transformers/paraphrase-multilingual-mpnet-base-v2@4328cf26",
       "to": [

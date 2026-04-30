@@ -1,10 +1,10 @@
 {
     "bomFormat": "CycloneDX",
     "specVersion": "1.6",
-    "serialNumber": "urn:uuid:787819b5-8004-4373-aa33-5b7a49b3cd2a",
+    "serialNumber": "urn:uuid:2f0aac6a-edd8-4233-841e-afb62e274871",
     "version": 1,
     "metadata": {
-        "timestamp": "2026-04-30T20:35:58.225457+00:00",
+        "timestamp": "2026-04-30T21:04:31.226743+00:00",
         "component": {
             "type": "machine-learning-model",
             "bom-ref": "Falconsai/nsfw_image_detection-a71b1ef6-caac-5f8a-aff1-a18e3e85ee52",

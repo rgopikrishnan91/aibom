@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-MuQ-large-msd-iter-87a830e7-bafa-4486-8296-12bf8904fda9",
+      "spdxId": "urn:spdx:doc-MuQ-large-msd-iter-4d475fe6-652b-4ea5-921b-54f3ba6910b2",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,25 +13,25 @@
       "name": "AIBOM for MuQ-large-msd-iter",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:36:24+00:00",
+        "created": "2026-04-30T21:04:57+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-MuQ-large-msd-iter-c347d220-2c84-4adf-a81b-6f7608acbb10"
+        "urn:spdx:ai-MuQ-large-msd-iter-8bbe4cb2-b59e-4400-8b42-950113a202f8"
       ],
       "element": [
-        "urn:spdx:MuQ-large-msd-iter-ea1b7140-bc6c-4ee9-9133-654e995414cd",
-        "urn:spdx:ai-MuQ-large-msd-iter-c347d220-2c84-4adf-a81b-6f7608acbb10",
-        "urn:spdx:rel-3a83b2ab-4d68-44df-a36c-47540d2b19eb",
-        "urn:spdx:rel-a50f2ca2-8ba0-4bc4-b3b8-485fbec3680d",
-        "urn:spdx:rel-ba239c45-a83f-4aaa-9bf8-6311dbb82709"
+        "urn:spdx:MuQ-large-msd-iter-952e0fcd-c2af-4e12-9d21-d41f457add36",
+        "urn:spdx:ai-MuQ-large-msd-iter-8bbe4cb2-b59e-4400-8b42-950113a202f8",
+        "urn:spdx:rel-5c70f023-9a1b-43d5-a3ec-ca65f1ae0d4f",
+        "urn:spdx:rel-b65b312f-669b-484b-a125-1ba449001aac",
+        "urn:spdx:rel-25d29011-27ea-4b49-bdc2-9404fc5f1f91"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:MuQ-large-msd-iter-ea1b7140-bc6c-4ee9-9133-654e995414cd",
+      "spdxId": "urn:spdx:MuQ-large-msd-iter-952e0fcd-c2af-4e12-9d21-d41f457add36",
       "name": "MuQ-large-msd-iter",
       "packageVersion": "0562a578",
       "downloadLocation": "https://huggingface.co/OpenMuQ/MuQ-large-msd-iter/tree/main",
@@ -39,7 +39,7 @@
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-MuQ-large-msd-iter-c347d220-2c84-4adf-a81b-6f7608acbb10",
+      "spdxId": "urn:spdx:ai-MuQ-large-msd-iter-8bbe4cb2-b59e-4400-8b42-950113a202f8",
       "name": "MuQ-large-msd-iter",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/OpenMuQ/MuQ-large-msd-iter/tree/main",
@@ -52,25 +52,25 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-3a83b2ab-4d68-44df-a36c-47540d2b19eb",
+      "spdxId": "urn:spdx:rel-5c70f023-9a1b-43d5-a3ec-ca65f1ae0d4f",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:MuQ-large-msd-iter-ea1b7140-bc6c-4ee9-9133-654e995414cd",
+      "from": "urn:spdx:MuQ-large-msd-iter-952e0fcd-c2af-4e12-9d21-d41f457add36",
       "to": [
         "CC-BY-NC-4.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-a50f2ca2-8ba0-4bc4-b3b8-485fbec3680d",
+      "spdxId": "urn:spdx:rel-b65b312f-669b-484b-a125-1ba449001aac",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-MuQ-large-msd-iter-c347d220-2c84-4adf-a81b-6f7608acbb10",
+      "from": "urn:spdx:ai-MuQ-large-msd-iter-8bbe4cb2-b59e-4400-8b42-950113a202f8",
       "to": [
         "size"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-ba239c45-a83f-4aaa-9bf8-6311dbb82709",
+      "spdxId": "urn:spdx:rel-25d29011-27ea-4b49-bdc2-9404fc5f1f91",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/OpenMuQ/MuQ-large-msd-iter@0562a578",
       "to": [

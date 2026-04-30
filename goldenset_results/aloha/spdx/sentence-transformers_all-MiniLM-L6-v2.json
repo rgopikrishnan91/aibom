@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-sentence-transformers_all-MiniLM-L6-v2-3a4a9d8c-865e-4667-9b7e-0b3a27da8e08",
+      "spdxId": "urn:spdx:doc-sentence-transformers_all-MiniLM-L6-v2-1414742f-63a4-40c4-a400-7d67ab1fb64d",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,50 +13,50 @@
       "name": "AIBOM for sentence-transformers/all-MiniLM-L6-v2",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:35:56.525337+00:00",
+        "created": "2026-04-30T21:04:29.673925+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-5b53e3f0-1beb-4ec2-9368-8099183aac1f"
+        "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9"
       ],
       "element": [
-        "urn:spdx:sentence-transformers_all-MiniLM-L6-v2-70614177-15a6-4790-babb-4c9c818bab9b",
-        "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-5b53e3f0-1beb-4ec2-9368-8099183aac1f",
-        "urn:spdx:rel-b6011931-2aea-4b38-95a0-4dc737665eb4",
-        "urn:spdx:rel-a2554892-4ea5-4904-b5ee-76504550a27d",
-        "urn:spdx:rel-0e9da38b-1769-43a7-8052-8dac46c43bcd",
-        "urn:spdx:rel-621149c8-e4ca-46f1-b840-26b4853dafb2",
-        "urn:spdx:rel-a899219a-7c50-4121-a5fd-8c840f093e30",
-        "urn:spdx:rel-eb3da973-d5de-43e2-a982-eb7d9e3d510b",
-        "urn:spdx:rel-f282028a-1de7-49ac-9945-143125b374f7",
-        "urn:spdx:rel-de6e3f15-5068-4bed-8e78-6379b5360adf",
-        "urn:spdx:rel-880b98ea-4553-46e7-adba-168bccb28b64",
-        "urn:spdx:rel-6f89f47a-40e5-4bb0-be8a-a4f2dff21cab",
-        "urn:spdx:rel-49781d01-a227-4a08-9b1d-7574c5f8f518",
-        "urn:spdx:rel-cb8ac098-17f8-48b6-bdb8-c13ba2539426",
-        "urn:spdx:rel-fde142a0-16c9-4373-ab46-f8d7568b69f2",
-        "urn:spdx:rel-57a53cd4-ef7e-499d-b616-272ce7ac02d9",
-        "urn:spdx:rel-b15eb128-4cde-40ab-a670-de418d7c8b12",
-        "urn:spdx:rel-97128ce9-d4bc-4add-9762-aa309d62a83d",
-        "urn:spdx:rel-b74c5b80-db6f-491a-b4f5-f74bdd8dfcf0",
-        "urn:spdx:rel-938f3f99-d14e-42b5-b286-611742e455d0",
-        "urn:spdx:rel-63864ab4-0f35-4a07-b6c3-87ca524777b4",
-        "urn:spdx:rel-8bdea646-8798-4d10-b930-c6abc2ddd8b0",
-        "urn:spdx:rel-e7c2d50a-41c5-4531-8f5e-c0c2e31e0768",
-        "urn:spdx:rel-ac6a40b8-750e-44c8-8282-74102edde86a"
+        "urn:spdx:sentence-transformers_all-MiniLM-L6-v2-b04af76b-0c66-4977-aa2b-022377529530",
+        "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
+        "urn:spdx:rel-7c7f357e-f9a7-4171-aab9-d95906376efc",
+        "urn:spdx:rel-fd322bc8-5d1a-4a45-9122-d1d91033355f",
+        "urn:spdx:rel-1927dfb6-1b94-46a9-adbd-dd60c304e927",
+        "urn:spdx:rel-ecafe8a3-3b3b-4e29-ac03-027fdb68e6f0",
+        "urn:spdx:rel-c6124b46-f1e2-4143-9ead-4b99d3c2daca",
+        "urn:spdx:rel-6de521c8-7fd0-4d47-90b3-fcd0124ef28b",
+        "urn:spdx:rel-ea5df858-e6e5-4e68-b784-f52c5c355249",
+        "urn:spdx:rel-48f25da9-e5f8-4c0e-835b-d34085a60c61",
+        "urn:spdx:rel-a278a061-e477-401f-96ca-3b9673fe92fe",
+        "urn:spdx:rel-93aea5a0-af37-4d7a-9650-c28ab15fd652",
+        "urn:spdx:rel-c75b8cb0-eaf9-4599-bf13-8e7d5c9063c3",
+        "urn:spdx:rel-d4eb4579-df19-4e9d-a442-f65cdebec325",
+        "urn:spdx:rel-ac4663cd-a139-41cb-b1dc-f2979305ad09",
+        "urn:spdx:rel-83ae247e-adb9-4ad4-899e-6775f05b80fc",
+        "urn:spdx:rel-31330d75-c138-473f-a563-1e943b520842",
+        "urn:spdx:rel-0a4ad0aa-ea70-4807-92fb-2a9018b06aa9",
+        "urn:spdx:rel-5aa7d498-23b3-4ef5-8978-38f40670dec7",
+        "urn:spdx:rel-a7e3f038-8d85-4c77-927b-132fa1c6b7dd",
+        "urn:spdx:rel-a83aef08-3f4b-4c3c-8b0e-3c167cb0aee3",
+        "urn:spdx:rel-92e32b84-f011-4304-91ca-9562542b2cbc",
+        "urn:spdx:rel-53f5321b-4ed6-49cf-9315-cda96775cc78",
+        "urn:spdx:rel-6f7edec8-a749-443d-b1d0-e2d6b6a173eb"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:sentence-transformers_all-MiniLM-L6-v2-70614177-15a6-4790-babb-4c9c818bab9b",
+      "spdxId": "urn:spdx:sentence-transformers_all-MiniLM-L6-v2-b04af76b-0c66-4977-aa2b-022377529530",
       "name": "sentence-transformers/all-MiniLM-L6-v2",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-5b53e3f0-1beb-4ec2-9368-8099183aac1f",
+      "spdxId": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
       "name": "sentence-transformers/all-MiniLM-L6-v2",
       "primaryPurpose": [
         "sentence-similarity"
@@ -113,198 +113,198 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-b6011931-2aea-4b38-95a0-4dc737665eb4",
+      "spdxId": "urn:spdx:rel-7c7f357e-f9a7-4171-aab9-d95906376efc",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:sentence-transformers_all-MiniLM-L6-v2-70614177-15a6-4790-babb-4c9c818bab9b",
+      "from": "urn:spdx:sentence-transformers_all-MiniLM-L6-v2-b04af76b-0c66-4977-aa2b-022377529530",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-a2554892-4ea5-4904-b5ee-76504550a27d",
+      "spdxId": "urn:spdx:rel-fd322bc8-5d1a-4a45-9122-d1d91033355f",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-5b53e3f0-1beb-4ec2-9368-8099183aac1f",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
       "to": [
         "s2orc-65a8fab1-76ce-5ee8-8f9f-ba89f6ce0d0a"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-0e9da38b-1769-43a7-8052-8dac46c43bcd",
+      "spdxId": "urn:spdx:rel-1927dfb6-1b94-46a9-adbd-dd60c304e927",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-5b53e3f0-1beb-4ec2-9368-8099183aac1f",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
       "to": [
         "flax-sentence-embeddings/stackexchange_xml-9b89038e-3e3a-55a9-a9b2-033ecc06dfcd"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-621149c8-e4ca-46f1-b840-26b4853dafb2",
+      "spdxId": "urn:spdx:rel-ecafe8a3-3b3b-4e29-ac03-027fdb68e6f0",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-5b53e3f0-1beb-4ec2-9368-8099183aac1f",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
       "to": [
         "ms_marco-1f8fe88d-e054-5ae5-9b16-5fb183d502cf"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-a899219a-7c50-4121-a5fd-8c840f093e30",
+      "spdxId": "urn:spdx:rel-c6124b46-f1e2-4143-9ead-4b99d3c2daca",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-5b53e3f0-1beb-4ec2-9368-8099183aac1f",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
       "to": [
         "gooaq-4c22f730-8ab9-542c-8706-1b688bc27a25"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-eb3da973-d5de-43e2-a982-eb7d9e3d510b",
+      "spdxId": "urn:spdx:rel-6de521c8-7fd0-4d47-90b3-fcd0124ef28b",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-5b53e3f0-1beb-4ec2-9368-8099183aac1f",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
       "to": [
         "yahoo_answers_topics-1139ca63-1929-555c-b52a-b103ccd5d1fc"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-f282028a-1de7-49ac-9945-143125b374f7",
+      "spdxId": "urn:spdx:rel-ea5df858-e6e5-4e68-b784-f52c5c355249",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-5b53e3f0-1beb-4ec2-9368-8099183aac1f",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
       "to": [
         "code_search_net-d14328c4-fa8a-50ba-ab75-08f0d105523c"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-de6e3f15-5068-4bed-8e78-6379b5360adf",
+      "spdxId": "urn:spdx:rel-48f25da9-e5f8-4c0e-835b-d34085a60c61",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-5b53e3f0-1beb-4ec2-9368-8099183aac1f",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
       "to": [
         "search_qa-46cc9fa5-ebf6-5e77-8f95-5c6b89f20344"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-880b98ea-4553-46e7-adba-168bccb28b64",
+      "spdxId": "urn:spdx:rel-a278a061-e477-401f-96ca-3b9673fe92fe",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-5b53e3f0-1beb-4ec2-9368-8099183aac1f",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
       "to": [
         "eli5-50926124-b144-541c-ac0b-06c0aba5fc71"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-6f89f47a-40e5-4bb0-be8a-a4f2dff21cab",
+      "spdxId": "urn:spdx:rel-93aea5a0-af37-4d7a-9650-c28ab15fd652",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-5b53e3f0-1beb-4ec2-9368-8099183aac1f",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
       "to": [
         "snli-c86ca575-da1e-5d4c-bcd6-b1524781b717"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-49781d01-a227-4a08-9b1d-7574c5f8f518",
+      "spdxId": "urn:spdx:rel-c75b8cb0-eaf9-4599-bf13-8e7d5c9063c3",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-5b53e3f0-1beb-4ec2-9368-8099183aac1f",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
       "to": [
         "multi_nli-3f66ff16-a557-5dab-8458-0d3efcbec3da"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-cb8ac098-17f8-48b6-bdb8-c13ba2539426",
+      "spdxId": "urn:spdx:rel-d4eb4579-df19-4e9d-a442-f65cdebec325",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-5b53e3f0-1beb-4ec2-9368-8099183aac1f",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
       "to": [
         "wikihow-54d44e57-cae1-5ebb-a347-f9da1e9d4053"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-fde142a0-16c9-4373-ab46-f8d7568b69f2",
+      "spdxId": "urn:spdx:rel-ac4663cd-a139-41cb-b1dc-f2979305ad09",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-5b53e3f0-1beb-4ec2-9368-8099183aac1f",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
       "to": [
         "natural_questions-9d628078-279d-50b2-bdf4-02c911181e5e"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-57a53cd4-ef7e-499d-b616-272ce7ac02d9",
+      "spdxId": "urn:spdx:rel-83ae247e-adb9-4ad4-899e-6775f05b80fc",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-5b53e3f0-1beb-4ec2-9368-8099183aac1f",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
       "to": [
         "trivia_qa-3fc5035f-f820-55b6-82e8-0815843d1785"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-b15eb128-4cde-40ab-a670-de418d7c8b12",
+      "spdxId": "urn:spdx:rel-31330d75-c138-473f-a563-1e943b520842",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-5b53e3f0-1beb-4ec2-9368-8099183aac1f",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
       "to": [
         "embedding-data/sentence-compression-fb02b073-5608-5dda-9f1d-7e89d1f5726e"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-97128ce9-d4bc-4add-9762-aa309d62a83d",
+      "spdxId": "urn:spdx:rel-0a4ad0aa-ea70-4807-92fb-2a9018b06aa9",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-5b53e3f0-1beb-4ec2-9368-8099183aac1f",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
       "to": [
         "embedding-data/flickr30k-captions-e230bb62-1c64-52b6-8c6d-ddce348416d2"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-b74c5b80-db6f-491a-b4f5-f74bdd8dfcf0",
+      "spdxId": "urn:spdx:rel-5aa7d498-23b3-4ef5-8978-38f40670dec7",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-5b53e3f0-1beb-4ec2-9368-8099183aac1f",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
       "to": [
         "embedding-data/altlex-ea93bf58-483e-555f-a1cb-5e3252519b5b"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-938f3f99-d14e-42b5-b286-611742e455d0",
+      "spdxId": "urn:spdx:rel-a7e3f038-8d85-4c77-927b-132fa1c6b7dd",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-5b53e3f0-1beb-4ec2-9368-8099183aac1f",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
       "to": [
         "embedding-data/simple-wiki-60f5a61f-d184-575b-bc4b-ba0ea43067cb"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-63864ab4-0f35-4a07-b6c3-87ca524777b4",
+      "spdxId": "urn:spdx:rel-a83aef08-3f4b-4c3c-8b0e-3c167cb0aee3",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-5b53e3f0-1beb-4ec2-9368-8099183aac1f",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
       "to": [
         "embedding-data/QQP-7344ce45-1630-5169-8400-c97ae34d3f53"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-8bdea646-8798-4d10-b930-c6abc2ddd8b0",
+      "spdxId": "urn:spdx:rel-92e32b84-f011-4304-91ca-9562542b2cbc",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-5b53e3f0-1beb-4ec2-9368-8099183aac1f",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
       "to": [
         "embedding-data/SPECTER-566e9a9a-0219-59ad-8b7e-9c0f11ec8af3"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-e7c2d50a-41c5-4531-8f5e-c0c2e31e0768",
+      "spdxId": "urn:spdx:rel-53f5321b-4ed6-49cf-9315-cda96775cc78",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-5b53e3f0-1beb-4ec2-9368-8099183aac1f",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
       "to": [
         "embedding-data/PAQ_pairs-d382b21d-b46f-5379-967a-320e28b981b5"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-ac6a40b8-750e-44c8-8282-74102edde86a",
+      "spdxId": "urn:spdx:rel-6f7edec8-a749-443d-b1d0-e2d6b6a173eb",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-5b53e3f0-1beb-4ec2-9368-8099183aac1f",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
       "to": [
         "embedding-data/WikiAnswers-38ebefc3-ab34-5b66-b64a-c52a9659c734"
       ]

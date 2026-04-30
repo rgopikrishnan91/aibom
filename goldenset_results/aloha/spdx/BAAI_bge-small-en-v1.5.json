@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-BAAI_bge-small-en-v1.5-99e58da4-3361-4128-ad9d-6c1e5e4876cb",
+      "spdxId": "urn:spdx:doc-BAAI_bge-small-en-v1.5-97357703-6030-4da9-a10f-22c30ebc291a",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,29 +13,29 @@
       "name": "AIBOM for BAAI/bge-small-en-v1.5",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:36:48.108257+00:00",
+        "created": "2026-04-30T21:05:20.797665+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-BAAI_bge-small-en-v1.5-5fe9d5de-2b63-4cf2-9969-4c459a06febc"
+        "urn:spdx:ai-BAAI_bge-small-en-v1.5-38fb5d47-cf95-4ab2-8c71-a874cc26e225"
       ],
       "element": [
-        "urn:spdx:BAAI_bge-small-en-v1.5-730e61a2-ab28-4a82-a7d3-c92e4570b4f8",
-        "urn:spdx:ai-BAAI_bge-small-en-v1.5-5fe9d5de-2b63-4cf2-9969-4c459a06febc",
-        "urn:spdx:rel-1b8c7764-05f9-41c1-9629-772819c967d5"
+        "urn:spdx:BAAI_bge-small-en-v1.5-381b3133-cc19-452b-bf89-75c52da39108",
+        "urn:spdx:ai-BAAI_bge-small-en-v1.5-38fb5d47-cf95-4ab2-8c71-a874cc26e225",
+        "urn:spdx:rel-029aae60-1dab-4192-bfd1-07dcd8daa06c"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:BAAI_bge-small-en-v1.5-730e61a2-ab28-4a82-a7d3-c92e4570b4f8",
+      "spdxId": "urn:spdx:BAAI_bge-small-en-v1.5-381b3133-cc19-452b-bf89-75c52da39108",
       "name": "BAAI/bge-small-en-v1.5",
       "licenseDeclared": "MIT"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-BAAI_bge-small-en-v1.5-5fe9d5de-2b63-4cf2-9969-4c459a06febc",
+      "spdxId": "urn:spdx:ai-BAAI_bge-small-en-v1.5-38fb5d47-cf95-4ab2-8c71-a874cc26e225",
       "name": "BAAI/bge-small-en-v1.5",
       "primaryPurpose": [
         "feature-extraction"
@@ -4031,9 +4031,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-1b8c7764-05f9-41c1-9629-772819c967d5",
+      "spdxId": "urn:spdx:rel-029aae60-1dab-4192-bfd1-07dcd8daa06c",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:BAAI_bge-small-en-v1.5-730e61a2-ab28-4a82-a7d3-c92e4570b4f8",
+      "from": "urn:spdx:BAAI_bge-small-en-v1.5-381b3133-cc19-452b-bf89-75c52da39108",
       "to": [
         "MIT"
       ]

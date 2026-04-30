@@ -1,10 +1,10 @@
 {
     "bomFormat": "CycloneDX",
     "specVersion": "1.6",
-    "serialNumber": "urn:uuid:6c1bebaf-5f54-4783-a8cb-9d765593ac83",
+    "serialNumber": "urn:uuid:597c6bd0-564a-47d6-986f-e02f2c5b3cba",
     "version": 1,
     "metadata": {
-        "timestamp": "2026-04-30T20:36:30.795003+00:00",
+        "timestamp": "2026-04-30T21:05:03.407318+00:00",
         "component": {
             "type": "machine-learning-model",
             "bom-ref": "meta-llama/Llama-3.1-8B-Instruct-cf1201da-1cc8-5324-ae64-ff47b43b41b3",

@@ -1,10 +1,10 @@
 {
     "bomFormat": "CycloneDX",
     "specVersion": "1.6",
-    "serialNumber": "urn:uuid:fb659fc2-63e5-4bf9-a756-ce48327f370a",
+    "serialNumber": "urn:uuid:53b05e22-c5e9-4466-aa4e-1ea3e442b493",
     "version": 1,
     "metadata": {
-        "timestamp": "2026-04-30T20:36:48.108257+00:00",
+        "timestamp": "2026-04-30T21:05:20.797665+00:00",
         "component": {
             "type": "machine-learning-model",
             "bom-ref": "BAAI/bge-small-en-v1.5-581da88f-7e5c-58cf-9804-213122d4c1df",

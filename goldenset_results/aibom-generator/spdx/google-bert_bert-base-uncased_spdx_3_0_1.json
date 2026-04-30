@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-bert-base-uncased-f139014c-22c0-449d-9418-0a320c34a935",
+      "spdxId": "urn:spdx:doc-bert-base-uncased-4e4d3e90-33f5-4832-baf0-85534ce4b515",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,26 +13,26 @@
       "name": "AIBOM for bert-base-uncased",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:35:59+00:00",
+        "created": "2026-04-30T21:04:32+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-bert-base-uncased-1746234e-2837-4aaf-b870-a95c0e18b7d8"
+        "urn:spdx:ai-bert-base-uncased-6f153afe-95b1-4efc-9da8-03c3d09eda2c"
       ],
       "element": [
-        "urn:spdx:bert-base-uncased-48a4ff05-1274-4922-9922-142c7946be81",
-        "urn:spdx:ai-bert-base-uncased-1746234e-2837-4aaf-b870-a95c0e18b7d8",
-        "urn:spdx:rel-e75570b0-f100-40e1-8a93-eee55efe260d",
-        "urn:spdx:rel-fef908ab-0fcc-454e-91a1-bfd37a67ccd5",
-        "urn:spdx:rel-16e768c5-27e6-4dd1-ae7b-1d354a1c9a00",
-        "urn:spdx:rel-ce816a5a-4606-478d-bb6c-7ab221e73bac"
+        "urn:spdx:bert-base-uncased-1ee01aa9-623f-4b55-827a-b40e23fbdd28",
+        "urn:spdx:ai-bert-base-uncased-6f153afe-95b1-4efc-9da8-03c3d09eda2c",
+        "urn:spdx:rel-e1b4b8d6-b10a-4d75-b573-1ce8ad683db2",
+        "urn:spdx:rel-0a71e9c1-630d-48bf-ba5b-5a494d49799e",
+        "urn:spdx:rel-ce55a88e-7af5-47b9-8fdb-e59048ee923d",
+        "urn:spdx:rel-2c4875dc-bd78-4bbb-a285-485a6e0e7a19"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:bert-base-uncased-48a4ff05-1274-4922-9922-142c7946be81",
+      "spdxId": "urn:spdx:bert-base-uncased-1ee01aa9-623f-4b55-827a-b40e23fbdd28",
       "name": "bert-base-uncased",
       "packageVersion": "86b5e093",
       "downloadLocation": "https://huggingface.co/google-bert/bert-base-uncased/tree/main",
@@ -40,7 +40,7 @@
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-bert-base-uncased-1746234e-2837-4aaf-b870-a95c0e18b7d8",
+      "spdxId": "urn:spdx:ai-bert-base-uncased-6f153afe-95b1-4efc-9da8-03c3d09eda2c",
       "name": "bert-base-uncased",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/google-bert/bert-base-uncased/tree/main",
@@ -55,34 +55,34 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-e75570b0-f100-40e1-8a93-eee55efe260d",
+      "spdxId": "urn:spdx:rel-e1b4b8d6-b10a-4d75-b573-1ce8ad683db2",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:bert-base-uncased-48a4ff05-1274-4922-9922-142c7946be81",
+      "from": "urn:spdx:bert-base-uncased-1ee01aa9-623f-4b55-827a-b40e23fbdd28",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-fef908ab-0fcc-454e-91a1-bfd37a67ccd5",
+      "spdxId": "urn:spdx:rel-0a71e9c1-630d-48bf-ba5b-5a494d49799e",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-bert-base-uncased-1746234e-2837-4aaf-b870-a95c0e18b7d8",
+      "from": "urn:spdx:ai-bert-base-uncased-6f153afe-95b1-4efc-9da8-03c3d09eda2c",
       "to": [
         "bookcorpus"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-16e768c5-27e6-4dd1-ae7b-1d354a1c9a00",
+      "spdxId": "urn:spdx:rel-ce55a88e-7af5-47b9-8fdb-e59048ee923d",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-bert-base-uncased-1746234e-2837-4aaf-b870-a95c0e18b7d8",
+      "from": "urn:spdx:ai-bert-base-uncased-6f153afe-95b1-4efc-9da8-03c3d09eda2c",
       "to": [
         "wikipedia"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-ce816a5a-4606-478d-bb6c-7ab221e73bac",
+      "spdxId": "urn:spdx:rel-2c4875dc-bd78-4bbb-a285-485a6e0e7a19",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/google-bert/bert-base-uncased@86b5e093",
       "to": [

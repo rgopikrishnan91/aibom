@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-Qwen2.5-7B-Instruct-dfdce891-7a69-47da-8686-635aa12bf650",
+      "spdxId": "urn:spdx:doc-Qwen2.5-7B-Instruct-556d0838-893c-4663-a3a3-dfa3d9028d33",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,24 +13,24 @@
       "name": "AIBOM for Qwen2.5-7B-Instruct",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:36:18+00:00",
+        "created": "2026-04-30T21:04:51+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-Qwen2.5-7B-Instruct-7d515b32-9a7e-4bd0-9b4f-a1956e612e07"
+        "urn:spdx:ai-Qwen2.5-7B-Instruct-99a28775-a359-4a94-94d2-bf379f1937c4"
       ],
       "element": [
-        "urn:spdx:Qwen2.5-7B-Instruct-b4ac09a7-5a4b-4ce1-8aa3-6cdfddde48d9",
-        "urn:spdx:ai-Qwen2.5-7B-Instruct-7d515b32-9a7e-4bd0-9b4f-a1956e612e07",
-        "urn:spdx:rel-44cab621-e6bd-42f6-b3bf-acba94ca299c",
-        "urn:spdx:rel-e1c823e5-5438-45a1-a7dd-189de34dc3bc"
+        "urn:spdx:Qwen2.5-7B-Instruct-a5ac1123-cf6d-4202-a869-e962cabbdb11",
+        "urn:spdx:ai-Qwen2.5-7B-Instruct-99a28775-a359-4a94-94d2-bf379f1937c4",
+        "urn:spdx:rel-2a86686c-95c4-438f-b8a0-93d5f72bf69e",
+        "urn:spdx:rel-052f2b26-1ca1-4368-b063-a1ab46256455"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:Qwen2.5-7B-Instruct-b4ac09a7-5a4b-4ce1-8aa3-6cdfddde48d9",
+      "spdxId": "urn:spdx:Qwen2.5-7B-Instruct-a5ac1123-cf6d-4202-a869-e962cabbdb11",
       "name": "Qwen2.5-7B-Instruct",
       "packageVersion": "a09a3545",
       "downloadLocation": "https://huggingface.co/Qwen/Qwen2.5-7B-Instruct/tree/main",
@@ -38,7 +38,7 @@
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-Qwen2.5-7B-Instruct-7d515b32-9a7e-4bd0-9b4f-a1956e612e07",
+      "spdxId": "urn:spdx:ai-Qwen2.5-7B-Instruct-99a28775-a359-4a94-94d2-bf379f1937c4",
       "name": "Qwen2.5-7B-Instruct",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/Qwen/Qwen2.5-7B-Instruct/tree/main",
@@ -52,16 +52,16 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-44cab621-e6bd-42f6-b3bf-acba94ca299c",
+      "spdxId": "urn:spdx:rel-2a86686c-95c4-438f-b8a0-93d5f72bf69e",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:Qwen2.5-7B-Instruct-b4ac09a7-5a4b-4ce1-8aa3-6cdfddde48d9",
+      "from": "urn:spdx:Qwen2.5-7B-Instruct-a5ac1123-cf6d-4202-a869-e962cabbdb11",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-e1c823e5-5438-45a1-a7dd-189de34dc3bc",
+      "spdxId": "urn:spdx:rel-052f2b26-1ca1-4368-b063-a1ab46256455",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/Qwen/Qwen2.5-7B-Instruct@a09a3545",
       "to": [

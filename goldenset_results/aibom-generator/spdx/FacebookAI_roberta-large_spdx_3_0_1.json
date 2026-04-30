@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-roberta-large-0d7b6f69-0b30-4949-a571-3ac0b9ee4939",
+      "spdxId": "urn:spdx:doc-roberta-large-a3a4cd54-e300-47ab-8f59-bd9dd92acc3e",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,26 +13,26 @@
       "name": "AIBOM for roberta-large",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:36:09+00:00",
+        "created": "2026-04-30T21:04:42+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-roberta-large-16f7fcf1-63d3-4d4c-a58b-01ff63ebf311"
+        "urn:spdx:ai-roberta-large-cfc4855e-83e1-444a-b662-34fb1c77fde7"
       ],
       "element": [
-        "urn:spdx:roberta-large-7d5cb2ba-f5f6-4e2e-a1cb-76ef297aa49f",
-        "urn:spdx:ai-roberta-large-16f7fcf1-63d3-4d4c-a58b-01ff63ebf311",
-        "urn:spdx:rel-ed207323-168e-496f-b1d0-88bede181c45",
-        "urn:spdx:rel-73af3d47-50e0-4c6b-b05c-ba6d28251df2",
-        "urn:spdx:rel-29243c8a-9e78-4c66-9e61-fd67ed4d92df",
-        "urn:spdx:rel-63846566-88f7-4dbc-a470-dbecd154f117"
+        "urn:spdx:roberta-large-19c57b5f-0e1b-4c4c-b309-828b1a032b7d",
+        "urn:spdx:ai-roberta-large-cfc4855e-83e1-444a-b662-34fb1c77fde7",
+        "urn:spdx:rel-7ca73e49-7ad5-400f-8393-b53bd63b558d",
+        "urn:spdx:rel-7fedc84d-70ca-4777-9b8d-d3d4ae5867a7",
+        "urn:spdx:rel-6764aca5-d996-42f2-8467-c1c9ec59a680",
+        "urn:spdx:rel-6cc25ac0-0cbe-4e84-8c51-f09de7286484"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:roberta-large-7d5cb2ba-f5f6-4e2e-a1cb-76ef297aa49f",
+      "spdxId": "urn:spdx:roberta-large-19c57b5f-0e1b-4c4c-b309-828b1a032b7d",
       "name": "roberta-large",
       "packageVersion": "722cf37b",
       "downloadLocation": "https://huggingface.co/FacebookAI/roberta-large/tree/main",
@@ -40,7 +40,7 @@
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-roberta-large-16f7fcf1-63d3-4d4c-a58b-01ff63ebf311",
+      "spdxId": "urn:spdx:ai-roberta-large-cfc4855e-83e1-444a-b662-34fb1c77fde7",
       "name": "roberta-large",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/FacebookAI/roberta-large/tree/main",
@@ -55,34 +55,34 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-ed207323-168e-496f-b1d0-88bede181c45",
+      "spdxId": "urn:spdx:rel-7ca73e49-7ad5-400f-8393-b53bd63b558d",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:roberta-large-7d5cb2ba-f5f6-4e2e-a1cb-76ef297aa49f",
+      "from": "urn:spdx:roberta-large-19c57b5f-0e1b-4c4c-b309-828b1a032b7d",
       "to": [
         "MIT"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-73af3d47-50e0-4c6b-b05c-ba6d28251df2",
+      "spdxId": "urn:spdx:rel-7fedc84d-70ca-4777-9b8d-d3d4ae5867a7",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-roberta-large-16f7fcf1-63d3-4d4c-a58b-01ff63ebf311",
+      "from": "urn:spdx:ai-roberta-large-cfc4855e-83e1-444a-b662-34fb1c77fde7",
       "to": [
         "bookcorpus"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-29243c8a-9e78-4c66-9e61-fd67ed4d92df",
+      "spdxId": "urn:spdx:rel-6764aca5-d996-42f2-8467-c1c9ec59a680",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-roberta-large-16f7fcf1-63d3-4d4c-a58b-01ff63ebf311",
+      "from": "urn:spdx:ai-roberta-large-cfc4855e-83e1-444a-b662-34fb1c77fde7",
       "to": [
         "wikipedia"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-63846566-88f7-4dbc-a470-dbecd154f117",
+      "spdxId": "urn:spdx:rel-6cc25ac0-0cbe-4e84-8c51-f09de7286484",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/FacebookAI/roberta-large@722cf37b",
       "to": [

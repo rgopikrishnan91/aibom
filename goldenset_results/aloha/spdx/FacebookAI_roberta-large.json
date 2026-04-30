@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-FacebookAI_roberta-large-22ad67ed-49e6-4437-ac53-4bce4a11f4f2",
+      "spdxId": "urn:spdx:doc-FacebookAI_roberta-large-d034557e-5de4-4758-ad0e-bf6a16a32008",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,31 +13,31 @@
       "name": "AIBOM for FacebookAI/roberta-large",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:36:10.850026+00:00",
+        "created": "2026-04-30T21:04:44.007441+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-FacebookAI_roberta-large-d6ef89e8-4831-47c5-af6e-223948679249"
+        "urn:spdx:ai-FacebookAI_roberta-large-99bee636-a0c7-4d69-bc60-39958f52f1c1"
       ],
       "element": [
-        "urn:spdx:FacebookAI_roberta-large-789617a8-21e1-46b4-8908-478c0dfe9373",
-        "urn:spdx:ai-FacebookAI_roberta-large-d6ef89e8-4831-47c5-af6e-223948679249",
-        "urn:spdx:rel-28b525b5-a27e-4ebb-a872-62450201ee11",
-        "urn:spdx:rel-f2a8b390-014a-4077-aebd-e489f3d843ce",
-        "urn:spdx:rel-c939a49f-6c90-42fa-8b5e-2e4f7bc1c08e"
+        "urn:spdx:FacebookAI_roberta-large-f18c9bb2-db0c-4f18-9eb0-2fdacff032cb",
+        "urn:spdx:ai-FacebookAI_roberta-large-99bee636-a0c7-4d69-bc60-39958f52f1c1",
+        "urn:spdx:rel-0abc2be5-91a7-403d-9d45-e3388445f137",
+        "urn:spdx:rel-2c4d966b-1363-4e37-a7f0-11a34cd24074",
+        "urn:spdx:rel-02881bbb-ae14-49d3-a603-4886b081fdea"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:FacebookAI_roberta-large-789617a8-21e1-46b4-8908-478c0dfe9373",
+      "spdxId": "urn:spdx:FacebookAI_roberta-large-f18c9bb2-db0c-4f18-9eb0-2fdacff032cb",
       "name": "FacebookAI/roberta-large",
       "licenseDeclared": "MIT"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-FacebookAI_roberta-large-d6ef89e8-4831-47c5-af6e-223948679249",
+      "spdxId": "urn:spdx:ai-FacebookAI_roberta-large-99bee636-a0c7-4d69-bc60-39958f52f1c1",
       "name": "FacebookAI/roberta-large",
       "summary": "RoBERTa is a transformers model pretrained on a large corpus of English data in a self-supervised fashion. This meansit was pretrained on the raw texts only, with no humans labelling them in any way (which is why it can use lots ofpublicly available data) with an automatic process to generate inputs and labels from those texts.More precisely, it was pretrained with the Masked language modeling (MLM) objective. Taking a sentence, the modelrandomly masks 15% of the words in the input then run the entire masked sentence through the model and has to predictthe masked words. This is different from traditional recurrent neural networks (RNNs) that usually see the words oneafter the other, or from autoregressive models like GPT which internally mask the future tokens. It allows the model tolearn a bidirectional representation of the sentence.This way, the model learns an inner representation of the English language that can then be used to extract featuresuseful for downstream tasks: if you have a dataset of labeled sentences for instance, you can train a standardclassifier using the features produced by the BERT model as inputs.",
       "primaryPurpose": [
@@ -69,27 +69,27 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-28b525b5-a27e-4ebb-a872-62450201ee11",
+      "spdxId": "urn:spdx:rel-0abc2be5-91a7-403d-9d45-e3388445f137",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:FacebookAI_roberta-large-789617a8-21e1-46b4-8908-478c0dfe9373",
+      "from": "urn:spdx:FacebookAI_roberta-large-f18c9bb2-db0c-4f18-9eb0-2fdacff032cb",
       "to": [
         "MIT"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-f2a8b390-014a-4077-aebd-e489f3d843ce",
+      "spdxId": "urn:spdx:rel-2c4d966b-1363-4e37-a7f0-11a34cd24074",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-FacebookAI_roberta-large-d6ef89e8-4831-47c5-af6e-223948679249",
+      "from": "urn:spdx:ai-FacebookAI_roberta-large-99bee636-a0c7-4d69-bc60-39958f52f1c1",
       "to": [
         "bookcorpus-5b88b1fa-89d7-54e0-8076-a03aa22c33e0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-c939a49f-6c90-42fa-8b5e-2e4f7bc1c08e",
+      "spdxId": "urn:spdx:rel-02881bbb-ae14-49d3-a603-4886b081fdea",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-FacebookAI_roberta-large-d6ef89e8-4831-47c5-af6e-223948679249",
+      "from": "urn:spdx:ai-FacebookAI_roberta-large-99bee636-a0c7-4d69-bc60-39958f52f1c1",
       "to": [
         "wikipedia-8c5eb686-d691-517b-aad7-040fa51febc3"
       ]

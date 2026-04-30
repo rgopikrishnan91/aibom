@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-cross-encoder_ms-marco-MiniLM-L6-v2-ba79d196-5093-414c-ae95-8749ad6ee81a",
+      "spdxId": "urn:spdx:doc-cross-encoder_ms-marco-MiniLM-L6-v2-5d01cde2-098a-4e5a-ae2b-5579be78c0dc",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,30 +13,30 @@
       "name": "AIBOM for cross-encoder/ms-marco-MiniLM-L6-v2",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:36:23.794747+00:00",
+        "created": "2026-04-30T21:04:56.861167+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-cross-encoder_ms-marco-MiniLM-L6-v2-5f186391-b4ec-4755-82c5-1528bdde4aaa"
+        "urn:spdx:ai-cross-encoder_ms-marco-MiniLM-L6-v2-47fa82fe-f3e4-40c9-9eb9-bbf4ee5b6426"
       ],
       "element": [
-        "urn:spdx:cross-encoder_ms-marco-MiniLM-L6-v2-97f3815d-b6a7-4262-afeb-d8c23089376d",
-        "urn:spdx:ai-cross-encoder_ms-marco-MiniLM-L6-v2-5f186391-b4ec-4755-82c5-1528bdde4aaa",
-        "urn:spdx:rel-a7de4225-0e5e-4eb4-8465-9ee0120cfb03",
-        "urn:spdx:rel-1cd1d5ab-c656-4543-b85f-9ee4706442ca"
+        "urn:spdx:cross-encoder_ms-marco-MiniLM-L6-v2-c9cf4413-1f61-44a2-9235-19db05c10752",
+        "urn:spdx:ai-cross-encoder_ms-marco-MiniLM-L6-v2-47fa82fe-f3e4-40c9-9eb9-bbf4ee5b6426",
+        "urn:spdx:rel-2e98219f-9acb-4e7a-8600-2761fd5ff8df",
+        "urn:spdx:rel-b528819a-2f55-410a-a169-3b570941cbbc"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:cross-encoder_ms-marco-MiniLM-L6-v2-97f3815d-b6a7-4262-afeb-d8c23089376d",
+      "spdxId": "urn:spdx:cross-encoder_ms-marco-MiniLM-L6-v2-c9cf4413-1f61-44a2-9235-19db05c10752",
       "name": "cross-encoder/ms-marco-MiniLM-L6-v2",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-cross-encoder_ms-marco-MiniLM-L6-v2-5f186391-b4ec-4755-82c5-1528bdde4aaa",
+      "spdxId": "urn:spdx:ai-cross-encoder_ms-marco-MiniLM-L6-v2-47fa82fe-f3e4-40c9-9eb9-bbf4ee5b6426",
       "name": "cross-encoder/ms-marco-MiniLM-L6-v2",
       "primaryPurpose": [
         "text-ranking"
@@ -67,18 +67,18 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-a7de4225-0e5e-4eb4-8465-9ee0120cfb03",
+      "spdxId": "urn:spdx:rel-2e98219f-9acb-4e7a-8600-2761fd5ff8df",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:cross-encoder_ms-marco-MiniLM-L6-v2-97f3815d-b6a7-4262-afeb-d8c23089376d",
+      "from": "urn:spdx:cross-encoder_ms-marco-MiniLM-L6-v2-c9cf4413-1f61-44a2-9235-19db05c10752",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-1cd1d5ab-c656-4543-b85f-9ee4706442ca",
+      "spdxId": "urn:spdx:rel-b528819a-2f55-410a-a169-3b570941cbbc",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-cross-encoder_ms-marco-MiniLM-L6-v2-5f186391-b4ec-4755-82c5-1528bdde4aaa",
+      "from": "urn:spdx:ai-cross-encoder_ms-marco-MiniLM-L6-v2-47fa82fe-f3e4-40c9-9eb9-bbf4ee5b6426",
       "to": [
         "sentence-transformers/msmarco-c6ade5ab-d668-519c-9116-836b68fa4270"
       ]

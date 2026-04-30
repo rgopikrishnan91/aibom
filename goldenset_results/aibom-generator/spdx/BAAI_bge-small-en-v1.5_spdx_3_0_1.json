@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-bge-small-en-v1.5-ec9097d6-84b9-4e69-8744-f1c56c04f5a6",
+      "spdxId": "urn:spdx:doc-bge-small-en-v1.5-f3e58254-e1a7-4a63-b605-04fddbf71127",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,25 +13,25 @@
       "name": "AIBOM for bge-small-en-v1.5",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:36:47+00:00",
+        "created": "2026-04-30T21:05:19+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-bge-small-en-v1.5-4d46149f-adb7-4d15-a779-4fd16cd63d92"
+        "urn:spdx:ai-bge-small-en-v1.5-aba3a05d-43e4-4808-8f37-a5de94437074"
       ],
       "element": [
-        "urn:spdx:bge-small-en-v1.5-580c8ea4-c31c-4066-bb61-5948a88c54b4",
-        "urn:spdx:ai-bge-small-en-v1.5-4d46149f-adb7-4d15-a779-4fd16cd63d92",
-        "urn:spdx:rel-34678abf-b594-43ad-957c-f290bd4919f0",
-        "urn:spdx:rel-ebfe6c0d-a0cd-4382-be46-9de1f66ba4ec",
-        "urn:spdx:rel-fcefdcc7-ed00-46e0-ab00-1d1a1b688b35"
+        "urn:spdx:bge-small-en-v1.5-2c0ebaa1-61b6-481b-9ca7-c86189c2f42b",
+        "urn:spdx:ai-bge-small-en-v1.5-aba3a05d-43e4-4808-8f37-a5de94437074",
+        "urn:spdx:rel-cc07b326-5c1e-4da9-83d2-6c76fdc486ae",
+        "urn:spdx:rel-c6ea62e4-2871-4112-b0eb-7948c350e2f5",
+        "urn:spdx:rel-8b564451-d5da-4486-bc57-502a61674596"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:bge-small-en-v1.5-580c8ea4-c31c-4066-bb61-5948a88c54b4",
+      "spdxId": "urn:spdx:bge-small-en-v1.5-2c0ebaa1-61b6-481b-9ca7-c86189c2f42b",
       "name": "bge-small-en-v1.5",
       "packageVersion": "5c38ec7c",
       "downloadLocation": "https://huggingface.co/BAAI/bge-small-en-v1.5/tree/main",
@@ -39,7 +39,7 @@
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-bge-small-en-v1.5-4d46149f-adb7-4d15-a779-4fd16cd63d92",
+      "spdxId": "urn:spdx:ai-bge-small-en-v1.5-aba3a05d-43e4-4808-8f37-a5de94437074",
       "name": "bge-small-en-v1.5",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/BAAI/bge-small-en-v1.5/tree/main",
@@ -52,25 +52,25 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-34678abf-b594-43ad-957c-f290bd4919f0",
+      "spdxId": "urn:spdx:rel-cc07b326-5c1e-4da9-83d2-6c76fdc486ae",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:bge-small-en-v1.5-580c8ea4-c31c-4066-bb61-5948a88c54b4",
+      "from": "urn:spdx:bge-small-en-v1.5-2c0ebaa1-61b6-481b-9ca7-c86189c2f42b",
       "to": [
         "MIT"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-ebfe6c0d-a0cd-4382-be46-9de1f66ba4ec",
+      "spdxId": "urn:spdx:rel-c6ea62e4-2871-4112-b0eb-7948c350e2f5",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-bge-small-en-v1.5-4d46149f-adb7-4d15-a779-4fd16cd63d92",
+      "from": "urn:spdx:ai-bge-small-en-v1.5-aba3a05d-43e4-4808-8f37-a5de94437074",
       "to": [
         "name"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-fcefdcc7-ed00-46e0-ab00-1d1a1b688b35",
+      "spdxId": "urn:spdx:rel-8b564451-d5da-4486-bc57-502a61674596",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/BAAI/bge-small-en-v1.5@5c38ec7c",
       "to": [

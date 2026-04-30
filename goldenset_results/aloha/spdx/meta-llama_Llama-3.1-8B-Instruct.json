@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-meta-llama_Llama-3.1-8B-Instruct-880f9f1d-41ba-403e-be70-9e4cfff46edd",
+      "spdxId": "urn:spdx:doc-meta-llama_Llama-3.1-8B-Instruct-28c0f90f-fa57-44fb-aeb4-7ae99c313738",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,29 +13,29 @@
       "name": "AIBOM for meta-llama/Llama-3.1-8B-Instruct",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:36:30.795003+00:00",
+        "created": "2026-04-30T21:05:03.407318+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-meta-llama_Llama-3.1-8B-Instruct-6d5529dc-9a76-4705-a0ac-8e94bd596e7d"
+        "urn:spdx:ai-meta-llama_Llama-3.1-8B-Instruct-0a38dae1-349d-4cb8-b546-4b8dd2fb7c1b"
       ],
       "element": [
-        "urn:spdx:meta-llama_Llama-3.1-8B-Instruct-7d32ca9c-34fa-4532-a8de-e95bcbabb494",
-        "urn:spdx:ai-meta-llama_Llama-3.1-8B-Instruct-6d5529dc-9a76-4705-a0ac-8e94bd596e7d",
-        "urn:spdx:rel-e63c0001-16a5-4ae4-a233-5fb5dd4d5f0c"
+        "urn:spdx:meta-llama_Llama-3.1-8B-Instruct-6b8ab402-f28f-4989-9307-77cd7d1aab0e",
+        "urn:spdx:ai-meta-llama_Llama-3.1-8B-Instruct-0a38dae1-349d-4cb8-b546-4b8dd2fb7c1b",
+        "urn:spdx:rel-607bc51a-63d6-414a-8fbc-e17b0d900576"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:meta-llama_Llama-3.1-8B-Instruct-7d32ca9c-34fa-4532-a8de-e95bcbabb494",
+      "spdxId": "urn:spdx:meta-llama_Llama-3.1-8B-Instruct-6b8ab402-f28f-4989-9307-77cd7d1aab0e",
       "name": "meta-llama/Llama-3.1-8B-Instruct",
       "licenseDeclared": "llama3.1"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-meta-llama_Llama-3.1-8B-Instruct-6d5529dc-9a76-4705-a0ac-8e94bd596e7d",
+      "spdxId": "urn:spdx:ai-meta-llama_Llama-3.1-8B-Instruct-0a38dae1-349d-4cb8-b546-4b8dd2fb7c1b",
       "name": "meta-llama/Llama-3.1-8B-Instruct",
       "primaryPurpose": [
         "text-generation"
@@ -73,9 +73,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-e63c0001-16a5-4ae4-a233-5fb5dd4d5f0c",
+      "spdxId": "urn:spdx:rel-607bc51a-63d6-414a-8fbc-e17b0d900576",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:meta-llama_Llama-3.1-8B-Instruct-7d32ca9c-34fa-4532-a8de-e95bcbabb494",
+      "from": "urn:spdx:meta-llama_Llama-3.1-8B-Instruct-6b8ab402-f28f-4989-9307-77cd7d1aab0e",
       "to": [
         "llama3.1"
       ]

@@ -1,10 +1,10 @@
 {
     "bomFormat": "CycloneDX",
     "specVersion": "1.6",
-    "serialNumber": "urn:uuid:65969427-cb38-43cc-9662-a18feaf6d32c",
+    "serialNumber": "urn:uuid:a210e51b-bfec-4a38-90fc-7152d1cba82e",
     "version": 1,
     "metadata": {
-        "timestamp": "2026-04-30T20:36:03.427373+00:00",
+        "timestamp": "2026-04-30T21:04:36.440784+00:00",
         "component": {
             "type": "machine-learning-model",
             "bom-ref": "timm/mobilenetv3_small_100.lamb_in1k-862a4e42-67a4-5612-97f5-e9b7b46a25a5",

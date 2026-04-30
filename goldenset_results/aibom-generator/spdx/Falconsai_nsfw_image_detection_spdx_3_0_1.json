@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-nsfw_image_detection-008be739-1c32-400f-95cf-05d6a092a73d",
+      "spdxId": "urn:spdx:doc-nsfw_image_detection-928edcfd-c560-44d0-b321-9271db694ee4",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,26 +13,26 @@
       "name": "AIBOM for nsfw_image_detection",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:35:57+00:00",
+        "created": "2026-04-30T21:04:30+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-nsfw_image_detection-a49e3914-34e2-4e84-b0a2-60524a0b07af"
+        "urn:spdx:ai-nsfw_image_detection-16eb3ec9-0940-458e-b0fc-ec892e3fd12b"
       ],
       "element": [
-        "urn:spdx:nsfw_image_detection-2bea3539-1f88-41ac-9872-3833fffa227b",
-        "urn:spdx:ai-nsfw_image_detection-a49e3914-34e2-4e84-b0a2-60524a0b07af",
-        "urn:spdx:rel-5001f7c2-ef1d-4e9c-94fd-39d4e830c8dd",
-        "urn:spdx:rel-51ac16a9-0162-4f94-8b27-7ac09c06a06f",
-        "urn:spdx:rel-4ccd1a7e-b44f-4439-96ea-b95795938230",
-        "urn:spdx:rel-1a799a93-4962-4690-970e-ac99f10d9d3b"
+        "urn:spdx:nsfw_image_detection-24ba9280-76d4-4c39-9438-aab7eb2134d6",
+        "urn:spdx:ai-nsfw_image_detection-16eb3ec9-0940-458e-b0fc-ec892e3fd12b",
+        "urn:spdx:rel-cdc83d74-1105-40e7-bd19-14cbf397ead5",
+        "urn:spdx:rel-9691a5de-1224-44b6-b178-a24300b3420e",
+        "urn:spdx:rel-10bec9fa-8d2d-4149-8b81-cdeb83486e32",
+        "urn:spdx:rel-fe7e2088-936a-443d-abab-0c54396c014e"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:nsfw_image_detection-2bea3539-1f88-41ac-9872-3833fffa227b",
+      "spdxId": "urn:spdx:nsfw_image_detection-24ba9280-76d4-4c39-9438-aab7eb2134d6",
       "name": "nsfw_image_detection",
       "packageVersion": "04367978",
       "downloadLocation": "https://huggingface.co/Falconsai/nsfw_image_detection/tree/main",
@@ -40,7 +40,7 @@
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-nsfw_image_detection-a49e3914-34e2-4e84-b0a2-60524a0b07af",
+      "spdxId": "urn:spdx:ai-nsfw_image_detection-16eb3ec9-0940-458e-b0fc-ec892e3fd12b",
       "name": "nsfw_image_detection",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/Falconsai/nsfw_image_detection/tree/main",
@@ -55,34 +55,34 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-5001f7c2-ef1d-4e9c-94fd-39d4e830c8dd",
+      "spdxId": "urn:spdx:rel-cdc83d74-1105-40e7-bd19-14cbf397ead5",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:nsfw_image_detection-2bea3539-1f88-41ac-9872-3833fffa227b",
+      "from": "urn:spdx:nsfw_image_detection-24ba9280-76d4-4c39-9438-aab7eb2134d6",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-51ac16a9-0162-4f94-8b27-7ac09c06a06f",
+      "spdxId": "urn:spdx:rel-9691a5de-1224-44b6-b178-a24300b3420e",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-nsfw_image_detection-a49e3914-34e2-4e84-b0a2-60524a0b07af",
-      "to": [
-        "a"
-      ]
-    },
-    {
-      "type": "Relationship",
-      "spdxId": "urn:spdx:rel-4ccd1a7e-b44f-4439-96ea-b95795938230",
-      "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-nsfw_image_detection-a49e3914-34e2-4e84-b0a2-60524a0b07af",
+      "from": "urn:spdx:ai-nsfw_image_detection-16eb3ec9-0940-458e-b0fc-ec892e3fd12b",
       "to": [
         "are"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-1a799a93-4962-4690-970e-ac99f10d9d3b",
+      "spdxId": "urn:spdx:rel-10bec9fa-8d2d-4149-8b81-cdeb83486e32",
+      "relationshipType": "trainedOn",
+      "from": "urn:spdx:ai-nsfw_image_detection-16eb3ec9-0940-458e-b0fc-ec892e3fd12b",
+      "to": [
+        "a"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-fe7e2088-936a-443d-abab-0c54396c014e",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/Falconsai/nsfw_image_detection@04367978",
       "to": [

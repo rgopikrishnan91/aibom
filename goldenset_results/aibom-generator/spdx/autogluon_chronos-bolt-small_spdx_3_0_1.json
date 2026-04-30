@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-chronos-bolt-small-9583b5d7-f8a1-40d0-8b0e-03a4b9bc5a1e",
+      "spdxId": "urn:spdx:doc-chronos-bolt-small-c9607c93-cf89-44ea-9407-829efa666e8e",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,25 +13,25 @@
       "name": "AIBOM for chronos-bolt-small",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:36:16+00:00",
+        "created": "2026-04-30T21:04:48+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-chronos-bolt-small-4705509e-c316-40e8-91ae-303120271b6a"
+        "urn:spdx:ai-chronos-bolt-small-5ca330b6-4890-49d1-82b3-4934205abb0c"
       ],
       "element": [
-        "urn:spdx:chronos-bolt-small-c97814c2-f2cc-4141-90a9-fdbeb15c6604",
-        "urn:spdx:ai-chronos-bolt-small-4705509e-c316-40e8-91ae-303120271b6a",
-        "urn:spdx:rel-fc3bef61-0622-4769-9803-79c56003af8f",
-        "urn:spdx:rel-c5f9a49b-d516-47e4-9225-23c5dd42415e",
-        "urn:spdx:rel-d8ec1193-c3e7-4fa1-aa50-caf238938463"
+        "urn:spdx:chronos-bolt-small-308d2ae1-0089-45ce-a5d7-6ca53dc20c84",
+        "urn:spdx:ai-chronos-bolt-small-5ca330b6-4890-49d1-82b3-4934205abb0c",
+        "urn:spdx:rel-1c434adf-84d6-406a-a3b1-b1d41b97c534",
+        "urn:spdx:rel-9753649d-9f7b-4347-852c-c2197e4ffe78",
+        "urn:spdx:rel-ec2c5645-fdc0-4212-aa7b-bcc09d4e193f"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:chronos-bolt-small-c97814c2-f2cc-4141-90a9-fdbeb15c6604",
+      "spdxId": "urn:spdx:chronos-bolt-small-308d2ae1-0089-45ce-a5d7-6ca53dc20c84",
       "name": "chronos-bolt-small",
       "packageVersion": "2e1597a7",
       "downloadLocation": "https://huggingface.co/autogluon/chronos-bolt-small/tree/main",
@@ -39,7 +39,7 @@
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-chronos-bolt-small-4705509e-c316-40e8-91ae-303120271b6a",
+      "spdxId": "urn:spdx:ai-chronos-bolt-small-5ca330b6-4890-49d1-82b3-4934205abb0c",
       "name": "chronos-bolt-small",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/autogluon/chronos-bolt-small/tree/main",
@@ -52,25 +52,25 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-fc3bef61-0622-4769-9803-79c56003af8f",
+      "spdxId": "urn:spdx:rel-1c434adf-84d6-406a-a3b1-b1d41b97c534",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:chronos-bolt-small-c97814c2-f2cc-4141-90a9-fdbeb15c6604",
+      "from": "urn:spdx:chronos-bolt-small-308d2ae1-0089-45ce-a5d7-6ca53dc20c84",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-c5f9a49b-d516-47e4-9225-23c5dd42415e",
+      "spdxId": "urn:spdx:rel-9753649d-9f7b-4347-852c-c2197e4ffe78",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-chronos-bolt-small-4705509e-c316-40e8-91ae-303120271b6a",
+      "from": "urn:spdx:ai-chronos-bolt-small-5ca330b6-4890-49d1-82b3-4934205abb0c",
       "to": [
         "nearly"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-d8ec1193-c3e7-4fa1-aa50-caf238938463",
+      "spdxId": "urn:spdx:rel-ec2c5645-fdc0-4212-aa7b-bcc09d4e193f",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/autogluon/chronos-bolt-small@2e1597a7",
       "to": [

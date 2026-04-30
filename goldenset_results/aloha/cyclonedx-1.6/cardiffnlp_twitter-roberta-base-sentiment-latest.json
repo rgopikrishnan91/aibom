@@ -1,10 +1,10 @@
 {
     "bomFormat": "CycloneDX",
     "specVersion": "1.6",
-    "serialNumber": "urn:uuid:b06ea83f-2f2b-403c-8eb6-dfc0ee22a00b",
+    "serialNumber": "urn:uuid:b5a883ea-5b87-4971-be9b-8f0f264e07e3",
     "version": 1,
     "metadata": {
-        "timestamp": "2026-04-30T20:36:42.312942+00:00",
+        "timestamp": "2026-04-30T21:05:15.415350+00:00",
         "component": {
             "type": "machine-learning-model",
             "bom-ref": "cardiffnlp/twitter-roberta-base-sentiment-latest-bed0bf3e-09cc-5ab3-b574-1e563a8febb6",

@@ -1,10 +1,10 @@
 {
     "bomFormat": "CycloneDX",
     "specVersion": "1.6",
-    "serialNumber": "urn:uuid:7f10292e-78f7-487e-b24c-a257ef3d36de",
+    "serialNumber": "urn:uuid:18e8e831-3dec-47d4-81b3-4fc670f85439",
     "version": 1,
     "metadata": {
-        "timestamp": "2026-04-30T20:36:05.272310+00:00",
+        "timestamp": "2026-04-30T21:04:38.068024+00:00",
         "component": {
             "type": "machine-learning-model",
             "bom-ref": "laion/clap-htsat-fused-c34be497-d439-5cb8-95f0-76c01210ea37",

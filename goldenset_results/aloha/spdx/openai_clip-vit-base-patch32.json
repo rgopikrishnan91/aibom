@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-openai_clip-vit-base-patch32-262cda83-a47e-4ce6-b54a-fde9cc9bc2c5",
+      "spdxId": "urn:spdx:doc-openai_clip-vit-base-patch32-b245c128-bb61-4a10-8d82-641bdeef9d39",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,27 +13,27 @@
       "name": "AIBOM for openai/clip-vit-base-patch32",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:36:01.708996+00:00",
+        "created": "2026-04-30T21:04:34.817345+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-openai_clip-vit-base-patch32-978c0eb1-3f2d-4d72-92b7-3c4e9e6992b0"
+        "urn:spdx:ai-openai_clip-vit-base-patch32-20bb7dde-c57a-4bfe-9a65-734406bb58e5"
       ],
       "element": [
-        "urn:spdx:openai_clip-vit-base-patch32-878ba779-dd98-4679-a7b3-d0b05b2c58f6",
-        "urn:spdx:ai-openai_clip-vit-base-patch32-978c0eb1-3f2d-4d72-92b7-3c4e9e6992b0"
+        "urn:spdx:openai_clip-vit-base-patch32-ddb106dc-8090-4391-96c0-f16c9df2e189",
+        "urn:spdx:ai-openai_clip-vit-base-patch32-20bb7dde-c57a-4bfe-9a65-734406bb58e5"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:openai_clip-vit-base-patch32-878ba779-dd98-4679-a7b3-d0b05b2c58f6",
+      "spdxId": "urn:spdx:openai_clip-vit-base-patch32-ddb106dc-8090-4391-96c0-f16c9df2e189",
       "name": "openai/clip-vit-base-patch32"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-openai_clip-vit-base-patch32-978c0eb1-3f2d-4d72-92b7-3c4e9e6992b0",
+      "spdxId": "urn:spdx:ai-openai_clip-vit-base-patch32-20bb7dde-c57a-4bfe-9a65-734406bb58e5",
       "name": "openai/clip-vit-base-patch32",
       "summary": "The CLIP model was developed by researchers at OpenAI to learn about what contributes to robustness in computer vision tasks. The model was also developed to test the ability of models to generalize to arbitrary image classification tasks in a zero-shot manner. It was not developed for general model deployment - to deploy models like CLIP, researchers will first need to carefully study their capabilities in relation to the specific context they\u2019re being deployed within.",
       "primaryPurpose": [

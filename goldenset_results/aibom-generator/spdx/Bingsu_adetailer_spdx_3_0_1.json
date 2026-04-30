@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-adetailer-da2c4a14-49aa-439c-8b02-67c4aee6ddcc",
+      "spdxId": "urn:spdx:doc-adetailer-292609e1-2da7-4148-b402-e13ed640d11c",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,26 +13,26 @@
       "name": "AIBOM for adetailer",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:36:11+00:00",
+        "created": "2026-04-30T21:04:44+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-adetailer-66747017-4342-415c-84e9-565dd6d2b687"
+        "urn:spdx:ai-adetailer-70e4e1f5-8853-48b1-926a-1b40a47a4d81"
       ],
       "element": [
-        "urn:spdx:adetailer-9a0f5896-bbf5-48bf-9194-88b2eb84a9e7",
-        "urn:spdx:ai-adetailer-66747017-4342-415c-84e9-565dd6d2b687",
-        "urn:spdx:rel-a25b17c5-2f6d-4331-a4ae-fa1660488ec0",
-        "urn:spdx:rel-19d7c1a0-a4e1-435f-8703-e4d2fd699ce4",
-        "urn:spdx:rel-3ef8231e-3409-4046-bfd6-f49a282489a3",
-        "urn:spdx:rel-39521e3f-2bc6-47b4-9db2-0c3064ef87d8"
+        "urn:spdx:adetailer-8c5b3942-1f45-4bbd-82a8-b1af4eef53e0",
+        "urn:spdx:ai-adetailer-70e4e1f5-8853-48b1-926a-1b40a47a4d81",
+        "urn:spdx:rel-49a48fc1-6d2a-4ba8-a9a4-33ddbe4fa361",
+        "urn:spdx:rel-95534f05-a168-4a0b-8e8c-b007d56877ab",
+        "urn:spdx:rel-7296cbb2-5c8a-458f-9808-4cb9e1cc290f",
+        "urn:spdx:rel-a12f140e-dff4-49e2-a342-50ac05a7f7dc"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:adetailer-9a0f5896-bbf5-48bf-9194-88b2eb84a9e7",
+      "spdxId": "urn:spdx:adetailer-8c5b3942-1f45-4bbd-82a8-b1af4eef53e0",
       "name": "adetailer",
       "packageVersion": "53cc19de",
       "downloadLocation": "https://huggingface.co/Bingsu/adetailer/tree/main",
@@ -40,7 +40,7 @@
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-adetailer-66747017-4342-415c-84e9-565dd6d2b687",
+      "spdxId": "urn:spdx:ai-adetailer-70e4e1f5-8853-48b1-926a-1b40a47a4d81",
       "name": "adetailer",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/Bingsu/adetailer/tree/main",
@@ -53,34 +53,34 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-a25b17c5-2f6d-4331-a4ae-fa1660488ec0",
+      "spdxId": "urn:spdx:rel-49a48fc1-6d2a-4ba8-a9a4-33ddbe4fa361",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:adetailer-9a0f5896-bbf5-48bf-9194-88b2eb84a9e7",
+      "from": "urn:spdx:adetailer-8c5b3942-1f45-4bbd-82a8-b1af4eef53e0",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-19d7c1a0-a4e1-435f-8703-e4d2fd699ce4",
+      "spdxId": "urn:spdx:rel-95534f05-a168-4a0b-8e8c-b007d56877ab",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-adetailer-66747017-4342-415c-84e9-565dd6d2b687",
+      "from": "urn:spdx:ai-adetailer-70e4e1f5-8853-48b1-926a-1b40a47a4d81",
       "to": [
         "wider_face"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-3ef8231e-3409-4046-bfd6-f49a282489a3",
+      "spdxId": "urn:spdx:rel-7296cbb2-5c8a-458f-9808-4cb9e1cc290f",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-adetailer-66747017-4342-415c-84e9-565dd6d2b687",
+      "from": "urn:spdx:ai-adetailer-70e4e1f5-8853-48b1-926a-1b40a47a4d81",
       "to": [
         "skytnt/anime-segmentation"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-39521e3f-2bc6-47b4-9db2-0c3064ef87d8",
+      "spdxId": "urn:spdx:rel-a12f140e-dff4-49e2-a342-50ac05a7f7dc",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/Bingsu/adetailer@53cc19de",
       "to": [

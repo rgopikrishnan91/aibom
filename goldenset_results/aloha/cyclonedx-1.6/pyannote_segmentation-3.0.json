@@ -1,10 +1,10 @@
 {
     "bomFormat": "CycloneDX",
     "specVersion": "1.6",
-    "serialNumber": "urn:uuid:765a59ac-eb6e-4dc5-a2a0-6c5fdd1474b4",
+    "serialNumber": "urn:uuid:73d4cfc3-0989-4797-8b15-bdc3570e9e3e",
     "version": 1,
     "metadata": {
-        "timestamp": "2026-04-30T20:36:06.873194+00:00",
+        "timestamp": "2026-04-30T21:04:39.670450+00:00",
         "component": {
             "type": "machine-learning-model",
             "bom-ref": "pyannote/segmentation-3.0-cd9dc769-0a50-59e3-befb-a1da7a595cfe",

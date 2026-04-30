@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-jinaai_jina-embeddings-v3-3234545c-e387-4696-8634-7d450e73a805",
+      "spdxId": "urn:spdx:doc-jinaai_jina-embeddings-v3-9b658ca3-90d3-4d90-91ec-ce17dc4ec4ef",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,29 +13,29 @@
       "name": "AIBOM for jinaai/jina-embeddings-v3",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:36:40.322661+00:00",
+        "created": "2026-04-30T21:05:13.143568+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-jinaai_jina-embeddings-v3-9415cdf9-50c3-41b8-b00c-68f701b5d6ae"
+        "urn:spdx:ai-jinaai_jina-embeddings-v3-9e9e1efb-43a2-42f5-b3c6-64c07c1d77b0"
       ],
       "element": [
-        "urn:spdx:jinaai_jina-embeddings-v3-8b2f9746-90f0-425f-a8eb-ceabb1d52fe2",
-        "urn:spdx:ai-jinaai_jina-embeddings-v3-9415cdf9-50c3-41b8-b00c-68f701b5d6ae",
-        "urn:spdx:rel-8dd721c5-4cd0-45b5-955f-d683667ac187"
+        "urn:spdx:jinaai_jina-embeddings-v3-e28b2335-3c53-4a5c-b59b-5b29a4ad83b6",
+        "urn:spdx:ai-jinaai_jina-embeddings-v3-9e9e1efb-43a2-42f5-b3c6-64c07c1d77b0",
+        "urn:spdx:rel-d322aff9-b204-4a2f-981a-355631ecdf5b"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:jinaai_jina-embeddings-v3-8b2f9746-90f0-425f-a8eb-ceabb1d52fe2",
+      "spdxId": "urn:spdx:jinaai_jina-embeddings-v3-e28b2335-3c53-4a5c-b59b-5b29a4ad83b6",
       "name": "jinaai/jina-embeddings-v3",
       "licenseDeclared": "CC-BY-NC-4.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-jinaai_jina-embeddings-v3-9415cdf9-50c3-41b8-b00c-68f701b5d6ae",
+      "spdxId": "urn:spdx:ai-jinaai_jina-embeddings-v3-9e9e1efb-43a2-42f5-b3c6-64c07c1d77b0",
       "name": "jinaai/jina-embeddings-v3",
       "primaryPurpose": [
         "feature-extraction"
@@ -44707,9 +44707,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-8dd721c5-4cd0-45b5-955f-d683667ac187",
+      "spdxId": "urn:spdx:rel-d322aff9-b204-4a2f-981a-355631ecdf5b",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:jinaai_jina-embeddings-v3-8b2f9746-90f0-425f-a8eb-ceabb1d52fe2",
+      "from": "urn:spdx:jinaai_jina-embeddings-v3-e28b2335-3c53-4a5c-b59b-5b29a4ad83b6",
       "to": [
         "CC-BY-NC-4.0"
       ]

@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-Falconsai_nsfw_image_detection-5d811059-7b19-45f6-b3dc-bf7747c9af94",
+      "spdxId": "urn:spdx:doc-Falconsai_nsfw_image_detection-d794434d-4dd6-487d-a556-9ce8153db495",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,29 +13,29 @@
       "name": "AIBOM for Falconsai/nsfw_image_detection",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:35:58.225457+00:00",
+        "created": "2026-04-30T21:04:31.226743+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-Falconsai_nsfw_image_detection-9bca0cb5-d3f9-48cb-8a99-d69977653e0e"
+        "urn:spdx:ai-Falconsai_nsfw_image_detection-097e457e-73f3-4ad8-a9af-53a5fd5897c9"
       ],
       "element": [
-        "urn:spdx:Falconsai_nsfw_image_detection-12840f41-5006-438f-ab55-be59a959eb37",
-        "urn:spdx:ai-Falconsai_nsfw_image_detection-9bca0cb5-d3f9-48cb-8a99-d69977653e0e",
-        "urn:spdx:rel-d241b15d-c9ca-4b88-b9c9-396801f9c7e5"
+        "urn:spdx:Falconsai_nsfw_image_detection-9ef58a12-0646-4ee5-ba65-8c43707e014c",
+        "urn:spdx:ai-Falconsai_nsfw_image_detection-097e457e-73f3-4ad8-a9af-53a5fd5897c9",
+        "urn:spdx:rel-a0eec86c-f68f-4be7-9229-a0761736e14c"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:Falconsai_nsfw_image_detection-12840f41-5006-438f-ab55-be59a959eb37",
+      "spdxId": "urn:spdx:Falconsai_nsfw_image_detection-9ef58a12-0646-4ee5-ba65-8c43707e014c",
       "name": "Falconsai/nsfw_image_detection",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-Falconsai_nsfw_image_detection-9bca0cb5-d3f9-48cb-8a99-d69977653e0e",
+      "spdxId": "urn:spdx:ai-Falconsai_nsfw_image_detection-097e457e-73f3-4ad8-a9af-53a5fd5897c9",
       "name": "Falconsai/nsfw_image_detection",
       "summary": "The **Fine-Tuned Vision Transformer (ViT)** is a variant of the transformer encoder architecture, similar to BERT, that has been adapted for image classification tasks. This specific model, named \"google/vit-base-patch16-224-in21k,\" is pre-trained on a substantial collection of images in a supervised manner, leveraging the ImageNet-21k dataset. The images in the pre-training dataset are resized to a resolution of 224x224 pixels, making it suitable for a wide range of image recognition tasks.During the training phase, meticulous attention was given to hyperparameter settings to ensure optimal model performance. The model was fine-tuned with a judiciously chosen batch size of 16. This choice not only balanced computational efficiency but also allowed for the model to effectively process and learn from a diverse array of images.To facilitate this fine-tuning process, a learning rate of 5e-5 was employed. The learning rate serves as a critical tuning parameter that dictates the magnitude of adjustments made to the model's parameters during training. In this case, a learning rate of 5e-5 was selected to strike a harmonious balance between rapid convergence and steady optimization, resulting in a model that not only learns swiftly but also steadily refines its capabilities throughout the training process.This training phase was executed using a proprietary dataset containing an extensive collection of 80,000 images, each characterized by a substantial degree of variability. The dataset was thoughtfully curated to include two distinct classes, namely \"normal\" and \"nsfw.\" This diversity allowed the model to grasp nuanced visual patterns, equipping it with the competence to accurately differentiate between safe and explicit content.The overarching objective of this meticulous training process was to impart the model with a deep understanding of visual cues, ensuring its robustness and competence in tackling the specific task of NSFW image classification. The result is a model that stands ready to contribute significantly to content safety and moderation, all while maintaining the highest standards of accuracy and reliability.",
       "primaryPurpose": [
@@ -59,9 +59,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-d241b15d-c9ca-4b88-b9c9-396801f9c7e5",
+      "spdxId": "urn:spdx:rel-a0eec86c-f68f-4be7-9229-a0761736e14c",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:Falconsai_nsfw_image_detection-12840f41-5006-438f-ab55-be59a959eb37",
+      "from": "urn:spdx:Falconsai_nsfw_image_detection-9ef58a12-0646-4ee5-ba65-8c43707e014c",
       "to": [
         "Apache-2.0"
       ]

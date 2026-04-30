@@ -1,10 +1,10 @@
 {
     "bomFormat": "CycloneDX",
     "specVersion": "1.6",
-    "serialNumber": "urn:uuid:29d64969-9406-40c7-a16b-16d4a734efd2",
+    "serialNumber": "urn:uuid:cc84a8af-686b-4234-bdcf-95e9c9fbd609",
     "version": 1,
     "metadata": {
-        "timestamp": "2026-04-30T20:36:12.747487+00:00",
+        "timestamp": "2026-04-30T21:04:46.073103+00:00",
         "component": {
             "type": "machine-learning-model",
             "bom-ref": "Bingsu/adetailer-a154275e-92be-5049-be56-3692a9268d3d",

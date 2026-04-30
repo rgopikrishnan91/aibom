@@ -1,10 +1,10 @@
 {
     "bomFormat": "CycloneDX",
     "specVersion": "1.6",
-    "serialNumber": "urn:uuid:5c28874b-4642-476d-84cf-d56270bc7fa5",
+    "serialNumber": "urn:uuid:5ee9f621-05d9-4c83-8675-5df225e6096b",
     "version": 1,
     "metadata": {
-        "timestamp": "2026-04-30T20:36:10.850026+00:00",
+        "timestamp": "2026-04-30T21:04:44.007441+00:00",
         "component": {
             "type": "machine-learning-model",
             "bom-ref": "FacebookAI/roberta-large-d8c746dd-0334-5660-87bd-d11b7d926f2d",

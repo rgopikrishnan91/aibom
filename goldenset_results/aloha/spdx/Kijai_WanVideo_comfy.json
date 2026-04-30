@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-Kijai_WanVideo_comfy-aa555998-a14f-425b-b8f5-5ae30efcc2fb",
+      "spdxId": "urn:spdx:doc-Kijai_WanVideo_comfy-92bd7de4-cd16-405b-aa45-752f658eb36e",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,27 +13,27 @@
       "name": "AIBOM for Kijai/WanVideo_comfy",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:36:27.434631+00:00",
+        "created": "2026-04-30T21:05:00.137212+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-Kijai_WanVideo_comfy-8e0a74c8-a0d9-4486-887b-0bf1f99e68da"
+        "urn:spdx:ai-Kijai_WanVideo_comfy-84932b7a-5349-44c0-82f0-3248411dbc02"
       ],
       "element": [
-        "urn:spdx:Kijai_WanVideo_comfy-976fcc0f-4127-4757-9b29-31f2fc11ec66",
-        "urn:spdx:ai-Kijai_WanVideo_comfy-8e0a74c8-a0d9-4486-887b-0bf1f99e68da"
+        "urn:spdx:Kijai_WanVideo_comfy-c9b2db68-1954-4848-80d6-1d6108c2dd1a",
+        "urn:spdx:ai-Kijai_WanVideo_comfy-84932b7a-5349-44c0-82f0-3248411dbc02"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:Kijai_WanVideo_comfy-976fcc0f-4127-4757-9b29-31f2fc11ec66",
+      "spdxId": "urn:spdx:Kijai_WanVideo_comfy-c9b2db68-1954-4848-80d6-1d6108c2dd1a",
       "name": "Kijai/WanVideo_comfy"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-Kijai_WanVideo_comfy-8e0a74c8-a0d9-4486-887b-0bf1f99e68da",
+      "spdxId": "urn:spdx:ai-Kijai_WanVideo_comfy-84932b7a-5349-44c0-82f0-3248411dbc02",
       "name": "Kijai/WanVideo_comfy",
       "domain": [
         "diffusion-single-file",

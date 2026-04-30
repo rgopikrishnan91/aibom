@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:ad741760-5f08-44d4-9373-44a000bd450a",
+  "serialNumber": "urn:uuid:5e840c7b-a0c3-4e7a-84fd-b3bb8c994392",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-04-30T20:36:06+00:00",
+    "timestamp": "2026-04-30T21:04:38+00:00",
     "tools": {
       "components": [
         {
@@ -19,12 +19,12 @@
       ]
     },
     "component": {
-      "bom-ref": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:06@1777581366",
+      "bom-ref": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-17:04:38@1777583078",
       "type": "application",
-      "name": "job-2026-04-30-16:36:06",
+      "name": "job-2026-04-30-17:04:38",
       "description": "Generating SBOM for pyannote/segmentation-3.0",
-      "version": "1777581366",
-      "purl": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:06@1777581366",
+      "version": "1777583078",
+      "purl": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-17:04:38@1777583078",
       "manufacturer": {
         "name": "OWASP AIBOM Generator"
       },

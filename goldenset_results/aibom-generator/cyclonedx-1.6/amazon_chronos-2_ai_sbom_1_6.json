@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:aeff9b0a-b53e-477b-8e0d-01ca03c341f7",
+  "serialNumber": "urn:uuid:28b556ae-6dd5-42cf-b38f-bd8b21ec4a70",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-04-30T20:36:13+00:00",
+    "timestamp": "2026-04-30T21:04:46+00:00",
     "tools": {
       "components": [
         {
@@ -19,12 +19,12 @@
       ]
     },
     "component": {
-      "bom-ref": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:13@1777581373",
+      "bom-ref": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-17:04:46@1777583086",
       "type": "application",
-      "name": "job-2026-04-30-16:36:13",
+      "name": "job-2026-04-30-17:04:46",
       "description": "Generating SBOM for amazon/chronos-2",
-      "version": "1777581373",
-      "purl": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:13@1777581373",
+      "version": "1777583086",
+      "purl": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-17:04:46@1777583086",
       "manufacturer": {
         "name": "OWASP AIBOM Generator"
       },

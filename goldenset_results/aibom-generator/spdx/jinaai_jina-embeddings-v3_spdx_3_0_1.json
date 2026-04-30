@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-jina-embeddings-v3-37969b91-d8c5-4d06-82c2-84f7452b2216",
+      "spdxId": "urn:spdx:doc-jina-embeddings-v3-9baeb502-b1d6-49c4-b643-5f6fbcf6592c",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,25 +13,25 @@
       "name": "AIBOM for jina-embeddings-v3",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:36:39+00:00",
+        "created": "2026-04-30T21:05:11+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-jina-embeddings-v3-b842709a-1823-451f-9717-bbaa57a6afdb"
+        "urn:spdx:ai-jina-embeddings-v3-001a9bd4-e83e-4d69-a36a-134a125271cb"
       ],
       "element": [
-        "urn:spdx:jina-embeddings-v3-4c47f8e4-1c21-45ad-ae39-08e544008327",
-        "urn:spdx:ai-jina-embeddings-v3-b842709a-1823-451f-9717-bbaa57a6afdb",
-        "urn:spdx:rel-cf032526-235f-42aa-b901-b4c77720f82c",
-        "urn:spdx:rel-ef72569a-1917-48d0-848e-8a7677c5c546",
-        "urn:spdx:rel-c5af6a3f-ed2d-4b2f-9efb-96fff2d762ef"
+        "urn:spdx:jina-embeddings-v3-3ca0a7d9-b0be-4849-bd0f-241ec07d3b0d",
+        "urn:spdx:ai-jina-embeddings-v3-001a9bd4-e83e-4d69-a36a-134a125271cb",
+        "urn:spdx:rel-e97c8288-3490-4c90-9aab-f6710fbc2607",
+        "urn:spdx:rel-2b972d69-7d98-46af-9abc-d0e80dea57ca",
+        "urn:spdx:rel-f13bf3ca-e396-447d-a0e8-4597f21cc0b1"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:jina-embeddings-v3-4c47f8e4-1c21-45ad-ae39-08e544008327",
+      "spdxId": "urn:spdx:jina-embeddings-v3-3ca0a7d9-b0be-4849-bd0f-241ec07d3b0d",
       "name": "jina-embeddings-v3",
       "packageVersion": "ab036b02",
       "downloadLocation": "https://huggingface.co/jinaai/jina-embeddings-v3/tree/main",
@@ -39,7 +39,7 @@
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-jina-embeddings-v3-b842709a-1823-451f-9717-bbaa57a6afdb",
+      "spdxId": "urn:spdx:ai-jina-embeddings-v3-001a9bd4-e83e-4d69-a36a-134a125271cb",
       "name": "jina-embeddings-v3",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/jinaai/jina-embeddings-v3/tree/main",
@@ -52,25 +52,25 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-cf032526-235f-42aa-b901-b4c77720f82c",
+      "spdxId": "urn:spdx:rel-e97c8288-3490-4c90-9aab-f6710fbc2607",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:jina-embeddings-v3-4c47f8e4-1c21-45ad-ae39-08e544008327",
+      "from": "urn:spdx:jina-embeddings-v3-3ca0a7d9-b0be-4849-bd0f-241ec07d3b0d",
       "to": [
         "CC-BY-NC-4.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-ef72569a-1917-48d0-848e-8a7677c5c546",
+      "spdxId": "urn:spdx:rel-2b972d69-7d98-46af-9abc-d0e80dea57ca",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-jina-embeddings-v3-b842709a-1823-451f-9717-bbaa57a6afdb",
+      "from": "urn:spdx:ai-jina-embeddings-v3-001a9bd4-e83e-4d69-a36a-134a125271cb",
       "to": [
         "name"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-c5af6a3f-ed2d-4b2f-9efb-96fff2d762ef",
+      "spdxId": "urn:spdx:rel-f13bf3ca-e396-447d-a0e8-4597f21cc0b1",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/jinaai/jina-embeddings-v3@ab036b02",
       "to": [

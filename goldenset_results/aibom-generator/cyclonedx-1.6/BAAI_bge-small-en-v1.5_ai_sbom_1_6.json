@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:efe98f7c-7467-4cad-9a61-6ff26e005d8a",
+  "serialNumber": "urn:uuid:807ac762-bbdd-4df2-b187-c3370bf1610f",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-04-30T20:36:47+00:00",
+    "timestamp": "2026-04-30T21:05:19+00:00",
     "tools": {
       "components": [
         {
@@ -19,12 +19,12 @@
       ]
     },
     "component": {
-      "bom-ref": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:47@1777581407",
+      "bom-ref": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-17:05:19@1777583119",
       "type": "application",
-      "name": "job-2026-04-30-16:36:47",
+      "name": "job-2026-04-30-17:05:19",
       "description": "Generating SBOM for BAAI/bge-small-en-v1.5",
-      "version": "1777581407",
-      "purl": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:47@1777581407",
+      "version": "1777583119",
+      "purl": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-17:05:19@1777583119",
       "manufacturer": {
         "name": "OWASP AIBOM Generator"
       },

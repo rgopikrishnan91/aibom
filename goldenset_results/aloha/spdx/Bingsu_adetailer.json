@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-Bingsu_adetailer-38cfb8ab-5298-4591-9c8a-837feff6bade",
+      "spdxId": "urn:spdx:doc-Bingsu_adetailer-ef7c1f68-774f-4946-8720-aea26c65f08d",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,31 +13,31 @@
       "name": "AIBOM for Bingsu/adetailer",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:36:12.747487+00:00",
+        "created": "2026-04-30T21:04:46.073103+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-Bingsu_adetailer-a9d53764-ce53-4b85-8562-dc9bf727c3c0"
+        "urn:spdx:ai-Bingsu_adetailer-73c18143-1641-4b20-84be-97957d133570"
       ],
       "element": [
-        "urn:spdx:Bingsu_adetailer-2bf98706-cba3-43bb-9e67-391ff71aa9df",
-        "urn:spdx:ai-Bingsu_adetailer-a9d53764-ce53-4b85-8562-dc9bf727c3c0",
-        "urn:spdx:rel-02d10042-20a8-4137-a92d-a80cc5d2082e",
-        "urn:spdx:rel-f0f3212a-6537-40bd-a332-f84e5b685cba",
-        "urn:spdx:rel-c9936ab4-597a-41a6-88f6-0bec5352c247"
+        "urn:spdx:Bingsu_adetailer-92cd5986-e75b-4c3b-b3f0-f791dadf78e1",
+        "urn:spdx:ai-Bingsu_adetailer-73c18143-1641-4b20-84be-97957d133570",
+        "urn:spdx:rel-7d879a08-553f-4f65-96e2-0d8fbdc8d15b",
+        "urn:spdx:rel-801dcff6-0792-400c-86d6-7b690098142a",
+        "urn:spdx:rel-3a098a43-23db-45c2-b140-f292217c61bb"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:Bingsu_adetailer-2bf98706-cba3-43bb-9e67-391ff71aa9df",
+      "spdxId": "urn:spdx:Bingsu_adetailer-92cd5986-e75b-4c3b-b3f0-f791dadf78e1",
       "name": "Bingsu/adetailer",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-Bingsu_adetailer-a9d53764-ce53-4b85-8562-dc9bf727c3c0",
+      "spdxId": "urn:spdx:ai-Bingsu_adetailer-73c18143-1641-4b20-84be-97957d133570",
       "name": "Bingsu/adetailer",
       "domain": [
         "ultralytics",
@@ -51,27 +51,27 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-02d10042-20a8-4137-a92d-a80cc5d2082e",
+      "spdxId": "urn:spdx:rel-7d879a08-553f-4f65-96e2-0d8fbdc8d15b",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:Bingsu_adetailer-2bf98706-cba3-43bb-9e67-391ff71aa9df",
+      "from": "urn:spdx:Bingsu_adetailer-92cd5986-e75b-4c3b-b3f0-f791dadf78e1",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-f0f3212a-6537-40bd-a332-f84e5b685cba",
+      "spdxId": "urn:spdx:rel-801dcff6-0792-400c-86d6-7b690098142a",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-Bingsu_adetailer-a9d53764-ce53-4b85-8562-dc9bf727c3c0",
+      "from": "urn:spdx:ai-Bingsu_adetailer-73c18143-1641-4b20-84be-97957d133570",
       "to": [
         "wider_face-5020c7ea-eb77-5164-b80a-684427671cc3"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-c9936ab4-597a-41a6-88f6-0bec5352c247",
+      "spdxId": "urn:spdx:rel-3a098a43-23db-45c2-b140-f292217c61bb",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-Bingsu_adetailer-a9d53764-ce53-4b85-8562-dc9bf727c3c0",
+      "from": "urn:spdx:ai-Bingsu_adetailer-73c18143-1641-4b20-84be-97957d133570",
       "to": [
         "skytnt/anime-segmentation-ecf1a6ad-107d-5f96-be10-d44c1c54c3ab"
       ]

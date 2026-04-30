@@ -1,10 +1,10 @@
 {
     "bomFormat": "CycloneDX",
     "specVersion": "1.6",
-    "serialNumber": "urn:uuid:a850a2b6-a89a-4f12-8e50-70c23783005b",
+    "serialNumber": "urn:uuid:1f2c14c6-2784-47d1-b86e-6cc8ae7e4151",
     "version": 1,
     "metadata": {
-        "timestamp": "2026-04-30T20:36:00.056677+00:00",
+        "timestamp": "2026-04-30T21:04:33.174197+00:00",
         "component": {
             "type": "machine-learning-model",
             "bom-ref": "google-bert/bert-base-uncased-3d7781d4-457d-5901-ab86-c7b4ee8c757d",

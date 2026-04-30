@@ -1,10 +1,10 @@
 {
     "bomFormat": "CycloneDX",
     "specVersion": "1.6",
-    "serialNumber": "urn:uuid:8462ce7a-44c5-4497-b8a0-fab3eb2f2fa7",
+    "serialNumber": "urn:uuid:389acd6e-2723-45e3-9805-399ce3d2889c",
     "version": 1,
     "metadata": {
-        "timestamp": "2026-04-30T20:36:25.532868+00:00",
+        "timestamp": "2026-04-30T21:04:58.473504+00:00",
         "component": {
             "type": "machine-learning-model",
             "bom-ref": "OpenMuQ/MuQ-large-msd-iter-f46a8d73-f47c-5513-8aee-dbe0039d90c1",

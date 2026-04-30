@@ -1,10 +1,10 @@
 {
     "bomFormat": "CycloneDX",
     "specVersion": "1.6",
-    "serialNumber": "urn:uuid:c665040d-7084-4622-adc3-9f2f8b80ad1c",
+    "serialNumber": "urn:uuid:ad06a6cf-f56a-430b-8302-564e02978700",
     "version": 1,
     "metadata": {
-        "timestamp": "2026-04-30T20:36:01.708996+00:00",
+        "timestamp": "2026-04-30T21:04:34.817345+00:00",
         "component": {
             "type": "machine-learning-model",
             "bom-ref": "openai/clip-vit-base-patch32-6d42ac53-019c-5546-955a-3d801c5d2060",

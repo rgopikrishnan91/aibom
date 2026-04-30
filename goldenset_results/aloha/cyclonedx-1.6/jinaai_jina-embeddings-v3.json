@@ -1,10 +1,10 @@
 {
     "bomFormat": "CycloneDX",
     "specVersion": "1.6",
-    "serialNumber": "urn:uuid:386fbce9-7696-463e-8171-d9d2db8406df",
+    "serialNumber": "urn:uuid:da69ab59-d65a-400d-aaef-b5179a371ffd",
     "version": 1,
     "metadata": {
-        "timestamp": "2026-04-30T20:36:40.322661+00:00",
+        "timestamp": "2026-04-30T21:05:13.143568+00:00",
         "component": {
             "type": "machine-learning-model",
             "bom-ref": "jinaai/jina-embeddings-v3-175ad1ab-9552-5b9c-99ce-71ba29b6e625",

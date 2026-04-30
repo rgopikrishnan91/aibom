@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-mobilenetv3_small_100.lamb_in1k-80bfbc2c-babf-45c2-a831-680f212b3408",
+      "spdxId": "urn:spdx:doc-mobilenetv3_small_100.lamb_in1k-9e404bd6-5178-4a64-9591-52e93f458668",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,25 +13,25 @@
       "name": "AIBOM for mobilenetv3_small_100.lamb_in1k",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:36:02+00:00",
+        "created": "2026-04-30T21:04:35+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-mobilenetv3_small_100.lamb_in1k-10c19e6e-0063-42b8-8470-2479247adab2"
+        "urn:spdx:ai-mobilenetv3_small_100.lamb_in1k-76acd940-b1b8-43d3-9d6f-fc470c2b917e"
       ],
       "element": [
-        "urn:spdx:mobilenetv3_small_100.lamb_in1k-b906952b-fc44-4016-9aef-ffe56b5fd709",
-        "urn:spdx:ai-mobilenetv3_small_100.lamb_in1k-10c19e6e-0063-42b8-8470-2479247adab2",
-        "urn:spdx:rel-75f88bce-c101-4f79-8d25-03b22a37b714",
-        "urn:spdx:rel-7e027572-1ad4-4efd-8e14-c70ab940d938",
-        "urn:spdx:rel-adb67b06-9926-4c22-a504-994830664a2c"
+        "urn:spdx:mobilenetv3_small_100.lamb_in1k-e5078bc8-61d7-4074-89d2-dcb117d34977",
+        "urn:spdx:ai-mobilenetv3_small_100.lamb_in1k-76acd940-b1b8-43d3-9d6f-fc470c2b917e",
+        "urn:spdx:rel-c4d05d83-25f6-47eb-8ebd-2dfc070af0a4",
+        "urn:spdx:rel-487811e9-a61f-4b67-8138-cf0b268630ec",
+        "urn:spdx:rel-1a692cf8-530d-4c34-b2b4-bdb1abe1cdf6"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:mobilenetv3_small_100.lamb_in1k-b906952b-fc44-4016-9aef-ffe56b5fd709",
+      "spdxId": "urn:spdx:mobilenetv3_small_100.lamb_in1k-e5078bc8-61d7-4074-89d2-dcb117d34977",
       "name": "mobilenetv3_small_100.lamb_in1k",
       "packageVersion": "1824797e",
       "downloadLocation": "https://huggingface.co/timm/mobilenetv3_small_100.lamb_in1k/tree/main",
@@ -39,7 +39,7 @@
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-mobilenetv3_small_100.lamb_in1k-10c19e6e-0063-42b8-8470-2479247adab2",
+      "spdxId": "urn:spdx:ai-mobilenetv3_small_100.lamb_in1k-76acd940-b1b8-43d3-9d6f-fc470c2b917e",
       "name": "mobilenetv3_small_100.lamb_in1k",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/timm/mobilenetv3_small_100.lamb_in1k/tree/main",
@@ -52,25 +52,25 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-75f88bce-c101-4f79-8d25-03b22a37b714",
+      "spdxId": "urn:spdx:rel-c4d05d83-25f6-47eb-8ebd-2dfc070af0a4",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:mobilenetv3_small_100.lamb_in1k-b906952b-fc44-4016-9aef-ffe56b5fd709",
+      "from": "urn:spdx:mobilenetv3_small_100.lamb_in1k-e5078bc8-61d7-4074-89d2-dcb117d34977",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-7e027572-1ad4-4efd-8e14-c70ab940d938",
+      "spdxId": "urn:spdx:rel-487811e9-a61f-4b67-8138-cf0b268630ec",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-mobilenetv3_small_100.lamb_in1k-10c19e6e-0063-42b8-8470-2479247adab2",
+      "from": "urn:spdx:ai-mobilenetv3_small_100.lamb_in1k-76acd940-b1b8-43d3-9d6f-fc470c2b917e",
       "to": [
         "imagenet-1k"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-adb67b06-9926-4c22-a504-994830664a2c",
+      "spdxId": "urn:spdx:rel-1a692cf8-530d-4c34-b2b4-bdb1abe1cdf6",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/timm/mobilenetv3_small_100.lamb_in1k@1824797e",
       "to": [

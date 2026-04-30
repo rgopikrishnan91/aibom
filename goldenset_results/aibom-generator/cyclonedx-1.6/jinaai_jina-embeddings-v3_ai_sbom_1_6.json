@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:6e1ce820-fcd3-4ab1-9226-d20c1beb0324",
+  "serialNumber": "urn:uuid:b69e9e7a-365c-4c8c-a135-f4033891fa66",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-04-30T20:36:39+00:00",
+    "timestamp": "2026-04-30T21:05:11+00:00",
     "tools": {
       "components": [
         {
@@ -19,12 +19,12 @@
       ]
     },
     "component": {
-      "bom-ref": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:39@1777581399",
+      "bom-ref": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-17:05:11@1777583111",
       "type": "application",
-      "name": "job-2026-04-30-16:36:39",
+      "name": "job-2026-04-30-17:05:11",
       "description": "Generating SBOM for jinaai/jina-embeddings-v3",
-      "version": "1777581399",
-      "purl": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-16:36:39@1777581399",
+      "version": "1777583111",
+      "purl": "pkg:generic/OWASP-AIBOM-Generator/job-2026-04-30-17:05:11@1777583111",
       "manufacturer": {
         "name": "OWASP AIBOM Generator"
       },

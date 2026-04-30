@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-segmentation-3.0-9e917f23-b6d4-4408-be02-53036dac78e3",
+      "spdxId": "urn:spdx:doc-segmentation-3.0-21d15312-ab2a-4d4d-82e2-89f348889d63",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -13,24 +13,24 @@
       "name": "AIBOM for segmentation-3.0",
       "creationInfo": {
         "type": "CreationInfo",
-        "created": "2026-04-30T20:36:06+00:00",
+        "created": "2026-04-30T21:04:38+00:00",
         "createdBy": [
           "Tool-cdx_to_spdx.py"
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-segmentation-3.0-3403e13e-92cb-4418-a522-e3f45e2daf60"
+        "urn:spdx:ai-segmentation-3.0-7bef039c-665d-40a9-8a58-39fbed2a1290"
       ],
       "element": [
-        "urn:spdx:segmentation-3.0-7cad929e-9814-4a3e-acc5-2e56b8e17d5c",
-        "urn:spdx:ai-segmentation-3.0-3403e13e-92cb-4418-a522-e3f45e2daf60",
-        "urn:spdx:rel-12f3db63-8cb6-4c5c-8507-837b19df5a5e",
-        "urn:spdx:rel-2a412266-4cbc-40d9-b2b5-c8346a1cbb2f"
+        "urn:spdx:segmentation-3.0-19ab9ec9-53db-447a-9d71-c8f54d4716bf",
+        "urn:spdx:ai-segmentation-3.0-7bef039c-665d-40a9-8a58-39fbed2a1290",
+        "urn:spdx:rel-255a8adb-8cad-4ff6-aa28-890f57a7aabe",
+        "urn:spdx:rel-75649cfa-b3f4-4fe8-9e5c-fc310451bf0a"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:segmentation-3.0-7cad929e-9814-4a3e-acc5-2e56b8e17d5c",
+      "spdxId": "urn:spdx:segmentation-3.0-19ab9ec9-53db-447a-9d71-c8f54d4716bf",
       "name": "segmentation-3.0",
       "packageVersion": "e66f3d3b",
       "downloadLocation": "https://huggingface.co/pyannote/segmentation-3.0/tree/main",
@@ -38,7 +38,7 @@
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-segmentation-3.0-3403e13e-92cb-4418-a522-e3f45e2daf60",
+      "spdxId": "urn:spdx:ai-segmentation-3.0-7bef039c-665d-40a9-8a58-39fbed2a1290",
       "name": "segmentation-3.0",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/pyannote/segmentation-3.0/tree/main",
@@ -51,16 +51,16 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-12f3db63-8cb6-4c5c-8507-837b19df5a5e",
+      "spdxId": "urn:spdx:rel-255a8adb-8cad-4ff6-aa28-890f57a7aabe",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:segmentation-3.0-7cad929e-9814-4a3e-acc5-2e56b8e17d5c",
+      "from": "urn:spdx:segmentation-3.0-19ab9ec9-53db-447a-9d71-c8f54d4716bf",
       "to": [
         "MIT"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-2a412266-4cbc-40d9-b2b5-c8346a1cbb2f",
+      "spdxId": "urn:spdx:rel-75649cfa-b3f4-4fe8-9e5c-fc310451bf0a",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/pyannote/segmentation-3.0@e66f3d3b",
       "to": [
