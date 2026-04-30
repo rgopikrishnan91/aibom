@@ -1,0 +1,54 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-job-2026-04-30-16:36:13-33e37d84-24bf-4c10-b78a-473486547d37",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for job-2026-04-30-16:36:13",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:13+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-job-2026-04-30-16:36:13-fbf97144-3c4d-4f9c-9c7f-61f654d91f0c"
+      ],
+      "element": [
+        "urn:spdx:job-2026-04-30-16:36:13-c6cbf1a3-efb0-49aa-a3c5-1bddfdda3071",
+        "urn:spdx:ai-job-2026-04-30-16:36:13-fbf97144-3c4d-4f9c-9c7f-61f654d91f0c",
+        "urn:spdx:rel-9e20ca4a-deb7-4715-a984-726a805f140a"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:job-2026-04-30-16:36:13-c6cbf1a3-efb0-49aa-a3c5-1bddfdda3071",
+      "name": "job-2026-04-30-16:36:13",
+      "packageVersion": "1777581373"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-job-2026-04-30-16:36:13-fbf97144-3c4d-4f9c-9c7f-61f654d91f0c",
+      "name": "job-2026-04-30-16:36:13",
+      "summary": "Generating SBOM for amazon/chronos-2",
+      "suppliedBy": "OWASP AIBOM Generator",
+      "packageVersion": "1777581373"
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-9e20ca4a-deb7-4715-a984-726a805f140a",
+      "relationshipType": "dependsOn",
+      "from": "pkg:generic/amazon/chronos-2@0f8a4404",
+      "to": [
+        "pkg:huggingface/amazon/chronos-2@0f8a4404"
+      ]
+    }
+  ]
+}

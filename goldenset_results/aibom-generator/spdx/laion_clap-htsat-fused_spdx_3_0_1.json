@@ -1,0 +1,54 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-job-2026-04-30-16:36:04-696d2da9-f619-4638-97aa-452000f0c912",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for job-2026-04-30-16:36:04",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:04+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-job-2026-04-30-16:36:04-e09819aa-042f-4aa8-9db9-26dfaf424a14"
+      ],
+      "element": [
+        "urn:spdx:job-2026-04-30-16:36:04-0f8bb666-e74c-49c5-857c-77989fb92164",
+        "urn:spdx:ai-job-2026-04-30-16:36:04-e09819aa-042f-4aa8-9db9-26dfaf424a14",
+        "urn:spdx:rel-8e4d5b15-e3ab-4457-ab5b-8429c0d6bc15"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:job-2026-04-30-16:36:04-0f8bb666-e74c-49c5-857c-77989fb92164",
+      "name": "job-2026-04-30-16:36:04",
+      "packageVersion": "1777581364"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-job-2026-04-30-16:36:04-e09819aa-042f-4aa8-9db9-26dfaf424a14",
+      "name": "job-2026-04-30-16:36:04",
+      "summary": "Generating SBOM for laion/clap-htsat-fused",
+      "suppliedBy": "OWASP AIBOM Generator",
+      "packageVersion": "1777581364"
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-8e4d5b15-e3ab-4457-ab5b-8429c0d6bc15",
+      "relationshipType": "dependsOn",
+      "from": "pkg:generic/laion/clap-htsat-fused@365dea6e",
+      "to": [
+        "pkg:huggingface/laion/clap-htsat-fused@365dea6e"
+      ]
+    }
+  ]
+}

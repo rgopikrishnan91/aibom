@@ -1,0 +1,54 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-job-2026-04-30-16:36:24-1eb1651f-6cdb-455a-9445-ef05228df530",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for job-2026-04-30-16:36:24",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:24+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-job-2026-04-30-16:36:24-204520c9-4eed-4674-a602-3f34a38eb07e"
+      ],
+      "element": [
+        "urn:spdx:job-2026-04-30-16:36:24-c0b655a1-188c-4e4a-844b-b39793348ab9",
+        "urn:spdx:ai-job-2026-04-30-16:36:24-204520c9-4eed-4674-a602-3f34a38eb07e",
+        "urn:spdx:rel-e08b87a9-f466-4895-b945-ea35f26e40d0"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:job-2026-04-30-16:36:24-c0b655a1-188c-4e4a-844b-b39793348ab9",
+      "name": "job-2026-04-30-16:36:24",
+      "packageVersion": "1777581384"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-job-2026-04-30-16:36:24-204520c9-4eed-4674-a602-3f34a38eb07e",
+      "name": "job-2026-04-30-16:36:24",
+      "summary": "Generating SBOM for OpenMuQ/MuQ-large-msd-iter",
+      "suppliedBy": "OWASP AIBOM Generator",
+      "packageVersion": "1777581384"
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-e08b87a9-f466-4895-b945-ea35f26e40d0",
+      "relationshipType": "dependsOn",
+      "from": "pkg:generic/OpenMuQ/MuQ-large-msd-iter@0562a578",
+      "to": [
+        "pkg:huggingface/OpenMuQ/MuQ-large-msd-iter@0562a578"
+      ]
+    }
+  ]
+}

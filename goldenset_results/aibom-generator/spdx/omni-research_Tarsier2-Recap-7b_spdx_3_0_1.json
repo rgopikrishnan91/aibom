@@ -1,0 +1,54 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-job-2026-04-30-16:36:19-a50212a8-acad-43b1-aeaf-7cd6de6e6791",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for job-2026-04-30-16:36:19",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:19+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-job-2026-04-30-16:36:19-fe139760-c92a-4822-ac61-f02819e7bedf"
+      ],
+      "element": [
+        "urn:spdx:job-2026-04-30-16:36:19-6453062f-6ffa-45a0-9e93-c95cdd32f8c9",
+        "urn:spdx:ai-job-2026-04-30-16:36:19-fe139760-c92a-4822-ac61-f02819e7bedf",
+        "urn:spdx:rel-1152d0ff-69c7-4b30-b2ff-2fb7da00f11c"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:job-2026-04-30-16:36:19-6453062f-6ffa-45a0-9e93-c95cdd32f8c9",
+      "name": "job-2026-04-30-16:36:19",
+      "packageVersion": "1777581379"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-job-2026-04-30-16:36:19-fe139760-c92a-4822-ac61-f02819e7bedf",
+      "name": "job-2026-04-30-16:36:19",
+      "summary": "Generating SBOM for omni-research/Tarsier2-Recap-7b",
+      "suppliedBy": "OWASP AIBOM Generator",
+      "packageVersion": "1777581379"
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-1152d0ff-69c7-4b30-b2ff-2fb7da00f11c",
+      "relationshipType": "dependsOn",
+      "from": "pkg:generic/omni-research/Tarsier2-Recap-7b@02908992",
+      "to": [
+        "pkg:huggingface/omni-research/Tarsier2-Recap-7b@02908992"
+      ]
+    }
+  ]
+}

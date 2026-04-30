@@ -1,0 +1,54 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-job-2026-04-30-16:36:41-96eefb78-42a9-44b7-9e6d-218a1600fbf4",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for job-2026-04-30-16:36:41",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:41+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-job-2026-04-30-16:36:41-7820a873-fd60-4a82-95a1-ad861bde1569"
+      ],
+      "element": [
+        "urn:spdx:job-2026-04-30-16:36:41-0a901a0c-6f4f-4e7b-ae5b-a7786ed474b8",
+        "urn:spdx:ai-job-2026-04-30-16:36:41-7820a873-fd60-4a82-95a1-ad861bde1569",
+        "urn:spdx:rel-8243a82b-7a4f-4f6e-99c6-e51fa1ce02c1"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:job-2026-04-30-16:36:41-0a901a0c-6f4f-4e7b-ae5b-a7786ed474b8",
+      "name": "job-2026-04-30-16:36:41",
+      "packageVersion": "1777581401"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-job-2026-04-30-16:36:41-7820a873-fd60-4a82-95a1-ad861bde1569",
+      "name": "job-2026-04-30-16:36:41",
+      "summary": "Generating SBOM for cardiffnlp/twitter-roberta-base-sentiment-latest",
+      "suppliedBy": "OWASP AIBOM Generator",
+      "packageVersion": "1777581401"
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-8243a82b-7a4f-4f6e-99c6-e51fa1ce02c1",
+      "relationshipType": "dependsOn",
+      "from": "pkg:generic/cardiffnlp/twitter-roberta-base-sentiment-latest@3216a57f",
+      "to": [
+        "pkg:huggingface/cardiffnlp/twitter-roberta-base-sentiment-latest@3216a57f"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-job-2026-04-30-16:36:07-90573af7-2ebf-4edf-b871-a64d96fb58eb",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for job-2026-04-30-16:36:07",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:07+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-job-2026-04-30-16:36:07-b023a20d-e60e-4119-bfa4-ea82d9897f4b"
+      ],
+      "element": [
+        "urn:spdx:job-2026-04-30-16:36:07-26e8edf7-684a-4aa0-a5c3-235de963f987",
+        "urn:spdx:ai-job-2026-04-30-16:36:07-b023a20d-e60e-4119-bfa4-ea82d9897f4b",
+        "urn:spdx:rel-ea18a35b-18a7-484d-ad51-39ce4269cf18"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:job-2026-04-30-16:36:07-26e8edf7-684a-4aa0-a5c3-235de963f987",
+      "name": "job-2026-04-30-16:36:07",
+      "packageVersion": "1777581367"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-job-2026-04-30-16:36:07-b023a20d-e60e-4119-bfa4-ea82d9897f4b",
+      "name": "job-2026-04-30-16:36:07",
+      "summary": "Generating SBOM for distilbert/distilbert-base-uncased",
+      "suppliedBy": "OWASP AIBOM Generator",
+      "packageVersion": "1777581367"
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-ea18a35b-18a7-484d-ad51-39ce4269cf18",
+      "relationshipType": "dependsOn",
+      "from": "pkg:generic/distilbert/distilbert-base-uncased@12040acc",
+      "to": [
+        "pkg:huggingface/distilbert/distilbert-base-uncased@12040acc"
+      ]
+    }
+  ]
+}

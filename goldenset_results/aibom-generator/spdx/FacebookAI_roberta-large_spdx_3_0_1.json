@@ -1,0 +1,54 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-job-2026-04-30-16:36:09-a3f53693-4bb0-4416-bdab-250d32e43e48",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for job-2026-04-30-16:36:09",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:09+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-job-2026-04-30-16:36:09-3b222f04-5aba-45e7-b536-04a0aa20e7ad"
+      ],
+      "element": [
+        "urn:spdx:job-2026-04-30-16:36:09-6f608e16-77cf-4067-b111-67f9ff2f0ee4",
+        "urn:spdx:ai-job-2026-04-30-16:36:09-3b222f04-5aba-45e7-b536-04a0aa20e7ad",
+        "urn:spdx:rel-51912421-e4b3-4d6b-a7cb-1768656e0068"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:job-2026-04-30-16:36:09-6f608e16-77cf-4067-b111-67f9ff2f0ee4",
+      "name": "job-2026-04-30-16:36:09",
+      "packageVersion": "1777581369"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-job-2026-04-30-16:36:09-3b222f04-5aba-45e7-b536-04a0aa20e7ad",
+      "name": "job-2026-04-30-16:36:09",
+      "summary": "Generating SBOM for FacebookAI/roberta-large",
+      "suppliedBy": "OWASP AIBOM Generator",
+      "packageVersion": "1777581369"
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-51912421-e4b3-4d6b-a7cb-1768656e0068",
+      "relationshipType": "dependsOn",
+      "from": "pkg:generic/FacebookAI/roberta-large@722cf37b",
+      "to": [
+        "pkg:huggingface/FacebookAI/roberta-large@722cf37b"
+      ]
+    }
+  ]
+}

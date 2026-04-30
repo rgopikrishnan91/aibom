@@ -1,0 +1,54 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-job-2026-04-30-16:35:59-7aa3e585-aee3-4f46-8b18-06afcb4e554f",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for job-2026-04-30-16:35:59",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:35:59+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-job-2026-04-30-16:35:59-cb1dde33-5fe7-47e6-acf4-ebb1ee25a51d"
+      ],
+      "element": [
+        "urn:spdx:job-2026-04-30-16:35:59-ad20808a-6a08-4a90-82b5-44d272868cba",
+        "urn:spdx:ai-job-2026-04-30-16:35:59-cb1dde33-5fe7-47e6-acf4-ebb1ee25a51d",
+        "urn:spdx:rel-99e2bf84-aeb7-4547-ac63-44defd5e25f4"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:job-2026-04-30-16:35:59-ad20808a-6a08-4a90-82b5-44d272868cba",
+      "name": "job-2026-04-30-16:35:59",
+      "packageVersion": "1777581359"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-job-2026-04-30-16:35:59-cb1dde33-5fe7-47e6-acf4-ebb1ee25a51d",
+      "name": "job-2026-04-30-16:35:59",
+      "summary": "Generating SBOM for google-bert/bert-base-uncased",
+      "suppliedBy": "OWASP AIBOM Generator",
+      "packageVersion": "1777581359"
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-99e2bf84-aeb7-4547-ac63-44defd5e25f4",
+      "relationshipType": "dependsOn",
+      "from": "pkg:generic/google-bert/bert-base-uncased@86b5e093",
+      "to": [
+        "pkg:huggingface/google-bert/bert-base-uncased@86b5e093"
+      ]
+    }
+  ]
+}

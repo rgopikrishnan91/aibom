@@ -1,0 +1,54 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-job-2026-04-30-16:36:18-0a2e5501-11bc-4cb0-a653-484b6cacd3f7",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for job-2026-04-30-16:36:18",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:18+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-job-2026-04-30-16:36:18-eb7f6c25-a20e-4544-9a7e-0f0474a8422b"
+      ],
+      "element": [
+        "urn:spdx:job-2026-04-30-16:36:18-cc0dbb07-5783-4b8a-8151-b0232cfc1776",
+        "urn:spdx:ai-job-2026-04-30-16:36:18-eb7f6c25-a20e-4544-9a7e-0f0474a8422b",
+        "urn:spdx:rel-868fd117-ce2c-4ef1-80a8-95848034cd2c"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:job-2026-04-30-16:36:18-cc0dbb07-5783-4b8a-8151-b0232cfc1776",
+      "name": "job-2026-04-30-16:36:18",
+      "packageVersion": "1777581378"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-job-2026-04-30-16:36:18-eb7f6c25-a20e-4544-9a7e-0f0474a8422b",
+      "name": "job-2026-04-30-16:36:18",
+      "summary": "Generating SBOM for Qwen/Qwen2.5-7B-Instruct",
+      "suppliedBy": "OWASP AIBOM Generator",
+      "packageVersion": "1777581378"
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-868fd117-ce2c-4ef1-80a8-95848034cd2c",
+      "relationshipType": "dependsOn",
+      "from": "pkg:generic/Qwen/Qwen2.5-7B-Instruct@a09a3545",
+      "to": [
+        "pkg:huggingface/Qwen/Qwen2.5-7B-Instruct@a09a3545"
+      ]
+    }
+  ]
+}

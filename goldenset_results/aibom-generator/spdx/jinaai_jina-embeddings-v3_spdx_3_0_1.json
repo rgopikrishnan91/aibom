@@ -1,0 +1,54 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-job-2026-04-30-16:36:39-359982b7-efd2-4b37-9cef-1ac02ab0aa4b",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for job-2026-04-30-16:36:39",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:39+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-job-2026-04-30-16:36:39-7740e69f-4740-45d6-88f3-4f9e70dd61c3"
+      ],
+      "element": [
+        "urn:spdx:job-2026-04-30-16:36:39-19f7a619-4f45-489e-a53f-2566b4dd1c75",
+        "urn:spdx:ai-job-2026-04-30-16:36:39-7740e69f-4740-45d6-88f3-4f9e70dd61c3",
+        "urn:spdx:rel-cd3e0270-ef40-46e6-bb56-0fc37b8e845b"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:job-2026-04-30-16:36:39-19f7a619-4f45-489e-a53f-2566b4dd1c75",
+      "name": "job-2026-04-30-16:36:39",
+      "packageVersion": "1777581399"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-job-2026-04-30-16:36:39-7740e69f-4740-45d6-88f3-4f9e70dd61c3",
+      "name": "job-2026-04-30-16:36:39",
+      "summary": "Generating SBOM for jinaai/jina-embeddings-v3",
+      "suppliedBy": "OWASP AIBOM Generator",
+      "packageVersion": "1777581399"
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-cd3e0270-ef40-46e6-bb56-0fc37b8e845b",
+      "relationshipType": "dependsOn",
+      "from": "pkg:generic/jinaai/jina-embeddings-v3@ab036b02",
+      "to": [
+        "pkg:huggingface/jinaai/jina-embeddings-v3@ab036b02"
+      ]
+    }
+  ]
+}

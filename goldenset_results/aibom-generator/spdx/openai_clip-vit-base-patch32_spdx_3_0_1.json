@@ -1,0 +1,54 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-job-2026-04-30-16:36:01-4a8c65f9-49c4-480c-9226-fdd5c422b5d8",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for job-2026-04-30-16:36:01",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:01+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-job-2026-04-30-16:36:01-92ca554a-cf77-400b-ae01-d19cf5a10a0c"
+      ],
+      "element": [
+        "urn:spdx:job-2026-04-30-16:36:01-368cdf4d-1312-4acb-b032-53859254623d",
+        "urn:spdx:ai-job-2026-04-30-16:36:01-92ca554a-cf77-400b-ae01-d19cf5a10a0c",
+        "urn:spdx:rel-152cb8f2-05d1-4c67-a4d4-a0e6723657d4"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:job-2026-04-30-16:36:01-368cdf4d-1312-4acb-b032-53859254623d",
+      "name": "job-2026-04-30-16:36:01",
+      "packageVersion": "1777581361"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-job-2026-04-30-16:36:01-92ca554a-cf77-400b-ae01-d19cf5a10a0c",
+      "name": "job-2026-04-30-16:36:01",
+      "summary": "Generating SBOM for openai/clip-vit-base-patch32",
+      "suppliedBy": "OWASP AIBOM Generator",
+      "packageVersion": "1777581361"
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-152cb8f2-05d1-4c67-a4d4-a0e6723657d4",
+      "relationshipType": "dependsOn",
+      "from": "pkg:generic/openai/clip-vit-base-patch32@3d74acf9",
+      "to": [
+        "pkg:huggingface/openai/clip-vit-base-patch32@3d74acf9"
+      ]
+    }
+  ]
+}

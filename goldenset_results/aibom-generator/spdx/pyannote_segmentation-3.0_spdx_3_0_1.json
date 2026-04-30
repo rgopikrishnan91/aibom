@@ -1,0 +1,54 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-job-2026-04-30-16:36:06-c6cbc2b2-07bd-45b1-88ac-cd84195a436b",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for job-2026-04-30-16:36:06",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:06+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-job-2026-04-30-16:36:06-768e1778-a934-4985-b177-8f8ecd62f746"
+      ],
+      "element": [
+        "urn:spdx:job-2026-04-30-16:36:06-a81785f1-bd90-416f-893d-ba191ce16281",
+        "urn:spdx:ai-job-2026-04-30-16:36:06-768e1778-a934-4985-b177-8f8ecd62f746",
+        "urn:spdx:rel-5ffb05f9-9afa-462c-9c7e-793cb552eaa3"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:job-2026-04-30-16:36:06-a81785f1-bd90-416f-893d-ba191ce16281",
+      "name": "job-2026-04-30-16:36:06",
+      "packageVersion": "1777581366"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-job-2026-04-30-16:36:06-768e1778-a934-4985-b177-8f8ecd62f746",
+      "name": "job-2026-04-30-16:36:06",
+      "summary": "Generating SBOM for pyannote/segmentation-3.0",
+      "suppliedBy": "OWASP AIBOM Generator",
+      "packageVersion": "1777581366"
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-5ffb05f9-9afa-462c-9c7e-793cb552eaa3",
+      "relationshipType": "dependsOn",
+      "from": "pkg:generic/pyannote/segmentation-3.0@e66f3d3b",
+      "to": [
+        "pkg:huggingface/pyannote/segmentation-3.0@e66f3d3b"
+      ]
+    }
+  ]
+}

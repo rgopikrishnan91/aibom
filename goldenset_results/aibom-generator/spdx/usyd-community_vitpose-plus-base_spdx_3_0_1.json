@@ -1,0 +1,54 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-job-2026-04-30-16:36:45-d6bf92d7-0805-4ff2-894b-95179b8f2501",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for job-2026-04-30-16:36:45",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:45+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-job-2026-04-30-16:36:45-d684234a-b381-477e-bde4-cca98f12cd32"
+      ],
+      "element": [
+        "urn:spdx:job-2026-04-30-16:36:45-a51fbfd2-1983-4dbb-94d8-403fbfb3cef7",
+        "urn:spdx:ai-job-2026-04-30-16:36:45-d684234a-b381-477e-bde4-cca98f12cd32",
+        "urn:spdx:rel-556a3858-9ea3-47c1-8475-5e1163c52017"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:job-2026-04-30-16:36:45-a51fbfd2-1983-4dbb-94d8-403fbfb3cef7",
+      "name": "job-2026-04-30-16:36:45",
+      "packageVersion": "1777581405"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-job-2026-04-30-16:36:45-d684234a-b381-477e-bde4-cca98f12cd32",
+      "name": "job-2026-04-30-16:36:45",
+      "summary": "Generating SBOM for usyd-community/vitpose-plus-base",
+      "suppliedBy": "OWASP AIBOM Generator",
+      "packageVersion": "1777581405"
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-556a3858-9ea3-47c1-8475-5e1163c52017",
+      "relationshipType": "dependsOn",
+      "from": "pkg:generic/usyd-community/vitpose-plus-base@92be54d7",
+      "to": [
+        "pkg:huggingface/usyd-community/vitpose-plus-base@92be54d7"
+      ]
+    }
+  ]
+}

@@ -47,9 +47,17 @@ if [[ ! -d "${WORK_DIR}/ALOHA" ]]; then
   git clone --depth 1 https://github.com/MSR4SBOM/ALOHA.git "${WORK_DIR}/ALOHA"
 fi
 
-# 3. Install deps (skip torch/transformers/sentencepiece — only needed for --summarize)
+# 3. Create venv and install deps
+VENV_DIR="${WORK_DIR}/venv"
+if [[ ! -d "${VENV_DIR}" ]]; then
+  log "Creating Python virtual environment..."
+  python3 -m venv "${VENV_DIR}"
+fi
+# shellcheck disable=SC1091
+source "${VENV_DIR}/bin/activate"
+
 log "Installing Python dependencies..."
-pip install --quiet --ignore-installed \
+pip install --quiet \
   blinker beautifulsoup4 huggingface_hub jsonschema license-expression \
   packageurl-python pydantic 'PyYAML>=6' requests httpx jinja2 datasets flask \
   fastapi uvicorn starlette gunicorn python-multipart 2>&1 | tail -5
@@ -87,7 +95,7 @@ for model in "${MODELS[@]}"; do
 
   # 5b. ALOHA (writes <safe>.json into output dir)
   ( cd "${WORK_DIR}/ALOHA" && \
-    timeout "${TIMEOUT_SEC}" python3 ALOHA.py "${model}" -o "${OUT_DIR}/aloha/cyclonedx-1.6" \
+    timeout "${TIMEOUT_SEC}" python3 ALOHA.py "${model}" -o "${OUT_DIR}/aloha/cyclonedx-1.6/" \
       >>"${OUT_DIR}/aloha/errors.log" 2>&1 )
   # ALOHA names output after the model — find latest json that mentions the model
   if compgen -G "${OUT_DIR}/aloha/cyclonedx-1.6/*${safe##*_}*.json" >/dev/null 2>&1 \

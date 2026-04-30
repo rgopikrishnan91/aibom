@@ -1,0 +1,54 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-job-2026-04-30-16:36:29-655ed403-e36f-4399-9208-fa2e384eeb03",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for job-2026-04-30-16:36:29",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:29+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-job-2026-04-30-16:36:29-5c695edf-f03a-48df-9694-58df07cc6092"
+      ],
+      "element": [
+        "urn:spdx:job-2026-04-30-16:36:29-1f51729d-5770-40b5-984e-c359ec3e9975",
+        "urn:spdx:ai-job-2026-04-30-16:36:29-5c695edf-f03a-48df-9694-58df07cc6092",
+        "urn:spdx:rel-ac734155-dc69-4ab0-8c0a-b8777f4b0735"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:job-2026-04-30-16:36:29-1f51729d-5770-40b5-984e-c359ec3e9975",
+      "name": "job-2026-04-30-16:36:29",
+      "packageVersion": "1777581389"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-job-2026-04-30-16:36:29-5c695edf-f03a-48df-9694-58df07cc6092",
+      "name": "job-2026-04-30-16:36:29",
+      "summary": "Generating SBOM for meta-llama/Llama-3.1-8B-Instruct",
+      "suppliedBy": "OWASP AIBOM Generator",
+      "packageVersion": "1777581389"
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-ac734155-dc69-4ab0-8c0a-b8777f4b0735",
+      "relationshipType": "dependsOn",
+      "from": "pkg:generic/meta-llama/Llama-3.1-8B-Instruct@0e9e39f2",
+      "to": [
+        "pkg:huggingface/meta-llama/Llama-3.1-8B-Instruct@0e9e39f2"
+      ]
+    }
+  ]
+}

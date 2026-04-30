@@ -1,0 +1,54 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-job-2026-04-30-16:35:57-4db25fef-4274-423b-9a22-b9150ddab863",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for job-2026-04-30-16:35:57",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:35:57+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-job-2026-04-30-16:35:57-278fe358-48e6-4727-a856-eda66fd90473"
+      ],
+      "element": [
+        "urn:spdx:job-2026-04-30-16:35:57-5e2cb839-beea-4313-b352-eceec47f8199",
+        "urn:spdx:ai-job-2026-04-30-16:35:57-278fe358-48e6-4727-a856-eda66fd90473",
+        "urn:spdx:rel-045f31a7-9aeb-4bc9-a3ba-97ff32ec3772"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:job-2026-04-30-16:35:57-5e2cb839-beea-4313-b352-eceec47f8199",
+      "name": "job-2026-04-30-16:35:57",
+      "packageVersion": "1777581357"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-job-2026-04-30-16:35:57-278fe358-48e6-4727-a856-eda66fd90473",
+      "name": "job-2026-04-30-16:35:57",
+      "summary": "Generating SBOM for Falconsai/nsfw_image_detection",
+      "suppliedBy": "OWASP AIBOM Generator",
+      "packageVersion": "1777581357"
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-045f31a7-9aeb-4bc9-a3ba-97ff32ec3772",
+      "relationshipType": "dependsOn",
+      "from": "pkg:generic/Falconsai/nsfw_image_detection@04367978",
+      "to": [
+        "pkg:huggingface/Falconsai/nsfw_image_detection@04367978"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-job-2026-04-30-16:36:22-33aa64ad-1cd4-42e2-996a-17aff74950c0",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for job-2026-04-30-16:36:22",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:22+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-job-2026-04-30-16:36:22-b979666f-d154-481b-b652-b5fc4e8248ca"
+      ],
+      "element": [
+        "urn:spdx:job-2026-04-30-16:36:22-99ba2d61-7def-4a96-9617-eca6d7f47dda",
+        "urn:spdx:ai-job-2026-04-30-16:36:22-b979666f-d154-481b-b652-b5fc4e8248ca",
+        "urn:spdx:rel-794f0e28-22f0-4aa4-a4ca-26506a0389b6"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:job-2026-04-30-16:36:22-99ba2d61-7def-4a96-9617-eca6d7f47dda",
+      "name": "job-2026-04-30-16:36:22",
+      "packageVersion": "1777581382"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-job-2026-04-30-16:36:22-b979666f-d154-481b-b652-b5fc4e8248ca",
+      "name": "job-2026-04-30-16:36:22",
+      "summary": "Generating SBOM for cross-encoder/ms-marco-MiniLM-L6-v2",
+      "suppliedBy": "OWASP AIBOM Generator",
+      "packageVersion": "1777581382"
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-794f0e28-22f0-4aa4-a4ca-26506a0389b6",
+      "relationshipType": "dependsOn",
+      "from": "pkg:generic/cross-encoder/ms-marco-MiniLM-L6-v2@c5ee24cb",
+      "to": [
+        "pkg:huggingface/cross-encoder/ms-marco-MiniLM-L6-v2@c5ee24cb"
+      ]
+    }
+  ]
+}
