@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-distilbert_distilbert-base-uncased-e57c0b7c-9ac0-4cb1-b9e5-e81f64e0f47d",
+      "spdxId": "urn:spdx:doc-distilbert_distilbert-base-uncased-53931794-e547-41db-abfd-a1ae88488a75",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,26 +19,26 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-distilbert_distilbert-base-uncased-2dd6bd72-13f0-438a-ab25-c094cce47600"
+        "urn:spdx:ai-distilbert_distilbert-base-uncased-1f93a2ec-017d-491f-ad0b-4ee4d5874574"
       ],
       "element": [
-        "urn:spdx:distilbert_distilbert-base-uncased-085b1bb5-dd52-418f-9115-ddaa9234d128",
-        "urn:spdx:ai-distilbert_distilbert-base-uncased-2dd6bd72-13f0-438a-ab25-c094cce47600",
-        "urn:spdx:rel-cf41c2cc-2427-4956-82be-d29987a18d8a",
-        "urn:spdx:rel-b3ba1a34-0d9b-4900-adc0-0eab7dcae028",
-        "urn:spdx:rel-6deda4b6-cc71-4392-b176-83ed142c18db"
+        "urn:spdx:distilbert_distilbert-base-uncased-04245c09-645b-462e-a876-61656c1fd15a",
+        "urn:spdx:ai-distilbert_distilbert-base-uncased-1f93a2ec-017d-491f-ad0b-4ee4d5874574",
+        "urn:spdx:rel-df1efeb1-9e95-407e-971a-b82b445a54b0",
+        "urn:spdx:rel-837f0eae-5747-44dc-bff6-257ecda35934",
+        "urn:spdx:rel-9c44d547-cda1-405a-be96-635fdaee33b9"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:distilbert_distilbert-base-uncased-085b1bb5-dd52-418f-9115-ddaa9234d128",
+      "spdxId": "urn:spdx:distilbert_distilbert-base-uncased-04245c09-645b-462e-a876-61656c1fd15a",
       "name": "distilbert/distilbert-base-uncased",
       "downloadLocation": "https://huggingface.co/distilbert/distilbert-base-uncased",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-distilbert_distilbert-base-uncased-2dd6bd72-13f0-438a-ab25-c094cce47600",
+      "spdxId": "urn:spdx:ai-distilbert_distilbert-base-uncased-1f93a2ec-017d-491f-ad0b-4ee4d5874574",
       "name": "distilbert/distilbert-base-uncased",
       "summary": "DistilBERT is a transformers model, smaller and faster than BERT, which was pretrained on the same corpus in aself-supervised fashion, using the BERT base model as a teacher. This means it was pretrained on the raw texts only,with no humans labelling them in any way (which is why it can use lots of publicly available data) with an automaticprocess to generate inputs and labels from those texts using the BERT base model. More precisely, it was pretrainedwith three objectives:- Distillation loss: the model was trained to return the same probabilities as the BERT base model.- Masked language modeling (MLM): this is part of the original training loss of the BERT base model. When taking asentence, the model randomly masks 15% of the words in the input then run the entire masked sentence through themodel and has to predict the masked words. This is different from traditional recurrent neural networks (RNNs) thatusually see the words one after the other, or from autoregressive models like GPT which internally mask the futuretokens. It allows the model to learn a bidirectional representation of the sentence.- Cosine embedding loss: the model was also trained to generate hidden states as close as possible as the BERT basemodel.This way, the model learns the same inner representation of the English language than its teacher model, while beingfaster for inference or downstream tasks.",
       "downloadLocation": "https://huggingface.co/distilbert/distilbert-base-uncased",
@@ -72,27 +72,27 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-cf41c2cc-2427-4956-82be-d29987a18d8a",
+      "spdxId": "urn:spdx:rel-df1efeb1-9e95-407e-971a-b82b445a54b0",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:distilbert_distilbert-base-uncased-085b1bb5-dd52-418f-9115-ddaa9234d128",
+      "from": "urn:spdx:distilbert_distilbert-base-uncased-04245c09-645b-462e-a876-61656c1fd15a",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-b3ba1a34-0d9b-4900-adc0-0eab7dcae028",
+      "spdxId": "urn:spdx:rel-837f0eae-5747-44dc-bff6-257ecda35934",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-distilbert_distilbert-base-uncased-2dd6bd72-13f0-438a-ab25-c094cce47600",
+      "from": "urn:spdx:ai-distilbert_distilbert-base-uncased-1f93a2ec-017d-491f-ad0b-4ee4d5874574",
       "to": [
         "bookcorpus-5b88b1fa-89d7-54e0-8076-a03aa22c33e0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-6deda4b6-cc71-4392-b176-83ed142c18db",
+      "spdxId": "urn:spdx:rel-9c44d547-cda1-405a-be96-635fdaee33b9",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-distilbert_distilbert-base-uncased-2dd6bd72-13f0-438a-ab25-c094cce47600",
+      "from": "urn:spdx:ai-distilbert_distilbert-base-uncased-1f93a2ec-017d-491f-ad0b-4ee4d5874574",
       "to": [
         "wikipedia-8c5eb686-d691-517b-aad7-040fa51febc3"
       ]

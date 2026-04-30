@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-bert-base-uncased-07c43a60-fdcb-4290-9d5e-b86b0b8dc6f6",
+      "spdxId": "urn:spdx:doc-bert-base-uncased-72efa803-56e5-4e6f-9611-4b416b9c04e4",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,33 +19,32 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-bert-base-uncased-3aec50d9-ec78-416b-a3c6-a8d46010f98a"
+        "urn:spdx:ai-bert-base-uncased-adb77d4a-d9f6-4ecd-a14c-a3e516201756"
       ],
       "element": [
-        "urn:spdx:bert-base-uncased-0e3a4d5d-040c-460e-a8ef-ff15f895bd70",
-        "urn:spdx:ai-bert-base-uncased-3aec50d9-ec78-416b-a3c6-a8d46010f98a",
-        "urn:spdx:rel-5067c8cc-917f-4740-b5dc-478bcb2b477d",
-        "urn:spdx:rel-a5eeab02-f2ad-48eb-a54f-486d08d5189a",
-        "urn:spdx:rel-71725486-c84c-4c6e-be3e-8a2d52c7d8da",
-        "urn:spdx:rel-81f1bf70-ab54-4ab4-a8da-61bacb0a7811"
+        "urn:spdx:bert-base-uncased-29924997-eee1-4e9a-8b38-4a7675764e36",
+        "urn:spdx:ai-bert-base-uncased-adb77d4a-d9f6-4ecd-a14c-a3e516201756",
+        "urn:spdx:rel-eef2bbaf-9bc2-4eca-859b-d0329a8ccfe0",
+        "urn:spdx:rel-f3775342-dec1-473d-8660-f11e91e14c3e",
+        "urn:spdx:rel-98cb4920-e07a-4a4b-b65f-1fcee4a4dd40",
+        "urn:spdx:rel-9c70cd6e-7d67-4dfc-b595-ef2ae5f7af06"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:bert-base-uncased-0e3a4d5d-040c-460e-a8ef-ff15f895bd70",
+      "spdxId": "urn:spdx:bert-base-uncased-29924997-eee1-4e9a-8b38-4a7675764e36",
       "name": "bert-base-uncased",
       "packageVersion": "86b5e093",
-      "packageUrl": "pkg:huggingface/google-bert/bert-base-uncased@86b5e093",
       "downloadLocation": "https://huggingface.co/google-bert/bert-base-uncased/tree/main",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-bert-base-uncased-3aec50d9-ec78-416b-a3c6-a8d46010f98a",
+      "spdxId": "urn:spdx:ai-bert-base-uncased-adb77d4a-d9f6-4ecd-a14c-a3e516201756",
       "name": "bert-base-uncased",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/google-bert/bert-base-uncased/tree/main",
-      "packageUrl": "pkg:huggingface/google-bert/bert-base-uncased@86b5e093",
+      "packageUrl": "https://huggingface.co/google-bert/bert-base-uncased/commit/86b5e0934494bd15c9632b12f734a8a67f723594",
       "suppliedBy": "google-bert",
       "packageVersion": "86b5e093",
       "primaryPurpose": [
@@ -59,34 +58,34 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-5067c8cc-917f-4740-b5dc-478bcb2b477d",
+      "spdxId": "urn:spdx:rel-eef2bbaf-9bc2-4eca-859b-d0329a8ccfe0",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:bert-base-uncased-0e3a4d5d-040c-460e-a8ef-ff15f895bd70",
+      "from": "urn:spdx:bert-base-uncased-29924997-eee1-4e9a-8b38-4a7675764e36",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-a5eeab02-f2ad-48eb-a54f-486d08d5189a",
+      "spdxId": "urn:spdx:rel-f3775342-dec1-473d-8660-f11e91e14c3e",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-bert-base-uncased-3aec50d9-ec78-416b-a3c6-a8d46010f98a",
+      "from": "urn:spdx:ai-bert-base-uncased-adb77d4a-d9f6-4ecd-a14c-a3e516201756",
       "to": [
         "bookcorpus"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-71725486-c84c-4c6e-be3e-8a2d52c7d8da",
+      "spdxId": "urn:spdx:rel-98cb4920-e07a-4a4b-b65f-1fcee4a4dd40",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-bert-base-uncased-3aec50d9-ec78-416b-a3c6-a8d46010f98a",
+      "from": "urn:spdx:ai-bert-base-uncased-adb77d4a-d9f6-4ecd-a14c-a3e516201756",
       "to": [
         "wikipedia"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-81f1bf70-ab54-4ab4-a8da-61bacb0a7811",
+      "spdxId": "urn:spdx:rel-9c70cd6e-7d67-4dfc-b595-ef2ae5f7af06",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/google-bert/bert-base-uncased@86b5e093",
       "to": [

@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-distilbert-base-uncased-700f33f5-7d63-4934-b389-76231e9526df",
+      "spdxId": "urn:spdx:doc-distilbert-base-uncased-f847ad3c-cc94-4be0-aa20-fe463305545e",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,33 +19,32 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-distilbert-base-uncased-77fd6cd0-8f55-4b78-9cac-5e9568dfc654"
+        "urn:spdx:ai-distilbert-base-uncased-3428dfe5-1de8-4c27-ae47-3c6dadb34f09"
       ],
       "element": [
-        "urn:spdx:distilbert-base-uncased-d1dcad6d-4182-41a2-81e0-6ad1cee0da15",
-        "urn:spdx:ai-distilbert-base-uncased-77fd6cd0-8f55-4b78-9cac-5e9568dfc654",
-        "urn:spdx:rel-42afde3d-d424-43f0-b88f-033cd754c7f4",
-        "urn:spdx:rel-583787fe-feb9-4540-aaa2-a091eb01ce4a",
-        "urn:spdx:rel-eab833ee-022d-4a6b-9eeb-8aee3e2cba0e",
-        "urn:spdx:rel-732bbdce-72ab-40cb-8b80-7743f2783084"
+        "urn:spdx:distilbert-base-uncased-f83bc765-4340-4679-b42c-b46778e59b5d",
+        "urn:spdx:ai-distilbert-base-uncased-3428dfe5-1de8-4c27-ae47-3c6dadb34f09",
+        "urn:spdx:rel-b5a75209-ba0a-4877-8da2-1a835eabda33",
+        "urn:spdx:rel-c153cb39-c281-43f4-b33f-a8093ccf0215",
+        "urn:spdx:rel-c56b1d81-5fc3-4b74-8487-00e563d59a35",
+        "urn:spdx:rel-46e4b6dc-731f-4f16-9612-26f8c08f212f"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:distilbert-base-uncased-d1dcad6d-4182-41a2-81e0-6ad1cee0da15",
+      "spdxId": "urn:spdx:distilbert-base-uncased-f83bc765-4340-4679-b42c-b46778e59b5d",
       "name": "distilbert-base-uncased",
       "packageVersion": "12040acc",
-      "packageUrl": "pkg:huggingface/distilbert/distilbert-base-uncased@12040acc",
       "downloadLocation": "https://huggingface.co/distilbert/distilbert-base-uncased/tree/main",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-distilbert-base-uncased-77fd6cd0-8f55-4b78-9cac-5e9568dfc654",
+      "spdxId": "urn:spdx:ai-distilbert-base-uncased-3428dfe5-1de8-4c27-ae47-3c6dadb34f09",
       "name": "distilbert-base-uncased",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/distilbert/distilbert-base-uncased/tree/main",
-      "packageUrl": "pkg:huggingface/distilbert/distilbert-base-uncased@12040acc",
+      "packageUrl": "https://huggingface.co/distilbert/distilbert-base-uncased/commit/12040accade4e8a0f71eabdb258fecc2e7e948be",
       "suppliedBy": "distilbert",
       "packageVersion": "12040acc",
       "primaryPurpose": [
@@ -59,34 +58,34 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-42afde3d-d424-43f0-b88f-033cd754c7f4",
+      "spdxId": "urn:spdx:rel-b5a75209-ba0a-4877-8da2-1a835eabda33",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:distilbert-base-uncased-d1dcad6d-4182-41a2-81e0-6ad1cee0da15",
+      "from": "urn:spdx:distilbert-base-uncased-f83bc765-4340-4679-b42c-b46778e59b5d",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-583787fe-feb9-4540-aaa2-a091eb01ce4a",
+      "spdxId": "urn:spdx:rel-c153cb39-c281-43f4-b33f-a8093ccf0215",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-distilbert-base-uncased-77fd6cd0-8f55-4b78-9cac-5e9568dfc654",
+      "from": "urn:spdx:ai-distilbert-base-uncased-3428dfe5-1de8-4c27-ae47-3c6dadb34f09",
       "to": [
         "bookcorpus"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-eab833ee-022d-4a6b-9eeb-8aee3e2cba0e",
+      "spdxId": "urn:spdx:rel-c56b1d81-5fc3-4b74-8487-00e563d59a35",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-distilbert-base-uncased-77fd6cd0-8f55-4b78-9cac-5e9568dfc654",
+      "from": "urn:spdx:ai-distilbert-base-uncased-3428dfe5-1de8-4c27-ae47-3c6dadb34f09",
       "to": [
         "wikipedia"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-732bbdce-72ab-40cb-8b80-7743f2783084",
+      "spdxId": "urn:spdx:rel-46e4b6dc-731f-4f16-9612-26f8c08f212f",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/distilbert/distilbert-base-uncased@12040acc",
       "to": [

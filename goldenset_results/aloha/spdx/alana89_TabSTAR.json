@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-alana89_TabSTAR-c57311b7-ed24-4193-9c14-3a3bcdbe5a5f",
+      "spdxId": "urn:spdx:doc-alana89_TabSTAR-e6525821-b336-4517-936d-cbed22254e24",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,24 +19,24 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-alana89_TabSTAR-a0adbf5e-3596-4aff-9d68-96c02531f982"
+        "urn:spdx:ai-alana89_TabSTAR-28c6ad88-88df-4771-bfde-3313bdf50ba4"
       ],
       "element": [
-        "urn:spdx:alana89_TabSTAR-770b4213-a5c1-4932-a80b-afd4c19fe3a5",
-        "urn:spdx:ai-alana89_TabSTAR-a0adbf5e-3596-4aff-9d68-96c02531f982",
-        "urn:spdx:rel-374b559d-93f1-4226-8cc8-313a1ef15d1b"
+        "urn:spdx:alana89_TabSTAR-5bfc979e-a610-4f07-acb9-c8543d6cbceb",
+        "urn:spdx:ai-alana89_TabSTAR-28c6ad88-88df-4771-bfde-3313bdf50ba4",
+        "urn:spdx:rel-a0490163-a09c-4fb7-a01c-973451a7277b"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:alana89_TabSTAR-770b4213-a5c1-4932-a80b-afd4c19fe3a5",
+      "spdxId": "urn:spdx:alana89_TabSTAR-5bfc979e-a610-4f07-acb9-c8543d6cbceb",
       "name": "alana89/TabSTAR",
       "downloadLocation": "https://huggingface.co/alana89/TabSTAR",
       "licenseDeclared": "CC-BY-4.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-alana89_TabSTAR-a0adbf5e-3596-4aff-9d68-96c02531f982",
+      "spdxId": "urn:spdx:ai-alana89_TabSTAR-28c6ad88-88df-4771-bfde-3313bdf50ba4",
       "name": "alana89/TabSTAR",
       "downloadLocation": "https://huggingface.co/alana89/TabSTAR",
       "packageUrl": "https://huggingface.co/alana89/TabSTAR",
@@ -60,9 +60,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-374b559d-93f1-4226-8cc8-313a1ef15d1b",
+      "spdxId": "urn:spdx:rel-a0490163-a09c-4fb7-a01c-973451a7277b",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:alana89_TabSTAR-770b4213-a5c1-4932-a80b-afd4c19fe3a5",
+      "from": "urn:spdx:alana89_TabSTAR-5bfc979e-a610-4f07-acb9-c8543d6cbceb",
       "to": [
         "CC-BY-4.0"
       ]

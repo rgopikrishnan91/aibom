@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-Kijai_WanVideo_comfy-60f24cab-8236-4900-9b23-93b6c9b47853",
+      "spdxId": "urn:spdx:doc-Kijai_WanVideo_comfy-c3eb782d-da41-4b5f-b361-882ab7311d21",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,22 +19,22 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-Kijai_WanVideo_comfy-0bbb433a-1c2a-4680-a122-2d5eaffb6850"
+        "urn:spdx:ai-Kijai_WanVideo_comfy-76d52cc6-98be-4d4a-8da3-5d1177b181fb"
       ],
       "element": [
-        "urn:spdx:Kijai_WanVideo_comfy-f4479aa3-8633-4a7f-ad28-a8a15062968e",
-        "urn:spdx:ai-Kijai_WanVideo_comfy-0bbb433a-1c2a-4680-a122-2d5eaffb6850"
+        "urn:spdx:Kijai_WanVideo_comfy-dcde8016-4092-4223-911b-f9bd5d6000b3",
+        "urn:spdx:ai-Kijai_WanVideo_comfy-76d52cc6-98be-4d4a-8da3-5d1177b181fb"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:Kijai_WanVideo_comfy-f4479aa3-8633-4a7f-ad28-a8a15062968e",
+      "spdxId": "urn:spdx:Kijai_WanVideo_comfy-dcde8016-4092-4223-911b-f9bd5d6000b3",
       "name": "Kijai/WanVideo_comfy",
       "downloadLocation": "https://huggingface.co/Kijai/WanVideo_comfy"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-Kijai_WanVideo_comfy-0bbb433a-1c2a-4680-a122-2d5eaffb6850",
+      "spdxId": "urn:spdx:ai-Kijai_WanVideo_comfy-76d52cc6-98be-4d4a-8da3-5d1177b181fb",
       "name": "Kijai/WanVideo_comfy",
       "downloadLocation": "https://huggingface.co/Kijai/WanVideo_comfy",
       "packageUrl": "https://huggingface.co/Kijai/WanVideo_comfy",

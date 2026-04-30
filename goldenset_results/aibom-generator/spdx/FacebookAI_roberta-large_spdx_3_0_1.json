@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-roberta-large-b7edb989-6f49-42af-a4be-311f1cda071a",
+      "spdxId": "urn:spdx:doc-roberta-large-ada7dca1-d028-41db-80d7-886eeb2fa67f",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,33 +19,32 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-roberta-large-c801ff12-7179-4e4e-a19f-c43bbc963c9c"
+        "urn:spdx:ai-roberta-large-d9631b22-d24a-43ef-a657-bba81250b1eb"
       ],
       "element": [
-        "urn:spdx:roberta-large-0732935e-da5d-4fe0-96a3-d1524300505a",
-        "urn:spdx:ai-roberta-large-c801ff12-7179-4e4e-a19f-c43bbc963c9c",
-        "urn:spdx:rel-ec73c2ab-9db1-4cc5-81d2-3bb95bc97c28",
-        "urn:spdx:rel-707c8032-e91f-470b-a37f-9f6f23002b41",
-        "urn:spdx:rel-99dc507d-77d3-4fb5-bc46-f73c9fb6adde",
-        "urn:spdx:rel-4cbbbce3-4c8d-4288-9013-f7b7e59ca32c"
+        "urn:spdx:roberta-large-40600961-3836-4033-b6a1-d4c101816b3e",
+        "urn:spdx:ai-roberta-large-d9631b22-d24a-43ef-a657-bba81250b1eb",
+        "urn:spdx:rel-dbdc4cab-981c-41bb-820e-0d78c0da6c25",
+        "urn:spdx:rel-7abb65f3-6688-473a-9994-b54c0f7e79e2",
+        "urn:spdx:rel-17c58117-ad2d-42d9-82c9-793f37f9b84e",
+        "urn:spdx:rel-e58c46a3-a02f-4fc9-9cfe-ec1d659131b6"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:roberta-large-0732935e-da5d-4fe0-96a3-d1524300505a",
+      "spdxId": "urn:spdx:roberta-large-40600961-3836-4033-b6a1-d4c101816b3e",
       "name": "roberta-large",
       "packageVersion": "722cf37b",
-      "packageUrl": "pkg:huggingface/FacebookAI/roberta-large@722cf37b",
       "downloadLocation": "https://huggingface.co/FacebookAI/roberta-large/tree/main",
       "licenseDeclared": "MIT"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-roberta-large-c801ff12-7179-4e4e-a19f-c43bbc963c9c",
+      "spdxId": "urn:spdx:ai-roberta-large-d9631b22-d24a-43ef-a657-bba81250b1eb",
       "name": "roberta-large",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/FacebookAI/roberta-large/tree/main",
-      "packageUrl": "pkg:huggingface/FacebookAI/roberta-large@722cf37b",
+      "packageUrl": "https://huggingface.co/FacebookAI/roberta-large/commit/722cf37b1afa9454edce342e7895e588b6ff1d59",
       "suppliedBy": "FacebookAI",
       "packageVersion": "722cf37b",
       "primaryPurpose": [
@@ -59,34 +58,34 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-ec73c2ab-9db1-4cc5-81d2-3bb95bc97c28",
+      "spdxId": "urn:spdx:rel-dbdc4cab-981c-41bb-820e-0d78c0da6c25",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:roberta-large-0732935e-da5d-4fe0-96a3-d1524300505a",
+      "from": "urn:spdx:roberta-large-40600961-3836-4033-b6a1-d4c101816b3e",
       "to": [
         "MIT"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-707c8032-e91f-470b-a37f-9f6f23002b41",
+      "spdxId": "urn:spdx:rel-7abb65f3-6688-473a-9994-b54c0f7e79e2",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-roberta-large-c801ff12-7179-4e4e-a19f-c43bbc963c9c",
+      "from": "urn:spdx:ai-roberta-large-d9631b22-d24a-43ef-a657-bba81250b1eb",
       "to": [
         "bookcorpus"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-99dc507d-77d3-4fb5-bc46-f73c9fb6adde",
+      "spdxId": "urn:spdx:rel-17c58117-ad2d-42d9-82c9-793f37f9b84e",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-roberta-large-c801ff12-7179-4e4e-a19f-c43bbc963c9c",
+      "from": "urn:spdx:ai-roberta-large-d9631b22-d24a-43ef-a657-bba81250b1eb",
       "to": [
         "wikipedia"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-4cbbbce3-4c8d-4288-9013-f7b7e59ca32c",
+      "spdxId": "urn:spdx:rel-e58c46a3-a02f-4fc9-9cfe-ec1d659131b6",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/FacebookAI/roberta-large@722cf37b",
       "to": [

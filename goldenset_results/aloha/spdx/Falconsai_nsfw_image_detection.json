@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-Falconsai_nsfw_image_detection-36161a9c-1b07-4f27-82ab-22984112d416",
+      "spdxId": "urn:spdx:doc-Falconsai_nsfw_image_detection-35f3cf2e-5875-4e0f-9078-4700ca7d0fcb",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,24 +19,24 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-Falconsai_nsfw_image_detection-60507d4e-0848-4d31-a73e-c127116290a0"
+        "urn:spdx:ai-Falconsai_nsfw_image_detection-8b2a2b9f-a3e3-476e-a7e0-dc81fde9c456"
       ],
       "element": [
-        "urn:spdx:Falconsai_nsfw_image_detection-d3d73a9d-2850-40d6-9719-b6b9428fa879",
-        "urn:spdx:ai-Falconsai_nsfw_image_detection-60507d4e-0848-4d31-a73e-c127116290a0",
-        "urn:spdx:rel-cd9e032c-7200-4987-8db9-f524cbe6b6e1"
+        "urn:spdx:Falconsai_nsfw_image_detection-7cfa2b57-05c6-4d62-b2e8-b8f6ac60506e",
+        "urn:spdx:ai-Falconsai_nsfw_image_detection-8b2a2b9f-a3e3-476e-a7e0-dc81fde9c456",
+        "urn:spdx:rel-11808783-16cd-4d24-ae8e-cf7df6a759f4"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:Falconsai_nsfw_image_detection-d3d73a9d-2850-40d6-9719-b6b9428fa879",
+      "spdxId": "urn:spdx:Falconsai_nsfw_image_detection-7cfa2b57-05c6-4d62-b2e8-b8f6ac60506e",
       "name": "Falconsai/nsfw_image_detection",
       "downloadLocation": "https://huggingface.co/Falconsai/nsfw_image_detection",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-Falconsai_nsfw_image_detection-60507d4e-0848-4d31-a73e-c127116290a0",
+      "spdxId": "urn:spdx:ai-Falconsai_nsfw_image_detection-8b2a2b9f-a3e3-476e-a7e0-dc81fde9c456",
       "name": "Falconsai/nsfw_image_detection",
       "summary": "The **Fine-Tuned Vision Transformer (ViT)** is a variant of the transformer encoder architecture, similar to BERT, that has been adapted for image classification tasks. This specific model, named \"google/vit-base-patch16-224-in21k,\" is pre-trained on a substantial collection of images in a supervised manner, leveraging the ImageNet-21k dataset. The images in the pre-training dataset are resized to a resolution of 224x224 pixels, making it suitable for a wide range of image recognition tasks.During the training phase, meticulous attention was given to hyperparameter settings to ensure optimal model performance. The model was fine-tuned with a judiciously chosen batch size of 16. This choice not only balanced computational efficiency but also allowed for the model to effectively process and learn from a diverse array of images.To facilitate this fine-tuning process, a learning rate of 5e-5 was employed. The learning rate serves as a critical tuning parameter that dictates the magnitude of adjustments made to the model's parameters during training. In this case, a learning rate of 5e-5 was selected to strike a harmonious balance between rapid convergence and steady optimization, resulting in a model that not only learns swiftly but also steadily refines its capabilities throughout the training process.This training phase was executed using a proprietary dataset containing an extensive collection of 80,000 images, each characterized by a substantial degree of variability. The dataset was thoughtfully curated to include two distinct classes, namely \"normal\" and \"nsfw.\" This diversity allowed the model to grasp nuanced visual patterns, equipping it with the competence to accurately differentiate between safe and explicit content.The overarching objective of this meticulous training process was to impart the model with a deep understanding of visual cues, ensuring its robustness and competence in tackling the specific task of NSFW image classification. The result is a model that stands ready to contribute significantly to content safety and moderation, all while maintaining the highest standards of accuracy and reliability.",
       "downloadLocation": "https://huggingface.co/Falconsai/nsfw_image_detection",
@@ -63,9 +63,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-cd9e032c-7200-4987-8db9-f524cbe6b6e1",
+      "spdxId": "urn:spdx:rel-11808783-16cd-4d24-ae8e-cf7df6a759f4",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:Falconsai_nsfw_image_detection-d3d73a9d-2850-40d6-9719-b6b9428fa879",
+      "from": "urn:spdx:Falconsai_nsfw_image_detection-7cfa2b57-05c6-4d62-b2e8-b8f6ac60506e",
       "to": [
         "Apache-2.0"
       ]

@@ -97,21 +97,29 @@ def cdx_to_spdx(cdx: dict) -> dict:
         "name": comp.get("name"),
     }
 
-    # Direct mappings per field-mapping table
+    # --- Field-mapping table rows (primary source faithful to table,
+    #     backward-compat fallbacks marked with "compat:") ---
+
+    # Row 3: component.description → summary
     if comp.get("description"):
         ai_pkg["summary"] = comp["description"]
+    # Row 4: externalReferences (distribution) → downloadLocation
+    #   compat: documentation, website (ALOHA uses documentation type)
     dl = (_ext_ref(comp, "distribution")
           or _ext_ref(comp, "documentation")
           or _ext_ref(comp, "website"))
     if dl:
         ai_pkg["downloadLocation"] = dl
-    if comp.get("purl"):
-        ai_pkg["packageUrl"] = comp["purl"]
-    elif _ext_ref(comp, "vcs"):
+    # Row 5: externalReferences (vcs) → packageUrl
+    #   compat: purl, website, documentation
+    if _ext_ref(comp, "vcs"):
         ai_pkg["packageUrl"] = _ext_ref(comp, "vcs")
+    elif comp.get("purl"):
+        ai_pkg["packageUrl"] = comp["purl"]
     elif _ext_ref(comp, "website") or _ext_ref(comp, "documentation"):
         ai_pkg["packageUrl"] = _ext_ref(comp, "website") or _ext_ref(comp, "documentation")
-    # suppliedBy: prefer supplier, fall back to authors
+    # Row 6: component.supplier → suppliedBy
+    #   compat: authors (ALOHA uses authors instead of supplier)
     if comp.get("supplier"):
         sup = comp["supplier"]
         ai_pkg["suppliedBy"] = sup.get("name") if isinstance(sup, dict) else sup
@@ -119,25 +127,30 @@ def cdx_to_spdx(cdx: dict) -> dict:
         authors = comp["authors"]
         if isinstance(authors, list) and authors:
             ai_pkg["suppliedBy"] = authors[0].get("name") if isinstance(authors[0], dict) else authors[0]
+    # Row 2: component.version → packageVersion
     if comp.get("version"):
         ai_pkg["packageVersion"] = comp["version"]
 
-    # AI-Profile-specific fields
+    # Row 8: modelCard.modelParameters.task → primaryPurpose
     if mparams.get("task"):
         ai_pkg["primaryPurpose"] = [mparams["task"]]
+    # Row 9: component.tags → domain
     tags = comp.get("tags") or []
     if tags:
         ai_pkg["domain"] = tags
+    # Row 10: modelCard.modelParameters.approach → typeOfModel
+    #   compat: architectureFamily, modelArchitecture (aibom-generator uses modelArchitecture)
     type_of_model = (mparams.get("approach")
                      or mparams.get("architectureFamily")
                      or mparams.get("modelArchitecture"))
     if type_of_model:
         ai_pkg["typeOfModel"] = [type_of_model]
-    # Hyperparameters: collect anything in modelParameters that isn't a structural field
+    # Row 11: modelCard.modelParameters → hyperparameter
     structural = {"task", "approach", "architectureFamily", "modelArchitecture", "datasets", "inputs", "outputs"}
     hp = {k: v for k, v in mparams.items() if k not in structural and isinstance(v, (str, int, float, bool))}
     if hp:
         ai_pkg["hyperparameter"] = [{"key": k, "value": str(v)} for k, v in hp.items()]
+    # Row 12: modelCard.quantitativeAnalysis → metric
     qa = mc.get("quantitativeAnalysis") or {}
     metrics = qa.get("performanceMetrics") or []
     if metrics:
@@ -145,35 +158,42 @@ def cdx_to_spdx(cdx: dict) -> dict:
             {"key": m.get("type") or m.get("name") or "metric",
              "value": str(m.get("value", ""))} for m in metrics
         ]
+    # Row 13: Partial → metricDecisionThreshold
     if mprops.get("metricDecisionThreshold"):
         ai_pkg["metricDecisionThreshold"] = [
             {"key": "threshold", "value": str(mprops["metricDecisionThreshold"])}
         ]
+    # Row 14: environmentalConsiderations → energyConsumption
     if mprops.get("energyConsumption") or comp.get("environmentalConsiderations"):
         ai_pkg["energyConsumption"] = (
             mprops.get("energyConsumption")
             or json.dumps(comp.get("environmentalConsiderations"))
         )
+    # Row 15-16: formulation → informationAboutTraining, modelDataPreprocessing
     formulation = cdx.get("formulation") or comp.get("formulation")
     if formulation:
         ai_pkg["informationAboutTraining"] = (
             json.dumps(formulation) if not isinstance(formulation, str) else formulation
         )
         ai_pkg["modelDataPreprocessing"] = ai_pkg["informationAboutTraining"]
+    # Row 17: Partial → useSensitivePersonalInformation
     if mprops.get("useSensitivePersonalInformation"):
         ai_pkg["useSensitivePersonalInformation"] = mprops["useSensitivePersonalInformation"]
+    # Row 18: Extension → modelExplainability
     if mprops.get("modelExplainability"):
         ai_pkg["modelExplainability"] = mprops["modelExplainability"]
-    # Limitations / safety
-    cons = mc.get("considerations") or {}
+    # Row 19: technicalLimitations → limitation
+    #   compat: considerations (plural) and consideration (singular, ALOHA)
+    cons = mc.get("considerations") or mc.get("consideration") or {}
     lim = cons.get("technicalLimitations") or mprops.get("limitation")
     if lim:
         ai_pkg["limitation"] = lim if isinstance(lim, str) else json.dumps(lim)
+    # Row 20: Partial → safetyRiskAssessment
     risk = cons.get("ethicalConsiderations") or mprops.get("safetyRiskAssessment")
     if risk:
         ai_pkg["safetyRiskAssessment"] = risk if isinstance(risk, str) else json.dumps(risk)
 
-    # Standard SPDX Package wrapper (license + identity)
+    # Standard SPDX Package wrapper (Rows 1-2, 4-5, 7 on the sw_Package)
     pkg: Dict[str, Any] = {
         "type": "software_Package",
         "spdxId": pkg_id,
@@ -181,19 +201,18 @@ def cdx_to_spdx(cdx: dict) -> dict:
     }
     if comp.get("version"):
         pkg["packageVersion"] = comp["version"]
-    if comp.get("purl"):
-        pkg["packageUrl"] = comp["purl"]
     pkg_dl = (_ext_ref(comp, "distribution")
               or _ext_ref(comp, "documentation")
               or _ext_ref(comp, "website"))
     if pkg_dl:
         pkg["downloadLocation"] = pkg_dl
+    # Row 7: component.licenses → licenseDeclared + hasDeclaredLicense
     licenses = _licenses(comp)
     if licenses:
         pkg["licenseDeclared"] = " AND ".join(licenses) if len(licenses) > 1 else licenses[0]
 
     relationships: List[dict] = []
-    # License is an explicit relationship in SPDX 3
+    # Row 7 (cont.): SPDX uses explicit license relationships
     for lic_id in licenses:
         relationships.append({
             "type": "Relationship",
@@ -202,7 +221,7 @@ def cdx_to_spdx(cdx: dict) -> dict:
             "from": pkg_id,
             "to": [lic_id],
         })
-    # Lineage: pedigree.ancestors → ancestorOf
+    # Row 22: pedigree.ancestors → ancestorOf
     for anc in _get(comp, "pedigree", "ancestors", default=[]) or []:
         a_id = anc.get("bom-ref") or anc.get("name")
         if not a_id:
@@ -214,7 +233,7 @@ def cdx_to_spdx(cdx: dict) -> dict:
             "from": a_id,
             "to": [ai_id],
         })
-    # Datasets: modelCard.datasets → trainedOn (default; tested-on if marked)
+    # Row 23-24: modelCard.datasets → trainedOn (default); testedOn if type=test
     for ds in mparams.get("datasets", []) or mc.get("datasets", []) or []:
         ref = ds.get("ref") or ds.get("name")
         if not ref:
@@ -227,7 +246,7 @@ def cdx_to_spdx(cdx: dict) -> dict:
             "from": ai_id,
             "to": [ref],
         })
-    # Runtime dependencies → dependsOn
+    # Row 21: dependencies → dependsOn
     for dep in cdx.get("dependencies", []) or []:
         src = dep.get("ref")
         for tgt in dep.get("dependsOn", []) or []:

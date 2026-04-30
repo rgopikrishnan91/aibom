@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-Qwen2.5-7B-Instruct-167f76d9-bcfb-4e11-b6fe-055a6f8be220",
+      "spdxId": "urn:spdx:doc-Qwen2.5-7B-Instruct-9d6521c1-5a5a-4c1e-b2bc-b7827bffdb61",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,31 +19,30 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-Qwen2.5-7B-Instruct-2cda08ff-2acd-4461-aafa-48d880989e7f"
+        "urn:spdx:ai-Qwen2.5-7B-Instruct-65c2c9e3-c0bd-4b19-9373-d14525f2bd5b"
       ],
       "element": [
-        "urn:spdx:Qwen2.5-7B-Instruct-7efdc46d-0ba2-4a5d-88e0-d026e6fb00a1",
-        "urn:spdx:ai-Qwen2.5-7B-Instruct-2cda08ff-2acd-4461-aafa-48d880989e7f",
-        "urn:spdx:rel-94ae24f0-9094-4d8b-93e2-e13fe8609c6e",
-        "urn:spdx:rel-3abeea8c-b9f7-45d5-b743-d7e7d82e3a68"
+        "urn:spdx:Qwen2.5-7B-Instruct-4785f94b-3b4c-425b-973f-f63042a94618",
+        "urn:spdx:ai-Qwen2.5-7B-Instruct-65c2c9e3-c0bd-4b19-9373-d14525f2bd5b",
+        "urn:spdx:rel-5b310d30-d86e-478b-b97a-7a4afae16053",
+        "urn:spdx:rel-8d6bd8bc-866d-47f0-9734-aefa7f8d2e39"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:Qwen2.5-7B-Instruct-7efdc46d-0ba2-4a5d-88e0-d026e6fb00a1",
+      "spdxId": "urn:spdx:Qwen2.5-7B-Instruct-4785f94b-3b4c-425b-973f-f63042a94618",
       "name": "Qwen2.5-7B-Instruct",
       "packageVersion": "a09a3545",
-      "packageUrl": "pkg:huggingface/Qwen/Qwen2.5-7B-Instruct@a09a3545",
       "downloadLocation": "https://huggingface.co/Qwen/Qwen2.5-7B-Instruct/tree/main",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-Qwen2.5-7B-Instruct-2cda08ff-2acd-4461-aafa-48d880989e7f",
+      "spdxId": "urn:spdx:ai-Qwen2.5-7B-Instruct-65c2c9e3-c0bd-4b19-9373-d14525f2bd5b",
       "name": "Qwen2.5-7B-Instruct",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/Qwen/Qwen2.5-7B-Instruct/tree/main",
-      "packageUrl": "pkg:huggingface/Qwen/Qwen2.5-7B-Instruct@a09a3545",
+      "packageUrl": "https://huggingface.co/Qwen/Qwen2.5-7B-Instruct/commit/a09a35458c702b33eeacc393d103063234e8bc28",
       "suppliedBy": "Qwen",
       "packageVersion": "a09a3545",
       "primaryPurpose": [
@@ -56,16 +55,16 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-94ae24f0-9094-4d8b-93e2-e13fe8609c6e",
+      "spdxId": "urn:spdx:rel-5b310d30-d86e-478b-b97a-7a4afae16053",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:Qwen2.5-7B-Instruct-7efdc46d-0ba2-4a5d-88e0-d026e6fb00a1",
+      "from": "urn:spdx:Qwen2.5-7B-Instruct-4785f94b-3b4c-425b-973f-f63042a94618",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-3abeea8c-b9f7-45d5-b743-d7e7d82e3a68",
+      "spdxId": "urn:spdx:rel-8d6bd8bc-866d-47f0-9734-aefa7f8d2e39",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/Qwen/Qwen2.5-7B-Instruct@a09a3545",
       "to": [

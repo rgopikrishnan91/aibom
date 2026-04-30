@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-adetailer-45be6c8a-9631-43cc-88f2-38b88f3f36ca",
+      "spdxId": "urn:spdx:doc-adetailer-34b7e29e-220f-4d7b-b6fc-3e06a1bfb9b2",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,33 +19,32 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-adetailer-ee09a865-8521-470b-9388-1108226216a1"
+        "urn:spdx:ai-adetailer-21d56b5e-6cb4-4429-be05-6a7e5305d04e"
       ],
       "element": [
-        "urn:spdx:adetailer-ad5df594-7ebd-4677-a49f-504366ff9aa2",
-        "urn:spdx:ai-adetailer-ee09a865-8521-470b-9388-1108226216a1",
-        "urn:spdx:rel-00b19ef7-6ffc-471b-90fd-215040af81b7",
-        "urn:spdx:rel-a23d382f-6453-4e60-9d7e-3edb0cd6e5ed",
-        "urn:spdx:rel-7e4b932d-7a17-4a61-acf2-ffcfce8fbb99",
-        "urn:spdx:rel-df8bf6c0-2e91-4e6a-8a84-17b5cb37c7b9"
+        "urn:spdx:adetailer-9768f80f-a33f-40e8-886b-649b394b041f",
+        "urn:spdx:ai-adetailer-21d56b5e-6cb4-4429-be05-6a7e5305d04e",
+        "urn:spdx:rel-2fd0ff6b-dffe-4025-8cbf-78ffc13f3b63",
+        "urn:spdx:rel-24b12a41-819a-4199-822e-86fef268425a",
+        "urn:spdx:rel-aa0a8918-bbc7-4d7f-9c5f-c964f625522c",
+        "urn:spdx:rel-35a121be-4cec-4e6f-9b6b-4abe20787a09"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:adetailer-ad5df594-7ebd-4677-a49f-504366ff9aa2",
+      "spdxId": "urn:spdx:adetailer-9768f80f-a33f-40e8-886b-649b394b041f",
       "name": "adetailer",
       "packageVersion": "53cc19de",
-      "packageUrl": "pkg:huggingface/Bingsu/adetailer@53cc19de",
       "downloadLocation": "https://huggingface.co/Bingsu/adetailer/tree/main",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-adetailer-ee09a865-8521-470b-9388-1108226216a1",
+      "spdxId": "urn:spdx:ai-adetailer-21d56b5e-6cb4-4429-be05-6a7e5305d04e",
       "name": "adetailer",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/Bingsu/adetailer/tree/main",
-      "packageUrl": "pkg:huggingface/Bingsu/adetailer@53cc19de",
+      "packageUrl": "https://huggingface.co/Bingsu/adetailer/commit/53cc19de382014514d9d4038601d261a7faa9b7b",
       "suppliedBy": "Bingsu",
       "packageVersion": "53cc19de",
       "primaryPurpose": [
@@ -57,34 +56,34 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-00b19ef7-6ffc-471b-90fd-215040af81b7",
+      "spdxId": "urn:spdx:rel-2fd0ff6b-dffe-4025-8cbf-78ffc13f3b63",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:adetailer-ad5df594-7ebd-4677-a49f-504366ff9aa2",
+      "from": "urn:spdx:adetailer-9768f80f-a33f-40e8-886b-649b394b041f",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-a23d382f-6453-4e60-9d7e-3edb0cd6e5ed",
+      "spdxId": "urn:spdx:rel-24b12a41-819a-4199-822e-86fef268425a",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-adetailer-ee09a865-8521-470b-9388-1108226216a1",
+      "from": "urn:spdx:ai-adetailer-21d56b5e-6cb4-4429-be05-6a7e5305d04e",
       "to": [
         "wider_face"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-7e4b932d-7a17-4a61-acf2-ffcfce8fbb99",
+      "spdxId": "urn:spdx:rel-aa0a8918-bbc7-4d7f-9c5f-c964f625522c",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-adetailer-ee09a865-8521-470b-9388-1108226216a1",
+      "from": "urn:spdx:ai-adetailer-21d56b5e-6cb4-4429-be05-6a7e5305d04e",
       "to": [
         "skytnt/anime-segmentation"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-df8bf6c0-2e91-4e6a-8a84-17b5cb37c7b9",
+      "spdxId": "urn:spdx:rel-35a121be-4cec-4e6f-9b6b-4abe20787a09",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/Bingsu/adetailer@53cc19de",
       "to": [

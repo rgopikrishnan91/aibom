@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-sentence-transformers_paraphrase-multilingual-mpnet-base-v2-543cd18d-8a33-438c-b6b1-0fd2a1dcb5e5",
+      "spdxId": "urn:spdx:doc-sentence-transformers_paraphrase-multilingual-mpnet-base-v2-abe58c28-09c7-4b82-93cf-99f265d7c6a1",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,24 +19,24 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-sentence-transformers_paraphrase-multilingual-mpnet-base-v2-9b8f8706-1145-4a37-a88f-4212ab2cc25e"
+        "urn:spdx:ai-sentence-transformers_paraphrase-multilingual-mpnet-base-v2-3e437a44-fb36-4e1f-bee7-5bc7c1d3f38d"
       ],
       "element": [
-        "urn:spdx:sentence-transformers_paraphrase-multilingual-mpnet-base-v2-96073b95-5319-4d5a-8764-9fa45d21463a",
-        "urn:spdx:ai-sentence-transformers_paraphrase-multilingual-mpnet-base-v2-9b8f8706-1145-4a37-a88f-4212ab2cc25e",
-        "urn:spdx:rel-3e0e9705-4e30-4e91-8354-7a9dba3f0233"
+        "urn:spdx:sentence-transformers_paraphrase-multilingual-mpnet-base-v2-d7032dcd-2e27-4e2d-b827-1aeb81626e5a",
+        "urn:spdx:ai-sentence-transformers_paraphrase-multilingual-mpnet-base-v2-3e437a44-fb36-4e1f-bee7-5bc7c1d3f38d",
+        "urn:spdx:rel-ea9904f1-bf42-4e23-93be-c9dc2c979ce7"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:sentence-transformers_paraphrase-multilingual-mpnet-base-v2-96073b95-5319-4d5a-8764-9fa45d21463a",
+      "spdxId": "urn:spdx:sentence-transformers_paraphrase-multilingual-mpnet-base-v2-d7032dcd-2e27-4e2d-b827-1aeb81626e5a",
       "name": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
       "downloadLocation": "https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-sentence-transformers_paraphrase-multilingual-mpnet-base-v2-9b8f8706-1145-4a37-a88f-4212ab2cc25e",
+      "spdxId": "urn:spdx:ai-sentence-transformers_paraphrase-multilingual-mpnet-base-v2-3e437a44-fb36-4e1f-bee7-5bc7c1d3f38d",
       "name": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
       "downloadLocation": "https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
       "packageUrl": "https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
@@ -118,9 +118,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-3e0e9705-4e30-4e91-8354-7a9dba3f0233",
+      "spdxId": "urn:spdx:rel-ea9904f1-bf42-4e23-93be-c9dc2c979ce7",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:sentence-transformers_paraphrase-multilingual-mpnet-base-v2-96073b95-5319-4d5a-8764-9fa45d21463a",
+      "from": "urn:spdx:sentence-transformers_paraphrase-multilingual-mpnet-base-v2-d7032dcd-2e27-4e2d-b827-1aeb81626e5a",
       "to": [
         "Apache-2.0"
       ]

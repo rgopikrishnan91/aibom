@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-BAAI_bge-small-en-v1.5-c7c7f894-3101-460d-88e5-f0dda2eefc1c",
+      "spdxId": "urn:spdx:doc-BAAI_bge-small-en-v1.5-1e3660cb-a261-46e1-a31a-4bf0e6066cc2",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,24 +19,24 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-BAAI_bge-small-en-v1.5-c0444b56-de4e-4eac-94e4-13a48e2816f6"
+        "urn:spdx:ai-BAAI_bge-small-en-v1.5-9778a1b4-391b-4fb7-a5b8-4e97f18b8eb6"
       ],
       "element": [
-        "urn:spdx:BAAI_bge-small-en-v1.5-1bdb13a2-5524-4d8b-9c0d-f8c37ff0191d",
-        "urn:spdx:ai-BAAI_bge-small-en-v1.5-c0444b56-de4e-4eac-94e4-13a48e2816f6",
-        "urn:spdx:rel-7c07ddb3-7a0b-4c1b-884d-3ecf1f6adf15"
+        "urn:spdx:BAAI_bge-small-en-v1.5-496f7fb2-3e30-4a50-9b2f-001ad6c2a3f5",
+        "urn:spdx:ai-BAAI_bge-small-en-v1.5-9778a1b4-391b-4fb7-a5b8-4e97f18b8eb6",
+        "urn:spdx:rel-03a6c73d-733d-45cc-96a6-40c1d70fade6"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:BAAI_bge-small-en-v1.5-1bdb13a2-5524-4d8b-9c0d-f8c37ff0191d",
+      "spdxId": "urn:spdx:BAAI_bge-small-en-v1.5-496f7fb2-3e30-4a50-9b2f-001ad6c2a3f5",
       "name": "BAAI/bge-small-en-v1.5",
       "downloadLocation": "https://huggingface.co/BAAI/bge-small-en-v1.5",
       "licenseDeclared": "MIT"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-BAAI_bge-small-en-v1.5-c0444b56-de4e-4eac-94e4-13a48e2816f6",
+      "spdxId": "urn:spdx:ai-BAAI_bge-small-en-v1.5-9778a1b4-391b-4fb7-a5b8-4e97f18b8eb6",
       "name": "BAAI/bge-small-en-v1.5",
       "downloadLocation": "https://huggingface.co/BAAI/bge-small-en-v1.5",
       "packageUrl": "https://huggingface.co/BAAI/bge-small-en-v1.5",
@@ -4035,9 +4035,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-7c07ddb3-7a0b-4c1b-884d-3ecf1f6adf15",
+      "spdxId": "urn:spdx:rel-03a6c73d-733d-45cc-96a6-40c1d70fade6",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:BAAI_bge-small-en-v1.5-1bdb13a2-5524-4d8b-9c0d-f8c37ff0191d",
+      "from": "urn:spdx:BAAI_bge-small-en-v1.5-496f7fb2-3e30-4a50-9b2f-001ad6c2a3f5",
       "to": [
         "MIT"
       ]

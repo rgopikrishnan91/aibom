@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-segmentation-3.0-8b1c46f8-6b62-47a3-b4e0-eb0fc0b44748",
+      "spdxId": "urn:spdx:doc-segmentation-3.0-d9f1a551-2aef-4866-9f76-88601631c20f",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,31 +19,30 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-segmentation-3.0-4e6563b8-52cd-4606-8e89-15324eb58c8a"
+        "urn:spdx:ai-segmentation-3.0-d97c3562-63b4-4e7a-9c7c-e4f3dd28751a"
       ],
       "element": [
-        "urn:spdx:segmentation-3.0-47748a60-96b8-492e-a28c-ebf62ba749c6",
-        "urn:spdx:ai-segmentation-3.0-4e6563b8-52cd-4606-8e89-15324eb58c8a",
-        "urn:spdx:rel-d79bcc7b-4ed3-4828-8856-614fcce12486",
-        "urn:spdx:rel-64d0c4c7-6f2d-433f-a96c-9bc7b5d633ec"
+        "urn:spdx:segmentation-3.0-624e2b3c-a475-48b4-899f-78fa59d63a65",
+        "urn:spdx:ai-segmentation-3.0-d97c3562-63b4-4e7a-9c7c-e4f3dd28751a",
+        "urn:spdx:rel-760da256-6355-4f99-b1b8-6bffd6653ecf",
+        "urn:spdx:rel-864e639b-ef96-4daf-90b9-36e7f0385f7a"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:segmentation-3.0-47748a60-96b8-492e-a28c-ebf62ba749c6",
+      "spdxId": "urn:spdx:segmentation-3.0-624e2b3c-a475-48b4-899f-78fa59d63a65",
       "name": "segmentation-3.0",
       "packageVersion": "e66f3d3b",
-      "packageUrl": "pkg:huggingface/pyannote/segmentation-3.0@e66f3d3b",
       "downloadLocation": "https://huggingface.co/pyannote/segmentation-3.0/tree/main",
       "licenseDeclared": "MIT"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-segmentation-3.0-4e6563b8-52cd-4606-8e89-15324eb58c8a",
+      "spdxId": "urn:spdx:ai-segmentation-3.0-d97c3562-63b4-4e7a-9c7c-e4f3dd28751a",
       "name": "segmentation-3.0",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/pyannote/segmentation-3.0/tree/main",
-      "packageUrl": "pkg:huggingface/pyannote/segmentation-3.0@e66f3d3b",
+      "packageUrl": "https://huggingface.co/pyannote/segmentation-3.0/commit/e66f3d3b9eb0873085418a7b813d3b369bf160bb",
       "suppliedBy": "pyannote",
       "packageVersion": "e66f3d3b",
       "primaryPurpose": [
@@ -55,16 +54,16 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-d79bcc7b-4ed3-4828-8856-614fcce12486",
+      "spdxId": "urn:spdx:rel-760da256-6355-4f99-b1b8-6bffd6653ecf",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:segmentation-3.0-47748a60-96b8-492e-a28c-ebf62ba749c6",
+      "from": "urn:spdx:segmentation-3.0-624e2b3c-a475-48b4-899f-78fa59d63a65",
       "to": [
         "MIT"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-64d0c4c7-6f2d-433f-a96c-9bc7b5d633ec",
+      "spdxId": "urn:spdx:rel-864e639b-ef96-4daf-90b9-36e7f0385f7a",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/pyannote/segmentation-3.0@e66f3d3b",
       "to": [

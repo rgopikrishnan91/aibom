@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-OpenMuQ_MuQ-large-msd-iter-51d6589b-41cc-407e-a888-9929ee30fcd1",
+      "spdxId": "urn:spdx:doc-OpenMuQ_MuQ-large-msd-iter-fff64843-1f4d-485c-a0c7-0ca7d7becbe9",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,24 +19,24 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-OpenMuQ_MuQ-large-msd-iter-0b8fbeac-6c99-4f13-805c-e477a855b58a"
+        "urn:spdx:ai-OpenMuQ_MuQ-large-msd-iter-7e955b28-bbaa-46ee-8dd9-a76a12c772d3"
       ],
       "element": [
-        "urn:spdx:OpenMuQ_MuQ-large-msd-iter-698259d8-a0ed-41ba-87d4-08eb2f4dd2fd",
-        "urn:spdx:ai-OpenMuQ_MuQ-large-msd-iter-0b8fbeac-6c99-4f13-805c-e477a855b58a",
-        "urn:spdx:rel-e8cfca75-fedf-42e7-97fb-82bf715803b7"
+        "urn:spdx:OpenMuQ_MuQ-large-msd-iter-c2439651-1db4-4c57-ab5d-9f5672173ba1",
+        "urn:spdx:ai-OpenMuQ_MuQ-large-msd-iter-7e955b28-bbaa-46ee-8dd9-a76a12c772d3",
+        "urn:spdx:rel-e2c74e0b-c48f-4ebd-b149-c3c64cb90e80"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:OpenMuQ_MuQ-large-msd-iter-698259d8-a0ed-41ba-87d4-08eb2f4dd2fd",
+      "spdxId": "urn:spdx:OpenMuQ_MuQ-large-msd-iter-c2439651-1db4-4c57-ab5d-9f5672173ba1",
       "name": "OpenMuQ/MuQ-large-msd-iter",
       "downloadLocation": "https://huggingface.co/OpenMuQ/MuQ-large-msd-iter",
       "licenseDeclared": "CC-BY-NC-4.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-OpenMuQ_MuQ-large-msd-iter-0b8fbeac-6c99-4f13-805c-e477a855b58a",
+      "spdxId": "urn:spdx:ai-OpenMuQ_MuQ-large-msd-iter-7e955b28-bbaa-46ee-8dd9-a76a12c772d3",
       "name": "OpenMuQ/MuQ-large-msd-iter",
       "downloadLocation": "https://huggingface.co/OpenMuQ/MuQ-large-msd-iter",
       "packageUrl": "https://huggingface.co/OpenMuQ/MuQ-large-msd-iter",
@@ -58,9 +58,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-e8cfca75-fedf-42e7-97fb-82bf715803b7",
+      "spdxId": "urn:spdx:rel-e2c74e0b-c48f-4ebd-b149-c3c64cb90e80",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:OpenMuQ_MuQ-large-msd-iter-698259d8-a0ed-41ba-87d4-08eb2f4dd2fd",
+      "from": "urn:spdx:OpenMuQ_MuQ-large-msd-iter-c2439651-1db4-4c57-ab5d-9f5672173ba1",
       "to": [
         "CC-BY-NC-4.0"
       ]

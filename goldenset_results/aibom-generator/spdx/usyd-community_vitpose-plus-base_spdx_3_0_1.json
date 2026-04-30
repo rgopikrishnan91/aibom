@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-vitpose-plus-base-b3f7d0fe-f568-49b5-832f-ea7c5e4263ec",
+      "spdxId": "urn:spdx:doc-vitpose-plus-base-3db07824-964c-4a74-b2d4-2358e3141c7a",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,33 +19,32 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-vitpose-plus-base-90d7ec71-60bb-45e4-b1cc-64aac4d78209"
+        "urn:spdx:ai-vitpose-plus-base-c90fdaa9-a269-4c68-9724-2d9a11586ffe"
       ],
       "element": [
-        "urn:spdx:vitpose-plus-base-a9e5401c-ff26-4077-bc0e-5872437a4a1e",
-        "urn:spdx:ai-vitpose-plus-base-90d7ec71-60bb-45e4-b1cc-64aac4d78209",
-        "urn:spdx:rel-61268458-84fb-4c7c-a9a6-2d08b5cd8b6b",
-        "urn:spdx:rel-a3d332f7-4031-4b5a-be69-2a71b12fef82",
-        "urn:spdx:rel-25cc25e5-068b-45f8-8d76-b62e300294f7",
-        "urn:spdx:rel-995b07a8-98e2-468d-bac9-c738041aee7c"
+        "urn:spdx:vitpose-plus-base-6aa24738-15f7-4456-bd48-02995630ff87",
+        "urn:spdx:ai-vitpose-plus-base-c90fdaa9-a269-4c68-9724-2d9a11586ffe",
+        "urn:spdx:rel-0a9cf8f6-a54f-4a0b-adb1-f8bfd678191d",
+        "urn:spdx:rel-f519a8a6-f305-440c-828c-5fee1f1799c1",
+        "urn:spdx:rel-d32f619b-005c-4f71-a50a-d2fcc5e33a2d",
+        "urn:spdx:rel-db9590b7-4f9f-4044-a4aa-9f920a8c25ad"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:vitpose-plus-base-a9e5401c-ff26-4077-bc0e-5872437a4a1e",
+      "spdxId": "urn:spdx:vitpose-plus-base-6aa24738-15f7-4456-bd48-02995630ff87",
       "name": "vitpose-plus-base",
       "packageVersion": "92be54d7",
-      "packageUrl": "pkg:huggingface/usyd-community/vitpose-plus-base@92be54d7",
       "downloadLocation": "https://huggingface.co/usyd-community/vitpose-plus-base/tree/main",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-vitpose-plus-base-90d7ec71-60bb-45e4-b1cc-64aac4d78209",
+      "spdxId": "urn:spdx:ai-vitpose-plus-base-c90fdaa9-a269-4c68-9724-2d9a11586ffe",
       "name": "vitpose-plus-base",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/usyd-community/vitpose-plus-base/tree/main",
-      "packageUrl": "pkg:huggingface/usyd-community/vitpose-plus-base@92be54d7",
+      "packageUrl": "https://huggingface.co/usyd-community/vitpose-plus-base/commit/92be54d7a29e42fad47b6e2ca01dd9e685a61e0d",
       "suppliedBy": "usyd-community",
       "packageVersion": "92be54d7",
       "primaryPurpose": [
@@ -58,34 +57,34 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-61268458-84fb-4c7c-a9a6-2d08b5cd8b6b",
+      "spdxId": "urn:spdx:rel-0a9cf8f6-a54f-4a0b-adb1-f8bfd678191d",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:vitpose-plus-base-a9e5401c-ff26-4077-bc0e-5872437a4a1e",
+      "from": "urn:spdx:vitpose-plus-base-6aa24738-15f7-4456-bd48-02995630ff87",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-a3d332f7-4031-4b5a-be69-2a71b12fef82",
+      "spdxId": "urn:spdx:rel-f519a8a6-f305-440c-828c-5fee1f1799c1",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-vitpose-plus-base-90d7ec71-60bb-45e4-b1cc-64aac4d78209",
+      "from": "urn:spdx:ai-vitpose-plus-base-c90fdaa9-a269-4c68-9724-2d9a11586ffe",
       "to": [
         "person_boxes"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-25cc25e5-068b-45f8-8d76-b62e300294f7",
+      "spdxId": "urn:spdx:rel-d32f619b-005c-4f71-a50a-d2fcc5e33a2d",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-vitpose-plus-base-90d7ec71-60bb-45e4-b1cc-64aac4d78209",
+      "from": "urn:spdx:ai-vitpose-plus-base-c90fdaa9-a269-4c68-9724-2d9a11586ffe",
       "to": [
         "8"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-995b07a8-98e2-468d-bac9-c738041aee7c",
+      "spdxId": "urn:spdx:rel-db9590b7-4f9f-4044-a4aa-9f920a8c25ad",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/usyd-community/vitpose-plus-base@92be54d7",
       "to": [

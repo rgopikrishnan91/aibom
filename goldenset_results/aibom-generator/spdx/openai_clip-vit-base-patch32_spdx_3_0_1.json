@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-clip-vit-base-patch32-8936dc1a-57a2-4024-bd63-6158bf5c2b34",
+      "spdxId": "urn:spdx:doc-clip-vit-base-patch32-756cd637-b0d2-42bb-9d0a-81472093742e",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,31 +19,30 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-clip-vit-base-patch32-64cc53ca-6a89-4f73-93c5-7d703fadd7f3"
+        "urn:spdx:ai-clip-vit-base-patch32-d991510a-d2b2-4e68-ac8b-065f0c79c926"
       ],
       "element": [
-        "urn:spdx:clip-vit-base-patch32-4381499c-498d-4c6a-96db-3481b2069f00",
-        "urn:spdx:ai-clip-vit-base-patch32-64cc53ca-6a89-4f73-93c5-7d703fadd7f3",
-        "urn:spdx:rel-309595f9-dfe5-4b27-bd7e-1c32898bf11a",
-        "urn:spdx:rel-d128f813-b3f8-4695-8991-b9065345a4fe",
-        "urn:spdx:rel-bb0260b7-ae51-4e14-9485-a2b20e967ed7"
+        "urn:spdx:clip-vit-base-patch32-df292622-4937-403b-ab96-ea361bc085a0",
+        "urn:spdx:ai-clip-vit-base-patch32-d991510a-d2b2-4e68-ac8b-065f0c79c926",
+        "urn:spdx:rel-4d15c2f6-99ec-46ea-aef3-22b586263693",
+        "urn:spdx:rel-87e80c31-8e0c-4161-be3d-fa9935cefc45",
+        "urn:spdx:rel-5820ff28-d7a4-4a8d-bc00-36495a90ee1e"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:clip-vit-base-patch32-4381499c-498d-4c6a-96db-3481b2069f00",
+      "spdxId": "urn:spdx:clip-vit-base-patch32-df292622-4937-403b-ab96-ea361bc085a0",
       "name": "clip-vit-base-patch32",
       "packageVersion": "3d74acf9",
-      "packageUrl": "pkg:huggingface/openai/clip-vit-base-patch32@3d74acf9",
       "downloadLocation": "https://huggingface.co/openai/clip-vit-base-patch32/tree/main"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-clip-vit-base-patch32-64cc53ca-6a89-4f73-93c5-7d703fadd7f3",
+      "spdxId": "urn:spdx:ai-clip-vit-base-patch32-d991510a-d2b2-4e68-ac8b-065f0c79c926",
       "name": "clip-vit-base-patch32",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/openai/clip-vit-base-patch32/tree/main",
-      "packageUrl": "pkg:huggingface/openai/clip-vit-base-patch32@3d74acf9",
+      "packageUrl": "https://huggingface.co/openai/clip-vit-base-patch32/commit/3d74acf9a28c67741b2f4f2ea7635f0aaf6f0268",
       "suppliedBy": "openai",
       "packageVersion": "3d74acf9",
       "primaryPurpose": [
@@ -57,25 +56,25 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-309595f9-dfe5-4b27-bd7e-1c32898bf11a",
+      "spdxId": "urn:spdx:rel-4d15c2f6-99ec-46ea-aef3-22b586263693",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-clip-vit-base-patch32-64cc53ca-6a89-4f73-93c5-7d703fadd7f3",
+      "from": "urn:spdx:ai-clip-vit-base-patch32-d991510a-d2b2-4e68-ac8b-065f0c79c926",
       "to": [
         "was"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-d128f813-b3f8-4695-8991-b9065345a4fe",
+      "spdxId": "urn:spdx:rel-87e80c31-8e0c-4161-be3d-fa9935cefc45",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-clip-vit-base-patch32-64cc53ca-6a89-4f73-93c5-7d703fadd7f3",
+      "from": "urn:spdx:ai-clip-vit-base-patch32-d991510a-d2b2-4e68-ac8b-065f0c79c926",
       "to": [
         "publicly"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-bb0260b7-ae51-4e14-9485-a2b20e967ed7",
+      "spdxId": "urn:spdx:rel-5820ff28-d7a4-4a8d-bc00-36495a90ee1e",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/openai/clip-vit-base-patch32@3d74acf9",
       "to": [

@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-jinaai_jina-embeddings-v3-b9cec5aa-767d-4d76-863d-27fdd818800e",
+      "spdxId": "urn:spdx:doc-jinaai_jina-embeddings-v3-2b154531-8356-4b37-9a50-9b060c47dac1",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,24 +19,24 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-jinaai_jina-embeddings-v3-e77b70fc-0ba3-4fd5-bd31-6e820524a6eb"
+        "urn:spdx:ai-jinaai_jina-embeddings-v3-8263782c-b372-4bf7-a2ef-6922a3596102"
       ],
       "element": [
-        "urn:spdx:jinaai_jina-embeddings-v3-1b05f556-91ff-4173-ae55-6c255def64f9",
-        "urn:spdx:ai-jinaai_jina-embeddings-v3-e77b70fc-0ba3-4fd5-bd31-6e820524a6eb",
-        "urn:spdx:rel-31380c4f-f66b-439e-bb05-a76c9933ed8f"
+        "urn:spdx:jinaai_jina-embeddings-v3-8ef4afc0-1953-4fe5-99f1-1617d6934d55",
+        "urn:spdx:ai-jinaai_jina-embeddings-v3-8263782c-b372-4bf7-a2ef-6922a3596102",
+        "urn:spdx:rel-c2229828-ac4e-4590-9bee-6dcab20aea24"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:jinaai_jina-embeddings-v3-1b05f556-91ff-4173-ae55-6c255def64f9",
+      "spdxId": "urn:spdx:jinaai_jina-embeddings-v3-8ef4afc0-1953-4fe5-99f1-1617d6934d55",
       "name": "jinaai/jina-embeddings-v3",
       "downloadLocation": "https://huggingface.co/jinaai/jina-embeddings-v3",
       "licenseDeclared": "CC-BY-NC-4.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-jinaai_jina-embeddings-v3-e77b70fc-0ba3-4fd5-bd31-6e820524a6eb",
+      "spdxId": "urn:spdx:ai-jinaai_jina-embeddings-v3-8263782c-b372-4bf7-a2ef-6922a3596102",
       "name": "jinaai/jina-embeddings-v3",
       "downloadLocation": "https://huggingface.co/jinaai/jina-embeddings-v3",
       "packageUrl": "https://huggingface.co/jinaai/jina-embeddings-v3",
@@ -44714,9 +44714,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-31380c4f-f66b-439e-bb05-a76c9933ed8f",
+      "spdxId": "urn:spdx:rel-c2229828-ac4e-4590-9bee-6dcab20aea24",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:jinaai_jina-embeddings-v3-1b05f556-91ff-4173-ae55-6c255def64f9",
+      "from": "urn:spdx:jinaai_jina-embeddings-v3-8ef4afc0-1953-4fe5-99f1-1617d6934d55",
       "to": [
         "CC-BY-NC-4.0"
       ]

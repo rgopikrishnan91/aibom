@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-chronos-2-4d877583-b3b6-4976-82b4-7150360c4c39",
+      "spdxId": "urn:spdx:doc-chronos-2-e951a792-5419-4340-ab93-d3ab078b7572",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,33 +19,32 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-chronos-2-a6f53324-1e6b-4723-a260-e6ecd1af991d"
+        "urn:spdx:ai-chronos-2-6cb05bfd-094a-4185-a106-9869eb2bedb3"
       ],
       "element": [
-        "urn:spdx:chronos-2-e3ac2061-8ef7-43a7-bf30-96cd363f5dc3",
-        "urn:spdx:ai-chronos-2-a6f53324-1e6b-4723-a260-e6ecd1af991d",
-        "urn:spdx:rel-f1a92dba-62b4-4d2b-9b06-d57ce0ab3441",
-        "urn:spdx:rel-08b4d139-9192-4955-8352-5a4778732f7f",
-        "urn:spdx:rel-342d32fc-620d-47eb-b8b2-c5117166f740",
-        "urn:spdx:rel-261ebf1e-4d7b-46df-9694-a18d7d931054"
+        "urn:spdx:chronos-2-437ce247-ad8c-46ca-b37b-7d33dc8f3d5d",
+        "urn:spdx:ai-chronos-2-6cb05bfd-094a-4185-a106-9869eb2bedb3",
+        "urn:spdx:rel-97267a7e-33e5-46a4-ac7e-53d758c37795",
+        "urn:spdx:rel-e55638fc-b16a-4ece-adaf-b5ef71fc9274",
+        "urn:spdx:rel-82a9e6fc-993e-40d1-b961-df9dd60df8e3",
+        "urn:spdx:rel-1866a118-56bf-46d9-b292-d8d957c69f5f"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:chronos-2-e3ac2061-8ef7-43a7-bf30-96cd363f5dc3",
+      "spdxId": "urn:spdx:chronos-2-437ce247-ad8c-46ca-b37b-7d33dc8f3d5d",
       "name": "chronos-2",
       "packageVersion": "0f8a4404",
-      "packageUrl": "pkg:huggingface/amazon/chronos-2@0f8a4404",
       "downloadLocation": "https://huggingface.co/amazon/chronos-2/tree/main",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-chronos-2-a6f53324-1e6b-4723-a260-e6ecd1af991d",
+      "spdxId": "urn:spdx:ai-chronos-2-6cb05bfd-094a-4185-a106-9869eb2bedb3",
       "name": "chronos-2",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/amazon/chronos-2/tree/main",
-      "packageUrl": "pkg:huggingface/amazon/chronos-2@0f8a4404",
+      "packageUrl": "https://huggingface.co/amazon/chronos-2/commit/0f8a440441931157957e2be1a9bce66627d99c76",
       "suppliedBy": "amazon",
       "packageVersion": "0f8a4404",
       "primaryPurpose": [
@@ -57,34 +56,34 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-f1a92dba-62b4-4d2b-9b06-d57ce0ab3441",
+      "spdxId": "urn:spdx:rel-97267a7e-33e5-46a4-ac7e-53d758c37795",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:chronos-2-e3ac2061-8ef7-43a7-bf30-96cd363f5dc3",
+      "from": "urn:spdx:chronos-2-437ce247-ad8c-46ca-b37b-7d33dc8f3d5d",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-08b4d139-9192-4955-8352-5a4778732f7f",
+      "spdxId": "urn:spdx:rel-e55638fc-b16a-4ece-adaf-b5ef71fc9274",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-chronos-2-a6f53324-1e6b-4723-a260-e6ecd1af991d",
+      "from": "urn:spdx:ai-chronos-2-6cb05bfd-094a-4185-a106-9869eb2bedb3",
       "to": [
         "autogluon/chronos_datasets"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-342d32fc-620d-47eb-b8b2-c5117166f740",
+      "spdxId": "urn:spdx:rel-82a9e6fc-993e-40d1-b961-df9dd60df8e3",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-chronos-2-a6f53324-1e6b-4723-a260-e6ecd1af991d",
+      "from": "urn:spdx:ai-chronos-2-6cb05bfd-094a-4185-a106-9869eb2bedb3",
       "to": [
         "Salesforce/GiftEvalPretrain"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-261ebf1e-4d7b-46df-9694-a18d7d931054",
+      "spdxId": "urn:spdx:rel-1866a118-56bf-46d9-b292-d8d957c69f5f",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/amazon/chronos-2@0f8a4404",
       "to": [

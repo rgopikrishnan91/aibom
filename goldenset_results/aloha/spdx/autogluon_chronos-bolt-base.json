@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-autogluon_chronos-bolt-base-6921a253-d3bd-4589-828e-b9076a3d8925",
+      "spdxId": "urn:spdx:doc-autogluon_chronos-bolt-base-75439fcc-e7bf-4c3a-abc5-448e3287623b",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,24 +19,24 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-autogluon_chronos-bolt-base-b4ff1995-6349-4153-8baf-0d814302987f"
+        "urn:spdx:ai-autogluon_chronos-bolt-base-3a278982-7ee3-4626-8a65-46591b295f53"
       ],
       "element": [
-        "urn:spdx:autogluon_chronos-bolt-base-df8909d1-1996-4865-a1bf-6d29a5d8b046",
-        "urn:spdx:ai-autogluon_chronos-bolt-base-b4ff1995-6349-4153-8baf-0d814302987f",
-        "urn:spdx:rel-82775faa-802f-4e6c-a381-451fec08908c"
+        "urn:spdx:autogluon_chronos-bolt-base-a5d05560-6d35-49e7-90ea-1fc4b82978c3",
+        "urn:spdx:ai-autogluon_chronos-bolt-base-3a278982-7ee3-4626-8a65-46591b295f53",
+        "urn:spdx:rel-634adfee-6c24-4fac-b008-66a9f6c76e38"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:autogluon_chronos-bolt-base-df8909d1-1996-4865-a1bf-6d29a5d8b046",
+      "spdxId": "urn:spdx:autogluon_chronos-bolt-base-a5d05560-6d35-49e7-90ea-1fc4b82978c3",
       "name": "autogluon/chronos-bolt-base",
       "downloadLocation": "https://huggingface.co/autogluon/chronos-bolt-base",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-autogluon_chronos-bolt-base-b4ff1995-6349-4153-8baf-0d814302987f",
+      "spdxId": "urn:spdx:ai-autogluon_chronos-bolt-base-3a278982-7ee3-4626-8a65-46591b295f53",
       "name": "autogluon/chronos-bolt-base",
       "downloadLocation": "https://huggingface.co/autogluon/chronos-bolt-base",
       "packageUrl": "https://huggingface.co/autogluon/chronos-bolt-base",
@@ -65,9 +65,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-82775faa-802f-4e6c-a381-451fec08908c",
+      "spdxId": "urn:spdx:rel-634adfee-6c24-4fac-b008-66a9f6c76e38",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:autogluon_chronos-bolt-base-df8909d1-1996-4865-a1bf-6d29a5d8b046",
+      "from": "urn:spdx:autogluon_chronos-bolt-base-a5d05560-6d35-49e7-90ea-1fc4b82978c3",
       "to": [
         "Apache-2.0"
       ]

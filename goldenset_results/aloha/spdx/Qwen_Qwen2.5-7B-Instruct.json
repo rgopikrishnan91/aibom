@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-Qwen_Qwen2.5-7B-Instruct-8a9e5e48-f6ed-4f2f-90f7-706fee45f4ef",
+      "spdxId": "urn:spdx:doc-Qwen_Qwen2.5-7B-Instruct-9584b959-eeed-4f43-8389-b95f50d7a168",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,24 +19,24 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-Qwen_Qwen2.5-7B-Instruct-801e60c5-95c6-4b32-a734-19f461d7c7ca"
+        "urn:spdx:ai-Qwen_Qwen2.5-7B-Instruct-fdea9396-6d53-4133-aaeb-b2e0aba5194b"
       ],
       "element": [
-        "urn:spdx:Qwen_Qwen2.5-7B-Instruct-93d150a1-f0c2-4844-8b3c-34dfb295240f",
-        "urn:spdx:ai-Qwen_Qwen2.5-7B-Instruct-801e60c5-95c6-4b32-a734-19f461d7c7ca",
-        "urn:spdx:rel-b3621aa5-a8df-4799-8805-7b91c602675b"
+        "urn:spdx:Qwen_Qwen2.5-7B-Instruct-6732318c-a540-45bb-b532-9c84df08eda3",
+        "urn:spdx:ai-Qwen_Qwen2.5-7B-Instruct-fdea9396-6d53-4133-aaeb-b2e0aba5194b",
+        "urn:spdx:rel-ec6429d8-1e33-43dd-b136-e40194a13c0b"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:Qwen_Qwen2.5-7B-Instruct-93d150a1-f0c2-4844-8b3c-34dfb295240f",
+      "spdxId": "urn:spdx:Qwen_Qwen2.5-7B-Instruct-6732318c-a540-45bb-b532-9c84df08eda3",
       "name": "Qwen/Qwen2.5-7B-Instruct",
       "downloadLocation": "https://huggingface.co/Qwen/Qwen2.5-7B-Instruct",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-Qwen_Qwen2.5-7B-Instruct-801e60c5-95c6-4b32-a734-19f461d7c7ca",
+      "spdxId": "urn:spdx:ai-Qwen_Qwen2.5-7B-Instruct-fdea9396-6d53-4133-aaeb-b2e0aba5194b",
       "name": "Qwen/Qwen2.5-7B-Instruct",
       "summary": "Qwen2.5 is the latest series of Qwen large language models. For Qwen2.5, we release a number of base language models and instruction-tuned language models ranging from 0.5 to 72 billion parameters. Qwen2.5 brings the following improvements upon Qwen2:- Significantly **more knowledge** and has greatly improved capabilities in **coding** and **mathematics**, thanks to our specialized expert models in these domains.- Significant improvements in **instruction following**, **generating long texts** (over 8K tokens), **understanding structured data** (e.g, tables), and **generating structured outputs** especially JSON. **More resilient to the diversity of system prompts**, enhancing role-play implementation and condition-setting for chatbots.- **Long-context Support** up to 128K tokens and can generate up to 8K tokens.- **Multilingual support** for over 29 languages, including Chinese, English, French, Spanish, Portuguese, German, Italian, Russian, Japanese, Korean, Vietnamese, Thai, Arabic, and more.**This repo contains the instruction-tuned 7B Qwen2.5 model**, which has the following features:- Type: Causal Language Models- Training Stage: Pretraining & Post-training- Architecture: transformers with RoPE, SwiGLU, RMSNorm, and Attention QKV bias- Number of Parameters: 7.61B- Number of Paramaters (Non-Embedding): 6.53B- Number of Layers: 28- Number of Attention Heads (GQA): 28 for Q and 4 for KV- Context Length: Full 131,072 tokens and generation 8192 tokens- Please refer to [this section](#processing-long-texts) for detailed instructions on how to deploy Qwen2.5 for handling long texts.For more details, please refer to our [blog](https://qwenlm.github.io/blog/qwen2.5/), [GitHub](https://github.com/QwenLM/Qwen2.5), and [Documentation](https://qwen.readthedocs.io/en/latest/).",
       "downloadLocation": "https://huggingface.co/Qwen/Qwen2.5-7B-Instruct",
@@ -69,9 +69,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-b3621aa5-a8df-4799-8805-7b91c602675b",
+      "spdxId": "urn:spdx:rel-ec6429d8-1e33-43dd-b136-e40194a13c0b",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:Qwen_Qwen2.5-7B-Instruct-93d150a1-f0c2-4844-8b3c-34dfb295240f",
+      "from": "urn:spdx:Qwen_Qwen2.5-7B-Instruct-6732318c-a540-45bb-b532-9c84df08eda3",
       "to": [
         "Apache-2.0"
       ]

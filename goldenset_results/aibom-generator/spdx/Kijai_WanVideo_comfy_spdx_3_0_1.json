@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-WanVideo_comfy-ac0fdd69-f19e-4b89-8ba0-3f739ef65c7c",
+      "spdxId": "urn:spdx:doc-WanVideo_comfy-667e649e-3f48-45d5-9bbc-a484870cb695",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,29 +19,28 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-WanVideo_comfy-8ea5275d-f264-49d6-99c5-0e25e4e70595"
+        "urn:spdx:ai-WanVideo_comfy-8adbb6f1-0acc-471b-81d1-89700f1eb33d"
       ],
       "element": [
-        "urn:spdx:WanVideo_comfy-35fef5c8-456d-44dc-b1b6-2ee87812130e",
-        "urn:spdx:ai-WanVideo_comfy-8ea5275d-f264-49d6-99c5-0e25e4e70595",
-        "urn:spdx:rel-94902f0a-052e-4ebc-98f1-9ba81cf1986a"
+        "urn:spdx:WanVideo_comfy-785f8b36-71b5-4413-bdfa-d5dcb1cfac33",
+        "urn:spdx:ai-WanVideo_comfy-8adbb6f1-0acc-471b-81d1-89700f1eb33d",
+        "urn:spdx:rel-42496a48-17fc-418f-a54e-77c1d6f55727"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:WanVideo_comfy-35fef5c8-456d-44dc-b1b6-2ee87812130e",
+      "spdxId": "urn:spdx:WanVideo_comfy-785f8b36-71b5-4413-bdfa-d5dcb1cfac33",
       "name": "WanVideo_comfy",
       "packageVersion": "87badb1f",
-      "packageUrl": "pkg:huggingface/Kijai/WanVideo_comfy@87badb1f",
       "downloadLocation": "https://huggingface.co/Kijai/WanVideo_comfy/tree/main"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-WanVideo_comfy-8ea5275d-f264-49d6-99c5-0e25e4e70595",
+      "spdxId": "urn:spdx:ai-WanVideo_comfy-8adbb6f1-0acc-471b-81d1-89700f1eb33d",
       "name": "WanVideo_comfy",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/Kijai/WanVideo_comfy/tree/main",
-      "packageUrl": "pkg:huggingface/Kijai/WanVideo_comfy@87badb1f",
+      "packageUrl": "https://huggingface.co/Kijai/WanVideo_comfy/commit/87badb1f794c15daf51db60838a433ca08bb218f",
       "suppliedBy": "Kijai",
       "packageVersion": "87badb1f",
       "primaryPurpose": [
@@ -53,7 +52,7 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-94902f0a-052e-4ebc-98f1-9ba81cf1986a",
+      "spdxId": "urn:spdx:rel-42496a48-17fc-418f-a54e-77c1d6f55727",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/Kijai/WanVideo_comfy@87badb1f",
       "to": [
