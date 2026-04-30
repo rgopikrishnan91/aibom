@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-openai_clip-vit-base-patch32-b245c128-bb61-4a10-8d82-641bdeef9d39",
+      "spdxId": "urn:spdx:doc-openai_clip-vit-base-patch32-d5ebdc74-a53c-401c-aeff-fa19fb40e25b",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,23 +19,27 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-openai_clip-vit-base-patch32-20bb7dde-c57a-4bfe-9a65-734406bb58e5"
+        "urn:spdx:ai-openai_clip-vit-base-patch32-64ffb5b3-0fae-4ff2-8fd8-12f4c934012e"
       ],
       "element": [
-        "urn:spdx:openai_clip-vit-base-patch32-ddb106dc-8090-4391-96c0-f16c9df2e189",
-        "urn:spdx:ai-openai_clip-vit-base-patch32-20bb7dde-c57a-4bfe-9a65-734406bb58e5"
+        "urn:spdx:openai_clip-vit-base-patch32-e042704a-74df-4ea5-af80-5596342aee52",
+        "urn:spdx:ai-openai_clip-vit-base-patch32-64ffb5b3-0fae-4ff2-8fd8-12f4c934012e"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:openai_clip-vit-base-patch32-ddb106dc-8090-4391-96c0-f16c9df2e189",
-      "name": "openai/clip-vit-base-patch32"
+      "spdxId": "urn:spdx:openai_clip-vit-base-patch32-e042704a-74df-4ea5-af80-5596342aee52",
+      "name": "openai/clip-vit-base-patch32",
+      "downloadLocation": "https://huggingface.co/openai/clip-vit-base-patch32"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-openai_clip-vit-base-patch32-20bb7dde-c57a-4bfe-9a65-734406bb58e5",
+      "spdxId": "urn:spdx:ai-openai_clip-vit-base-patch32-64ffb5b3-0fae-4ff2-8fd8-12f4c934012e",
       "name": "openai/clip-vit-base-patch32",
       "summary": "The CLIP model was developed by researchers at OpenAI to learn about what contributes to robustness in computer vision tasks. The model was also developed to test the ability of models to generalize to arbitrary image classification tasks in a zero-shot manner. It was not developed for general model deployment - to deploy models like CLIP, researchers will first need to carefully study their capabilities in relation to the specific context they\u2019re being deployed within.",
+      "downloadLocation": "https://huggingface.co/openai/clip-vit-base-patch32",
+      "packageUrl": "https://huggingface.co/openai/clip-vit-base-patch32",
+      "suppliedBy": "openai",
       "primaryPurpose": [
         "zero-shot-image-classification"
       ],

@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-Tarsier2-Recap-7b-165e8b6d-aa2f-479e-a7a8-b9ca7e7e39cd",
+      "spdxId": "urn:spdx:doc-Tarsier2-Recap-7b-47dddb6f-e9c5-4051-9428-f66a4b927fd0",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,48 +19,52 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-Tarsier2-Recap-7b-a8ab5bf9-1377-45a4-b27a-fd684187d7fe"
+        "urn:spdx:ai-Tarsier2-Recap-7b-9ba36b4b-0433-496f-a76a-d5a2e226f108"
       ],
       "element": [
-        "urn:spdx:Tarsier2-Recap-7b-562d8f82-9c4e-4cc8-883b-48fedde0b286",
-        "urn:spdx:ai-Tarsier2-Recap-7b-a8ab5bf9-1377-45a4-b27a-fd684187d7fe",
-        "urn:spdx:rel-46f23be4-7741-494c-9b27-d2771b1f8e8e",
-        "urn:spdx:rel-868db866-90a7-405b-8123-523c4c3e81f0"
+        "urn:spdx:Tarsier2-Recap-7b-1e9b7264-7db4-4436-973a-1c6c80353049",
+        "urn:spdx:ai-Tarsier2-Recap-7b-9ba36b4b-0433-496f-a76a-d5a2e226f108",
+        "urn:spdx:rel-584e3337-570e-4cc8-8884-cc99fd151f3a",
+        "urn:spdx:rel-9ec4e57d-d1fb-4c04-9316-6c95d29acd78"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:Tarsier2-Recap-7b-562d8f82-9c4e-4cc8-883b-48fedde0b286",
+      "spdxId": "urn:spdx:Tarsier2-Recap-7b-1e9b7264-7db4-4436-973a-1c6c80353049",
       "name": "Tarsier2-Recap-7b",
       "packageVersion": "02908992",
+      "packageUrl": "pkg:huggingface/omni-research/Tarsier2-Recap-7b@02908992",
       "downloadLocation": "https://huggingface.co/omni-research/Tarsier2-Recap-7b/tree/main",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-Tarsier2-Recap-7b-a8ab5bf9-1377-45a4-b27a-fd684187d7fe",
+      "spdxId": "urn:spdx:ai-Tarsier2-Recap-7b-9ba36b4b-0433-496f-a76a-d5a2e226f108",
       "name": "Tarsier2-Recap-7b",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/omni-research/Tarsier2-Recap-7b/tree/main",
-      "packageUrl": "https://huggingface.co/omni-research/Tarsier2-Recap-7b/commit/0290899219478e6bd85ff1916d2549dc4d4f2e1c",
+      "packageUrl": "pkg:huggingface/omni-research/Tarsier2-Recap-7b@02908992",
       "suppliedBy": "omni-research",
       "packageVersion": "02908992",
       "primaryPurpose": [
         "text-generation"
+      ],
+      "typeOfModel": [
+        "transformer"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-46f23be4-7741-494c-9b27-d2771b1f8e8e",
+      "spdxId": "urn:spdx:rel-584e3337-570e-4cc8-8884-cc99fd151f3a",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:Tarsier2-Recap-7b-562d8f82-9c4e-4cc8-883b-48fedde0b286",
+      "from": "urn:spdx:Tarsier2-Recap-7b-1e9b7264-7db4-4436-973a-1c6c80353049",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-868db866-90a7-405b-8123-523c4c3e81f0",
+      "spdxId": "urn:spdx:rel-9ec4e57d-d1fb-4c04-9316-6c95d29acd78",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/omni-research/Tarsier2-Recap-7b@02908992",
       "to": [

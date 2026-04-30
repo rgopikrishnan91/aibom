@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-pyannote_segmentation-3.0-7904c31c-e84f-4e4a-86e3-76051c280731",
+      "spdxId": "urn:spdx:doc-pyannote_segmentation-3.0-c6ef62bf-594d-439c-81f5-9cb9cb4e547e",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,24 +19,28 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-pyannote_segmentation-3.0-939e8f56-8615-4741-a2c1-c7944b963201"
+        "urn:spdx:ai-pyannote_segmentation-3.0-90db8789-6cff-474e-a7d3-739687261ec2"
       ],
       "element": [
-        "urn:spdx:pyannote_segmentation-3.0-bb2c6b7e-9f9c-455f-b4aa-5e2818291676",
-        "urn:spdx:ai-pyannote_segmentation-3.0-939e8f56-8615-4741-a2c1-c7944b963201",
-        "urn:spdx:rel-2935daf7-d210-46c8-ba6e-5833ad1364b9"
+        "urn:spdx:pyannote_segmentation-3.0-cb38c071-752c-4dfc-88c9-e050350af5a3",
+        "urn:spdx:ai-pyannote_segmentation-3.0-90db8789-6cff-474e-a7d3-739687261ec2",
+        "urn:spdx:rel-7a6ffb6c-90c9-4afc-9891-006acd64814e"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:pyannote_segmentation-3.0-bb2c6b7e-9f9c-455f-b4aa-5e2818291676",
+      "spdxId": "urn:spdx:pyannote_segmentation-3.0-cb38c071-752c-4dfc-88c9-e050350af5a3",
       "name": "pyannote/segmentation-3.0",
+      "downloadLocation": "https://huggingface.co/pyannote/segmentation-3.0",
       "licenseDeclared": "MIT"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-pyannote_segmentation-3.0-939e8f56-8615-4741-a2c1-c7944b963201",
+      "spdxId": "urn:spdx:ai-pyannote_segmentation-3.0-90db8789-6cff-474e-a7d3-739687261ec2",
       "name": "pyannote/segmentation-3.0",
+      "downloadLocation": "https://huggingface.co/pyannote/segmentation-3.0",
+      "packageUrl": "https://huggingface.co/pyannote/segmentation-3.0",
+      "suppliedBy": "pyannote",
       "primaryPurpose": [
         "voice-activity-detection"
       ],
@@ -61,9 +65,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-2935daf7-d210-46c8-ba6e-5833ad1364b9",
+      "spdxId": "urn:spdx:rel-7a6ffb6c-90c9-4afc-9891-006acd64814e",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:pyannote_segmentation-3.0-bb2c6b7e-9f9c-455f-b4aa-5e2818291676",
+      "from": "urn:spdx:pyannote_segmentation-3.0-cb38c071-752c-4dfc-88c9-e050350af5a3",
       "to": [
         "MIT"
       ]

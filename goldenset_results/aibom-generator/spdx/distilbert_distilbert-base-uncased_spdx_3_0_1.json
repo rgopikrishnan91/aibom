@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-distilbert-base-uncased-29f70c62-9bc2-4c0d-9a02-53adb8104ec9",
+      "spdxId": "urn:spdx:doc-distilbert-base-uncased-700f33f5-7d63-4934-b389-76231e9526df",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,70 +19,74 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-distilbert-base-uncased-f389508c-5d9c-4bdc-a972-00f3ce6ce572"
+        "urn:spdx:ai-distilbert-base-uncased-77fd6cd0-8f55-4b78-9cac-5e9568dfc654"
       ],
       "element": [
-        "urn:spdx:distilbert-base-uncased-158a954c-6a49-427a-b0b7-c4d5ea070a03",
-        "urn:spdx:ai-distilbert-base-uncased-f389508c-5d9c-4bdc-a972-00f3ce6ce572",
-        "urn:spdx:rel-c1debbaf-3abd-4298-ab8a-34f7af071cd0",
-        "urn:spdx:rel-6aec67c3-1aa3-45c6-b453-3449b4478ddd",
-        "urn:spdx:rel-139dd9a6-2e2d-4f8f-b548-b6ca8d613fb2",
-        "urn:spdx:rel-f4093676-1f50-46ba-afa1-f3eb32cd0df6"
+        "urn:spdx:distilbert-base-uncased-d1dcad6d-4182-41a2-81e0-6ad1cee0da15",
+        "urn:spdx:ai-distilbert-base-uncased-77fd6cd0-8f55-4b78-9cac-5e9568dfc654",
+        "urn:spdx:rel-42afde3d-d424-43f0-b88f-033cd754c7f4",
+        "urn:spdx:rel-583787fe-feb9-4540-aaa2-a091eb01ce4a",
+        "urn:spdx:rel-eab833ee-022d-4a6b-9eeb-8aee3e2cba0e",
+        "urn:spdx:rel-732bbdce-72ab-40cb-8b80-7743f2783084"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:distilbert-base-uncased-158a954c-6a49-427a-b0b7-c4d5ea070a03",
+      "spdxId": "urn:spdx:distilbert-base-uncased-d1dcad6d-4182-41a2-81e0-6ad1cee0da15",
       "name": "distilbert-base-uncased",
       "packageVersion": "12040acc",
+      "packageUrl": "pkg:huggingface/distilbert/distilbert-base-uncased@12040acc",
       "downloadLocation": "https://huggingface.co/distilbert/distilbert-base-uncased/tree/main",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-distilbert-base-uncased-f389508c-5d9c-4bdc-a972-00f3ce6ce572",
+      "spdxId": "urn:spdx:ai-distilbert-base-uncased-77fd6cd0-8f55-4b78-9cac-5e9568dfc654",
       "name": "distilbert-base-uncased",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/distilbert/distilbert-base-uncased/tree/main",
-      "packageUrl": "https://huggingface.co/distilbert/distilbert-base-uncased/commit/12040accade4e8a0f71eabdb258fecc2e7e948be",
+      "packageUrl": "pkg:huggingface/distilbert/distilbert-base-uncased@12040acc",
       "suppliedBy": "distilbert",
       "packageVersion": "12040acc",
       "primaryPurpose": [
         "fill-mask"
+      ],
+      "typeOfModel": [
+        "distilbert"
       ],
       "limitation": "[\"You can use the raw model for either masked language modeling or next sentence prediction, but it's mostly intended to be fine-tuned on a downstream task\"]",
       "safetyRiskAssessment": "Even if the training data used for this model could be characterized as fairly neutral, this model can have biased predictions"
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-c1debbaf-3abd-4298-ab8a-34f7af071cd0",
+      "spdxId": "urn:spdx:rel-42afde3d-d424-43f0-b88f-033cd754c7f4",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:distilbert-base-uncased-158a954c-6a49-427a-b0b7-c4d5ea070a03",
+      "from": "urn:spdx:distilbert-base-uncased-d1dcad6d-4182-41a2-81e0-6ad1cee0da15",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-6aec67c3-1aa3-45c6-b453-3449b4478ddd",
+      "spdxId": "urn:spdx:rel-583787fe-feb9-4540-aaa2-a091eb01ce4a",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-distilbert-base-uncased-f389508c-5d9c-4bdc-a972-00f3ce6ce572",
+      "from": "urn:spdx:ai-distilbert-base-uncased-77fd6cd0-8f55-4b78-9cac-5e9568dfc654",
       "to": [
         "bookcorpus"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-139dd9a6-2e2d-4f8f-b548-b6ca8d613fb2",
+      "spdxId": "urn:spdx:rel-eab833ee-022d-4a6b-9eeb-8aee3e2cba0e",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-distilbert-base-uncased-f389508c-5d9c-4bdc-a972-00f3ce6ce572",
+      "from": "urn:spdx:ai-distilbert-base-uncased-77fd6cd0-8f55-4b78-9cac-5e9568dfc654",
       "to": [
         "wikipedia"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-f4093676-1f50-46ba-afa1-f3eb32cd0df6",
+      "spdxId": "urn:spdx:rel-732bbdce-72ab-40cb-8b80-7743f2783084",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/distilbert/distilbert-base-uncased@12040acc",
       "to": [

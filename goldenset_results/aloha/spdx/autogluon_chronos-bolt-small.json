@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-autogluon_chronos-bolt-small-3b8450ee-dce8-4162-afda-9c6cc1532f52",
+      "spdxId": "urn:spdx:doc-autogluon_chronos-bolt-small-36e0ac2e-4edc-4ac5-a6a1-4715ab9ad20d",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,24 +19,28 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-autogluon_chronos-bolt-small-1fc4e28d-80d6-439f-8cfe-b6b2a31c30d6"
+        "urn:spdx:ai-autogluon_chronos-bolt-small-f61cb9ad-fa53-49ee-890a-ea044d5250fc"
       ],
       "element": [
-        "urn:spdx:autogluon_chronos-bolt-small-c75a7ca2-eb61-4469-882d-68bd0339b893",
-        "urn:spdx:ai-autogluon_chronos-bolt-small-1fc4e28d-80d6-439f-8cfe-b6b2a31c30d6",
-        "urn:spdx:rel-cbc73b16-06a7-4c17-a120-33ec72fc5674"
+        "urn:spdx:autogluon_chronos-bolt-small-4606a11b-5755-4ed1-864a-f4df1ceacd18",
+        "urn:spdx:ai-autogluon_chronos-bolt-small-f61cb9ad-fa53-49ee-890a-ea044d5250fc",
+        "urn:spdx:rel-dd956f6d-4596-4940-b101-3151492bd926"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:autogluon_chronos-bolt-small-c75a7ca2-eb61-4469-882d-68bd0339b893",
+      "spdxId": "urn:spdx:autogluon_chronos-bolt-small-4606a11b-5755-4ed1-864a-f4df1ceacd18",
       "name": "autogluon/chronos-bolt-small",
+      "downloadLocation": "https://huggingface.co/autogluon/chronos-bolt-small",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-autogluon_chronos-bolt-small-1fc4e28d-80d6-439f-8cfe-b6b2a31c30d6",
+      "spdxId": "urn:spdx:ai-autogluon_chronos-bolt-small-f61cb9ad-fa53-49ee-890a-ea044d5250fc",
       "name": "autogluon/chronos-bolt-small",
+      "downloadLocation": "https://huggingface.co/autogluon/chronos-bolt-small",
+      "packageUrl": "https://huggingface.co/autogluon/chronos-bolt-small",
+      "suppliedBy": "autogluon",
       "primaryPurpose": [
         "time-series-forecasting"
       ],
@@ -61,9 +65,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-cbc73b16-06a7-4c17-a120-33ec72fc5674",
+      "spdxId": "urn:spdx:rel-dd956f6d-4596-4940-b101-3151492bd926",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:autogluon_chronos-bolt-small-c75a7ca2-eb61-4469-882d-68bd0339b893",
+      "from": "urn:spdx:autogluon_chronos-bolt-small-4606a11b-5755-4ed1-864a-f4df1ceacd18",
       "to": [
         "Apache-2.0"
       ]

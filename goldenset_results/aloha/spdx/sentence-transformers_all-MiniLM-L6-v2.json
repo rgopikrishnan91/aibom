@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-sentence-transformers_all-MiniLM-L6-v2-1414742f-63a4-40c4-a400-7d67ab1fb64d",
+      "spdxId": "urn:spdx:doc-sentence-transformers_all-MiniLM-L6-v2-1db08d44-81e2-4a67-9655-7380a227ca2c",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,45 +19,49 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9"
+        "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-725f7bd0-3f11-4cf1-a4f9-3a026b9695f3"
       ],
       "element": [
-        "urn:spdx:sentence-transformers_all-MiniLM-L6-v2-b04af76b-0c66-4977-aa2b-022377529530",
-        "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
-        "urn:spdx:rel-7c7f357e-f9a7-4171-aab9-d95906376efc",
-        "urn:spdx:rel-fd322bc8-5d1a-4a45-9122-d1d91033355f",
-        "urn:spdx:rel-1927dfb6-1b94-46a9-adbd-dd60c304e927",
-        "urn:spdx:rel-ecafe8a3-3b3b-4e29-ac03-027fdb68e6f0",
-        "urn:spdx:rel-c6124b46-f1e2-4143-9ead-4b99d3c2daca",
-        "urn:spdx:rel-6de521c8-7fd0-4d47-90b3-fcd0124ef28b",
-        "urn:spdx:rel-ea5df858-e6e5-4e68-b784-f52c5c355249",
-        "urn:spdx:rel-48f25da9-e5f8-4c0e-835b-d34085a60c61",
-        "urn:spdx:rel-a278a061-e477-401f-96ca-3b9673fe92fe",
-        "urn:spdx:rel-93aea5a0-af37-4d7a-9650-c28ab15fd652",
-        "urn:spdx:rel-c75b8cb0-eaf9-4599-bf13-8e7d5c9063c3",
-        "urn:spdx:rel-d4eb4579-df19-4e9d-a442-f65cdebec325",
-        "urn:spdx:rel-ac4663cd-a139-41cb-b1dc-f2979305ad09",
-        "urn:spdx:rel-83ae247e-adb9-4ad4-899e-6775f05b80fc",
-        "urn:spdx:rel-31330d75-c138-473f-a563-1e943b520842",
-        "urn:spdx:rel-0a4ad0aa-ea70-4807-92fb-2a9018b06aa9",
-        "urn:spdx:rel-5aa7d498-23b3-4ef5-8978-38f40670dec7",
-        "urn:spdx:rel-a7e3f038-8d85-4c77-927b-132fa1c6b7dd",
-        "urn:spdx:rel-a83aef08-3f4b-4c3c-8b0e-3c167cb0aee3",
-        "urn:spdx:rel-92e32b84-f011-4304-91ca-9562542b2cbc",
-        "urn:spdx:rel-53f5321b-4ed6-49cf-9315-cda96775cc78",
-        "urn:spdx:rel-6f7edec8-a749-443d-b1d0-e2d6b6a173eb"
+        "urn:spdx:sentence-transformers_all-MiniLM-L6-v2-f4ffa493-7a3e-4e82-b847-4524d89da385",
+        "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-725f7bd0-3f11-4cf1-a4f9-3a026b9695f3",
+        "urn:spdx:rel-a3a9cb63-3b1e-4f92-864a-3bce64efe13b",
+        "urn:spdx:rel-720667a8-0bf2-4df6-8f2d-0e68498ebbf6",
+        "urn:spdx:rel-64598aa2-8446-4109-a97c-f6610d21273f",
+        "urn:spdx:rel-73ec16d0-4c9e-407e-a0cf-f907d23c5969",
+        "urn:spdx:rel-e38e991b-3fa0-4ce2-b852-b799ce723f9a",
+        "urn:spdx:rel-1dbff2e5-d7e1-4219-81ad-b49abbd95cf2",
+        "urn:spdx:rel-fd887865-7467-4222-a178-73788b2b503a",
+        "urn:spdx:rel-4850e996-0581-4e2b-b409-5b50b5de1565",
+        "urn:spdx:rel-74c04038-7575-4aa4-bfaf-2546b0889170",
+        "urn:spdx:rel-a0ae66c8-724e-48f5-bfbf-673dcdf7c01d",
+        "urn:spdx:rel-df717219-dce6-4abb-bf37-d623ddf79b95",
+        "urn:spdx:rel-377c4f81-ccd4-410e-a00b-cb87d2a04024",
+        "urn:spdx:rel-074fcbc3-ba16-452e-85df-9d610ca2b923",
+        "urn:spdx:rel-6940edc4-dca4-4858-be6b-9c2f25253e1e",
+        "urn:spdx:rel-f47c4a52-f561-4ef4-9dc1-8d7b77bb2e30",
+        "urn:spdx:rel-0ac39e1b-ff0a-483d-ad3a-5ff2d32a5976",
+        "urn:spdx:rel-8f4c4b38-df7d-48be-a84c-be4e58607e30",
+        "urn:spdx:rel-1b15f517-e994-43c8-a73f-4e285340e57e",
+        "urn:spdx:rel-eb765581-29d1-4aed-a061-e167e00c5f01",
+        "urn:spdx:rel-8f59c012-9cc8-4fb7-8c75-cfe7672f5f0a",
+        "urn:spdx:rel-550db707-11a6-4506-8de8-56513366b60d",
+        "urn:spdx:rel-29208d2a-57fa-4b20-a3b9-b6e4360736ff"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:sentence-transformers_all-MiniLM-L6-v2-b04af76b-0c66-4977-aa2b-022377529530",
+      "spdxId": "urn:spdx:sentence-transformers_all-MiniLM-L6-v2-f4ffa493-7a3e-4e82-b847-4524d89da385",
       "name": "sentence-transformers/all-MiniLM-L6-v2",
+      "downloadLocation": "https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
+      "spdxId": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-725f7bd0-3f11-4cf1-a4f9-3a026b9695f3",
       "name": "sentence-transformers/all-MiniLM-L6-v2",
+      "downloadLocation": "https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2",
+      "packageUrl": "https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2",
+      "suppliedBy": "sentence-transformers",
       "primaryPurpose": [
         "sentence-similarity"
       ],
@@ -113,198 +117,198 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-7c7f357e-f9a7-4171-aab9-d95906376efc",
+      "spdxId": "urn:spdx:rel-a3a9cb63-3b1e-4f92-864a-3bce64efe13b",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:sentence-transformers_all-MiniLM-L6-v2-b04af76b-0c66-4977-aa2b-022377529530",
+      "from": "urn:spdx:sentence-transformers_all-MiniLM-L6-v2-f4ffa493-7a3e-4e82-b847-4524d89da385",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-fd322bc8-5d1a-4a45-9122-d1d91033355f",
+      "spdxId": "urn:spdx:rel-720667a8-0bf2-4df6-8f2d-0e68498ebbf6",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-725f7bd0-3f11-4cf1-a4f9-3a026b9695f3",
       "to": [
         "s2orc-65a8fab1-76ce-5ee8-8f9f-ba89f6ce0d0a"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-1927dfb6-1b94-46a9-adbd-dd60c304e927",
+      "spdxId": "urn:spdx:rel-64598aa2-8446-4109-a97c-f6610d21273f",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-725f7bd0-3f11-4cf1-a4f9-3a026b9695f3",
       "to": [
         "flax-sentence-embeddings/stackexchange_xml-9b89038e-3e3a-55a9-a9b2-033ecc06dfcd"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-ecafe8a3-3b3b-4e29-ac03-027fdb68e6f0",
+      "spdxId": "urn:spdx:rel-73ec16d0-4c9e-407e-a0cf-f907d23c5969",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-725f7bd0-3f11-4cf1-a4f9-3a026b9695f3",
       "to": [
         "ms_marco-1f8fe88d-e054-5ae5-9b16-5fb183d502cf"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-c6124b46-f1e2-4143-9ead-4b99d3c2daca",
+      "spdxId": "urn:spdx:rel-e38e991b-3fa0-4ce2-b852-b799ce723f9a",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-725f7bd0-3f11-4cf1-a4f9-3a026b9695f3",
       "to": [
         "gooaq-4c22f730-8ab9-542c-8706-1b688bc27a25"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-6de521c8-7fd0-4d47-90b3-fcd0124ef28b",
+      "spdxId": "urn:spdx:rel-1dbff2e5-d7e1-4219-81ad-b49abbd95cf2",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-725f7bd0-3f11-4cf1-a4f9-3a026b9695f3",
       "to": [
         "yahoo_answers_topics-1139ca63-1929-555c-b52a-b103ccd5d1fc"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-ea5df858-e6e5-4e68-b784-f52c5c355249",
+      "spdxId": "urn:spdx:rel-fd887865-7467-4222-a178-73788b2b503a",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-725f7bd0-3f11-4cf1-a4f9-3a026b9695f3",
       "to": [
         "code_search_net-d14328c4-fa8a-50ba-ab75-08f0d105523c"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-48f25da9-e5f8-4c0e-835b-d34085a60c61",
+      "spdxId": "urn:spdx:rel-4850e996-0581-4e2b-b409-5b50b5de1565",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-725f7bd0-3f11-4cf1-a4f9-3a026b9695f3",
       "to": [
         "search_qa-46cc9fa5-ebf6-5e77-8f95-5c6b89f20344"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-a278a061-e477-401f-96ca-3b9673fe92fe",
+      "spdxId": "urn:spdx:rel-74c04038-7575-4aa4-bfaf-2546b0889170",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-725f7bd0-3f11-4cf1-a4f9-3a026b9695f3",
       "to": [
         "eli5-50926124-b144-541c-ac0b-06c0aba5fc71"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-93aea5a0-af37-4d7a-9650-c28ab15fd652",
+      "spdxId": "urn:spdx:rel-a0ae66c8-724e-48f5-bfbf-673dcdf7c01d",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-725f7bd0-3f11-4cf1-a4f9-3a026b9695f3",
       "to": [
         "snli-c86ca575-da1e-5d4c-bcd6-b1524781b717"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-c75b8cb0-eaf9-4599-bf13-8e7d5c9063c3",
+      "spdxId": "urn:spdx:rel-df717219-dce6-4abb-bf37-d623ddf79b95",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-725f7bd0-3f11-4cf1-a4f9-3a026b9695f3",
       "to": [
         "multi_nli-3f66ff16-a557-5dab-8458-0d3efcbec3da"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-d4eb4579-df19-4e9d-a442-f65cdebec325",
+      "spdxId": "urn:spdx:rel-377c4f81-ccd4-410e-a00b-cb87d2a04024",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-725f7bd0-3f11-4cf1-a4f9-3a026b9695f3",
       "to": [
         "wikihow-54d44e57-cae1-5ebb-a347-f9da1e9d4053"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-ac4663cd-a139-41cb-b1dc-f2979305ad09",
+      "spdxId": "urn:spdx:rel-074fcbc3-ba16-452e-85df-9d610ca2b923",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-725f7bd0-3f11-4cf1-a4f9-3a026b9695f3",
       "to": [
         "natural_questions-9d628078-279d-50b2-bdf4-02c911181e5e"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-83ae247e-adb9-4ad4-899e-6775f05b80fc",
+      "spdxId": "urn:spdx:rel-6940edc4-dca4-4858-be6b-9c2f25253e1e",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-725f7bd0-3f11-4cf1-a4f9-3a026b9695f3",
       "to": [
         "trivia_qa-3fc5035f-f820-55b6-82e8-0815843d1785"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-31330d75-c138-473f-a563-1e943b520842",
+      "spdxId": "urn:spdx:rel-f47c4a52-f561-4ef4-9dc1-8d7b77bb2e30",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-725f7bd0-3f11-4cf1-a4f9-3a026b9695f3",
       "to": [
         "embedding-data/sentence-compression-fb02b073-5608-5dda-9f1d-7e89d1f5726e"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-0a4ad0aa-ea70-4807-92fb-2a9018b06aa9",
+      "spdxId": "urn:spdx:rel-0ac39e1b-ff0a-483d-ad3a-5ff2d32a5976",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-725f7bd0-3f11-4cf1-a4f9-3a026b9695f3",
       "to": [
         "embedding-data/flickr30k-captions-e230bb62-1c64-52b6-8c6d-ddce348416d2"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-5aa7d498-23b3-4ef5-8978-38f40670dec7",
+      "spdxId": "urn:spdx:rel-8f4c4b38-df7d-48be-a84c-be4e58607e30",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-725f7bd0-3f11-4cf1-a4f9-3a026b9695f3",
       "to": [
         "embedding-data/altlex-ea93bf58-483e-555f-a1cb-5e3252519b5b"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-a7e3f038-8d85-4c77-927b-132fa1c6b7dd",
+      "spdxId": "urn:spdx:rel-1b15f517-e994-43c8-a73f-4e285340e57e",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-725f7bd0-3f11-4cf1-a4f9-3a026b9695f3",
       "to": [
         "embedding-data/simple-wiki-60f5a61f-d184-575b-bc4b-ba0ea43067cb"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-a83aef08-3f4b-4c3c-8b0e-3c167cb0aee3",
+      "spdxId": "urn:spdx:rel-eb765581-29d1-4aed-a061-e167e00c5f01",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-725f7bd0-3f11-4cf1-a4f9-3a026b9695f3",
       "to": [
         "embedding-data/QQP-7344ce45-1630-5169-8400-c97ae34d3f53"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-92e32b84-f011-4304-91ca-9562542b2cbc",
+      "spdxId": "urn:spdx:rel-8f59c012-9cc8-4fb7-8c75-cfe7672f5f0a",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-725f7bd0-3f11-4cf1-a4f9-3a026b9695f3",
       "to": [
         "embedding-data/SPECTER-566e9a9a-0219-59ad-8b7e-9c0f11ec8af3"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-53f5321b-4ed6-49cf-9315-cda96775cc78",
+      "spdxId": "urn:spdx:rel-550db707-11a6-4506-8de8-56513366b60d",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-725f7bd0-3f11-4cf1-a4f9-3a026b9695f3",
       "to": [
         "embedding-data/PAQ_pairs-d382b21d-b46f-5379-967a-320e28b981b5"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-6f7edec8-a749-443d-b1d0-e2d6b6a173eb",
+      "spdxId": "urn:spdx:rel-29208d2a-57fa-4b20-a3b9-b6e4360736ff",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-9cfcc904-2c2f-4e9e-af3e-b59de1408aa9",
+      "from": "urn:spdx:ai-sentence-transformers_all-MiniLM-L6-v2-725f7bd0-3f11-4cf1-a4f9-3a026b9695f3",
       "to": [
         "embedding-data/WikiAnswers-38ebefc3-ab34-5b66-b64a-c52a9659c734"
       ]

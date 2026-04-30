@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-cardiffnlp_twitter-roberta-base-sentiment-latest-03fa19a4-717b-45c4-a2e2-d8c794dae9e1",
+      "spdxId": "urn:spdx:doc-cardiffnlp_twitter-roberta-base-sentiment-latest-c5d9762b-ac3e-4877-8370-4fd6a6d3a599",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,25 +19,29 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-cardiffnlp_twitter-roberta-base-sentiment-latest-c73ce114-7a26-4715-81de-8822e7f19850"
+        "urn:spdx:ai-cardiffnlp_twitter-roberta-base-sentiment-latest-9126abed-6ea1-442c-87c3-29f3d213a80c"
       ],
       "element": [
-        "urn:spdx:cardiffnlp_twitter-roberta-base-sentiment-latest-dda3f664-eddd-49d3-ace6-0f50e7489259",
-        "urn:spdx:ai-cardiffnlp_twitter-roberta-base-sentiment-latest-c73ce114-7a26-4715-81de-8822e7f19850",
-        "urn:spdx:rel-eda42b3d-1ac5-4319-b721-37b5b896f9f8",
-        "urn:spdx:rel-f0bb3ce0-65f4-4441-9d59-64c77609e61d"
+        "urn:spdx:cardiffnlp_twitter-roberta-base-sentiment-latest-6570ea08-f6d4-4d49-9ff3-f0ffab6ad347",
+        "urn:spdx:ai-cardiffnlp_twitter-roberta-base-sentiment-latest-9126abed-6ea1-442c-87c3-29f3d213a80c",
+        "urn:spdx:rel-80259b93-fa9a-4411-aa08-e4f00934fcef",
+        "urn:spdx:rel-37fd647b-2b67-48e2-986a-19d5c258196e"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:cardiffnlp_twitter-roberta-base-sentiment-latest-dda3f664-eddd-49d3-ace6-0f50e7489259",
+      "spdxId": "urn:spdx:cardiffnlp_twitter-roberta-base-sentiment-latest-6570ea08-f6d4-4d49-9ff3-f0ffab6ad347",
       "name": "cardiffnlp/twitter-roberta-base-sentiment-latest",
+      "downloadLocation": "https://huggingface.co/cardiffnlp/twitter-roberta-base-sentiment-latest",
       "licenseDeclared": "CC-BY-4.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-cardiffnlp_twitter-roberta-base-sentiment-latest-c73ce114-7a26-4715-81de-8822e7f19850",
+      "spdxId": "urn:spdx:ai-cardiffnlp_twitter-roberta-base-sentiment-latest-9126abed-6ea1-442c-87c3-29f3d213a80c",
       "name": "cardiffnlp/twitter-roberta-base-sentiment-latest",
+      "downloadLocation": "https://huggingface.co/cardiffnlp/twitter-roberta-base-sentiment-latest",
+      "packageUrl": "https://huggingface.co/cardiffnlp/twitter-roberta-base-sentiment-latest",
+      "suppliedBy": "cardiffnlp",
       "primaryPurpose": [
         "text-classification"
       ],
@@ -61,18 +65,18 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-eda42b3d-1ac5-4319-b721-37b5b896f9f8",
+      "spdxId": "urn:spdx:rel-80259b93-fa9a-4411-aa08-e4f00934fcef",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:cardiffnlp_twitter-roberta-base-sentiment-latest-dda3f664-eddd-49d3-ace6-0f50e7489259",
+      "from": "urn:spdx:cardiffnlp_twitter-roberta-base-sentiment-latest-6570ea08-f6d4-4d49-9ff3-f0ffab6ad347",
       "to": [
         "CC-BY-4.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-f0bb3ce0-65f4-4441-9d59-64c77609e61d",
+      "spdxId": "urn:spdx:rel-37fd647b-2b67-48e2-986a-19d5c258196e",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-cardiffnlp_twitter-roberta-base-sentiment-latest-c73ce114-7a26-4715-81de-8822e7f19850",
+      "from": "urn:spdx:ai-cardiffnlp_twitter-roberta-base-sentiment-latest-9126abed-6ea1-442c-87c3-29f3d213a80c",
       "to": [
         "tweet_eval-2a48b8e0-af85-5c55-93d6-70d9620e1beb"
       ]

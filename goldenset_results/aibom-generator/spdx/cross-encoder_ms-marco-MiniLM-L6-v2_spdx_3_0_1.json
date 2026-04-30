@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-ms-marco-MiniLM-L6-v2-e173b792-6bd5-476f-82cd-c8893fe19381",
+      "spdxId": "urn:spdx:doc-ms-marco-MiniLM-L6-v2-99f471ad-d22b-4be5-85a0-bd13160e3684",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,58 +19,62 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-ms-marco-MiniLM-L6-v2-9175620a-aa17-437d-ad89-1bc0f2860df1"
+        "urn:spdx:ai-ms-marco-MiniLM-L6-v2-788a2e12-9b99-4edd-9096-6f0402608ba3"
       ],
       "element": [
-        "urn:spdx:ms-marco-MiniLM-L6-v2-624ec484-ec2f-4675-b26c-8bb161acd9b8",
-        "urn:spdx:ai-ms-marco-MiniLM-L6-v2-9175620a-aa17-437d-ad89-1bc0f2860df1",
-        "urn:spdx:rel-7a91f694-6c24-4d7f-9247-4a2d45264d0d",
-        "urn:spdx:rel-59d0cf79-c9b3-40ff-98f4-cf0fd8d70155",
-        "urn:spdx:rel-30cfa7d9-8bb6-4753-8572-89dd138228e9"
+        "urn:spdx:ms-marco-MiniLM-L6-v2-0994f4c2-8c25-4896-8ee3-e6e5e4782a3b",
+        "urn:spdx:ai-ms-marco-MiniLM-L6-v2-788a2e12-9b99-4edd-9096-6f0402608ba3",
+        "urn:spdx:rel-1f21e888-6df1-43d3-bdaa-bd5c7d0badfd",
+        "urn:spdx:rel-57495cd2-d974-4d7c-a936-fa3cc8bc7205",
+        "urn:spdx:rel-55cb0df7-5e94-43dd-a50a-9c8e3d5966ad"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:ms-marco-MiniLM-L6-v2-624ec484-ec2f-4675-b26c-8bb161acd9b8",
+      "spdxId": "urn:spdx:ms-marco-MiniLM-L6-v2-0994f4c2-8c25-4896-8ee3-e6e5e4782a3b",
       "name": "ms-marco-MiniLM-L6-v2",
       "packageVersion": "c5ee24cb",
+      "packageUrl": "pkg:huggingface/cross-encoder/ms-marco-MiniLM-L6-v2@c5ee24cb",
       "downloadLocation": "https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/tree/main",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-ms-marco-MiniLM-L6-v2-9175620a-aa17-437d-ad89-1bc0f2860df1",
+      "spdxId": "urn:spdx:ai-ms-marco-MiniLM-L6-v2-788a2e12-9b99-4edd-9096-6f0402608ba3",
       "name": "ms-marco-MiniLM-L6-v2",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/tree/main",
-      "packageUrl": "https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2/commit/c5ee24cb16019beea0893ab7796b1df96625c6b8",
+      "packageUrl": "pkg:huggingface/cross-encoder/ms-marco-MiniLM-L6-v2@c5ee24cb",
       "suppliedBy": "cross-encoder",
       "packageVersion": "c5ee24cb",
       "primaryPurpose": [
         "text-ranking"
+      ],
+      "typeOfModel": [
+        "bert"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-7a91f694-6c24-4d7f-9247-4a2d45264d0d",
+      "spdxId": "urn:spdx:rel-1f21e888-6df1-43d3-bdaa-bd5c7d0badfd",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:ms-marco-MiniLM-L6-v2-624ec484-ec2f-4675-b26c-8bb161acd9b8",
+      "from": "urn:spdx:ms-marco-MiniLM-L6-v2-0994f4c2-8c25-4896-8ee3-e6e5e4782a3b",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-59d0cf79-c9b3-40ff-98f4-cf0fd8d70155",
+      "spdxId": "urn:spdx:rel-57495cd2-d974-4d7c-a936-fa3cc8bc7205",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-ms-marco-MiniLM-L6-v2-9175620a-aa17-437d-ad89-1bc0f2860df1",
+      "from": "urn:spdx:ai-ms-marco-MiniLM-L6-v2-788a2e12-9b99-4edd-9096-6f0402608ba3",
       "to": [
         "sentence-transformers/msmarco"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-30cfa7d9-8bb6-4753-8572-89dd138228e9",
+      "spdxId": "urn:spdx:rel-55cb0df7-5e94-43dd-a50a-9c8e3d5966ad",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/cross-encoder/ms-marco-MiniLM-L6-v2@c5ee24cb",
       "to": [

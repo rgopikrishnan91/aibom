@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-autogluon_chronos-bolt-base-fae708b4-b0e4-49e5-969a-6683ef918384",
+      "spdxId": "urn:spdx:doc-autogluon_chronos-bolt-base-6921a253-d3bd-4589-828e-b9076a3d8925",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,24 +19,28 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-autogluon_chronos-bolt-base-f082a68d-ee6e-4e1e-b9e8-9f2eae4ef051"
+        "urn:spdx:ai-autogluon_chronos-bolt-base-b4ff1995-6349-4153-8baf-0d814302987f"
       ],
       "element": [
-        "urn:spdx:autogluon_chronos-bolt-base-2fa32922-b48d-4768-9626-397cd8941b81",
-        "urn:spdx:ai-autogluon_chronos-bolt-base-f082a68d-ee6e-4e1e-b9e8-9f2eae4ef051",
-        "urn:spdx:rel-7a688e8e-1608-47a4-a3da-e49036eb65ae"
+        "urn:spdx:autogluon_chronos-bolt-base-df8909d1-1996-4865-a1bf-6d29a5d8b046",
+        "urn:spdx:ai-autogluon_chronos-bolt-base-b4ff1995-6349-4153-8baf-0d814302987f",
+        "urn:spdx:rel-82775faa-802f-4e6c-a381-451fec08908c"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:autogluon_chronos-bolt-base-2fa32922-b48d-4768-9626-397cd8941b81",
+      "spdxId": "urn:spdx:autogluon_chronos-bolt-base-df8909d1-1996-4865-a1bf-6d29a5d8b046",
       "name": "autogluon/chronos-bolt-base",
+      "downloadLocation": "https://huggingface.co/autogluon/chronos-bolt-base",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-autogluon_chronos-bolt-base-f082a68d-ee6e-4e1e-b9e8-9f2eae4ef051",
+      "spdxId": "urn:spdx:ai-autogluon_chronos-bolt-base-b4ff1995-6349-4153-8baf-0d814302987f",
       "name": "autogluon/chronos-bolt-base",
+      "downloadLocation": "https://huggingface.co/autogluon/chronos-bolt-base",
+      "packageUrl": "https://huggingface.co/autogluon/chronos-bolt-base",
+      "suppliedBy": "autogluon",
       "primaryPurpose": [
         "time-series-forecasting"
       ],
@@ -61,9 +65,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-7a688e8e-1608-47a4-a3da-e49036eb65ae",
+      "spdxId": "urn:spdx:rel-82775faa-802f-4e6c-a381-451fec08908c",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:autogluon_chronos-bolt-base-2fa32922-b48d-4768-9626-397cd8941b81",
+      "from": "urn:spdx:autogluon_chronos-bolt-base-df8909d1-1996-4865-a1bf-6d29a5d8b046",
       "to": [
         "Apache-2.0"
       ]

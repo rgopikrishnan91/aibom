@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-mobilenetv3_small_100.lamb_in1k-9e404bd6-5178-4a64-9591-52e93f458668",
+      "spdxId": "urn:spdx:doc-mobilenetv3_small_100.lamb_in1k-89159931-ab5e-4c4d-b8a6-3ae8f4e6137b",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,58 +19,62 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-mobilenetv3_small_100.lamb_in1k-76acd940-b1b8-43d3-9d6f-fc470c2b917e"
+        "urn:spdx:ai-mobilenetv3_small_100.lamb_in1k-9c64bd42-36da-485e-a419-4f4af98c4df2"
       ],
       "element": [
-        "urn:spdx:mobilenetv3_small_100.lamb_in1k-e5078bc8-61d7-4074-89d2-dcb117d34977",
-        "urn:spdx:ai-mobilenetv3_small_100.lamb_in1k-76acd940-b1b8-43d3-9d6f-fc470c2b917e",
-        "urn:spdx:rel-c4d05d83-25f6-47eb-8ebd-2dfc070af0a4",
-        "urn:spdx:rel-487811e9-a61f-4b67-8138-cf0b268630ec",
-        "urn:spdx:rel-1a692cf8-530d-4c34-b2b4-bdb1abe1cdf6"
+        "urn:spdx:mobilenetv3_small_100.lamb_in1k-91d13378-8e2a-405b-995a-6d67297879dd",
+        "urn:spdx:ai-mobilenetv3_small_100.lamb_in1k-9c64bd42-36da-485e-a419-4f4af98c4df2",
+        "urn:spdx:rel-01ee0e68-9a22-4192-8f00-8f1e1efbdf74",
+        "urn:spdx:rel-a5f9a124-b396-4edc-a292-5b5608f763f8",
+        "urn:spdx:rel-5f86cf09-fdff-4d29-9452-4df1e2ab1e7d"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:mobilenetv3_small_100.lamb_in1k-e5078bc8-61d7-4074-89d2-dcb117d34977",
+      "spdxId": "urn:spdx:mobilenetv3_small_100.lamb_in1k-91d13378-8e2a-405b-995a-6d67297879dd",
       "name": "mobilenetv3_small_100.lamb_in1k",
       "packageVersion": "1824797e",
+      "packageUrl": "pkg:huggingface/timm/mobilenetv3_small_100.lamb_in1k@1824797e",
       "downloadLocation": "https://huggingface.co/timm/mobilenetv3_small_100.lamb_in1k/tree/main",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-mobilenetv3_small_100.lamb_in1k-76acd940-b1b8-43d3-9d6f-fc470c2b917e",
+      "spdxId": "urn:spdx:ai-mobilenetv3_small_100.lamb_in1k-9c64bd42-36da-485e-a419-4f4af98c4df2",
       "name": "mobilenetv3_small_100.lamb_in1k",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/timm/mobilenetv3_small_100.lamb_in1k/tree/main",
-      "packageUrl": "https://huggingface.co/timm/mobilenetv3_small_100.lamb_in1k/commit/1824797e7887cbec1990e4adbd6675960a36c589",
+      "packageUrl": "pkg:huggingface/timm/mobilenetv3_small_100.lamb_in1k@1824797e",
       "suppliedBy": "timm",
       "packageVersion": "1824797e",
       "primaryPurpose": [
         "image-classification"
+      ],
+      "typeOfModel": [
+        "transformer"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-c4d05d83-25f6-47eb-8ebd-2dfc070af0a4",
+      "spdxId": "urn:spdx:rel-01ee0e68-9a22-4192-8f00-8f1e1efbdf74",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:mobilenetv3_small_100.lamb_in1k-e5078bc8-61d7-4074-89d2-dcb117d34977",
+      "from": "urn:spdx:mobilenetv3_small_100.lamb_in1k-91d13378-8e2a-405b-995a-6d67297879dd",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-487811e9-a61f-4b67-8138-cf0b268630ec",
+      "spdxId": "urn:spdx:rel-a5f9a124-b396-4edc-a292-5b5608f763f8",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-mobilenetv3_small_100.lamb_in1k-76acd940-b1b8-43d3-9d6f-fc470c2b917e",
+      "from": "urn:spdx:ai-mobilenetv3_small_100.lamb_in1k-9c64bd42-36da-485e-a419-4f4af98c4df2",
       "to": [
         "imagenet-1k"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-1a692cf8-530d-4c34-b2b4-bdb1abe1cdf6",
+      "spdxId": "urn:spdx:rel-5f86cf09-fdff-4d29-9452-4df1e2ab1e7d",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/timm/mobilenetv3_small_100.lamb_in1k@1824797e",
       "to": [

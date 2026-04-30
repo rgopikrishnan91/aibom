@@ -100,15 +100,25 @@ def cdx_to_spdx(cdx: dict) -> dict:
     # Direct mappings per field-mapping table
     if comp.get("description"):
         ai_pkg["summary"] = comp["description"]
-    if _ext_ref(comp, "distribution"):
-        ai_pkg["downloadLocation"] = _ext_ref(comp, "distribution")
-    if _ext_ref(comp, "vcs"):
+    dl = (_ext_ref(comp, "distribution")
+          or _ext_ref(comp, "documentation")
+          or _ext_ref(comp, "website"))
+    if dl:
+        ai_pkg["downloadLocation"] = dl
+    if comp.get("purl"):
+        ai_pkg["packageUrl"] = comp["purl"]
+    elif _ext_ref(comp, "vcs"):
         ai_pkg["packageUrl"] = _ext_ref(comp, "vcs")
-    elif _ext_ref(comp, "website"):
-        ai_pkg["packageUrl"] = _ext_ref(comp, "website")
+    elif _ext_ref(comp, "website") or _ext_ref(comp, "documentation"):
+        ai_pkg["packageUrl"] = _ext_ref(comp, "website") or _ext_ref(comp, "documentation")
+    # suppliedBy: prefer supplier, fall back to authors
     if comp.get("supplier"):
         sup = comp["supplier"]
         ai_pkg["suppliedBy"] = sup.get("name") if isinstance(sup, dict) else sup
+    elif comp.get("authors"):
+        authors = comp["authors"]
+        if isinstance(authors, list) and authors:
+            ai_pkg["suppliedBy"] = authors[0].get("name") if isinstance(authors[0], dict) else authors[0]
     if comp.get("version"):
         ai_pkg["packageVersion"] = comp["version"]
 
@@ -118,8 +128,11 @@ def cdx_to_spdx(cdx: dict) -> dict:
     tags = comp.get("tags") or []
     if tags:
         ai_pkg["domain"] = tags
-    if mparams.get("approach") or mparams.get("architectureFamily"):
-        ai_pkg["typeOfModel"] = [mparams.get("approach") or mparams.get("architectureFamily")]
+    type_of_model = (mparams.get("approach")
+                     or mparams.get("architectureFamily")
+                     or mparams.get("modelArchitecture"))
+    if type_of_model:
+        ai_pkg["typeOfModel"] = [type_of_model]
     # Hyperparameters: collect anything in modelParameters that isn't a structural field
     structural = {"task", "approach", "architectureFamily", "modelArchitecture", "datasets", "inputs", "outputs"}
     hp = {k: v for k, v in mparams.items() if k not in structural and isinstance(v, (str, int, float, bool))}
@@ -168,8 +181,13 @@ def cdx_to_spdx(cdx: dict) -> dict:
     }
     if comp.get("version"):
         pkg["packageVersion"] = comp["version"]
-    if _ext_ref(comp, "distribution"):
-        pkg["downloadLocation"] = _ext_ref(comp, "distribution")
+    if comp.get("purl"):
+        pkg["packageUrl"] = comp["purl"]
+    pkg_dl = (_ext_ref(comp, "distribution")
+              or _ext_ref(comp, "documentation")
+              or _ext_ref(comp, "website"))
+    if pkg_dl:
+        pkg["downloadLocation"] = pkg_dl
     licenses = _licenses(comp)
     if licenses:
         pkg["licenseDeclared"] = " AND ".join(licenses) if len(licenses) > 1 else licenses[0]

@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-usyd-community_vitpose-plus-base-14489d9d-a372-4e3b-9aa0-56a9e855da7b",
+      "spdxId": "urn:spdx:doc-usyd-community_vitpose-plus-base-9dde4f02-9b66-4866-a284-4fae593da2a3",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,25 +19,29 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-usyd-community_vitpose-plus-base-3c387f78-7bdd-483b-8990-80fa5edb9237"
+        "urn:spdx:ai-usyd-community_vitpose-plus-base-b2cb7486-9b9c-4d08-b1da-e9982c1b4bff"
       ],
       "element": [
-        "urn:spdx:usyd-community_vitpose-plus-base-ba3855f1-e5c3-4fce-b75c-e5eba8388c68",
-        "urn:spdx:ai-usyd-community_vitpose-plus-base-3c387f78-7bdd-483b-8990-80fa5edb9237",
-        "urn:spdx:rel-aa425e75-9775-459e-a7f2-4e0a54529d4b"
+        "urn:spdx:usyd-community_vitpose-plus-base-34d25f24-2a0f-46ed-bfa9-c2aaffe9d1c6",
+        "urn:spdx:ai-usyd-community_vitpose-plus-base-b2cb7486-9b9c-4d08-b1da-e9982c1b4bff",
+        "urn:spdx:rel-223234b7-c8d9-48a9-bd22-73e18adc8f3a"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:usyd-community_vitpose-plus-base-ba3855f1-e5c3-4fce-b75c-e5eba8388c68",
+      "spdxId": "urn:spdx:usyd-community_vitpose-plus-base-34d25f24-2a0f-46ed-bfa9-c2aaffe9d1c6",
       "name": "usyd-community/vitpose-plus-base",
+      "downloadLocation": "https://huggingface.co/usyd-community/vitpose-plus-base",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-usyd-community_vitpose-plus-base-3c387f78-7bdd-483b-8990-80fa5edb9237",
+      "spdxId": "urn:spdx:ai-usyd-community_vitpose-plus-base-b2cb7486-9b9c-4d08-b1da-e9982c1b4bff",
       "name": "usyd-community/vitpose-plus-base",
       "summary": "Although no specific domain knowledge is considered in the design, plain vision transformers have shown excellent performance in visual recognition tasks. However, little effort has been made to reveal the potential of such simple structures forpose estimation tasks. In this paper, we show the surprisingly good capabilities of plain vision transformers for pose estimation from various aspects, namely simplicity in model structure, scalability in model size, flexibility in training paradigm,and transferability of knowledge between models, through a simple baseline model called ViTPose. Specifically, ViTPose employs plain and non-hierarchical visiontransformers as backbones to extract features for a given person instance and alightweight decoder for pose estimation. It can be scaled up from 100M to 1Bparameters by taking the advantages of the scalable model capacity and highparallelism of transformers, setting a new Pareto front between throughput and performance. Besides, ViTPose is very flexible regarding the attention type, input resolution, pre-training and finetuning strategy, as well as dealing with multiple posetasks. We also empirically demonstrate that the knowledge of large ViTPose modelscan be easily transferred to small ones via a simple knowledge token. Experimentalresults show that our basic ViTPose model outperforms representative methodson the challenging MS COCO Keypoint Detection benchmark, while the largestmodel sets a new state-of-the-art, i.e., 80.9 AP on the MS COCO test-dev set. Thecode and models are available at https://github.com/ViTAE-Transformer/ViTPose",
+      "downloadLocation": "https://huggingface.co/usyd-community/vitpose-plus-base",
+      "packageUrl": "https://huggingface.co/usyd-community/vitpose-plus-base",
+      "suppliedBy": "usyd-community",
       "primaryPurpose": [
         "keypoint-detection"
       ],
@@ -58,9 +62,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-aa425e75-9775-459e-a7f2-4e0a54529d4b",
+      "spdxId": "urn:spdx:rel-223234b7-c8d9-48a9-bd22-73e18adc8f3a",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:usyd-community_vitpose-plus-base-ba3855f1-e5c3-4fce-b75c-e5eba8388c68",
+      "from": "urn:spdx:usyd-community_vitpose-plus-base-34d25f24-2a0f-46ed-bfa9-c2aaffe9d1c6",
       "to": [
         "Apache-2.0"
       ]

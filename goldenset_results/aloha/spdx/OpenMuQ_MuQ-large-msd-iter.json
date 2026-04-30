@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-OpenMuQ_MuQ-large-msd-iter-654dde14-a23a-4623-b448-b4173022e7ab",
+      "spdxId": "urn:spdx:doc-OpenMuQ_MuQ-large-msd-iter-51d6589b-41cc-407e-a888-9929ee30fcd1",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,24 +19,28 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-OpenMuQ_MuQ-large-msd-iter-a524dbf8-b576-4726-8600-34d9ce6f7305"
+        "urn:spdx:ai-OpenMuQ_MuQ-large-msd-iter-0b8fbeac-6c99-4f13-805c-e477a855b58a"
       ],
       "element": [
-        "urn:spdx:OpenMuQ_MuQ-large-msd-iter-6b58b83a-4ed2-4795-ab99-4f9a84cbee73",
-        "urn:spdx:ai-OpenMuQ_MuQ-large-msd-iter-a524dbf8-b576-4726-8600-34d9ce6f7305",
-        "urn:spdx:rel-9ed336ea-777c-4d3d-8439-4b7a0a3dbf02"
+        "urn:spdx:OpenMuQ_MuQ-large-msd-iter-698259d8-a0ed-41ba-87d4-08eb2f4dd2fd",
+        "urn:spdx:ai-OpenMuQ_MuQ-large-msd-iter-0b8fbeac-6c99-4f13-805c-e477a855b58a",
+        "urn:spdx:rel-e8cfca75-fedf-42e7-97fb-82bf715803b7"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:OpenMuQ_MuQ-large-msd-iter-6b58b83a-4ed2-4795-ab99-4f9a84cbee73",
+      "spdxId": "urn:spdx:OpenMuQ_MuQ-large-msd-iter-698259d8-a0ed-41ba-87d4-08eb2f4dd2fd",
       "name": "OpenMuQ/MuQ-large-msd-iter",
+      "downloadLocation": "https://huggingface.co/OpenMuQ/MuQ-large-msd-iter",
       "licenseDeclared": "CC-BY-NC-4.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-OpenMuQ_MuQ-large-msd-iter-a524dbf8-b576-4726-8600-34d9ce6f7305",
+      "spdxId": "urn:spdx:ai-OpenMuQ_MuQ-large-msd-iter-0b8fbeac-6c99-4f13-805c-e477a855b58a",
       "name": "OpenMuQ/MuQ-large-msd-iter",
+      "downloadLocation": "https://huggingface.co/OpenMuQ/MuQ-large-msd-iter",
+      "packageUrl": "https://huggingface.co/OpenMuQ/MuQ-large-msd-iter",
+      "suppliedBy": "OpenMuQ",
       "primaryPurpose": [
         "audio-classification"
       ],
@@ -54,9 +58,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-9ed336ea-777c-4d3d-8439-4b7a0a3dbf02",
+      "spdxId": "urn:spdx:rel-e8cfca75-fedf-42e7-97fb-82bf715803b7",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:OpenMuQ_MuQ-large-msd-iter-6b58b83a-4ed2-4795-ab99-4f9a84cbee73",
+      "from": "urn:spdx:OpenMuQ_MuQ-large-msd-iter-698259d8-a0ed-41ba-87d4-08eb2f4dd2fd",
       "to": [
         "CC-BY-NC-4.0"
       ]

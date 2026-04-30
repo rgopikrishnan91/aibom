@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-timm_mobilenetv3_small_100.lamb_in1k-c92f27f3-4e21-425b-91b2-582a58bdcaa6",
+      "spdxId": "urn:spdx:doc-timm_mobilenetv3_small_100.lamb_in1k-7d7a7c15-82c1-4bc1-8db4-ca10ef0f51b4",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,26 +19,30 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-timm_mobilenetv3_small_100.lamb_in1k-da54dfcf-8269-48ef-98e9-b0daab912cda"
+        "urn:spdx:ai-timm_mobilenetv3_small_100.lamb_in1k-ee4acaaa-a26e-4252-8aad-742db8ab1754"
       ],
       "element": [
-        "urn:spdx:timm_mobilenetv3_small_100.lamb_in1k-febf1d78-b3c5-4c14-af19-367762e33dd9",
-        "urn:spdx:ai-timm_mobilenetv3_small_100.lamb_in1k-da54dfcf-8269-48ef-98e9-b0daab912cda",
-        "urn:spdx:rel-2de111f4-7346-4b1c-b79f-5bfe44d14286",
-        "urn:spdx:rel-64eb1def-5f33-47f3-a6c9-ab146575bb13"
+        "urn:spdx:timm_mobilenetv3_small_100.lamb_in1k-17017a6c-31d7-4afc-a720-2a34d9057b75",
+        "urn:spdx:ai-timm_mobilenetv3_small_100.lamb_in1k-ee4acaaa-a26e-4252-8aad-742db8ab1754",
+        "urn:spdx:rel-719d2104-b62e-4155-a60f-ff92c9cd37a1",
+        "urn:spdx:rel-baeb1214-a4d9-41e7-86d1-3cc20b72c831"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:timm_mobilenetv3_small_100.lamb_in1k-febf1d78-b3c5-4c14-af19-367762e33dd9",
+      "spdxId": "urn:spdx:timm_mobilenetv3_small_100.lamb_in1k-17017a6c-31d7-4afc-a720-2a34d9057b75",
       "name": "timm/mobilenetv3_small_100.lamb_in1k",
+      "downloadLocation": "https://huggingface.co/timm/mobilenetv3_small_100.lamb_in1k",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-timm_mobilenetv3_small_100.lamb_in1k-da54dfcf-8269-48ef-98e9-b0daab912cda",
+      "spdxId": "urn:spdx:ai-timm_mobilenetv3_small_100.lamb_in1k-ee4acaaa-a26e-4252-8aad-742db8ab1754",
       "name": "timm/mobilenetv3_small_100.lamb_in1k",
       "summary": "- **Model Type:** Image classification / feature backbone- **Model Stats:**- Params (M): 2.5- GMACs: 0.1- Activations (M): 1.4- Image size: 224 x 224- **Papers:**- Searching for MobileNetV3: https://arxiv.org/abs/1905.02244- **Dataset:** ImageNet-1k- **Original:** https://github.com/huggingface/pytorch-image-models",
+      "downloadLocation": "https://huggingface.co/timm/mobilenetv3_small_100.lamb_in1k",
+      "packageUrl": "https://huggingface.co/timm/mobilenetv3_small_100.lamb_in1k",
+      "suppliedBy": "timm",
       "primaryPurpose": [
         "image-classification"
       ],
@@ -57,18 +61,18 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-2de111f4-7346-4b1c-b79f-5bfe44d14286",
+      "spdxId": "urn:spdx:rel-719d2104-b62e-4155-a60f-ff92c9cd37a1",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:timm_mobilenetv3_small_100.lamb_in1k-febf1d78-b3c5-4c14-af19-367762e33dd9",
+      "from": "urn:spdx:timm_mobilenetv3_small_100.lamb_in1k-17017a6c-31d7-4afc-a720-2a34d9057b75",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-64eb1def-5f33-47f3-a6c9-ab146575bb13",
+      "spdxId": "urn:spdx:rel-baeb1214-a4d9-41e7-86d1-3cc20b72c831",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-timm_mobilenetv3_small_100.lamb_in1k-da54dfcf-8269-48ef-98e9-b0daab912cda",
+      "from": "urn:spdx:ai-timm_mobilenetv3_small_100.lamb_in1k-ee4acaaa-a26e-4252-8aad-742db8ab1754",
       "to": [
         "imagenet-1k-d590ae39-7061-555c-8b41-9aeadd4245c4"
       ]

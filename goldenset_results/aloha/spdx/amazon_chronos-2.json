@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-amazon_chronos-2-68efae5d-86f9-46aa-87a4-582dc9499b29",
+      "spdxId": "urn:spdx:doc-amazon_chronos-2-74a655eb-72ec-4845-89b1-e1b521343a9d",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,27 +19,31 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-amazon_chronos-2-2181d713-bb20-46ec-b011-dbadd820c021"
+        "urn:spdx:ai-amazon_chronos-2-b7eef107-4165-4a62-a2b2-c04d89fbdebb"
       ],
       "element": [
-        "urn:spdx:amazon_chronos-2-2de74bcb-c5b7-4c18-ab4b-32b0d1e98b68",
-        "urn:spdx:ai-amazon_chronos-2-2181d713-bb20-46ec-b011-dbadd820c021",
-        "urn:spdx:rel-903509de-34b4-4673-a3f3-52cd65247d4f",
-        "urn:spdx:rel-9c2c8690-0171-4c08-874e-5edd7ab2a317",
-        "urn:spdx:rel-eca391fe-2fda-4534-a925-fa6658043391"
+        "urn:spdx:amazon_chronos-2-f59e4f4f-330e-41a6-a824-50bfcf2950ba",
+        "urn:spdx:ai-amazon_chronos-2-b7eef107-4165-4a62-a2b2-c04d89fbdebb",
+        "urn:spdx:rel-02bab153-4545-4763-a9ff-456600215767",
+        "urn:spdx:rel-f148aff2-a3a7-4b39-9dcc-7525e4dcff5b",
+        "urn:spdx:rel-1c076877-d0c7-4126-9e0c-d565233b0698"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:amazon_chronos-2-2de74bcb-c5b7-4c18-ab4b-32b0d1e98b68",
+      "spdxId": "urn:spdx:amazon_chronos-2-f59e4f4f-330e-41a6-a824-50bfcf2950ba",
       "name": "amazon/chronos-2",
+      "downloadLocation": "https://huggingface.co/amazon/chronos-2",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-amazon_chronos-2-2181d713-bb20-46ec-b011-dbadd820c021",
+      "spdxId": "urn:spdx:ai-amazon_chronos-2-b7eef107-4165-4a62-a2b2-c04d89fbdebb",
       "name": "amazon/chronos-2",
       "summary": "| Capability | Chronos-2 | Chronos-Bolt | Chronos ||------------|-----------|--------------|----------|| Univariate Forecasting | \u2705 | \u2705 | \u2705 || Cross-learning across items | \u2705 | \u274c | \u274c || Multivariate Forecasting | \u2705 | \u274c | \u274c || Past-only (real/categorical) covariates | \u2705 | \u274c | \u274c || Known future (real/categorical) covariates | \u2705 | \ud83e\udde9 | \ud83e\udde9 || Max. Context Length | 8192 | 2048 | 512 || Max. Prediction Length | 1024 | 64 | 64 |\ud83e\udde9 Chronos & Chronos-Bolt do not natively support future covariates, but they can be combined with external covariate regressors (see [AutoGluon tutorial](https://auto.gluon.ai/1.4.0/tutorials/timeseries/forecasting-chronos.html#incorporating-the-covariates)). This only models per-timestep effects, not effects across time. In contrast, Chronos-2 supports all covariate types natively.",
+      "downloadLocation": "https://huggingface.co/amazon/chronos-2",
+      "packageUrl": "https://huggingface.co/amazon/chronos-2",
+      "suppliedBy": "amazon",
       "primaryPurpose": [
         "time-series-forecasting"
       ],
@@ -65,27 +69,27 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-903509de-34b4-4673-a3f3-52cd65247d4f",
+      "spdxId": "urn:spdx:rel-02bab153-4545-4763-a9ff-456600215767",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:amazon_chronos-2-2de74bcb-c5b7-4c18-ab4b-32b0d1e98b68",
+      "from": "urn:spdx:amazon_chronos-2-f59e4f4f-330e-41a6-a824-50bfcf2950ba",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-9c2c8690-0171-4c08-874e-5edd7ab2a317",
+      "spdxId": "urn:spdx:rel-f148aff2-a3a7-4b39-9dcc-7525e4dcff5b",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-amazon_chronos-2-2181d713-bb20-46ec-b011-dbadd820c021",
+      "from": "urn:spdx:ai-amazon_chronos-2-b7eef107-4165-4a62-a2b2-c04d89fbdebb",
       "to": [
         "autogluon/chronos_datasets-86e62bf2-edab-508b-9dfd-6219dd21c48f"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-eca391fe-2fda-4534-a925-fa6658043391",
+      "spdxId": "urn:spdx:rel-1c076877-d0c7-4126-9e0c-d565233b0698",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-amazon_chronos-2-2181d713-bb20-46ec-b011-dbadd820c021",
+      "from": "urn:spdx:ai-amazon_chronos-2-b7eef107-4165-4a62-a2b2-c04d89fbdebb",
       "to": [
         "Salesforce/GiftEvalPretrain-c316cfa2-ab26-5cc7-bcbd-8f599f2c9bb5"
       ]

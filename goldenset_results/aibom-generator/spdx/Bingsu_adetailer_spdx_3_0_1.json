@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-adetailer-292609e1-2da7-4148-b402-e13ed640d11c",
+      "spdxId": "urn:spdx:doc-adetailer-45be6c8a-9631-43cc-88f2-38b88f3f36ca",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,68 +19,72 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-adetailer-70e4e1f5-8853-48b1-926a-1b40a47a4d81"
+        "urn:spdx:ai-adetailer-ee09a865-8521-470b-9388-1108226216a1"
       ],
       "element": [
-        "urn:spdx:adetailer-8c5b3942-1f45-4bbd-82a8-b1af4eef53e0",
-        "urn:spdx:ai-adetailer-70e4e1f5-8853-48b1-926a-1b40a47a4d81",
-        "urn:spdx:rel-49a48fc1-6d2a-4ba8-a9a4-33ddbe4fa361",
-        "urn:spdx:rel-95534f05-a168-4a0b-8e8c-b007d56877ab",
-        "urn:spdx:rel-7296cbb2-5c8a-458f-9808-4cb9e1cc290f",
-        "urn:spdx:rel-a12f140e-dff4-49e2-a342-50ac05a7f7dc"
+        "urn:spdx:adetailer-ad5df594-7ebd-4677-a49f-504366ff9aa2",
+        "urn:spdx:ai-adetailer-ee09a865-8521-470b-9388-1108226216a1",
+        "urn:spdx:rel-00b19ef7-6ffc-471b-90fd-215040af81b7",
+        "urn:spdx:rel-a23d382f-6453-4e60-9d7e-3edb0cd6e5ed",
+        "urn:spdx:rel-7e4b932d-7a17-4a61-acf2-ffcfce8fbb99",
+        "urn:spdx:rel-df8bf6c0-2e91-4e6a-8a84-17b5cb37c7b9"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:adetailer-8c5b3942-1f45-4bbd-82a8-b1af4eef53e0",
+      "spdxId": "urn:spdx:adetailer-ad5df594-7ebd-4677-a49f-504366ff9aa2",
       "name": "adetailer",
       "packageVersion": "53cc19de",
+      "packageUrl": "pkg:huggingface/Bingsu/adetailer@53cc19de",
       "downloadLocation": "https://huggingface.co/Bingsu/adetailer/tree/main",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-adetailer-70e4e1f5-8853-48b1-926a-1b40a47a4d81",
+      "spdxId": "urn:spdx:ai-adetailer-ee09a865-8521-470b-9388-1108226216a1",
       "name": "adetailer",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/Bingsu/adetailer/tree/main",
-      "packageUrl": "https://huggingface.co/Bingsu/adetailer/commit/53cc19de382014514d9d4038601d261a7faa9b7b",
+      "packageUrl": "pkg:huggingface/Bingsu/adetailer@53cc19de",
       "suppliedBy": "Bingsu",
       "packageVersion": "53cc19de",
       "primaryPurpose": [
         "text-generation"
+      ],
+      "typeOfModel": [
+        "transformer"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-49a48fc1-6d2a-4ba8-a9a4-33ddbe4fa361",
+      "spdxId": "urn:spdx:rel-00b19ef7-6ffc-471b-90fd-215040af81b7",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:adetailer-8c5b3942-1f45-4bbd-82a8-b1af4eef53e0",
+      "from": "urn:spdx:adetailer-ad5df594-7ebd-4677-a49f-504366ff9aa2",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-95534f05-a168-4a0b-8e8c-b007d56877ab",
+      "spdxId": "urn:spdx:rel-a23d382f-6453-4e60-9d7e-3edb0cd6e5ed",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-adetailer-70e4e1f5-8853-48b1-926a-1b40a47a4d81",
+      "from": "urn:spdx:ai-adetailer-ee09a865-8521-470b-9388-1108226216a1",
       "to": [
         "wider_face"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-7296cbb2-5c8a-458f-9808-4cb9e1cc290f",
+      "spdxId": "urn:spdx:rel-7e4b932d-7a17-4a61-acf2-ffcfce8fbb99",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-adetailer-70e4e1f5-8853-48b1-926a-1b40a47a4d81",
+      "from": "urn:spdx:ai-adetailer-ee09a865-8521-470b-9388-1108226216a1",
       "to": [
         "skytnt/anime-segmentation"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-a12f140e-dff4-49e2-a342-50ac05a7f7dc",
+      "spdxId": "urn:spdx:rel-df8bf6c0-2e91-4e6a-8a84-17b5cb37c7b9",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/Bingsu/adetailer@53cc19de",
       "to": [

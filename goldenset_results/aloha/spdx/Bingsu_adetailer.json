@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-Bingsu_adetailer-ef7c1f68-774f-4946-8720-aea26c65f08d",
+      "spdxId": "urn:spdx:doc-Bingsu_adetailer-a170075c-b910-4514-b0e5-04c34d70d0a3",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,26 +19,30 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-Bingsu_adetailer-73c18143-1641-4b20-84be-97957d133570"
+        "urn:spdx:ai-Bingsu_adetailer-ffef1d5d-e7ba-4602-a03d-545431c43ddd"
       ],
       "element": [
-        "urn:spdx:Bingsu_adetailer-92cd5986-e75b-4c3b-b3f0-f791dadf78e1",
-        "urn:spdx:ai-Bingsu_adetailer-73c18143-1641-4b20-84be-97957d133570",
-        "urn:spdx:rel-7d879a08-553f-4f65-96e2-0d8fbdc8d15b",
-        "urn:spdx:rel-801dcff6-0792-400c-86d6-7b690098142a",
-        "urn:spdx:rel-3a098a43-23db-45c2-b140-f292217c61bb"
+        "urn:spdx:Bingsu_adetailer-912356fb-bc59-4c48-87c3-8b279af8207f",
+        "urn:spdx:ai-Bingsu_adetailer-ffef1d5d-e7ba-4602-a03d-545431c43ddd",
+        "urn:spdx:rel-88705886-0542-4e15-95b6-4fb978582537",
+        "urn:spdx:rel-760d0e92-d306-4047-8d78-adc056ad35a9",
+        "urn:spdx:rel-43016464-faed-4d25-aa60-fe00b13fbcbe"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:Bingsu_adetailer-92cd5986-e75b-4c3b-b3f0-f791dadf78e1",
+      "spdxId": "urn:spdx:Bingsu_adetailer-912356fb-bc59-4c48-87c3-8b279af8207f",
       "name": "Bingsu/adetailer",
+      "downloadLocation": "https://huggingface.co/Bingsu/adetailer",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-Bingsu_adetailer-73c18143-1641-4b20-84be-97957d133570",
+      "spdxId": "urn:spdx:ai-Bingsu_adetailer-ffef1d5d-e7ba-4602-a03d-545431c43ddd",
       "name": "Bingsu/adetailer",
+      "downloadLocation": "https://huggingface.co/Bingsu/adetailer",
+      "packageUrl": "https://huggingface.co/Bingsu/adetailer",
+      "suppliedBy": "Bingsu",
       "domain": [
         "ultralytics",
         "pytorch",
@@ -51,27 +55,27 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-7d879a08-553f-4f65-96e2-0d8fbdc8d15b",
+      "spdxId": "urn:spdx:rel-88705886-0542-4e15-95b6-4fb978582537",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:Bingsu_adetailer-92cd5986-e75b-4c3b-b3f0-f791dadf78e1",
+      "from": "urn:spdx:Bingsu_adetailer-912356fb-bc59-4c48-87c3-8b279af8207f",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-801dcff6-0792-400c-86d6-7b690098142a",
+      "spdxId": "urn:spdx:rel-760d0e92-d306-4047-8d78-adc056ad35a9",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-Bingsu_adetailer-73c18143-1641-4b20-84be-97957d133570",
+      "from": "urn:spdx:ai-Bingsu_adetailer-ffef1d5d-e7ba-4602-a03d-545431c43ddd",
       "to": [
         "wider_face-5020c7ea-eb77-5164-b80a-684427671cc3"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-3a098a43-23db-45c2-b140-f292217c61bb",
+      "spdxId": "urn:spdx:rel-43016464-faed-4d25-aa60-fe00b13fbcbe",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-Bingsu_adetailer-73c18143-1641-4b20-84be-97957d133570",
+      "from": "urn:spdx:ai-Bingsu_adetailer-ffef1d5d-e7ba-4602-a03d-545431c43ddd",
       "to": [
         "skytnt/anime-segmentation-ecf1a6ad-107d-5f96-be10-d44c1c54c3ab"
       ]

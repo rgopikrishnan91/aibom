@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-segmentation-3.0-21d15312-ab2a-4d4d-82e2-89f348889d63",
+      "spdxId": "urn:spdx:doc-segmentation-3.0-8b1c46f8-6b62-47a3-b4e0-eb0fc0b44748",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,48 +19,52 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-segmentation-3.0-7bef039c-665d-40a9-8a58-39fbed2a1290"
+        "urn:spdx:ai-segmentation-3.0-4e6563b8-52cd-4606-8e89-15324eb58c8a"
       ],
       "element": [
-        "urn:spdx:segmentation-3.0-19ab9ec9-53db-447a-9d71-c8f54d4716bf",
-        "urn:spdx:ai-segmentation-3.0-7bef039c-665d-40a9-8a58-39fbed2a1290",
-        "urn:spdx:rel-255a8adb-8cad-4ff6-aa28-890f57a7aabe",
-        "urn:spdx:rel-75649cfa-b3f4-4fe8-9e5c-fc310451bf0a"
+        "urn:spdx:segmentation-3.0-47748a60-96b8-492e-a28c-ebf62ba749c6",
+        "urn:spdx:ai-segmentation-3.0-4e6563b8-52cd-4606-8e89-15324eb58c8a",
+        "urn:spdx:rel-d79bcc7b-4ed3-4828-8856-614fcce12486",
+        "urn:spdx:rel-64d0c4c7-6f2d-433f-a96c-9bc7b5d633ec"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:segmentation-3.0-19ab9ec9-53db-447a-9d71-c8f54d4716bf",
+      "spdxId": "urn:spdx:segmentation-3.0-47748a60-96b8-492e-a28c-ebf62ba749c6",
       "name": "segmentation-3.0",
       "packageVersion": "e66f3d3b",
+      "packageUrl": "pkg:huggingface/pyannote/segmentation-3.0@e66f3d3b",
       "downloadLocation": "https://huggingface.co/pyannote/segmentation-3.0/tree/main",
       "licenseDeclared": "MIT"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-segmentation-3.0-7bef039c-665d-40a9-8a58-39fbed2a1290",
+      "spdxId": "urn:spdx:ai-segmentation-3.0-4e6563b8-52cd-4606-8e89-15324eb58c8a",
       "name": "segmentation-3.0",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/pyannote/segmentation-3.0/tree/main",
-      "packageUrl": "https://huggingface.co/pyannote/segmentation-3.0/commit/e66f3d3b9eb0873085418a7b813d3b369bf160bb",
+      "packageUrl": "pkg:huggingface/pyannote/segmentation-3.0@e66f3d3b",
       "suppliedBy": "pyannote",
       "packageVersion": "e66f3d3b",
       "primaryPurpose": [
         "voice-activity-detection"
+      ],
+      "typeOfModel": [
+        "transformer"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-255a8adb-8cad-4ff6-aa28-890f57a7aabe",
+      "spdxId": "urn:spdx:rel-d79bcc7b-4ed3-4828-8856-614fcce12486",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:segmentation-3.0-19ab9ec9-53db-447a-9d71-c8f54d4716bf",
+      "from": "urn:spdx:segmentation-3.0-47748a60-96b8-492e-a28c-ebf62ba749c6",
       "to": [
         "MIT"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-75649cfa-b3f4-4fe8-9e5c-fc310451bf0a",
+      "spdxId": "urn:spdx:rel-64d0c4c7-6f2d-433f-a96c-9bc7b5d633ec",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/pyannote/segmentation-3.0@e66f3d3b",
       "to": [

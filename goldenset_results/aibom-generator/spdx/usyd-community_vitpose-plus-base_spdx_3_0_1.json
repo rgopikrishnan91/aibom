@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-vitpose-plus-base-d8547dc8-6eb9-4f79-a919-b8745b2f18a9",
+      "spdxId": "urn:spdx:doc-vitpose-plus-base-b3f7d0fe-f568-49b5-832f-ea7c5e4263ec",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,69 +19,73 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-vitpose-plus-base-c0a5cd7c-cf40-4465-8429-1d96d62836c4"
+        "urn:spdx:ai-vitpose-plus-base-90d7ec71-60bb-45e4-b1cc-64aac4d78209"
       ],
       "element": [
-        "urn:spdx:vitpose-plus-base-c0844e32-80a1-4564-94ba-4ced3fcc5017",
-        "urn:spdx:ai-vitpose-plus-base-c0a5cd7c-cf40-4465-8429-1d96d62836c4",
-        "urn:spdx:rel-8eac4a31-c272-4669-a4ce-b31942d60829",
-        "urn:spdx:rel-5554d320-b337-46b8-ad17-f699804aa53a",
-        "urn:spdx:rel-5e462025-dc1f-48a7-a870-c1dc93c8fc7a",
-        "urn:spdx:rel-8ae486a8-d17d-44f8-8141-5702b95ca7c2"
+        "urn:spdx:vitpose-plus-base-a9e5401c-ff26-4077-bc0e-5872437a4a1e",
+        "urn:spdx:ai-vitpose-plus-base-90d7ec71-60bb-45e4-b1cc-64aac4d78209",
+        "urn:spdx:rel-61268458-84fb-4c7c-a9a6-2d08b5cd8b6b",
+        "urn:spdx:rel-a3d332f7-4031-4b5a-be69-2a71b12fef82",
+        "urn:spdx:rel-25cc25e5-068b-45f8-8d76-b62e300294f7",
+        "urn:spdx:rel-995b07a8-98e2-468d-bac9-c738041aee7c"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:vitpose-plus-base-c0844e32-80a1-4564-94ba-4ced3fcc5017",
+      "spdxId": "urn:spdx:vitpose-plus-base-a9e5401c-ff26-4077-bc0e-5872437a4a1e",
       "name": "vitpose-plus-base",
       "packageVersion": "92be54d7",
+      "packageUrl": "pkg:huggingface/usyd-community/vitpose-plus-base@92be54d7",
       "downloadLocation": "https://huggingface.co/usyd-community/vitpose-plus-base/tree/main",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-vitpose-plus-base-c0a5cd7c-cf40-4465-8429-1d96d62836c4",
+      "spdxId": "urn:spdx:ai-vitpose-plus-base-90d7ec71-60bb-45e4-b1cc-64aac4d78209",
       "name": "vitpose-plus-base",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/usyd-community/vitpose-plus-base/tree/main",
-      "packageUrl": "https://huggingface.co/usyd-community/vitpose-plus-base/commit/92be54d7a29e42fad47b6e2ca01dd9e685a61e0d",
+      "packageUrl": "pkg:huggingface/usyd-community/vitpose-plus-base@92be54d7",
       "suppliedBy": "usyd-community",
       "packageVersion": "92be54d7",
       "primaryPurpose": [
         "keypoint-detection"
       ],
+      "typeOfModel": [
+        "vitpose"
+      ],
       "limitation": "[\"In this paper, we propose a simple yet effective vision transformer baseline for pose estimation, i\"]"
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-8eac4a31-c272-4669-a4ce-b31942d60829",
+      "spdxId": "urn:spdx:rel-61268458-84fb-4c7c-a9a6-2d08b5cd8b6b",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:vitpose-plus-base-c0844e32-80a1-4564-94ba-4ced3fcc5017",
+      "from": "urn:spdx:vitpose-plus-base-a9e5401c-ff26-4077-bc0e-5872437a4a1e",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-5554d320-b337-46b8-ad17-f699804aa53a",
+      "spdxId": "urn:spdx:rel-a3d332f7-4031-4b5a-be69-2a71b12fef82",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-vitpose-plus-base-c0a5cd7c-cf40-4465-8429-1d96d62836c4",
+      "from": "urn:spdx:ai-vitpose-plus-base-90d7ec71-60bb-45e4-b1cc-64aac4d78209",
       "to": [
         "person_boxes"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-5e462025-dc1f-48a7-a870-c1dc93c8fc7a",
+      "spdxId": "urn:spdx:rel-25cc25e5-068b-45f8-8d76-b62e300294f7",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-vitpose-plus-base-c0a5cd7c-cf40-4465-8429-1d96d62836c4",
+      "from": "urn:spdx:ai-vitpose-plus-base-90d7ec71-60bb-45e4-b1cc-64aac4d78209",
       "to": [
         "8"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-8ae486a8-d17d-44f8-8141-5702b95ca7c2",
+      "spdxId": "urn:spdx:rel-995b07a8-98e2-468d-bac9-c738041aee7c",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/usyd-community/vitpose-plus-base@92be54d7",
       "to": [

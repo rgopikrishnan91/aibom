@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-TabSTAR-40a853c1-5858-4bff-be32-469370267263",
+      "spdxId": "urn:spdx:doc-TabSTAR-5e33b4ef-778f-4bb3-b56e-cf04c0fd9557",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,48 +19,52 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-TabSTAR-c1b7625a-5c0e-42d6-9bc2-3cb369d4281e"
+        "urn:spdx:ai-TabSTAR-7bd00e6f-775f-402a-96ed-d0301f738c68"
       ],
       "element": [
-        "urn:spdx:TabSTAR-747b30a5-3e16-432a-a39d-ff47dfc37603",
-        "urn:spdx:ai-TabSTAR-c1b7625a-5c0e-42d6-9bc2-3cb369d4281e",
-        "urn:spdx:rel-fa8db929-cb69-44f9-8234-270ba5a40928",
-        "urn:spdx:rel-991fb715-e7ed-4538-a43e-b44a3cf87f1f"
+        "urn:spdx:TabSTAR-4d445023-40bc-4b96-beaa-79fa28f421e8",
+        "urn:spdx:ai-TabSTAR-7bd00e6f-775f-402a-96ed-d0301f738c68",
+        "urn:spdx:rel-c896dc9e-474d-4ce2-b3d7-8ca6d6beafbd",
+        "urn:spdx:rel-cf87beb2-e7f8-4431-85c3-d20943b3f8e1"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:TabSTAR-747b30a5-3e16-432a-a39d-ff47dfc37603",
+      "spdxId": "urn:spdx:TabSTAR-4d445023-40bc-4b96-beaa-79fa28f421e8",
       "name": "TabSTAR",
       "packageVersion": "73560fb2",
+      "packageUrl": "pkg:huggingface/alana89/TabSTAR@73560fb2",
       "downloadLocation": "https://huggingface.co/alana89/TabSTAR/tree/main",
       "licenseDeclared": "CC-BY-4.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-TabSTAR-c1b7625a-5c0e-42d6-9bc2-3cb369d4281e",
+      "spdxId": "urn:spdx:ai-TabSTAR-7bd00e6f-775f-402a-96ed-d0301f738c68",
       "name": "TabSTAR",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/alana89/TabSTAR/tree/main",
-      "packageUrl": "https://huggingface.co/alana89/TabSTAR/commit/73560fb23d34307f4b6fa849f38f8299a8980a4a",
+      "packageUrl": "pkg:huggingface/alana89/TabSTAR@73560fb2",
       "suppliedBy": "alana89",
       "packageVersion": "73560fb2",
       "primaryPurpose": [
         "tabular-classification"
+      ],
+      "typeOfModel": [
+        "tabstar"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-fa8db929-cb69-44f9-8234-270ba5a40928",
+      "spdxId": "urn:spdx:rel-c896dc9e-474d-4ce2-b3d7-8ca6d6beafbd",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:TabSTAR-747b30a5-3e16-432a-a39d-ff47dfc37603",
+      "from": "urn:spdx:TabSTAR-4d445023-40bc-4b96-beaa-79fa28f421e8",
       "to": [
         "CC-BY-4.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-991fb715-e7ed-4538-a43e-b44a3cf87f1f",
+      "spdxId": "urn:spdx:rel-cf87beb2-e7f8-4431-85c3-d20943b3f8e1",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/alana89/TabSTAR@73560fb2",
       "to": [

@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-chronos-2-c3bc6b08-7404-4a5c-a1ee-f83a6e21005c",
+      "spdxId": "urn:spdx:doc-chronos-2-4d877583-b3b6-4976-82b4-7150360c4c39",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,68 +19,72 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-chronos-2-67148084-1f5c-4888-9fe8-8c02bb19579c"
+        "urn:spdx:ai-chronos-2-a6f53324-1e6b-4723-a260-e6ecd1af991d"
       ],
       "element": [
-        "urn:spdx:chronos-2-25e75e1a-bb5a-4da5-bfd6-4b5c7ffd1907",
-        "urn:spdx:ai-chronos-2-67148084-1f5c-4888-9fe8-8c02bb19579c",
-        "urn:spdx:rel-adc36938-43e7-4abb-b0e9-d427a8eea3b0",
-        "urn:spdx:rel-f5f04f3e-0f53-4394-a305-61d39629e30e",
-        "urn:spdx:rel-7b52b7d9-6da3-497d-8fb9-6be77c4c5a36",
-        "urn:spdx:rel-9d05f419-0d19-4398-b500-e165480dfe47"
+        "urn:spdx:chronos-2-e3ac2061-8ef7-43a7-bf30-96cd363f5dc3",
+        "urn:spdx:ai-chronos-2-a6f53324-1e6b-4723-a260-e6ecd1af991d",
+        "urn:spdx:rel-f1a92dba-62b4-4d2b-9b06-d57ce0ab3441",
+        "urn:spdx:rel-08b4d139-9192-4955-8352-5a4778732f7f",
+        "urn:spdx:rel-342d32fc-620d-47eb-b8b2-c5117166f740",
+        "urn:spdx:rel-261ebf1e-4d7b-46df-9694-a18d7d931054"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:chronos-2-25e75e1a-bb5a-4da5-bfd6-4b5c7ffd1907",
+      "spdxId": "urn:spdx:chronos-2-e3ac2061-8ef7-43a7-bf30-96cd363f5dc3",
       "name": "chronos-2",
       "packageVersion": "0f8a4404",
+      "packageUrl": "pkg:huggingface/amazon/chronos-2@0f8a4404",
       "downloadLocation": "https://huggingface.co/amazon/chronos-2/tree/main",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-chronos-2-67148084-1f5c-4888-9fe8-8c02bb19579c",
+      "spdxId": "urn:spdx:ai-chronos-2-a6f53324-1e6b-4723-a260-e6ecd1af991d",
       "name": "chronos-2",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/amazon/chronos-2/tree/main",
-      "packageUrl": "https://huggingface.co/amazon/chronos-2/commit/0f8a440441931157957e2be1a9bce66627d99c76",
+      "packageUrl": "pkg:huggingface/amazon/chronos-2@0f8a4404",
       "suppliedBy": "amazon",
       "packageVersion": "0f8a4404",
       "primaryPurpose": [
         "time-series-forecasting"
+      ],
+      "typeOfModel": [
+        "t5"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-adc36938-43e7-4abb-b0e9-d427a8eea3b0",
+      "spdxId": "urn:spdx:rel-f1a92dba-62b4-4d2b-9b06-d57ce0ab3441",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:chronos-2-25e75e1a-bb5a-4da5-bfd6-4b5c7ffd1907",
+      "from": "urn:spdx:chronos-2-e3ac2061-8ef7-43a7-bf30-96cd363f5dc3",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-f5f04f3e-0f53-4394-a305-61d39629e30e",
+      "spdxId": "urn:spdx:rel-08b4d139-9192-4955-8352-5a4778732f7f",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-chronos-2-67148084-1f5c-4888-9fe8-8c02bb19579c",
+      "from": "urn:spdx:ai-chronos-2-a6f53324-1e6b-4723-a260-e6ecd1af991d",
       "to": [
         "autogluon/chronos_datasets"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-7b52b7d9-6da3-497d-8fb9-6be77c4c5a36",
+      "spdxId": "urn:spdx:rel-342d32fc-620d-47eb-b8b2-c5117166f740",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-chronos-2-67148084-1f5c-4888-9fe8-8c02bb19579c",
+      "from": "urn:spdx:ai-chronos-2-a6f53324-1e6b-4723-a260-e6ecd1af991d",
       "to": [
         "Salesforce/GiftEvalPretrain"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-9d05f419-0d19-4398-b500-e165480dfe47",
+      "spdxId": "urn:spdx:rel-261ebf1e-4d7b-46df-9694-a18d7d931054",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/amazon/chronos-2@0f8a4404",
       "to": [

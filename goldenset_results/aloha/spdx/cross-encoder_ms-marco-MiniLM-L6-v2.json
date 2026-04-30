@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-cross-encoder_ms-marco-MiniLM-L6-v2-5d01cde2-098a-4e5a-ae2b-5579be78c0dc",
+      "spdxId": "urn:spdx:doc-cross-encoder_ms-marco-MiniLM-L6-v2-9ad25ccb-8192-4162-bb5a-63587be108d2",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,25 +19,29 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-cross-encoder_ms-marco-MiniLM-L6-v2-47fa82fe-f3e4-40c9-9eb9-bbf4ee5b6426"
+        "urn:spdx:ai-cross-encoder_ms-marco-MiniLM-L6-v2-97b45da1-3018-40a4-be86-fbe09a127cf2"
       ],
       "element": [
-        "urn:spdx:cross-encoder_ms-marco-MiniLM-L6-v2-c9cf4413-1f61-44a2-9235-19db05c10752",
-        "urn:spdx:ai-cross-encoder_ms-marco-MiniLM-L6-v2-47fa82fe-f3e4-40c9-9eb9-bbf4ee5b6426",
-        "urn:spdx:rel-2e98219f-9acb-4e7a-8600-2761fd5ff8df",
-        "urn:spdx:rel-b528819a-2f55-410a-a169-3b570941cbbc"
+        "urn:spdx:cross-encoder_ms-marco-MiniLM-L6-v2-20ee5539-a1c5-423e-b082-fdb3d513ae69",
+        "urn:spdx:ai-cross-encoder_ms-marco-MiniLM-L6-v2-97b45da1-3018-40a4-be86-fbe09a127cf2",
+        "urn:spdx:rel-b1f45791-bd3b-4456-828b-8c65b18938ba",
+        "urn:spdx:rel-ec841b11-978c-4558-9592-9f0ad279327e"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:cross-encoder_ms-marco-MiniLM-L6-v2-c9cf4413-1f61-44a2-9235-19db05c10752",
+      "spdxId": "urn:spdx:cross-encoder_ms-marco-MiniLM-L6-v2-20ee5539-a1c5-423e-b082-fdb3d513ae69",
       "name": "cross-encoder/ms-marco-MiniLM-L6-v2",
+      "downloadLocation": "https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-cross-encoder_ms-marco-MiniLM-L6-v2-47fa82fe-f3e4-40c9-9eb9-bbf4ee5b6426",
+      "spdxId": "urn:spdx:ai-cross-encoder_ms-marco-MiniLM-L6-v2-97b45da1-3018-40a4-be86-fbe09a127cf2",
       "name": "cross-encoder/ms-marco-MiniLM-L6-v2",
+      "downloadLocation": "https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2",
+      "packageUrl": "https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2",
+      "suppliedBy": "cross-encoder",
       "primaryPurpose": [
         "text-ranking"
       ],
@@ -67,18 +71,18 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-2e98219f-9acb-4e7a-8600-2761fd5ff8df",
+      "spdxId": "urn:spdx:rel-b1f45791-bd3b-4456-828b-8c65b18938ba",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:cross-encoder_ms-marco-MiniLM-L6-v2-c9cf4413-1f61-44a2-9235-19db05c10752",
+      "from": "urn:spdx:cross-encoder_ms-marco-MiniLM-L6-v2-20ee5539-a1c5-423e-b082-fdb3d513ae69",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-b528819a-2f55-410a-a169-3b570941cbbc",
+      "spdxId": "urn:spdx:rel-ec841b11-978c-4558-9592-9f0ad279327e",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-cross-encoder_ms-marco-MiniLM-L6-v2-47fa82fe-f3e4-40c9-9eb9-bbf4ee5b6426",
+      "from": "urn:spdx:ai-cross-encoder_ms-marco-MiniLM-L6-v2-97b45da1-3018-40a4-be86-fbe09a127cf2",
       "to": [
         "sentence-transformers/msmarco-c6ade5ab-d668-519c-9116-836b68fa4270"
       ]

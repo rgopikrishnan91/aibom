@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-laion_clap-htsat-fused-ad810f0d-7e24-45c1-828b-fff815703c0b",
+      "spdxId": "urn:spdx:doc-laion_clap-htsat-fused-b3ea3067-b625-40a6-b1b2-1db1643fb9ce",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,24 +19,28 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-laion_clap-htsat-fused-ed4cb3c1-a0b7-4206-a446-9beccfbe4ed8"
+        "urn:spdx:ai-laion_clap-htsat-fused-54ef70e3-02b1-4f5c-aba9-1a3d4e519844"
       ],
       "element": [
-        "urn:spdx:laion_clap-htsat-fused-04e7326a-03a8-4ae4-9706-59b0e2a75ccc",
-        "urn:spdx:ai-laion_clap-htsat-fused-ed4cb3c1-a0b7-4206-a446-9beccfbe4ed8",
-        "urn:spdx:rel-97a092e7-4bff-4d46-b2c5-35cf1088784f"
+        "urn:spdx:laion_clap-htsat-fused-7a9e7c32-38e6-46c6-99ad-3eb3a34b2c57",
+        "urn:spdx:ai-laion_clap-htsat-fused-54ef70e3-02b1-4f5c-aba9-1a3d4e519844",
+        "urn:spdx:rel-8fc54cae-050b-40e3-b36d-9c87276ab32a"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:laion_clap-htsat-fused-04e7326a-03a8-4ae4-9706-59b0e2a75ccc",
+      "spdxId": "urn:spdx:laion_clap-htsat-fused-7a9e7c32-38e6-46c6-99ad-3eb3a34b2c57",
       "name": "laion/clap-htsat-fused",
+      "downloadLocation": "https://huggingface.co/laion/clap-htsat-fused",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-laion_clap-htsat-fused-ed4cb3c1-a0b7-4206-a446-9beccfbe4ed8",
+      "spdxId": "urn:spdx:ai-laion_clap-htsat-fused-54ef70e3-02b1-4f5c-aba9-1a3d4e519844",
       "name": "laion/clap-htsat-fused",
+      "downloadLocation": "https://huggingface.co/laion/clap-htsat-fused",
+      "packageUrl": "https://huggingface.co/laion/clap-htsat-fused",
+      "suppliedBy": "laion",
       "primaryPurpose": [
         "audio-classification"
       ],
@@ -61,9 +65,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-97a092e7-4bff-4d46-b2c5-35cf1088784f",
+      "spdxId": "urn:spdx:rel-8fc54cae-050b-40e3-b36d-9c87276ab32a",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:laion_clap-htsat-fused-04e7326a-03a8-4ae4-9706-59b0e2a75ccc",
+      "from": "urn:spdx:laion_clap-htsat-fused-7a9e7c32-38e6-46c6-99ad-3eb3a34b2c57",
       "to": [
         "Apache-2.0"
       ]

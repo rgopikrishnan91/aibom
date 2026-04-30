@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-clap-htsat-fused-a115e662-11aa-401b-803a-fad645186cd4",
+      "spdxId": "urn:spdx:doc-clap-htsat-fused-57ba729e-c067-4487-9387-0d0e037419cb",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,58 +19,62 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-clap-htsat-fused-18f01289-8d8b-4427-9249-6e516f95ab9c"
+        "urn:spdx:ai-clap-htsat-fused-6c339521-044b-4e03-a7f2-cfddf1f664f4"
       ],
       "element": [
-        "urn:spdx:clap-htsat-fused-08fc4a94-7dbd-4ea4-9a42-e31d147d8a76",
-        "urn:spdx:ai-clap-htsat-fused-18f01289-8d8b-4427-9249-6e516f95ab9c",
-        "urn:spdx:rel-e71fba17-3b6e-41a8-841c-adc551b8ea57",
-        "urn:spdx:rel-4819376e-2baa-4455-a521-dd9522559fb0",
-        "urn:spdx:rel-25327bf7-3f08-48c0-91bd-244c4b0776a6"
+        "urn:spdx:clap-htsat-fused-f5dd6127-e1b4-4489-9016-cee8ef493faf",
+        "urn:spdx:ai-clap-htsat-fused-6c339521-044b-4e03-a7f2-cfddf1f664f4",
+        "urn:spdx:rel-0b5af32f-f5ff-4066-9f88-88c3f33c7b23",
+        "urn:spdx:rel-b0e7ce3a-f9c2-468a-a4c7-f6a4080b6769",
+        "urn:spdx:rel-8e171f1a-711e-44d1-8bc5-1dfc1497eaf8"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:clap-htsat-fused-08fc4a94-7dbd-4ea4-9a42-e31d147d8a76",
+      "spdxId": "urn:spdx:clap-htsat-fused-f5dd6127-e1b4-4489-9016-cee8ef493faf",
       "name": "clap-htsat-fused",
       "packageVersion": "365dea6e",
+      "packageUrl": "pkg:huggingface/laion/clap-htsat-fused@365dea6e",
       "downloadLocation": "https://huggingface.co/laion/clap-htsat-fused/tree/main",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-clap-htsat-fused-18f01289-8d8b-4427-9249-6e516f95ab9c",
+      "spdxId": "urn:spdx:ai-clap-htsat-fused-6c339521-044b-4e03-a7f2-cfddf1f664f4",
       "name": "clap-htsat-fused",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/laion/clap-htsat-fused/tree/main",
-      "packageUrl": "https://huggingface.co/laion/clap-htsat-fused/commit/365dea6ef167def6676140ed93bbc43f84dabb28",
+      "packageUrl": "pkg:huggingface/laion/clap-htsat-fused@365dea6e",
       "suppliedBy": "laion",
       "packageVersion": "365dea6e",
       "primaryPurpose": [
         "audio-classification"
+      ],
+      "typeOfModel": [
+        "clap"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-e71fba17-3b6e-41a8-841c-adc551b8ea57",
+      "spdxId": "urn:spdx:rel-0b5af32f-f5ff-4066-9f88-88c3f33c7b23",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:clap-htsat-fused-08fc4a94-7dbd-4ea4-9a42-e31d147d8a76",
+      "from": "urn:spdx:clap-htsat-fused-f5dd6127-e1b4-4489-9016-cee8ef493faf",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-4819376e-2baa-4455-a521-dd9522559fb0",
+      "spdxId": "urn:spdx:rel-b0e7ce3a-f9c2-468a-a4c7-f6a4080b6769",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-clap-htsat-fused-18f01289-8d8b-4427-9249-6e516f95ab9c",
+      "from": "urn:spdx:ai-clap-htsat-fused-6c339521-044b-4e03-a7f2-cfddf1f664f4",
       "to": [
         "LAION-CLAP"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-25327bf7-3f08-48c0-91bd-244c4b0776a6",
+      "spdxId": "urn:spdx:rel-8e171f1a-711e-44d1-8bc5-1dfc1497eaf8",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/laion/clap-htsat-fused@365dea6e",
       "to": [

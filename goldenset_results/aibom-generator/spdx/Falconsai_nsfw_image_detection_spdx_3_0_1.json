@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-nsfw_image_detection-928edcfd-c560-44d0-b321-9271db694ee4",
+      "spdxId": "urn:spdx:doc-nsfw_image_detection-c8b2661c-e1e1-4ca6-b3bf-d574afba1ae7",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,70 +19,74 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-nsfw_image_detection-16eb3ec9-0940-458e-b0fc-ec892e3fd12b"
+        "urn:spdx:ai-nsfw_image_detection-e4c16e4a-050b-45de-88b9-0fe37361a231"
       ],
       "element": [
-        "urn:spdx:nsfw_image_detection-24ba9280-76d4-4c39-9438-aab7eb2134d6",
-        "urn:spdx:ai-nsfw_image_detection-16eb3ec9-0940-458e-b0fc-ec892e3fd12b",
-        "urn:spdx:rel-cdc83d74-1105-40e7-bd19-14cbf397ead5",
-        "urn:spdx:rel-9691a5de-1224-44b6-b178-a24300b3420e",
-        "urn:spdx:rel-10bec9fa-8d2d-4149-8b81-cdeb83486e32",
-        "urn:spdx:rel-fe7e2088-936a-443d-abab-0c54396c014e"
+        "urn:spdx:nsfw_image_detection-a3cc38df-c0fc-4d26-a3c5-9b2879499319",
+        "urn:spdx:ai-nsfw_image_detection-e4c16e4a-050b-45de-88b9-0fe37361a231",
+        "urn:spdx:rel-4de1fcc7-6061-410f-8bd1-5e7afd218e05",
+        "urn:spdx:rel-8eb751df-4834-4155-a5eb-aa545f5f5896",
+        "urn:spdx:rel-c3e61c85-f0eb-44e2-be1a-560a336e97a9",
+        "urn:spdx:rel-7033e9f4-8c1a-45e4-9c0e-1c2e47ce3407"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:nsfw_image_detection-24ba9280-76d4-4c39-9438-aab7eb2134d6",
+      "spdxId": "urn:spdx:nsfw_image_detection-a3cc38df-c0fc-4d26-a3c5-9b2879499319",
       "name": "nsfw_image_detection",
       "packageVersion": "04367978",
+      "packageUrl": "pkg:huggingface/Falconsai/nsfw_image_detection@04367978",
       "downloadLocation": "https://huggingface.co/Falconsai/nsfw_image_detection/tree/main",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-nsfw_image_detection-16eb3ec9-0940-458e-b0fc-ec892e3fd12b",
+      "spdxId": "urn:spdx:ai-nsfw_image_detection-e4c16e4a-050b-45de-88b9-0fe37361a231",
       "name": "nsfw_image_detection",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/Falconsai/nsfw_image_detection/tree/main",
-      "packageUrl": "https://huggingface.co/Falconsai/nsfw_image_detection/commit/04367978d3474804ab1a00a9bd6548b741764069",
+      "packageUrl": "pkg:huggingface/Falconsai/nsfw_image_detection@04367978",
       "suppliedBy": "Falconsai",
       "packageVersion": "04367978",
       "primaryPurpose": [
         "image-classification"
+      ],
+      "typeOfModel": [
+        "vit"
       ],
       "limitation": "[\"### Intended Uses - **NSFW Image Classification**: The primary intended use of this model is for the classification of NSFW (Not Safe for Work) images\"]",
       "safetyRiskAssessment": "and moderation, all while maintaining the highest standards of accuracy and reliability"
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-cdc83d74-1105-40e7-bd19-14cbf397ead5",
+      "spdxId": "urn:spdx:rel-4de1fcc7-6061-410f-8bd1-5e7afd218e05",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:nsfw_image_detection-24ba9280-76d4-4c39-9438-aab7eb2134d6",
+      "from": "urn:spdx:nsfw_image_detection-a3cc38df-c0fc-4d26-a3c5-9b2879499319",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-9691a5de-1224-44b6-b178-a24300b3420e",
+      "spdxId": "urn:spdx:rel-8eb751df-4834-4155-a5eb-aa545f5f5896",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-nsfw_image_detection-16eb3ec9-0940-458e-b0fc-ec892e3fd12b",
+      "from": "urn:spdx:ai-nsfw_image_detection-e4c16e4a-050b-45de-88b9-0fe37361a231",
       "to": [
         "are"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-10bec9fa-8d2d-4149-8b81-cdeb83486e32",
+      "spdxId": "urn:spdx:rel-c3e61c85-f0eb-44e2-be1a-560a336e97a9",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-nsfw_image_detection-16eb3ec9-0940-458e-b0fc-ec892e3fd12b",
+      "from": "urn:spdx:ai-nsfw_image_detection-e4c16e4a-050b-45de-88b9-0fe37361a231",
       "to": [
         "a"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-fe7e2088-936a-443d-abab-0c54396c014e",
+      "spdxId": "urn:spdx:rel-7033e9f4-8c1a-45e4-9c0e-1c2e47ce3407",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/Falconsai/nsfw_image_detection@04367978",
       "to": [

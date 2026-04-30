@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-omni-research_Tarsier2-Recap-7b-4c27f0be-56a1-4734-9daa-f94f54959622",
+      "spdxId": "urn:spdx:doc-omni-research_Tarsier2-Recap-7b-4aae58fd-838f-4d6c-8013-cc525bd41836",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,24 +19,28 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-omni-research_Tarsier2-Recap-7b-b9650fc3-3887-41b7-a9c8-ed5bfca02c78"
+        "urn:spdx:ai-omni-research_Tarsier2-Recap-7b-46aa3ee5-049c-4671-83a3-dab6f344e1e0"
       ],
       "element": [
-        "urn:spdx:omni-research_Tarsier2-Recap-7b-796b5b38-f01e-4f2c-b892-3d56e65cfa1c",
-        "urn:spdx:ai-omni-research_Tarsier2-Recap-7b-b9650fc3-3887-41b7-a9c8-ed5bfca02c78",
-        "urn:spdx:rel-13827a53-5efd-4cd7-8047-7d7afb68eb89"
+        "urn:spdx:omni-research_Tarsier2-Recap-7b-12cb1e4a-b4f9-4103-913a-13bcc0fa8033",
+        "urn:spdx:ai-omni-research_Tarsier2-Recap-7b-46aa3ee5-049c-4671-83a3-dab6f344e1e0",
+        "urn:spdx:rel-2f07e512-fd7a-4d03-b550-5eb4d99fa6a6"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:omni-research_Tarsier2-Recap-7b-796b5b38-f01e-4f2c-b892-3d56e65cfa1c",
+      "spdxId": "urn:spdx:omni-research_Tarsier2-Recap-7b-12cb1e4a-b4f9-4103-913a-13bcc0fa8033",
       "name": "omni-research/Tarsier2-Recap-7b",
+      "downloadLocation": "https://huggingface.co/omni-research/Tarsier2-Recap-7b",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-omni-research_Tarsier2-Recap-7b-b9650fc3-3887-41b7-a9c8-ed5bfca02c78",
+      "spdxId": "urn:spdx:ai-omni-research_Tarsier2-Recap-7b-46aa3ee5-049c-4671-83a3-dab6f344e1e0",
       "name": "omni-research/Tarsier2-Recap-7b",
+      "downloadLocation": "https://huggingface.co/omni-research/Tarsier2-Recap-7b",
+      "packageUrl": "https://huggingface.co/omni-research/Tarsier2-Recap-7b",
+      "suppliedBy": "omni-research",
       "domain": [
         "safetensors",
         "video LLM",
@@ -47,9 +51,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-13827a53-5efd-4cd7-8047-7d7afb68eb89",
+      "spdxId": "urn:spdx:rel-2f07e512-fd7a-4d03-b550-5eb4d99fa6a6",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:omni-research_Tarsier2-Recap-7b-796b5b38-f01e-4f2c-b892-3d56e65cfa1c",
+      "from": "urn:spdx:omni-research_Tarsier2-Recap-7b-12cb1e4a-b4f9-4103-913a-13bcc0fa8033",
       "to": [
         "Apache-2.0"
       ]

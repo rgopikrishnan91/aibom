@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-clip-vit-base-patch32-03d140d0-9a70-4e04-8c54-73f6b8e114dc",
+      "spdxId": "urn:spdx:doc-clip-vit-base-patch32-8936dc1a-57a2-4024-bd63-6158bf5c2b34",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,59 +19,63 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-clip-vit-base-patch32-9da5165e-5453-4b28-bfd3-ac6ee2517c52"
+        "urn:spdx:ai-clip-vit-base-patch32-64cc53ca-6a89-4f73-93c5-7d703fadd7f3"
       ],
       "element": [
-        "urn:spdx:clip-vit-base-patch32-42b8d0ae-c086-4461-9ca9-0f44b51db654",
-        "urn:spdx:ai-clip-vit-base-patch32-9da5165e-5453-4b28-bfd3-ac6ee2517c52",
-        "urn:spdx:rel-e4e6d9b3-f0ee-408e-9a1a-b521fefc0c05",
-        "urn:spdx:rel-3970e8ac-3d2a-4a68-9900-821810cdb5c8",
-        "urn:spdx:rel-b2a416e1-6ac3-4fd8-ae66-ee36c514312e"
+        "urn:spdx:clip-vit-base-patch32-4381499c-498d-4c6a-96db-3481b2069f00",
+        "urn:spdx:ai-clip-vit-base-patch32-64cc53ca-6a89-4f73-93c5-7d703fadd7f3",
+        "urn:spdx:rel-309595f9-dfe5-4b27-bd7e-1c32898bf11a",
+        "urn:spdx:rel-d128f813-b3f8-4695-8991-b9065345a4fe",
+        "urn:spdx:rel-bb0260b7-ae51-4e14-9485-a2b20e967ed7"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:clip-vit-base-patch32-42b8d0ae-c086-4461-9ca9-0f44b51db654",
+      "spdxId": "urn:spdx:clip-vit-base-patch32-4381499c-498d-4c6a-96db-3481b2069f00",
       "name": "clip-vit-base-patch32",
       "packageVersion": "3d74acf9",
+      "packageUrl": "pkg:huggingface/openai/clip-vit-base-patch32@3d74acf9",
       "downloadLocation": "https://huggingface.co/openai/clip-vit-base-patch32/tree/main"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-clip-vit-base-patch32-9da5165e-5453-4b28-bfd3-ac6ee2517c52",
+      "spdxId": "urn:spdx:ai-clip-vit-base-patch32-64cc53ca-6a89-4f73-93c5-7d703fadd7f3",
       "name": "clip-vit-base-patch32",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/openai/clip-vit-base-patch32/tree/main",
-      "packageUrl": "https://huggingface.co/openai/clip-vit-base-patch32/commit/3d74acf9a28c67741b2f4f2ea7635f0aaf6f0268",
+      "packageUrl": "pkg:huggingface/openai/clip-vit-base-patch32@3d74acf9",
       "suppliedBy": "openai",
       "packageVersion": "3d74acf9",
       "primaryPurpose": [
         "zero-shot-image-classification"
+      ],
+      "typeOfModel": [
+        "clip"
       ],
       "limitation": "[[\"### Performance We have evaluated the performance of CLIP on a wide range of benchmarks across a variety of computer vision datasets such as OCR to texture recognition to fine-grained classification\", \"of computer vision models\"]]",
       "safetyRiskAssessment": "assessment demonstrated a high need for task specific testing especially given the variability of CLIP\u2019s performance with different class taxonomies, which we discuss in the paper and briefly in the next section, of certain kinds of denigration with CLIP by classifying images of people from [Fairface](https://arxiv"
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-e4e6d9b3-f0ee-408e-9a1a-b521fefc0c05",
+      "spdxId": "urn:spdx:rel-309595f9-dfe5-4b27-bd7e-1c32898bf11a",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-clip-vit-base-patch32-9da5165e-5453-4b28-bfd3-ac6ee2517c52",
+      "from": "urn:spdx:ai-clip-vit-base-patch32-64cc53ca-6a89-4f73-93c5-7d703fadd7f3",
       "to": [
         "was"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-3970e8ac-3d2a-4a68-9900-821810cdb5c8",
+      "spdxId": "urn:spdx:rel-d128f813-b3f8-4695-8991-b9065345a4fe",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-clip-vit-base-patch32-9da5165e-5453-4b28-bfd3-ac6ee2517c52",
+      "from": "urn:spdx:ai-clip-vit-base-patch32-64cc53ca-6a89-4f73-93c5-7d703fadd7f3",
       "to": [
         "publicly"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-b2a416e1-6ac3-4fd8-ae66-ee36c514312e",
+      "spdxId": "urn:spdx:rel-bb0260b7-ae51-4e14-9485-a2b20e967ed7",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/openai/clip-vit-base-patch32@3d74acf9",
       "to": [

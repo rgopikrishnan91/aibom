@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-google-bert_bert-base-uncased-3e5e4db7-e2e7-4f45-81ea-d3ae09342adf",
+      "spdxId": "urn:spdx:doc-google-bert_bert-base-uncased-2cd9b275-f71f-4059-8c57-4bf3a488e276",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,27 +19,31 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-google-bert_bert-base-uncased-cf6b4cf5-0d8e-49c0-98d9-7e3665ee5952"
+        "urn:spdx:ai-google-bert_bert-base-uncased-ad86361a-f7ef-4e71-9bff-2830b37369ae"
       ],
       "element": [
-        "urn:spdx:google-bert_bert-base-uncased-d9c23a25-16c6-4ff7-b830-e97ae41b43a9",
-        "urn:spdx:ai-google-bert_bert-base-uncased-cf6b4cf5-0d8e-49c0-98d9-7e3665ee5952",
-        "urn:spdx:rel-de5dba45-9c3f-4cd5-8a28-889cde47dcc7",
-        "urn:spdx:rel-3cb350de-0012-42b1-acd0-8bac6ee16d65",
-        "urn:spdx:rel-ecc0c1e2-23e6-4396-8554-b18b4e8b66eb"
+        "urn:spdx:google-bert_bert-base-uncased-0a5c182b-b63e-4632-b8d3-0cdcb9c38c93",
+        "urn:spdx:ai-google-bert_bert-base-uncased-ad86361a-f7ef-4e71-9bff-2830b37369ae",
+        "urn:spdx:rel-80f47d2a-ca4f-458c-96d9-69c76750f3eb",
+        "urn:spdx:rel-33d0eb45-4b92-4646-8755-066af3fc4f59",
+        "urn:spdx:rel-fe103193-8220-4c14-84b8-cf9c3745ea44"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:google-bert_bert-base-uncased-d9c23a25-16c6-4ff7-b830-e97ae41b43a9",
+      "spdxId": "urn:spdx:google-bert_bert-base-uncased-0a5c182b-b63e-4632-b8d3-0cdcb9c38c93",
       "name": "google-bert/bert-base-uncased",
+      "downloadLocation": "https://huggingface.co/google-bert/bert-base-uncased",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-google-bert_bert-base-uncased-cf6b4cf5-0d8e-49c0-98d9-7e3665ee5952",
+      "spdxId": "urn:spdx:ai-google-bert_bert-base-uncased-ad86361a-f7ef-4e71-9bff-2830b37369ae",
       "name": "google-bert/bert-base-uncased",
       "summary": "BERT is a transformers model pretrained on a large corpus of English data in a self-supervised fashion. This means itwas pretrained on the raw texts only, with no humans labeling them in any way (which is why it can use lots ofpublicly available data) with an automatic process to generate inputs and labels from those texts. More precisely, itwas pretrained with two objectives:- Masked language modeling (MLM): taking a sentence, the model randomly masks 15% of the words in the input then runthe entire masked sentence through the model and has to predict the masked words. This is different from traditionalrecurrent neural networks (RNNs) that usually see the words one after the other, or from autoregressive models likeGPT which internally masks the future tokens. It allows the model to learn a bidirectional representation of thesentence.- Next sentence prediction (NSP): the models concatenates two masked sentences as inputs during pretraining. Sometimesthey correspond to sentences that were next to each other in the original text, sometimes not. The model then has topredict if the two sentences were following each other or not.This way, the model learns an inner representation of the English language that can then be used to extract featuresuseful for downstream tasks: if you have a dataset of labeled sentences, for instance, you can train a standardclassifier using the features produced by the BERT model as inputs.",
+      "downloadLocation": "https://huggingface.co/google-bert/bert-base-uncased",
+      "packageUrl": "https://huggingface.co/google-bert/bert-base-uncased",
+      "suppliedBy": "google-bert",
       "primaryPurpose": [
         "fill-mask"
       ],
@@ -70,27 +74,27 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-de5dba45-9c3f-4cd5-8a28-889cde47dcc7",
+      "spdxId": "urn:spdx:rel-80f47d2a-ca4f-458c-96d9-69c76750f3eb",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:google-bert_bert-base-uncased-d9c23a25-16c6-4ff7-b830-e97ae41b43a9",
+      "from": "urn:spdx:google-bert_bert-base-uncased-0a5c182b-b63e-4632-b8d3-0cdcb9c38c93",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-3cb350de-0012-42b1-acd0-8bac6ee16d65",
+      "spdxId": "urn:spdx:rel-33d0eb45-4b92-4646-8755-066af3fc4f59",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-google-bert_bert-base-uncased-cf6b4cf5-0d8e-49c0-98d9-7e3665ee5952",
+      "from": "urn:spdx:ai-google-bert_bert-base-uncased-ad86361a-f7ef-4e71-9bff-2830b37369ae",
       "to": [
         "bookcorpus-5b88b1fa-89d7-54e0-8076-a03aa22c33e0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-ecc0c1e2-23e6-4396-8554-b18b4e8b66eb",
+      "spdxId": "urn:spdx:rel-fe103193-8220-4c14-84b8-cf9c3745ea44",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-google-bert_bert-base-uncased-cf6b4cf5-0d8e-49c0-98d9-7e3665ee5952",
+      "from": "urn:spdx:ai-google-bert_bert-base-uncased-ad86361a-f7ef-4e71-9bff-2830b37369ae",
       "to": [
         "wikipedia-8c5eb686-d691-517b-aad7-040fa51febc3"
       ]

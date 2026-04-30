@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-meta-llama_Llama-3.1-8B-Instruct-28c0f90f-fa57-44fb-aeb4-7ae99c313738",
+      "spdxId": "urn:spdx:doc-meta-llama_Llama-3.1-8B-Instruct-4a8e8f04-773d-490b-b255-7c45b93e4adf",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,24 +19,28 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-meta-llama_Llama-3.1-8B-Instruct-0a38dae1-349d-4cb8-b546-4b8dd2fb7c1b"
+        "urn:spdx:ai-meta-llama_Llama-3.1-8B-Instruct-1683887f-0803-403f-9f20-9d03df2206ab"
       ],
       "element": [
-        "urn:spdx:meta-llama_Llama-3.1-8B-Instruct-6b8ab402-f28f-4989-9307-77cd7d1aab0e",
-        "urn:spdx:ai-meta-llama_Llama-3.1-8B-Instruct-0a38dae1-349d-4cb8-b546-4b8dd2fb7c1b",
-        "urn:spdx:rel-607bc51a-63d6-414a-8fbc-e17b0d900576"
+        "urn:spdx:meta-llama_Llama-3.1-8B-Instruct-1889bd7e-fbae-4671-b831-37182c289605",
+        "urn:spdx:ai-meta-llama_Llama-3.1-8B-Instruct-1683887f-0803-403f-9f20-9d03df2206ab",
+        "urn:spdx:rel-2bed4bad-8119-48a6-9f0c-2d0c88f94c03"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:meta-llama_Llama-3.1-8B-Instruct-6b8ab402-f28f-4989-9307-77cd7d1aab0e",
+      "spdxId": "urn:spdx:meta-llama_Llama-3.1-8B-Instruct-1889bd7e-fbae-4671-b831-37182c289605",
       "name": "meta-llama/Llama-3.1-8B-Instruct",
+      "downloadLocation": "https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct",
       "licenseDeclared": "llama3.1"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-meta-llama_Llama-3.1-8B-Instruct-0a38dae1-349d-4cb8-b546-4b8dd2fb7c1b",
+      "spdxId": "urn:spdx:ai-meta-llama_Llama-3.1-8B-Instruct-1683887f-0803-403f-9f20-9d03df2206ab",
       "name": "meta-llama/Llama-3.1-8B-Instruct",
+      "downloadLocation": "https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct",
+      "packageUrl": "https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct",
+      "suppliedBy": "meta-llama",
       "primaryPurpose": [
         "text-generation"
       ],
@@ -73,9 +77,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-607bc51a-63d6-414a-8fbc-e17b0d900576",
+      "spdxId": "urn:spdx:rel-2bed4bad-8119-48a6-9f0c-2d0c88f94c03",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:meta-llama_Llama-3.1-8B-Instruct-6b8ab402-f28f-4989-9307-77cd7d1aab0e",
+      "from": "urn:spdx:meta-llama_Llama-3.1-8B-Instruct-1889bd7e-fbae-4671-b831-37182c289605",
       "to": [
         "llama3.1"
       ]

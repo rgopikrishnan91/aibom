@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-bert-base-uncased-4e4d3e90-33f5-4832-baf0-85534ce4b515",
+      "spdxId": "urn:spdx:doc-bert-base-uncased-07c43a60-fdcb-4290-9d5e-b86b0b8dc6f6",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,70 +19,74 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-bert-base-uncased-6f153afe-95b1-4efc-9da8-03c3d09eda2c"
+        "urn:spdx:ai-bert-base-uncased-3aec50d9-ec78-416b-a3c6-a8d46010f98a"
       ],
       "element": [
-        "urn:spdx:bert-base-uncased-1ee01aa9-623f-4b55-827a-b40e23fbdd28",
-        "urn:spdx:ai-bert-base-uncased-6f153afe-95b1-4efc-9da8-03c3d09eda2c",
-        "urn:spdx:rel-e1b4b8d6-b10a-4d75-b573-1ce8ad683db2",
-        "urn:spdx:rel-0a71e9c1-630d-48bf-ba5b-5a494d49799e",
-        "urn:spdx:rel-ce55a88e-7af5-47b9-8fdb-e59048ee923d",
-        "urn:spdx:rel-2c4875dc-bd78-4bbb-a285-485a6e0e7a19"
+        "urn:spdx:bert-base-uncased-0e3a4d5d-040c-460e-a8ef-ff15f895bd70",
+        "urn:spdx:ai-bert-base-uncased-3aec50d9-ec78-416b-a3c6-a8d46010f98a",
+        "urn:spdx:rel-5067c8cc-917f-4740-b5dc-478bcb2b477d",
+        "urn:spdx:rel-a5eeab02-f2ad-48eb-a54f-486d08d5189a",
+        "urn:spdx:rel-71725486-c84c-4c6e-be3e-8a2d52c7d8da",
+        "urn:spdx:rel-81f1bf70-ab54-4ab4-a8da-61bacb0a7811"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:bert-base-uncased-1ee01aa9-623f-4b55-827a-b40e23fbdd28",
+      "spdxId": "urn:spdx:bert-base-uncased-0e3a4d5d-040c-460e-a8ef-ff15f895bd70",
       "name": "bert-base-uncased",
       "packageVersion": "86b5e093",
+      "packageUrl": "pkg:huggingface/google-bert/bert-base-uncased@86b5e093",
       "downloadLocation": "https://huggingface.co/google-bert/bert-base-uncased/tree/main",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-bert-base-uncased-6f153afe-95b1-4efc-9da8-03c3d09eda2c",
+      "spdxId": "urn:spdx:ai-bert-base-uncased-3aec50d9-ec78-416b-a3c6-a8d46010f98a",
       "name": "bert-base-uncased",
       "summary": "No description available",
       "downloadLocation": "https://huggingface.co/google-bert/bert-base-uncased/tree/main",
-      "packageUrl": "https://huggingface.co/google-bert/bert-base-uncased/commit/86b5e0934494bd15c9632b12f734a8a67f723594",
+      "packageUrl": "pkg:huggingface/google-bert/bert-base-uncased@86b5e093",
       "suppliedBy": "google-bert",
       "packageVersion": "86b5e093",
       "primaryPurpose": [
         "fill-mask"
+      ],
+      "typeOfModel": [
+        "bert"
       ],
       "limitation": "[\"You can use the raw model for either masked language modeling or next sentence prediction, but it's mostly intended to be fine-tuned on a downstream task\"]",
       "safetyRiskAssessment": "Even if the training data used for this model could be characterized as fairly neutral, this model can have biased predictions: ```python >>> from transformers import pipeline >>> unmasker = pipeline('fill-mask', model='bert-base-uncased') >>> unmasker(\"The man worked as a [MASK]"
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-e1b4b8d6-b10a-4d75-b573-1ce8ad683db2",
+      "spdxId": "urn:spdx:rel-5067c8cc-917f-4740-b5dc-478bcb2b477d",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:bert-base-uncased-1ee01aa9-623f-4b55-827a-b40e23fbdd28",
+      "from": "urn:spdx:bert-base-uncased-0e3a4d5d-040c-460e-a8ef-ff15f895bd70",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-0a71e9c1-630d-48bf-ba5b-5a494d49799e",
+      "spdxId": "urn:spdx:rel-a5eeab02-f2ad-48eb-a54f-486d08d5189a",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-bert-base-uncased-6f153afe-95b1-4efc-9da8-03c3d09eda2c",
+      "from": "urn:spdx:ai-bert-base-uncased-3aec50d9-ec78-416b-a3c6-a8d46010f98a",
       "to": [
         "bookcorpus"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-ce55a88e-7af5-47b9-8fdb-e59048ee923d",
+      "spdxId": "urn:spdx:rel-71725486-c84c-4c6e-be3e-8a2d52c7d8da",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-bert-base-uncased-6f153afe-95b1-4efc-9da8-03c3d09eda2c",
+      "from": "urn:spdx:ai-bert-base-uncased-3aec50d9-ec78-416b-a3c6-a8d46010f98a",
       "to": [
         "wikipedia"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-2c4875dc-bd78-4bbb-a285-485a6e0e7a19",
+      "spdxId": "urn:spdx:rel-81f1bf70-ab54-4ab4-a8da-61bacb0a7811",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/google-bert/bert-base-uncased@86b5e093",
       "to": [
