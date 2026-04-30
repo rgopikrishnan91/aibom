@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-meta-llama_Llama-3.1-8B-Instruct-e6600649-2ece-4338-9606-e587f98e89c3",
+      "spdxId": "urn:spdx:doc-meta-llama_Llama-3.1-8B-Instruct-880f9f1d-41ba-403e-be70-9e4cfff46edd",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,23 +19,23 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-meta-llama_Llama-3.1-8B-Instruct-fb4825e2-f2bb-459c-aada-5de27c167581"
+        "urn:spdx:ai-meta-llama_Llama-3.1-8B-Instruct-6d5529dc-9a76-4705-a0ac-8e94bd596e7d"
       ],
       "element": [
-        "urn:spdx:meta-llama_Llama-3.1-8B-Instruct-08915522-1891-408b-87fc-e59d0090fc89",
-        "urn:spdx:ai-meta-llama_Llama-3.1-8B-Instruct-fb4825e2-f2bb-459c-aada-5de27c167581",
-        "urn:spdx:rel-6697d56b-1d50-44e2-b2ae-9f2a6e005f7c"
+        "urn:spdx:meta-llama_Llama-3.1-8B-Instruct-7d32ca9c-34fa-4532-a8de-e95bcbabb494",
+        "urn:spdx:ai-meta-llama_Llama-3.1-8B-Instruct-6d5529dc-9a76-4705-a0ac-8e94bd596e7d",
+        "urn:spdx:rel-e63c0001-16a5-4ae4-a233-5fb5dd4d5f0c"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:meta-llama_Llama-3.1-8B-Instruct-08915522-1891-408b-87fc-e59d0090fc89",
+      "spdxId": "urn:spdx:meta-llama_Llama-3.1-8B-Instruct-7d32ca9c-34fa-4532-a8de-e95bcbabb494",
       "name": "meta-llama/Llama-3.1-8B-Instruct",
       "licenseDeclared": "llama3.1"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-meta-llama_Llama-3.1-8B-Instruct-fb4825e2-f2bb-459c-aada-5de27c167581",
+      "spdxId": "urn:spdx:ai-meta-llama_Llama-3.1-8B-Instruct-6d5529dc-9a76-4705-a0ac-8e94bd596e7d",
       "name": "meta-llama/Llama-3.1-8B-Instruct",
       "primaryPurpose": [
         "text-generation"
@@ -73,9 +73,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-6697d56b-1d50-44e2-b2ae-9f2a6e005f7c",
+      "spdxId": "urn:spdx:rel-e63c0001-16a5-4ae4-a233-5fb5dd4d5f0c",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:meta-llama_Llama-3.1-8B-Instruct-08915522-1891-408b-87fc-e59d0090fc89",
+      "from": "urn:spdx:meta-llama_Llama-3.1-8B-Instruct-7d32ca9c-34fa-4532-a8de-e95bcbabb494",
       "to": [
         "llama3.1"
       ]

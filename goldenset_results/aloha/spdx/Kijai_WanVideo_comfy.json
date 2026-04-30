@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-Kijai_WanVideo_comfy-e950c17b-bc20-44e2-97c6-a889a7d4a9fa",
+      "spdxId": "urn:spdx:doc-Kijai_WanVideo_comfy-aa555998-a14f-425b-b8f5-5ae30efcc2fb",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,21 +19,21 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-Kijai_WanVideo_comfy-3ba33418-f3d7-4ffd-b004-4837c9372464"
+        "urn:spdx:ai-Kijai_WanVideo_comfy-8e0a74c8-a0d9-4486-887b-0bf1f99e68da"
       ],
       "element": [
-        "urn:spdx:Kijai_WanVideo_comfy-c3379008-5de3-4520-ba54-8d4db9cd64b2",
-        "urn:spdx:ai-Kijai_WanVideo_comfy-3ba33418-f3d7-4ffd-b004-4837c9372464"
+        "urn:spdx:Kijai_WanVideo_comfy-976fcc0f-4127-4757-9b29-31f2fc11ec66",
+        "urn:spdx:ai-Kijai_WanVideo_comfy-8e0a74c8-a0d9-4486-887b-0bf1f99e68da"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:Kijai_WanVideo_comfy-c3379008-5de3-4520-ba54-8d4db9cd64b2",
+      "spdxId": "urn:spdx:Kijai_WanVideo_comfy-976fcc0f-4127-4757-9b29-31f2fc11ec66",
       "name": "Kijai/WanVideo_comfy"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-Kijai_WanVideo_comfy-3ba33418-f3d7-4ffd-b004-4837c9372464",
+      "spdxId": "urn:spdx:ai-Kijai_WanVideo_comfy-8e0a74c8-a0d9-4486-887b-0bf1f99e68da",
       "name": "Kijai/WanVideo_comfy",
       "domain": [
         "diffusion-single-file",

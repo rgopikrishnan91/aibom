@@ -3,14 +3,14 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-job-2026-04-30-16:35:59-7aa3e585-aee3-4f46-8b18-06afcb4e554f",
+      "spdxId": "urn:spdx:doc-bert-base-uncased-f139014c-22c0-449d-9418-0a320c34a935",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
         "software",
         "ai"
       ],
-      "name": "AIBOM for job-2026-04-30-16:35:59",
+      "name": "AIBOM for bert-base-uncased",
       "creationInfo": {
         "type": "CreationInfo",
         "created": "2026-04-30T20:35:59+00:00",
@@ -19,31 +19,70 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-job-2026-04-30-16:35:59-cb1dde33-5fe7-47e6-acf4-ebb1ee25a51d"
+        "urn:spdx:ai-bert-base-uncased-1746234e-2837-4aaf-b870-a95c0e18b7d8"
       ],
       "element": [
-        "urn:spdx:job-2026-04-30-16:35:59-ad20808a-6a08-4a90-82b5-44d272868cba",
-        "urn:spdx:ai-job-2026-04-30-16:35:59-cb1dde33-5fe7-47e6-acf4-ebb1ee25a51d",
-        "urn:spdx:rel-99e2bf84-aeb7-4547-ac63-44defd5e25f4"
+        "urn:spdx:bert-base-uncased-48a4ff05-1274-4922-9922-142c7946be81",
+        "urn:spdx:ai-bert-base-uncased-1746234e-2837-4aaf-b870-a95c0e18b7d8",
+        "urn:spdx:rel-e75570b0-f100-40e1-8a93-eee55efe260d",
+        "urn:spdx:rel-fef908ab-0fcc-454e-91a1-bfd37a67ccd5",
+        "urn:spdx:rel-16e768c5-27e6-4dd1-ae7b-1d354a1c9a00",
+        "urn:spdx:rel-ce816a5a-4606-478d-bb6c-7ab221e73bac"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:job-2026-04-30-16:35:59-ad20808a-6a08-4a90-82b5-44d272868cba",
-      "name": "job-2026-04-30-16:35:59",
-      "packageVersion": "1777581359"
+      "spdxId": "urn:spdx:bert-base-uncased-48a4ff05-1274-4922-9922-142c7946be81",
+      "name": "bert-base-uncased",
+      "packageVersion": "86b5e093",
+      "downloadLocation": "https://huggingface.co/google-bert/bert-base-uncased/tree/main",
+      "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-job-2026-04-30-16:35:59-cb1dde33-5fe7-47e6-acf4-ebb1ee25a51d",
-      "name": "job-2026-04-30-16:35:59",
-      "summary": "Generating SBOM for google-bert/bert-base-uncased",
-      "suppliedBy": "OWASP AIBOM Generator",
-      "packageVersion": "1777581359"
+      "spdxId": "urn:spdx:ai-bert-base-uncased-1746234e-2837-4aaf-b870-a95c0e18b7d8",
+      "name": "bert-base-uncased",
+      "summary": "No description available",
+      "downloadLocation": "https://huggingface.co/google-bert/bert-base-uncased/tree/main",
+      "packageUrl": "https://huggingface.co/google-bert/bert-base-uncased/commit/86b5e0934494bd15c9632b12f734a8a67f723594",
+      "suppliedBy": "google-bert",
+      "packageVersion": "86b5e093",
+      "primaryPurpose": [
+        "fill-mask"
+      ],
+      "limitation": "[\"You can use the raw model for either masked language modeling or next sentence prediction, but it's mostly intended to be fine-tuned on a downstream task\"]",
+      "safetyRiskAssessment": "Even if the training data used for this model could be characterized as fairly neutral, this model can have biased predictions: ```python >>> from transformers import pipeline >>> unmasker = pipeline('fill-mask', model='bert-base-uncased') >>> unmasker(\"The man worked as a [MASK]"
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-99e2bf84-aeb7-4547-ac63-44defd5e25f4",
+      "spdxId": "urn:spdx:rel-e75570b0-f100-40e1-8a93-eee55efe260d",
+      "relationshipType": "hasDeclaredLicense",
+      "from": "urn:spdx:bert-base-uncased-48a4ff05-1274-4922-9922-142c7946be81",
+      "to": [
+        "Apache-2.0"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-fef908ab-0fcc-454e-91a1-bfd37a67ccd5",
+      "relationshipType": "trainedOn",
+      "from": "urn:spdx:ai-bert-base-uncased-1746234e-2837-4aaf-b870-a95c0e18b7d8",
+      "to": [
+        "bookcorpus"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-16e768c5-27e6-4dd1-ae7b-1d354a1c9a00",
+      "relationshipType": "trainedOn",
+      "from": "urn:spdx:ai-bert-base-uncased-1746234e-2837-4aaf-b870-a95c0e18b7d8",
+      "to": [
+        "wikipedia"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-ce816a5a-4606-478d-bb6c-7ab221e73bac",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/google-bert/bert-base-uncased@86b5e093",
       "to": [

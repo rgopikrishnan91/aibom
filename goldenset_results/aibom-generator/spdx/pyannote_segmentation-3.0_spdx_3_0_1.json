@@ -3,14 +3,14 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-job-2026-04-30-16:36:06-c6cbc2b2-07bd-45b1-88ac-cd84195a436b",
+      "spdxId": "urn:spdx:doc-segmentation-3.0-9e917f23-b6d4-4408-be02-53036dac78e3",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
         "software",
         "ai"
       ],
-      "name": "AIBOM for job-2026-04-30-16:36:06",
+      "name": "AIBOM for segmentation-3.0",
       "creationInfo": {
         "type": "CreationInfo",
         "created": "2026-04-30T20:36:06+00:00",
@@ -19,31 +19,48 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-job-2026-04-30-16:36:06-768e1778-a934-4985-b177-8f8ecd62f746"
+        "urn:spdx:ai-segmentation-3.0-3403e13e-92cb-4418-a522-e3f45e2daf60"
       ],
       "element": [
-        "urn:spdx:job-2026-04-30-16:36:06-a81785f1-bd90-416f-893d-ba191ce16281",
-        "urn:spdx:ai-job-2026-04-30-16:36:06-768e1778-a934-4985-b177-8f8ecd62f746",
-        "urn:spdx:rel-5ffb05f9-9afa-462c-9c7e-793cb552eaa3"
+        "urn:spdx:segmentation-3.0-7cad929e-9814-4a3e-acc5-2e56b8e17d5c",
+        "urn:spdx:ai-segmentation-3.0-3403e13e-92cb-4418-a522-e3f45e2daf60",
+        "urn:spdx:rel-12f3db63-8cb6-4c5c-8507-837b19df5a5e",
+        "urn:spdx:rel-2a412266-4cbc-40d9-b2b5-c8346a1cbb2f"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:job-2026-04-30-16:36:06-a81785f1-bd90-416f-893d-ba191ce16281",
-      "name": "job-2026-04-30-16:36:06",
-      "packageVersion": "1777581366"
+      "spdxId": "urn:spdx:segmentation-3.0-7cad929e-9814-4a3e-acc5-2e56b8e17d5c",
+      "name": "segmentation-3.0",
+      "packageVersion": "e66f3d3b",
+      "downloadLocation": "https://huggingface.co/pyannote/segmentation-3.0/tree/main",
+      "licenseDeclared": "MIT"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-job-2026-04-30-16:36:06-768e1778-a934-4985-b177-8f8ecd62f746",
-      "name": "job-2026-04-30-16:36:06",
-      "summary": "Generating SBOM for pyannote/segmentation-3.0",
-      "suppliedBy": "OWASP AIBOM Generator",
-      "packageVersion": "1777581366"
+      "spdxId": "urn:spdx:ai-segmentation-3.0-3403e13e-92cb-4418-a522-e3f45e2daf60",
+      "name": "segmentation-3.0",
+      "summary": "No description available",
+      "downloadLocation": "https://huggingface.co/pyannote/segmentation-3.0/tree/main",
+      "packageUrl": "https://huggingface.co/pyannote/segmentation-3.0/commit/e66f3d3b9eb0873085418a7b813d3b369bf160bb",
+      "suppliedBy": "pyannote",
+      "packageVersion": "e66f3d3b",
+      "primaryPurpose": [
+        "voice-activity-detection"
+      ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-5ffb05f9-9afa-462c-9c7e-793cb552eaa3",
+      "spdxId": "urn:spdx:rel-12f3db63-8cb6-4c5c-8507-837b19df5a5e",
+      "relationshipType": "hasDeclaredLicense",
+      "from": "urn:spdx:segmentation-3.0-7cad929e-9814-4a3e-acc5-2e56b8e17d5c",
+      "to": [
+        "MIT"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-2a412266-4cbc-40d9-b2b5-c8346a1cbb2f",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/pyannote/segmentation-3.0@e66f3d3b",
       "to": [

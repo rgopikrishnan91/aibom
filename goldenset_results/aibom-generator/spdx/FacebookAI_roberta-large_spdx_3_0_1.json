@@ -3,14 +3,14 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-job-2026-04-30-16:36:09-a3f53693-4bb0-4416-bdab-250d32e43e48",
+      "spdxId": "urn:spdx:doc-roberta-large-0d7b6f69-0b30-4949-a571-3ac0b9ee4939",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
         "software",
         "ai"
       ],
-      "name": "AIBOM for job-2026-04-30-16:36:09",
+      "name": "AIBOM for roberta-large",
       "creationInfo": {
         "type": "CreationInfo",
         "created": "2026-04-30T20:36:09+00:00",
@@ -19,31 +19,70 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-job-2026-04-30-16:36:09-3b222f04-5aba-45e7-b536-04a0aa20e7ad"
+        "urn:spdx:ai-roberta-large-16f7fcf1-63d3-4d4c-a58b-01ff63ebf311"
       ],
       "element": [
-        "urn:spdx:job-2026-04-30-16:36:09-6f608e16-77cf-4067-b111-67f9ff2f0ee4",
-        "urn:spdx:ai-job-2026-04-30-16:36:09-3b222f04-5aba-45e7-b536-04a0aa20e7ad",
-        "urn:spdx:rel-51912421-e4b3-4d6b-a7cb-1768656e0068"
+        "urn:spdx:roberta-large-7d5cb2ba-f5f6-4e2e-a1cb-76ef297aa49f",
+        "urn:spdx:ai-roberta-large-16f7fcf1-63d3-4d4c-a58b-01ff63ebf311",
+        "urn:spdx:rel-ed207323-168e-496f-b1d0-88bede181c45",
+        "urn:spdx:rel-73af3d47-50e0-4c6b-b05c-ba6d28251df2",
+        "urn:spdx:rel-29243c8a-9e78-4c66-9e61-fd67ed4d92df",
+        "urn:spdx:rel-63846566-88f7-4dbc-a470-dbecd154f117"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:job-2026-04-30-16:36:09-6f608e16-77cf-4067-b111-67f9ff2f0ee4",
-      "name": "job-2026-04-30-16:36:09",
-      "packageVersion": "1777581369"
+      "spdxId": "urn:spdx:roberta-large-7d5cb2ba-f5f6-4e2e-a1cb-76ef297aa49f",
+      "name": "roberta-large",
+      "packageVersion": "722cf37b",
+      "downloadLocation": "https://huggingface.co/FacebookAI/roberta-large/tree/main",
+      "licenseDeclared": "MIT"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-job-2026-04-30-16:36:09-3b222f04-5aba-45e7-b536-04a0aa20e7ad",
-      "name": "job-2026-04-30-16:36:09",
-      "summary": "Generating SBOM for FacebookAI/roberta-large",
-      "suppliedBy": "OWASP AIBOM Generator",
-      "packageVersion": "1777581369"
+      "spdxId": "urn:spdx:ai-roberta-large-16f7fcf1-63d3-4d4c-a58b-01ff63ebf311",
+      "name": "roberta-large",
+      "summary": "No description available",
+      "downloadLocation": "https://huggingface.co/FacebookAI/roberta-large/tree/main",
+      "packageUrl": "https://huggingface.co/FacebookAI/roberta-large/commit/722cf37b1afa9454edce342e7895e588b6ff1d59",
+      "suppliedBy": "FacebookAI",
+      "packageVersion": "722cf37b",
+      "primaryPurpose": [
+        "fill-mask"
+      ],
+      "limitation": "[\"You can use the raw model for masked language modeling, but it's mostly intended to be fine-tuned on a downstream task\"]",
+      "safetyRiskAssessment": "The training data used for this model contains a lot of unfiltered content from the internet, which is far from neutral"
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-51912421-e4b3-4d6b-a7cb-1768656e0068",
+      "spdxId": "urn:spdx:rel-ed207323-168e-496f-b1d0-88bede181c45",
+      "relationshipType": "hasDeclaredLicense",
+      "from": "urn:spdx:roberta-large-7d5cb2ba-f5f6-4e2e-a1cb-76ef297aa49f",
+      "to": [
+        "MIT"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-73af3d47-50e0-4c6b-b05c-ba6d28251df2",
+      "relationshipType": "trainedOn",
+      "from": "urn:spdx:ai-roberta-large-16f7fcf1-63d3-4d4c-a58b-01ff63ebf311",
+      "to": [
+        "bookcorpus"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-29243c8a-9e78-4c66-9e61-fd67ed4d92df",
+      "relationshipType": "trainedOn",
+      "from": "urn:spdx:ai-roberta-large-16f7fcf1-63d3-4d4c-a58b-01ff63ebf311",
+      "to": [
+        "wikipedia"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-63846566-88f7-4dbc-a470-dbecd154f117",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/FacebookAI/roberta-large@722cf37b",
       "to": [

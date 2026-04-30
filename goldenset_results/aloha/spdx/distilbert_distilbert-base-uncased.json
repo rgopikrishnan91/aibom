@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-distilbert_distilbert-base-uncased-e309498a-ec2f-42f9-98ba-5f73530f575d",
+      "spdxId": "urn:spdx:doc-distilbert_distilbert-base-uncased-399d3476-fb16-4b43-b423-80336cf6bbe1",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,25 +19,25 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-distilbert_distilbert-base-uncased-0113550b-60dd-4ac8-9529-1d78f87ed0fb"
+        "urn:spdx:ai-distilbert_distilbert-base-uncased-0f55c95d-f15a-4e77-b482-2d3050d7d8f3"
       ],
       "element": [
-        "urn:spdx:distilbert_distilbert-base-uncased-2f507847-e5aa-4758-9bea-e55fdc99c078",
-        "urn:spdx:ai-distilbert_distilbert-base-uncased-0113550b-60dd-4ac8-9529-1d78f87ed0fb",
-        "urn:spdx:rel-96aebda5-8d99-466d-ba7b-e2a8fd9d4043",
-        "urn:spdx:rel-2c7b2eee-85b6-4d1b-a23a-5e80c56eda7e",
-        "urn:spdx:rel-7021429b-5353-401e-b26d-ab71a6d7cc8f"
+        "urn:spdx:distilbert_distilbert-base-uncased-fef1e348-fe4a-4813-87ec-e73ca4574d12",
+        "urn:spdx:ai-distilbert_distilbert-base-uncased-0f55c95d-f15a-4e77-b482-2d3050d7d8f3",
+        "urn:spdx:rel-79a8caa0-2bad-49a0-949e-9be6e3338d2c",
+        "urn:spdx:rel-95c5b97a-cf13-43ee-868b-1810ee6e75f4",
+        "urn:spdx:rel-e804e33c-f21e-4962-b666-a6f7b4d683a7"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:distilbert_distilbert-base-uncased-2f507847-e5aa-4758-9bea-e55fdc99c078",
+      "spdxId": "urn:spdx:distilbert_distilbert-base-uncased-fef1e348-fe4a-4813-87ec-e73ca4574d12",
       "name": "distilbert/distilbert-base-uncased",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-distilbert_distilbert-base-uncased-0113550b-60dd-4ac8-9529-1d78f87ed0fb",
+      "spdxId": "urn:spdx:ai-distilbert_distilbert-base-uncased-0f55c95d-f15a-4e77-b482-2d3050d7d8f3",
       "name": "distilbert/distilbert-base-uncased",
       "summary": "DistilBERT is a transformers model, smaller and faster than BERT, which was pretrained on the same corpus in aself-supervised fashion, using the BERT base model as a teacher. This means it was pretrained on the raw texts only,with no humans labelling them in any way (which is why it can use lots of publicly available data) with an automaticprocess to generate inputs and labels from those texts using the BERT base model. More precisely, it was pretrainedwith three objectives:- Distillation loss: the model was trained to return the same probabilities as the BERT base model.- Masked language modeling (MLM): this is part of the original training loss of the BERT base model. When taking asentence, the model randomly masks 15% of the words in the input then run the entire masked sentence through themodel and has to predict the masked words. This is different from traditional recurrent neural networks (RNNs) thatusually see the words one after the other, or from autoregressive models like GPT which internally mask the futuretokens. It allows the model to learn a bidirectional representation of the sentence.- Cosine embedding loss: the model was also trained to generate hidden states as close as possible as the BERT basemodel.This way, the model learns the same inner representation of the English language than its teacher model, while beingfaster for inference or downstream tasks.",
       "primaryPurpose": [
@@ -68,27 +68,27 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-96aebda5-8d99-466d-ba7b-e2a8fd9d4043",
+      "spdxId": "urn:spdx:rel-79a8caa0-2bad-49a0-949e-9be6e3338d2c",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:distilbert_distilbert-base-uncased-2f507847-e5aa-4758-9bea-e55fdc99c078",
+      "from": "urn:spdx:distilbert_distilbert-base-uncased-fef1e348-fe4a-4813-87ec-e73ca4574d12",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-2c7b2eee-85b6-4d1b-a23a-5e80c56eda7e",
+      "spdxId": "urn:spdx:rel-95c5b97a-cf13-43ee-868b-1810ee6e75f4",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-distilbert_distilbert-base-uncased-0113550b-60dd-4ac8-9529-1d78f87ed0fb",
+      "from": "urn:spdx:ai-distilbert_distilbert-base-uncased-0f55c95d-f15a-4e77-b482-2d3050d7d8f3",
       "to": [
         "bookcorpus-5b88b1fa-89d7-54e0-8076-a03aa22c33e0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-7021429b-5353-401e-b26d-ab71a6d7cc8f",
+      "spdxId": "urn:spdx:rel-e804e33c-f21e-4962-b666-a6f7b4d683a7",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-distilbert_distilbert-base-uncased-0113550b-60dd-4ac8-9529-1d78f87ed0fb",
+      "from": "urn:spdx:ai-distilbert_distilbert-base-uncased-0f55c95d-f15a-4e77-b482-2d3050d7d8f3",
       "to": [
         "wikipedia-8c5eb686-d691-517b-aad7-040fa51febc3"
       ]

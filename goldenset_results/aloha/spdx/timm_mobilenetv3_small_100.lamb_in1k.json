@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-timm_mobilenetv3_small_100.lamb_in1k-f7b88fa0-c327-48c4-8257-06910a32e902",
+      "spdxId": "urn:spdx:doc-timm_mobilenetv3_small_100.lamb_in1k-a19ac6a8-feae-4799-b26d-fabb42b99dfb",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,24 +19,24 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-timm_mobilenetv3_small_100.lamb_in1k-f8b174a6-55ca-4f61-b265-c006a5003311"
+        "urn:spdx:ai-timm_mobilenetv3_small_100.lamb_in1k-37eff659-2339-4780-8c0f-a4870c1f7a4d"
       ],
       "element": [
-        "urn:spdx:timm_mobilenetv3_small_100.lamb_in1k-991c9d1c-d8db-47f5-aac1-a95de4a57b1e",
-        "urn:spdx:ai-timm_mobilenetv3_small_100.lamb_in1k-f8b174a6-55ca-4f61-b265-c006a5003311",
-        "urn:spdx:rel-a0a5c92f-5438-404e-9836-b5e7aeecb390",
-        "urn:spdx:rel-fd889d20-a4ea-4084-8707-7403e76016e5"
+        "urn:spdx:timm_mobilenetv3_small_100.lamb_in1k-c27f8019-52e0-4638-b63f-1b9c521f112b",
+        "urn:spdx:ai-timm_mobilenetv3_small_100.lamb_in1k-37eff659-2339-4780-8c0f-a4870c1f7a4d",
+        "urn:spdx:rel-a0f661cd-03cb-49fe-a397-e52b970c2b81",
+        "urn:spdx:rel-133ba7a5-b822-4521-8d28-878b8e2dfa7c"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:timm_mobilenetv3_small_100.lamb_in1k-991c9d1c-d8db-47f5-aac1-a95de4a57b1e",
+      "spdxId": "urn:spdx:timm_mobilenetv3_small_100.lamb_in1k-c27f8019-52e0-4638-b63f-1b9c521f112b",
       "name": "timm/mobilenetv3_small_100.lamb_in1k",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-timm_mobilenetv3_small_100.lamb_in1k-f8b174a6-55ca-4f61-b265-c006a5003311",
+      "spdxId": "urn:spdx:ai-timm_mobilenetv3_small_100.lamb_in1k-37eff659-2339-4780-8c0f-a4870c1f7a4d",
       "name": "timm/mobilenetv3_small_100.lamb_in1k",
       "summary": "- **Model Type:** Image classification / feature backbone- **Model Stats:**- Params (M): 2.5- GMACs: 0.1- Activations (M): 1.4- Image size: 224 x 224- **Papers:**- Searching for MobileNetV3: https://arxiv.org/abs/1905.02244- **Dataset:** ImageNet-1k- **Original:** https://github.com/huggingface/pytorch-image-models",
       "primaryPurpose": [
@@ -57,18 +57,18 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-a0a5c92f-5438-404e-9836-b5e7aeecb390",
+      "spdxId": "urn:spdx:rel-a0f661cd-03cb-49fe-a397-e52b970c2b81",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:timm_mobilenetv3_small_100.lamb_in1k-991c9d1c-d8db-47f5-aac1-a95de4a57b1e",
+      "from": "urn:spdx:timm_mobilenetv3_small_100.lamb_in1k-c27f8019-52e0-4638-b63f-1b9c521f112b",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-fd889d20-a4ea-4084-8707-7403e76016e5",
+      "spdxId": "urn:spdx:rel-133ba7a5-b822-4521-8d28-878b8e2dfa7c",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-timm_mobilenetv3_small_100.lamb_in1k-f8b174a6-55ca-4f61-b265-c006a5003311",
+      "from": "urn:spdx:ai-timm_mobilenetv3_small_100.lamb_in1k-37eff659-2339-4780-8c0f-a4870c1f7a4d",
       "to": [
         "imagenet-1k-d590ae39-7061-555c-8b41-9aeadd4245c4"
       ]

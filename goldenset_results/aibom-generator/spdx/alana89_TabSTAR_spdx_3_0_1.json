@@ -3,14 +3,14 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-job-2026-04-30-16:36:21-14f50be0-adf3-4d00-b532-9707440a4da0",
+      "spdxId": "urn:spdx:doc-TabSTAR-d39a3103-c2e5-4868-9420-95e68c27e717",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
         "software",
         "ai"
       ],
-      "name": "AIBOM for job-2026-04-30-16:36:21",
+      "name": "AIBOM for TabSTAR",
       "creationInfo": {
         "type": "CreationInfo",
         "created": "2026-04-30T20:36:21+00:00",
@@ -19,31 +19,48 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-job-2026-04-30-16:36:21-65a49465-cc42-46a4-abe7-87b55807addb"
+        "urn:spdx:ai-TabSTAR-c77c69d7-5eb6-47e8-9850-bb06679abbea"
       ],
       "element": [
-        "urn:spdx:job-2026-04-30-16:36:21-97028425-d6d3-42e7-a7e8-6389e8bc93a2",
-        "urn:spdx:ai-job-2026-04-30-16:36:21-65a49465-cc42-46a4-abe7-87b55807addb",
-        "urn:spdx:rel-0f9b0d8e-a4b9-4a8b-9d2f-6444c0d17806"
+        "urn:spdx:TabSTAR-5f9d6bcb-028d-4d10-9f02-88e012bbb54e",
+        "urn:spdx:ai-TabSTAR-c77c69d7-5eb6-47e8-9850-bb06679abbea",
+        "urn:spdx:rel-0b1082b1-083f-40e4-8f36-f35367074cbf",
+        "urn:spdx:rel-06d3cd93-c1ad-498b-93b0-36005f72e606"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:job-2026-04-30-16:36:21-97028425-d6d3-42e7-a7e8-6389e8bc93a2",
-      "name": "job-2026-04-30-16:36:21",
-      "packageVersion": "1777581381"
+      "spdxId": "urn:spdx:TabSTAR-5f9d6bcb-028d-4d10-9f02-88e012bbb54e",
+      "name": "TabSTAR",
+      "packageVersion": "73560fb2",
+      "downloadLocation": "https://huggingface.co/alana89/TabSTAR/tree/main",
+      "licenseDeclared": "CC-BY-4.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-job-2026-04-30-16:36:21-65a49465-cc42-46a4-abe7-87b55807addb",
-      "name": "job-2026-04-30-16:36:21",
-      "summary": "Generating SBOM for alana89/TabSTAR",
-      "suppliedBy": "OWASP AIBOM Generator",
-      "packageVersion": "1777581381"
+      "spdxId": "urn:spdx:ai-TabSTAR-c77c69d7-5eb6-47e8-9850-bb06679abbea",
+      "name": "TabSTAR",
+      "summary": "No description available",
+      "downloadLocation": "https://huggingface.co/alana89/TabSTAR/tree/main",
+      "packageUrl": "https://huggingface.co/alana89/TabSTAR/commit/73560fb23d34307f4b6fa849f38f8299a8980a4a",
+      "suppliedBy": "alana89",
+      "packageVersion": "73560fb2",
+      "primaryPurpose": [
+        "tabular-classification"
+      ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-0f9b0d8e-a4b9-4a8b-9d2f-6444c0d17806",
+      "spdxId": "urn:spdx:rel-0b1082b1-083f-40e4-8f36-f35367074cbf",
+      "relationshipType": "hasDeclaredLicense",
+      "from": "urn:spdx:TabSTAR-5f9d6bcb-028d-4d10-9f02-88e012bbb54e",
+      "to": [
+        "CC-BY-4.0"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-06d3cd93-c1ad-498b-93b0-36005f72e606",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/alana89/TabSTAR@73560fb2",
       "to": [

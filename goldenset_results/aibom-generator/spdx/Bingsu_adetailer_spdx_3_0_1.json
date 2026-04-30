@@ -3,14 +3,14 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-job-2026-04-30-16:36:11-469575d5-f9ea-44f8-9238-225784dd92cd",
+      "spdxId": "urn:spdx:doc-adetailer-da2c4a14-49aa-439c-8b02-67c4aee6ddcc",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
         "software",
         "ai"
       ],
-      "name": "AIBOM for job-2026-04-30-16:36:11",
+      "name": "AIBOM for adetailer",
       "creationInfo": {
         "type": "CreationInfo",
         "created": "2026-04-30T20:36:11+00:00",
@@ -19,31 +19,68 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-job-2026-04-30-16:36:11-5f061f6e-7c76-486b-a638-582f237b87f0"
+        "urn:spdx:ai-adetailer-66747017-4342-415c-84e9-565dd6d2b687"
       ],
       "element": [
-        "urn:spdx:job-2026-04-30-16:36:11-e3b83bd4-0ce3-4997-a277-df183d6e53a9",
-        "urn:spdx:ai-job-2026-04-30-16:36:11-5f061f6e-7c76-486b-a638-582f237b87f0",
-        "urn:spdx:rel-9771fbf9-0104-4816-bf8c-2538a8ba3b96"
+        "urn:spdx:adetailer-9a0f5896-bbf5-48bf-9194-88b2eb84a9e7",
+        "urn:spdx:ai-adetailer-66747017-4342-415c-84e9-565dd6d2b687",
+        "urn:spdx:rel-a25b17c5-2f6d-4331-a4ae-fa1660488ec0",
+        "urn:spdx:rel-19d7c1a0-a4e1-435f-8703-e4d2fd699ce4",
+        "urn:spdx:rel-3ef8231e-3409-4046-bfd6-f49a282489a3",
+        "urn:spdx:rel-39521e3f-2bc6-47b4-9db2-0c3064ef87d8"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:job-2026-04-30-16:36:11-e3b83bd4-0ce3-4997-a277-df183d6e53a9",
-      "name": "job-2026-04-30-16:36:11",
-      "packageVersion": "1777581371"
+      "spdxId": "urn:spdx:adetailer-9a0f5896-bbf5-48bf-9194-88b2eb84a9e7",
+      "name": "adetailer",
+      "packageVersion": "53cc19de",
+      "downloadLocation": "https://huggingface.co/Bingsu/adetailer/tree/main",
+      "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-job-2026-04-30-16:36:11-5f061f6e-7c76-486b-a638-582f237b87f0",
-      "name": "job-2026-04-30-16:36:11",
-      "summary": "Generating SBOM for Bingsu/adetailer",
-      "suppliedBy": "OWASP AIBOM Generator",
-      "packageVersion": "1777581371"
+      "spdxId": "urn:spdx:ai-adetailer-66747017-4342-415c-84e9-565dd6d2b687",
+      "name": "adetailer",
+      "summary": "No description available",
+      "downloadLocation": "https://huggingface.co/Bingsu/adetailer/tree/main",
+      "packageUrl": "https://huggingface.co/Bingsu/adetailer/commit/53cc19de382014514d9d4038601d261a7faa9b7b",
+      "suppliedBy": "Bingsu",
+      "packageVersion": "53cc19de",
+      "primaryPurpose": [
+        "text-generation"
+      ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-9771fbf9-0104-4816-bf8c-2538a8ba3b96",
+      "spdxId": "urn:spdx:rel-a25b17c5-2f6d-4331-a4ae-fa1660488ec0",
+      "relationshipType": "hasDeclaredLicense",
+      "from": "urn:spdx:adetailer-9a0f5896-bbf5-48bf-9194-88b2eb84a9e7",
+      "to": [
+        "Apache-2.0"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-19d7c1a0-a4e1-435f-8703-e4d2fd699ce4",
+      "relationshipType": "trainedOn",
+      "from": "urn:spdx:ai-adetailer-66747017-4342-415c-84e9-565dd6d2b687",
+      "to": [
+        "wider_face"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-3ef8231e-3409-4046-bfd6-f49a282489a3",
+      "relationshipType": "trainedOn",
+      "from": "urn:spdx:ai-adetailer-66747017-4342-415c-84e9-565dd6d2b687",
+      "to": [
+        "skytnt/anime-segmentation"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-39521e3f-2bc6-47b4-9db2-0c3064ef87d8",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/Bingsu/adetailer@53cc19de",
       "to": [

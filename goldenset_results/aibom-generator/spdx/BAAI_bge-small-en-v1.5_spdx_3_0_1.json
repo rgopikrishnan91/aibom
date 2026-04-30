@@ -3,14 +3,14 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-job-2026-04-30-16:36:47-46b5aad0-3009-469e-bd52-3a0a9ddbeb6a",
+      "spdxId": "urn:spdx:doc-bge-small-en-v1.5-ec9097d6-84b9-4e69-8744-f1c56c04f5a6",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
         "software",
         "ai"
       ],
-      "name": "AIBOM for job-2026-04-30-16:36:47",
+      "name": "AIBOM for bge-small-en-v1.5",
       "creationInfo": {
         "type": "CreationInfo",
         "created": "2026-04-30T20:36:47+00:00",
@@ -19,31 +19,58 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-job-2026-04-30-16:36:47-b8cf0c1b-35b1-42f0-bdf0-77835f607439"
+        "urn:spdx:ai-bge-small-en-v1.5-4d46149f-adb7-4d15-a779-4fd16cd63d92"
       ],
       "element": [
-        "urn:spdx:job-2026-04-30-16:36:47-6a6999ca-e2d8-4360-ab83-be4e338838f6",
-        "urn:spdx:ai-job-2026-04-30-16:36:47-b8cf0c1b-35b1-42f0-bdf0-77835f607439",
-        "urn:spdx:rel-39779a38-12bf-43c0-9fdf-41ead39b8926"
+        "urn:spdx:bge-small-en-v1.5-580c8ea4-c31c-4066-bb61-5948a88c54b4",
+        "urn:spdx:ai-bge-small-en-v1.5-4d46149f-adb7-4d15-a779-4fd16cd63d92",
+        "urn:spdx:rel-34678abf-b594-43ad-957c-f290bd4919f0",
+        "urn:spdx:rel-ebfe6c0d-a0cd-4382-be46-9de1f66ba4ec",
+        "urn:spdx:rel-fcefdcc7-ed00-46e0-ab00-1d1a1b688b35"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:job-2026-04-30-16:36:47-6a6999ca-e2d8-4360-ab83-be4e338838f6",
-      "name": "job-2026-04-30-16:36:47",
-      "packageVersion": "1777581407"
+      "spdxId": "urn:spdx:bge-small-en-v1.5-580c8ea4-c31c-4066-bb61-5948a88c54b4",
+      "name": "bge-small-en-v1.5",
+      "packageVersion": "5c38ec7c",
+      "downloadLocation": "https://huggingface.co/BAAI/bge-small-en-v1.5/tree/main",
+      "licenseDeclared": "MIT"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-job-2026-04-30-16:36:47-b8cf0c1b-35b1-42f0-bdf0-77835f607439",
-      "name": "job-2026-04-30-16:36:47",
-      "summary": "Generating SBOM for BAAI/bge-small-en-v1.5",
-      "suppliedBy": "OWASP AIBOM Generator",
-      "packageVersion": "1777581407"
+      "spdxId": "urn:spdx:ai-bge-small-en-v1.5-4d46149f-adb7-4d15-a779-4fd16cd63d92",
+      "name": "bge-small-en-v1.5",
+      "summary": "No description available",
+      "downloadLocation": "https://huggingface.co/BAAI/bge-small-en-v1.5/tree/main",
+      "packageUrl": "https://huggingface.co/BAAI/bge-small-en-v1.5/commit/5c38ec7c405ec4b44b94cc5a9bb96e735b38267a",
+      "suppliedBy": "BAAI",
+      "packageVersion": "5c38ec7c",
+      "primaryPurpose": [
+        "feature-extraction"
+      ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-39779a38-12bf-43c0-9fdf-41ead39b8926",
+      "spdxId": "urn:spdx:rel-34678abf-b594-43ad-957c-f290bd4919f0",
+      "relationshipType": "hasDeclaredLicense",
+      "from": "urn:spdx:bge-small-en-v1.5-580c8ea4-c31c-4066-bb61-5948a88c54b4",
+      "to": [
+        "MIT"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-ebfe6c0d-a0cd-4382-be46-9de1f66ba4ec",
+      "relationshipType": "trainedOn",
+      "from": "urn:spdx:ai-bge-small-en-v1.5-4d46149f-adb7-4d15-a779-4fd16cd63d92",
+      "to": [
+        "name"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-fcefdcc7-ed00-46e0-ab00-1d1a1b688b35",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/BAAI/bge-small-en-v1.5@5c38ec7c",
       "to": [

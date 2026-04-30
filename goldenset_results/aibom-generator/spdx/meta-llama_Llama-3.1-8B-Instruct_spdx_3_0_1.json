@@ -3,14 +3,14 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-job-2026-04-30-16:36:29-655ed403-e36f-4399-9208-fa2e384eeb03",
+      "spdxId": "urn:spdx:doc-Llama-3.1-8B-Instruct-deab2590-10e4-4430-97b1-d3ec89899e3a",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
         "software",
         "ai"
       ],
-      "name": "AIBOM for job-2026-04-30-16:36:29",
+      "name": "AIBOM for Llama-3.1-8B-Instruct",
       "creationInfo": {
         "type": "CreationInfo",
         "created": "2026-04-30T20:36:29+00:00",
@@ -19,31 +19,70 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-job-2026-04-30-16:36:29-5c695edf-f03a-48df-9694-58df07cc6092"
+        "urn:spdx:ai-Llama-3.1-8B-Instruct-29ac919b-b641-48f8-9938-945e90ae1c5d"
       ],
       "element": [
-        "urn:spdx:job-2026-04-30-16:36:29-1f51729d-5770-40b5-984e-c359ec3e9975",
-        "urn:spdx:ai-job-2026-04-30-16:36:29-5c695edf-f03a-48df-9694-58df07cc6092",
-        "urn:spdx:rel-ac734155-dc69-4ab0-8c0a-b8777f4b0735"
+        "urn:spdx:Llama-3.1-8B-Instruct-84e95e4c-2867-4e67-b634-75d1416c311b",
+        "urn:spdx:ai-Llama-3.1-8B-Instruct-29ac919b-b641-48f8-9938-945e90ae1c5d",
+        "urn:spdx:rel-c3648957-8847-417e-b08f-5a357715aa69",
+        "urn:spdx:rel-58d375eb-ab44-4254-916f-8179ebb70280",
+        "urn:spdx:rel-6150d635-97cc-4bbd-aed4-715013e90aae",
+        "urn:spdx:rel-0e047b0d-4fc9-425e-84a0-8da7fcd34f88"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:job-2026-04-30-16:36:29-1f51729d-5770-40b5-984e-c359ec3e9975",
-      "name": "job-2026-04-30-16:36:29",
-      "packageVersion": "1777581389"
+      "spdxId": "urn:spdx:Llama-3.1-8B-Instruct-84e95e4c-2867-4e67-b634-75d1416c311b",
+      "name": "Llama-3.1-8B-Instruct",
+      "packageVersion": "0e9e39f2",
+      "downloadLocation": "https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct/tree/main",
+      "licenseDeclared": "llama3.1"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-job-2026-04-30-16:36:29-5c695edf-f03a-48df-9694-58df07cc6092",
-      "name": "job-2026-04-30-16:36:29",
-      "summary": "Generating SBOM for meta-llama/Llama-3.1-8B-Instruct",
-      "suppliedBy": "OWASP AIBOM Generator",
-      "packageVersion": "1777581389"
+      "spdxId": "urn:spdx:ai-Llama-3.1-8B-Instruct-29ac919b-b641-48f8-9938-945e90ae1c5d",
+      "name": "Llama-3.1-8B-Instruct",
+      "summary": "No description available",
+      "downloadLocation": "https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct/tree/main",
+      "packageUrl": "https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct/commit/0e9e39f249a16976918f6564b8830bc894c89659",
+      "suppliedBy": "meta-llama",
+      "packageVersion": "0e9e39f2",
+      "primaryPurpose": [
+        "text-generation"
+      ],
+      "limitation": "[\"of Liability\"]",
+      "safetyRiskAssessment": "with community feedback, ASSOCIATED WITH YOUR USE OF THE LLAMA\\ \\ MATERIALS AND ANY OUTPUT AND RESULTS"
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-ac734155-dc69-4ab0-8c0a-b8777f4b0735",
+      "spdxId": "urn:spdx:rel-c3648957-8847-417e-b08f-5a357715aa69",
+      "relationshipType": "hasDeclaredLicense",
+      "from": "urn:spdx:Llama-3.1-8B-Instruct-84e95e4c-2867-4e67-b634-75d1416c311b",
+      "to": [
+        "llama3.1"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-58d375eb-ab44-4254-916f-8179ebb70280",
+      "relationshipType": "trainedOn",
+      "from": "urn:spdx:ai-Llama-3.1-8B-Instruct-29ac919b-b641-48f8-9938-945e90ae1c5d",
+      "to": [
+        "an"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-6150d635-97cc-4bbd-aed4-715013e90aae",
+      "relationshipType": "trainedOn",
+      "from": "urn:spdx:ai-Llama-3.1-8B-Instruct-29ac919b-b641-48f8-9938-945e90ae1c5d",
+      "to": [
+        "for"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-0e047b0d-4fc9-425e-84a0-8da7fcd34f88",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/meta-llama/Llama-3.1-8B-Instruct@0e9e39f2",
       "to": [

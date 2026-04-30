@@ -3,14 +3,14 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-job-2026-04-30-16:36:18-0a2e5501-11bc-4cb0-a653-484b6cacd3f7",
+      "spdxId": "urn:spdx:doc-Qwen2.5-7B-Instruct-dfdce891-7a69-47da-8686-635aa12bf650",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
         "software",
         "ai"
       ],
-      "name": "AIBOM for job-2026-04-30-16:36:18",
+      "name": "AIBOM for Qwen2.5-7B-Instruct",
       "creationInfo": {
         "type": "CreationInfo",
         "created": "2026-04-30T20:36:18+00:00",
@@ -19,31 +19,49 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-job-2026-04-30-16:36:18-eb7f6c25-a20e-4544-9a7e-0f0474a8422b"
+        "urn:spdx:ai-Qwen2.5-7B-Instruct-7d515b32-9a7e-4bd0-9b4f-a1956e612e07"
       ],
       "element": [
-        "urn:spdx:job-2026-04-30-16:36:18-cc0dbb07-5783-4b8a-8151-b0232cfc1776",
-        "urn:spdx:ai-job-2026-04-30-16:36:18-eb7f6c25-a20e-4544-9a7e-0f0474a8422b",
-        "urn:spdx:rel-868fd117-ce2c-4ef1-80a8-95848034cd2c"
+        "urn:spdx:Qwen2.5-7B-Instruct-b4ac09a7-5a4b-4ce1-8aa3-6cdfddde48d9",
+        "urn:spdx:ai-Qwen2.5-7B-Instruct-7d515b32-9a7e-4bd0-9b4f-a1956e612e07",
+        "urn:spdx:rel-44cab621-e6bd-42f6-b3bf-acba94ca299c",
+        "urn:spdx:rel-e1c823e5-5438-45a1-a7dd-189de34dc3bc"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:job-2026-04-30-16:36:18-cc0dbb07-5783-4b8a-8151-b0232cfc1776",
-      "name": "job-2026-04-30-16:36:18",
-      "packageVersion": "1777581378"
+      "spdxId": "urn:spdx:Qwen2.5-7B-Instruct-b4ac09a7-5a4b-4ce1-8aa3-6cdfddde48d9",
+      "name": "Qwen2.5-7B-Instruct",
+      "packageVersion": "a09a3545",
+      "downloadLocation": "https://huggingface.co/Qwen/Qwen2.5-7B-Instruct/tree/main",
+      "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-job-2026-04-30-16:36:18-eb7f6c25-a20e-4544-9a7e-0f0474a8422b",
-      "name": "job-2026-04-30-16:36:18",
-      "summary": "Generating SBOM for Qwen/Qwen2.5-7B-Instruct",
-      "suppliedBy": "OWASP AIBOM Generator",
-      "packageVersion": "1777581378"
+      "spdxId": "urn:spdx:ai-Qwen2.5-7B-Instruct-7d515b32-9a7e-4bd0-9b4f-a1956e612e07",
+      "name": "Qwen2.5-7B-Instruct",
+      "summary": "No description available",
+      "downloadLocation": "https://huggingface.co/Qwen/Qwen2.5-7B-Instruct/tree/main",
+      "packageUrl": "https://huggingface.co/Qwen/Qwen2.5-7B-Instruct/commit/a09a35458c702b33eeacc393d103063234e8bc28",
+      "suppliedBy": "Qwen",
+      "packageVersion": "a09a3545",
+      "primaryPurpose": [
+        "text-generation"
+      ],
+      "safetyRiskAssessment": "- Number of Parameters: 7"
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-868fd117-ce2c-4ef1-80a8-95848034cd2c",
+      "spdxId": "urn:spdx:rel-44cab621-e6bd-42f6-b3bf-acba94ca299c",
+      "relationshipType": "hasDeclaredLicense",
+      "from": "urn:spdx:Qwen2.5-7B-Instruct-b4ac09a7-5a4b-4ce1-8aa3-6cdfddde48d9",
+      "to": [
+        "Apache-2.0"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-e1c823e5-5438-45a1-a7dd-189de34dc3bc",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/Qwen/Qwen2.5-7B-Instruct@a09a3545",
       "to": [

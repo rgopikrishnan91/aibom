@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-jinaai_jina-embeddings-v3-2c480c8a-78a9-4ae3-9d5c-3a85b2580d50",
+      "spdxId": "urn:spdx:doc-jinaai_jina-embeddings-v3-3234545c-e387-4696-8634-7d450e73a805",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,23 +19,23 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-jinaai_jina-embeddings-v3-75b4159c-fc99-4531-b6cd-3169239c55af"
+        "urn:spdx:ai-jinaai_jina-embeddings-v3-9415cdf9-50c3-41b8-b00c-68f701b5d6ae"
       ],
       "element": [
-        "urn:spdx:jinaai_jina-embeddings-v3-809e85cc-df91-4c77-8f44-daa102c976d8",
-        "urn:spdx:ai-jinaai_jina-embeddings-v3-75b4159c-fc99-4531-b6cd-3169239c55af",
-        "urn:spdx:rel-b8958829-e29e-4aee-afdd-2881709dec1c"
+        "urn:spdx:jinaai_jina-embeddings-v3-8b2f9746-90f0-425f-a8eb-ceabb1d52fe2",
+        "urn:spdx:ai-jinaai_jina-embeddings-v3-9415cdf9-50c3-41b8-b00c-68f701b5d6ae",
+        "urn:spdx:rel-8dd721c5-4cd0-45b5-955f-d683667ac187"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:jinaai_jina-embeddings-v3-809e85cc-df91-4c77-8f44-daa102c976d8",
+      "spdxId": "urn:spdx:jinaai_jina-embeddings-v3-8b2f9746-90f0-425f-a8eb-ceabb1d52fe2",
       "name": "jinaai/jina-embeddings-v3",
       "licenseDeclared": "CC-BY-NC-4.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-jinaai_jina-embeddings-v3-75b4159c-fc99-4531-b6cd-3169239c55af",
+      "spdxId": "urn:spdx:ai-jinaai_jina-embeddings-v3-9415cdf9-50c3-41b8-b00c-68f701b5d6ae",
       "name": "jinaai/jina-embeddings-v3",
       "primaryPurpose": [
         "feature-extraction"
@@ -44707,9 +44707,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-b8958829-e29e-4aee-afdd-2881709dec1c",
+      "spdxId": "urn:spdx:rel-8dd721c5-4cd0-45b5-955f-d683667ac187",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:jinaai_jina-embeddings-v3-809e85cc-df91-4c77-8f44-daa102c976d8",
+      "from": "urn:spdx:jinaai_jina-embeddings-v3-8b2f9746-90f0-425f-a8eb-ceabb1d52fe2",
       "to": [
         "CC-BY-NC-4.0"
       ]

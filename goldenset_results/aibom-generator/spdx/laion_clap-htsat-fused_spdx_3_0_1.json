@@ -3,14 +3,14 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-job-2026-04-30-16:36:04-696d2da9-f619-4638-97aa-452000f0c912",
+      "spdxId": "urn:spdx:doc-clap-htsat-fused-5aaaee44-168c-4471-a071-127407807504",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
         "software",
         "ai"
       ],
-      "name": "AIBOM for job-2026-04-30-16:36:04",
+      "name": "AIBOM for clap-htsat-fused",
       "creationInfo": {
         "type": "CreationInfo",
         "created": "2026-04-30T20:36:04+00:00",
@@ -19,31 +19,58 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-job-2026-04-30-16:36:04-e09819aa-042f-4aa8-9db9-26dfaf424a14"
+        "urn:spdx:ai-clap-htsat-fused-cae84d28-c016-4876-a36c-6d24bbe80148"
       ],
       "element": [
-        "urn:spdx:job-2026-04-30-16:36:04-0f8bb666-e74c-49c5-857c-77989fb92164",
-        "urn:spdx:ai-job-2026-04-30-16:36:04-e09819aa-042f-4aa8-9db9-26dfaf424a14",
-        "urn:spdx:rel-8e4d5b15-e3ab-4457-ab5b-8429c0d6bc15"
+        "urn:spdx:clap-htsat-fused-b04824aa-c2ef-4ac0-94ce-60c528eb0bf7",
+        "urn:spdx:ai-clap-htsat-fused-cae84d28-c016-4876-a36c-6d24bbe80148",
+        "urn:spdx:rel-37a6fbe7-5b67-49d1-a394-9061b5dcc3ca",
+        "urn:spdx:rel-1feac56a-2bb5-424b-bd47-64eecb4a7df8",
+        "urn:spdx:rel-2c663e9e-c1d8-47d2-8230-0216b816365d"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:job-2026-04-30-16:36:04-0f8bb666-e74c-49c5-857c-77989fb92164",
-      "name": "job-2026-04-30-16:36:04",
-      "packageVersion": "1777581364"
+      "spdxId": "urn:spdx:clap-htsat-fused-b04824aa-c2ef-4ac0-94ce-60c528eb0bf7",
+      "name": "clap-htsat-fused",
+      "packageVersion": "365dea6e",
+      "downloadLocation": "https://huggingface.co/laion/clap-htsat-fused/tree/main",
+      "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-job-2026-04-30-16:36:04-e09819aa-042f-4aa8-9db9-26dfaf424a14",
-      "name": "job-2026-04-30-16:36:04",
-      "summary": "Generating SBOM for laion/clap-htsat-fused",
-      "suppliedBy": "OWASP AIBOM Generator",
-      "packageVersion": "1777581364"
+      "spdxId": "urn:spdx:ai-clap-htsat-fused-cae84d28-c016-4876-a36c-6d24bbe80148",
+      "name": "clap-htsat-fused",
+      "summary": "No description available",
+      "downloadLocation": "https://huggingface.co/laion/clap-htsat-fused/tree/main",
+      "packageUrl": "https://huggingface.co/laion/clap-htsat-fused/commit/365dea6ef167def6676140ed93bbc43f84dabb28",
+      "suppliedBy": "laion",
+      "packageVersion": "365dea6e",
+      "primaryPurpose": [
+        "audio-classification"
+      ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-8e4d5b15-e3ab-4457-ab5b-8429c0d6bc15",
+      "spdxId": "urn:spdx:rel-37a6fbe7-5b67-49d1-a394-9061b5dcc3ca",
+      "relationshipType": "hasDeclaredLicense",
+      "from": "urn:spdx:clap-htsat-fused-b04824aa-c2ef-4ac0-94ce-60c528eb0bf7",
+      "to": [
+        "Apache-2.0"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-1feac56a-2bb5-424b-bd47-64eecb4a7df8",
+      "relationshipType": "trainedOn",
+      "from": "urn:spdx:ai-clap-htsat-fused-cae84d28-c016-4876-a36c-6d24bbe80148",
+      "to": [
+        "LAION-CLAP"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-2c663e9e-c1d8-47d2-8230-0216b816365d",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/laion/clap-htsat-fused@365dea6e",
       "to": [

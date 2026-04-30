@@ -3,14 +3,14 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-job-2026-04-30-16:36:13-33e37d84-24bf-4c10-b78a-473486547d37",
+      "spdxId": "urn:spdx:doc-chronos-2-cb738e15-0791-4b41-a180-c9e7a4ce1f89",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
         "software",
         "ai"
       ],
-      "name": "AIBOM for job-2026-04-30-16:36:13",
+      "name": "AIBOM for chronos-2",
       "creationInfo": {
         "type": "CreationInfo",
         "created": "2026-04-30T20:36:13+00:00",
@@ -19,31 +19,68 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-job-2026-04-30-16:36:13-fbf97144-3c4d-4f9c-9c7f-61f654d91f0c"
+        "urn:spdx:ai-chronos-2-05c60a6c-989d-4112-a440-32c7997b36a7"
       ],
       "element": [
-        "urn:spdx:job-2026-04-30-16:36:13-c6cbf1a3-efb0-49aa-a3c5-1bddfdda3071",
-        "urn:spdx:ai-job-2026-04-30-16:36:13-fbf97144-3c4d-4f9c-9c7f-61f654d91f0c",
-        "urn:spdx:rel-9e20ca4a-deb7-4715-a984-726a805f140a"
+        "urn:spdx:chronos-2-50b2ce57-fcd5-4ac4-9409-832c6970ec57",
+        "urn:spdx:ai-chronos-2-05c60a6c-989d-4112-a440-32c7997b36a7",
+        "urn:spdx:rel-fd636a6d-5de1-4917-8a14-51dcae265644",
+        "urn:spdx:rel-3c5ab521-ed31-45b6-815e-d7197dea58f4",
+        "urn:spdx:rel-345f4171-c9c4-4af2-90dc-5ce975fd2612",
+        "urn:spdx:rel-fae7baf6-8445-4676-bea4-d1886847ca97"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:job-2026-04-30-16:36:13-c6cbf1a3-efb0-49aa-a3c5-1bddfdda3071",
-      "name": "job-2026-04-30-16:36:13",
-      "packageVersion": "1777581373"
+      "spdxId": "urn:spdx:chronos-2-50b2ce57-fcd5-4ac4-9409-832c6970ec57",
+      "name": "chronos-2",
+      "packageVersion": "0f8a4404",
+      "downloadLocation": "https://huggingface.co/amazon/chronos-2/tree/main",
+      "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-job-2026-04-30-16:36:13-fbf97144-3c4d-4f9c-9c7f-61f654d91f0c",
-      "name": "job-2026-04-30-16:36:13",
-      "summary": "Generating SBOM for amazon/chronos-2",
-      "suppliedBy": "OWASP AIBOM Generator",
-      "packageVersion": "1777581373"
+      "spdxId": "urn:spdx:ai-chronos-2-05c60a6c-989d-4112-a440-32c7997b36a7",
+      "name": "chronos-2",
+      "summary": "No description available",
+      "downloadLocation": "https://huggingface.co/amazon/chronos-2/tree/main",
+      "packageUrl": "https://huggingface.co/amazon/chronos-2/commit/0f8a440441931157957e2be1a9bce66627d99c76",
+      "suppliedBy": "amazon",
+      "packageVersion": "0f8a4404",
+      "primaryPurpose": [
+        "time-series-forecasting"
+      ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-9e20ca4a-deb7-4715-a984-726a805f140a",
+      "spdxId": "urn:spdx:rel-fd636a6d-5de1-4917-8a14-51dcae265644",
+      "relationshipType": "hasDeclaredLicense",
+      "from": "urn:spdx:chronos-2-50b2ce57-fcd5-4ac4-9409-832c6970ec57",
+      "to": [
+        "Apache-2.0"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-3c5ab521-ed31-45b6-815e-d7197dea58f4",
+      "relationshipType": "trainedOn",
+      "from": "urn:spdx:ai-chronos-2-05c60a6c-989d-4112-a440-32c7997b36a7",
+      "to": [
+        "autogluon/chronos_datasets"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-345f4171-c9c4-4af2-90dc-5ce975fd2612",
+      "relationshipType": "trainedOn",
+      "from": "urn:spdx:ai-chronos-2-05c60a6c-989d-4112-a440-32c7997b36a7",
+      "to": [
+        "Salesforce/GiftEvalPretrain"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-fae7baf6-8445-4676-bea4-d1886847ca97",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/amazon/chronos-2@0f8a4404",
       "to": [

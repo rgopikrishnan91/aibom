@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-autogluon_chronos-bolt-small-52210c17-873d-4f62-90d6-0f89cd4470da",
+      "spdxId": "urn:spdx:doc-autogluon_chronos-bolt-small-be645001-9778-45c8-afa8-50a1a6bf2d79",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,23 +19,23 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-autogluon_chronos-bolt-small-636980e0-5c34-4396-85d2-5ca0ff508afa"
+        "urn:spdx:ai-autogluon_chronos-bolt-small-2b29d4d5-b570-4cc6-9243-a69b3d39447e"
       ],
       "element": [
-        "urn:spdx:autogluon_chronos-bolt-small-bec45137-aafc-4e03-9d37-67c4deee8a51",
-        "urn:spdx:ai-autogluon_chronos-bolt-small-636980e0-5c34-4396-85d2-5ca0ff508afa",
-        "urn:spdx:rel-ff7ef1b5-5a6c-48b6-8e5e-5d270d70f023"
+        "urn:spdx:autogluon_chronos-bolt-small-58ef4366-8afb-4899-96d4-9baf672fb858",
+        "urn:spdx:ai-autogluon_chronos-bolt-small-2b29d4d5-b570-4cc6-9243-a69b3d39447e",
+        "urn:spdx:rel-059e918c-525d-451b-858c-c4872af7e2f1"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:autogluon_chronos-bolt-small-bec45137-aafc-4e03-9d37-67c4deee8a51",
+      "spdxId": "urn:spdx:autogluon_chronos-bolt-small-58ef4366-8afb-4899-96d4-9baf672fb858",
       "name": "autogluon/chronos-bolt-small",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-autogluon_chronos-bolt-small-636980e0-5c34-4396-85d2-5ca0ff508afa",
+      "spdxId": "urn:spdx:ai-autogluon_chronos-bolt-small-2b29d4d5-b570-4cc6-9243-a69b3d39447e",
       "name": "autogluon/chronos-bolt-small",
       "primaryPurpose": [
         "time-series-forecasting"
@@ -61,9 +61,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-ff7ef1b5-5a6c-48b6-8e5e-5d270d70f023",
+      "spdxId": "urn:spdx:rel-059e918c-525d-451b-858c-c4872af7e2f1",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:autogluon_chronos-bolt-small-bec45137-aafc-4e03-9d37-67c4deee8a51",
+      "from": "urn:spdx:autogluon_chronos-bolt-small-58ef4366-8afb-4899-96d4-9baf672fb858",
       "to": [
         "Apache-2.0"
       ]

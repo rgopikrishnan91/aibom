@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-laion_clap-htsat-fused-78327c26-29df-494c-af8f-af602c74f3d9",
+      "spdxId": "urn:spdx:doc-laion_clap-htsat-fused-0f8f4e62-ca13-49f9-84e8-ba1dadfc6114",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,23 +19,23 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-laion_clap-htsat-fused-07bedc09-35e6-4b9d-bb2b-4caaf3efce7b"
+        "urn:spdx:ai-laion_clap-htsat-fused-17cd0fd5-1f4a-420d-a233-add239cfa44a"
       ],
       "element": [
-        "urn:spdx:laion_clap-htsat-fused-8469d343-7ad7-4024-a77d-3513259a2f8c",
-        "urn:spdx:ai-laion_clap-htsat-fused-07bedc09-35e6-4b9d-bb2b-4caaf3efce7b",
-        "urn:spdx:rel-4cecca40-1d1c-4ee9-a43e-f99dcfe07093"
+        "urn:spdx:laion_clap-htsat-fused-4a54e575-ce83-4db4-b6b9-7e2678cd3d5e",
+        "urn:spdx:ai-laion_clap-htsat-fused-17cd0fd5-1f4a-420d-a233-add239cfa44a",
+        "urn:spdx:rel-709e0091-7c4c-4a2f-a265-3af799cc5eec"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:laion_clap-htsat-fused-8469d343-7ad7-4024-a77d-3513259a2f8c",
+      "spdxId": "urn:spdx:laion_clap-htsat-fused-4a54e575-ce83-4db4-b6b9-7e2678cd3d5e",
       "name": "laion/clap-htsat-fused",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-laion_clap-htsat-fused-07bedc09-35e6-4b9d-bb2b-4caaf3efce7b",
+      "spdxId": "urn:spdx:ai-laion_clap-htsat-fused-17cd0fd5-1f4a-420d-a233-add239cfa44a",
       "name": "laion/clap-htsat-fused",
       "primaryPurpose": [
         "audio-classification"
@@ -61,9 +61,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-4cecca40-1d1c-4ee9-a43e-f99dcfe07093",
+      "spdxId": "urn:spdx:rel-709e0091-7c4c-4a2f-a265-3af799cc5eec",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:laion_clap-htsat-fused-8469d343-7ad7-4024-a77d-3513259a2f8c",
+      "from": "urn:spdx:laion_clap-htsat-fused-4a54e575-ce83-4db4-b6b9-7e2678cd3d5e",
       "to": [
         "Apache-2.0"
       ]

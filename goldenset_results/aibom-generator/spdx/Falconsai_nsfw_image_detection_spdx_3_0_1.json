@@ -3,14 +3,14 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-job-2026-04-30-16:35:57-4db25fef-4274-423b-9a22-b9150ddab863",
+      "spdxId": "urn:spdx:doc-nsfw_image_detection-008be739-1c32-400f-95cf-05d6a092a73d",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
         "software",
         "ai"
       ],
-      "name": "AIBOM for job-2026-04-30-16:35:57",
+      "name": "AIBOM for nsfw_image_detection",
       "creationInfo": {
         "type": "CreationInfo",
         "created": "2026-04-30T20:35:57+00:00",
@@ -19,31 +19,70 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-job-2026-04-30-16:35:57-278fe358-48e6-4727-a856-eda66fd90473"
+        "urn:spdx:ai-nsfw_image_detection-a49e3914-34e2-4e84-b0a2-60524a0b07af"
       ],
       "element": [
-        "urn:spdx:job-2026-04-30-16:35:57-5e2cb839-beea-4313-b352-eceec47f8199",
-        "urn:spdx:ai-job-2026-04-30-16:35:57-278fe358-48e6-4727-a856-eda66fd90473",
-        "urn:spdx:rel-045f31a7-9aeb-4bc9-a3ba-97ff32ec3772"
+        "urn:spdx:nsfw_image_detection-2bea3539-1f88-41ac-9872-3833fffa227b",
+        "urn:spdx:ai-nsfw_image_detection-a49e3914-34e2-4e84-b0a2-60524a0b07af",
+        "urn:spdx:rel-5001f7c2-ef1d-4e9c-94fd-39d4e830c8dd",
+        "urn:spdx:rel-51ac16a9-0162-4f94-8b27-7ac09c06a06f",
+        "urn:spdx:rel-4ccd1a7e-b44f-4439-96ea-b95795938230",
+        "urn:spdx:rel-1a799a93-4962-4690-970e-ac99f10d9d3b"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:job-2026-04-30-16:35:57-5e2cb839-beea-4313-b352-eceec47f8199",
-      "name": "job-2026-04-30-16:35:57",
-      "packageVersion": "1777581357"
+      "spdxId": "urn:spdx:nsfw_image_detection-2bea3539-1f88-41ac-9872-3833fffa227b",
+      "name": "nsfw_image_detection",
+      "packageVersion": "04367978",
+      "downloadLocation": "https://huggingface.co/Falconsai/nsfw_image_detection/tree/main",
+      "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-job-2026-04-30-16:35:57-278fe358-48e6-4727-a856-eda66fd90473",
-      "name": "job-2026-04-30-16:35:57",
-      "summary": "Generating SBOM for Falconsai/nsfw_image_detection",
-      "suppliedBy": "OWASP AIBOM Generator",
-      "packageVersion": "1777581357"
+      "spdxId": "urn:spdx:ai-nsfw_image_detection-a49e3914-34e2-4e84-b0a2-60524a0b07af",
+      "name": "nsfw_image_detection",
+      "summary": "No description available",
+      "downloadLocation": "https://huggingface.co/Falconsai/nsfw_image_detection/tree/main",
+      "packageUrl": "https://huggingface.co/Falconsai/nsfw_image_detection/commit/04367978d3474804ab1a00a9bd6548b741764069",
+      "suppliedBy": "Falconsai",
+      "packageVersion": "04367978",
+      "primaryPurpose": [
+        "image-classification"
+      ],
+      "limitation": "[\"### Intended Uses - **NSFW Image Classification**: The primary intended use of this model is for the classification of NSFW (Not Safe for Work) images\"]",
+      "safetyRiskAssessment": "and moderation, all while maintaining the highest standards of accuracy and reliability"
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-045f31a7-9aeb-4bc9-a3ba-97ff32ec3772",
+      "spdxId": "urn:spdx:rel-5001f7c2-ef1d-4e9c-94fd-39d4e830c8dd",
+      "relationshipType": "hasDeclaredLicense",
+      "from": "urn:spdx:nsfw_image_detection-2bea3539-1f88-41ac-9872-3833fffa227b",
+      "to": [
+        "Apache-2.0"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-51ac16a9-0162-4f94-8b27-7ac09c06a06f",
+      "relationshipType": "trainedOn",
+      "from": "urn:spdx:ai-nsfw_image_detection-a49e3914-34e2-4e84-b0a2-60524a0b07af",
+      "to": [
+        "a"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-4ccd1a7e-b44f-4439-96ea-b95795938230",
+      "relationshipType": "trainedOn",
+      "from": "urn:spdx:ai-nsfw_image_detection-a49e3914-34e2-4e84-b0a2-60524a0b07af",
+      "to": [
+        "are"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-1a799a93-4962-4690-970e-ac99f10d9d3b",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/Falconsai/nsfw_image_detection@04367978",
       "to": [

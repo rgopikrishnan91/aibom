@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-amazon_chronos-2-0dcf5a6d-601a-415d-b9ab-5be0bd03dda6",
+      "spdxId": "urn:spdx:doc-amazon_chronos-2-afe94eb5-86fa-42fb-a225-ff81076b42ee",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,25 +19,25 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-amazon_chronos-2-ce72f398-4387-448e-8f16-edd8015fef6b"
+        "urn:spdx:ai-amazon_chronos-2-23de6f00-2359-4890-ae76-2dc0cceddff6"
       ],
       "element": [
-        "urn:spdx:amazon_chronos-2-6bbf51cb-0708-4fc9-b697-11165ff61ced",
-        "urn:spdx:ai-amazon_chronos-2-ce72f398-4387-448e-8f16-edd8015fef6b",
-        "urn:spdx:rel-8dcc13d2-63da-4c5f-8dc2-3ba3fcf8e671",
-        "urn:spdx:rel-1937e7e4-1466-4a03-8590-b6a5b2fed09c",
-        "urn:spdx:rel-e3503a62-d540-4756-87f3-f3796be4490e"
+        "urn:spdx:amazon_chronos-2-760ee4eb-476f-45b1-a3b9-24971809ff6a",
+        "urn:spdx:ai-amazon_chronos-2-23de6f00-2359-4890-ae76-2dc0cceddff6",
+        "urn:spdx:rel-453a3cfb-b085-41bb-9cd6-da4514f71c22",
+        "urn:spdx:rel-b466e413-0dd8-4259-99a5-efca3309407c",
+        "urn:spdx:rel-d3d530ae-b970-40ae-b1df-637b03fa4038"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:amazon_chronos-2-6bbf51cb-0708-4fc9-b697-11165ff61ced",
+      "spdxId": "urn:spdx:amazon_chronos-2-760ee4eb-476f-45b1-a3b9-24971809ff6a",
       "name": "amazon/chronos-2",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-amazon_chronos-2-ce72f398-4387-448e-8f16-edd8015fef6b",
+      "spdxId": "urn:spdx:ai-amazon_chronos-2-23de6f00-2359-4890-ae76-2dc0cceddff6",
       "name": "amazon/chronos-2",
       "summary": "| Capability | Chronos-2 | Chronos-Bolt | Chronos ||------------|-----------|--------------|----------|| Univariate Forecasting | \u2705 | \u2705 | \u2705 || Cross-learning across items | \u2705 | \u274c | \u274c || Multivariate Forecasting | \u2705 | \u274c | \u274c || Past-only (real/categorical) covariates | \u2705 | \u274c | \u274c || Known future (real/categorical) covariates | \u2705 | \ud83e\udde9 | \ud83e\udde9 || Max. Context Length | 8192 | 2048 | 512 || Max. Prediction Length | 1024 | 64 | 64 |\ud83e\udde9 Chronos & Chronos-Bolt do not natively support future covariates, but they can be combined with external covariate regressors (see [AutoGluon tutorial](https://auto.gluon.ai/1.4.0/tutorials/timeseries/forecasting-chronos.html#incorporating-the-covariates)). This only models per-timestep effects, not effects across time. In contrast, Chronos-2 supports all covariate types natively.",
       "primaryPurpose": [
@@ -65,27 +65,27 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-8dcc13d2-63da-4c5f-8dc2-3ba3fcf8e671",
+      "spdxId": "urn:spdx:rel-453a3cfb-b085-41bb-9cd6-da4514f71c22",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:amazon_chronos-2-6bbf51cb-0708-4fc9-b697-11165ff61ced",
+      "from": "urn:spdx:amazon_chronos-2-760ee4eb-476f-45b1-a3b9-24971809ff6a",
       "to": [
         "Apache-2.0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-1937e7e4-1466-4a03-8590-b6a5b2fed09c",
+      "spdxId": "urn:spdx:rel-b466e413-0dd8-4259-99a5-efca3309407c",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-amazon_chronos-2-ce72f398-4387-448e-8f16-edd8015fef6b",
+      "from": "urn:spdx:ai-amazon_chronos-2-23de6f00-2359-4890-ae76-2dc0cceddff6",
       "to": [
         "autogluon/chronos_datasets-86e62bf2-edab-508b-9dfd-6219dd21c48f"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-e3503a62-d540-4756-87f3-f3796be4490e",
+      "spdxId": "urn:spdx:rel-d3d530ae-b970-40ae-b1df-637b03fa4038",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-amazon_chronos-2-ce72f398-4387-448e-8f16-edd8015fef6b",
+      "from": "urn:spdx:ai-amazon_chronos-2-23de6f00-2359-4890-ae76-2dc0cceddff6",
       "to": [
         "Salesforce/GiftEvalPretrain-c316cfa2-ab26-5cc7-bcbd-8f599f2c9bb5"
       ]

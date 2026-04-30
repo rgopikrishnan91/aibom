@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-BAAI_bge-small-en-v1.5-2f626f63-24bf-433c-b4b7-8fe5d3c16312",
+      "spdxId": "urn:spdx:doc-BAAI_bge-small-en-v1.5-99e58da4-3361-4128-ad9d-6c1e5e4876cb",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,23 +19,23 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-BAAI_bge-small-en-v1.5-68e66e1c-e158-4395-91bf-9353fb0ff5f5"
+        "urn:spdx:ai-BAAI_bge-small-en-v1.5-5fe9d5de-2b63-4cf2-9969-4c459a06febc"
       ],
       "element": [
-        "urn:spdx:BAAI_bge-small-en-v1.5-37b8b91d-684a-44ac-9a3b-05f581fd1881",
-        "urn:spdx:ai-BAAI_bge-small-en-v1.5-68e66e1c-e158-4395-91bf-9353fb0ff5f5",
-        "urn:spdx:rel-134f9c8c-a1fb-4000-8620-f01793b1a942"
+        "urn:spdx:BAAI_bge-small-en-v1.5-730e61a2-ab28-4a82-a7d3-c92e4570b4f8",
+        "urn:spdx:ai-BAAI_bge-small-en-v1.5-5fe9d5de-2b63-4cf2-9969-4c459a06febc",
+        "urn:spdx:rel-1b8c7764-05f9-41c1-9629-772819c967d5"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:BAAI_bge-small-en-v1.5-37b8b91d-684a-44ac-9a3b-05f581fd1881",
+      "spdxId": "urn:spdx:BAAI_bge-small-en-v1.5-730e61a2-ab28-4a82-a7d3-c92e4570b4f8",
       "name": "BAAI/bge-small-en-v1.5",
       "licenseDeclared": "MIT"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-BAAI_bge-small-en-v1.5-68e66e1c-e158-4395-91bf-9353fb0ff5f5",
+      "spdxId": "urn:spdx:ai-BAAI_bge-small-en-v1.5-5fe9d5de-2b63-4cf2-9969-4c459a06febc",
       "name": "BAAI/bge-small-en-v1.5",
       "primaryPurpose": [
         "feature-extraction"
@@ -4031,9 +4031,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-134f9c8c-a1fb-4000-8620-f01793b1a942",
+      "spdxId": "urn:spdx:rel-1b8c7764-05f9-41c1-9629-772819c967d5",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:BAAI_bge-small-en-v1.5-37b8b91d-684a-44ac-9a3b-05f581fd1881",
+      "from": "urn:spdx:BAAI_bge-small-en-v1.5-730e61a2-ab28-4a82-a7d3-c92e4570b4f8",
       "to": [
         "MIT"
       ]

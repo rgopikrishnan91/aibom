@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-FacebookAI_roberta-large-5e140e2d-9951-4bb6-b246-f3f6926edf78",
+      "spdxId": "urn:spdx:doc-FacebookAI_roberta-large-22ad67ed-49e6-4437-ac53-4bce4a11f4f2",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,25 +19,25 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-FacebookAI_roberta-large-906489b6-4e32-4d6a-a179-4574c7caeb9b"
+        "urn:spdx:ai-FacebookAI_roberta-large-d6ef89e8-4831-47c5-af6e-223948679249"
       ],
       "element": [
-        "urn:spdx:FacebookAI_roberta-large-e033f800-b510-44f0-a61c-9ecf08b6b5aa",
-        "urn:spdx:ai-FacebookAI_roberta-large-906489b6-4e32-4d6a-a179-4574c7caeb9b",
-        "urn:spdx:rel-ede0e321-1298-4d29-86f5-8bffcccb285f",
-        "urn:spdx:rel-7e9eaac7-16d6-45bc-8782-f1eca5c6f735",
-        "urn:spdx:rel-be051216-94be-4c4a-9670-7b6d8698f16f"
+        "urn:spdx:FacebookAI_roberta-large-789617a8-21e1-46b4-8908-478c0dfe9373",
+        "urn:spdx:ai-FacebookAI_roberta-large-d6ef89e8-4831-47c5-af6e-223948679249",
+        "urn:spdx:rel-28b525b5-a27e-4ebb-a872-62450201ee11",
+        "urn:spdx:rel-f2a8b390-014a-4077-aebd-e489f3d843ce",
+        "urn:spdx:rel-c939a49f-6c90-42fa-8b5e-2e4f7bc1c08e"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:FacebookAI_roberta-large-e033f800-b510-44f0-a61c-9ecf08b6b5aa",
+      "spdxId": "urn:spdx:FacebookAI_roberta-large-789617a8-21e1-46b4-8908-478c0dfe9373",
       "name": "FacebookAI/roberta-large",
       "licenseDeclared": "MIT"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-FacebookAI_roberta-large-906489b6-4e32-4d6a-a179-4574c7caeb9b",
+      "spdxId": "urn:spdx:ai-FacebookAI_roberta-large-d6ef89e8-4831-47c5-af6e-223948679249",
       "name": "FacebookAI/roberta-large",
       "summary": "RoBERTa is a transformers model pretrained on a large corpus of English data in a self-supervised fashion. This meansit was pretrained on the raw texts only, with no humans labelling them in any way (which is why it can use lots ofpublicly available data) with an automatic process to generate inputs and labels from those texts.More precisely, it was pretrained with the Masked language modeling (MLM) objective. Taking a sentence, the modelrandomly masks 15% of the words in the input then run the entire masked sentence through the model and has to predictthe masked words. This is different from traditional recurrent neural networks (RNNs) that usually see the words oneafter the other, or from autoregressive models like GPT which internally mask the future tokens. It allows the model tolearn a bidirectional representation of the sentence.This way, the model learns an inner representation of the English language that can then be used to extract featuresuseful for downstream tasks: if you have a dataset of labeled sentences for instance, you can train a standardclassifier using the features produced by the BERT model as inputs.",
       "primaryPurpose": [
@@ -69,27 +69,27 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-ede0e321-1298-4d29-86f5-8bffcccb285f",
+      "spdxId": "urn:spdx:rel-28b525b5-a27e-4ebb-a872-62450201ee11",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:FacebookAI_roberta-large-e033f800-b510-44f0-a61c-9ecf08b6b5aa",
+      "from": "urn:spdx:FacebookAI_roberta-large-789617a8-21e1-46b4-8908-478c0dfe9373",
       "to": [
         "MIT"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-7e9eaac7-16d6-45bc-8782-f1eca5c6f735",
+      "spdxId": "urn:spdx:rel-f2a8b390-014a-4077-aebd-e489f3d843ce",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-FacebookAI_roberta-large-906489b6-4e32-4d6a-a179-4574c7caeb9b",
+      "from": "urn:spdx:ai-FacebookAI_roberta-large-d6ef89e8-4831-47c5-af6e-223948679249",
       "to": [
         "bookcorpus-5b88b1fa-89d7-54e0-8076-a03aa22c33e0"
       ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-be051216-94be-4c4a-9670-7b6d8698f16f",
+      "spdxId": "urn:spdx:rel-c939a49f-6c90-42fa-8b5e-2e4f7bc1c08e",
       "relationshipType": "trainedOn",
-      "from": "urn:spdx:ai-FacebookAI_roberta-large-906489b6-4e32-4d6a-a179-4574c7caeb9b",
+      "from": "urn:spdx:ai-FacebookAI_roberta-large-d6ef89e8-4831-47c5-af6e-223948679249",
       "to": [
         "wikipedia-8c5eb686-d691-517b-aad7-040fa51febc3"
       ]

@@ -3,7 +3,7 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-sentence-transformers_paraphrase-multilingual-mpnet-base-v2-0118b401-785b-4d59-866c-ac7b195031f2",
+      "spdxId": "urn:spdx:doc-sentence-transformers_paraphrase-multilingual-mpnet-base-v2-ab9de4c4-572f-489d-b215-90631719def5",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
@@ -19,23 +19,23 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-sentence-transformers_paraphrase-multilingual-mpnet-base-v2-1776a740-6694-463d-8e0f-0c65713a120f"
+        "urn:spdx:ai-sentence-transformers_paraphrase-multilingual-mpnet-base-v2-4db3bc49-d19e-4252-82ad-dea7d655a1fa"
       ],
       "element": [
-        "urn:spdx:sentence-transformers_paraphrase-multilingual-mpnet-base-v2-5383036e-9c7f-43f7-9d17-307c17f2a53d",
-        "urn:spdx:ai-sentence-transformers_paraphrase-multilingual-mpnet-base-v2-1776a740-6694-463d-8e0f-0c65713a120f",
-        "urn:spdx:rel-8cc6b0fa-0324-433d-926b-af6eb7f6d98b"
+        "urn:spdx:sentence-transformers_paraphrase-multilingual-mpnet-base-v2-df2d49f9-55b2-43ec-980b-353bce661c39",
+        "urn:spdx:ai-sentence-transformers_paraphrase-multilingual-mpnet-base-v2-4db3bc49-d19e-4252-82ad-dea7d655a1fa",
+        "urn:spdx:rel-eb9f576e-1d46-4284-9252-1161bb929c9b"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:sentence-transformers_paraphrase-multilingual-mpnet-base-v2-5383036e-9c7f-43f7-9d17-307c17f2a53d",
+      "spdxId": "urn:spdx:sentence-transformers_paraphrase-multilingual-mpnet-base-v2-df2d49f9-55b2-43ec-980b-353bce661c39",
       "name": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
       "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-sentence-transformers_paraphrase-multilingual-mpnet-base-v2-1776a740-6694-463d-8e0f-0c65713a120f",
+      "spdxId": "urn:spdx:ai-sentence-transformers_paraphrase-multilingual-mpnet-base-v2-4db3bc49-d19e-4252-82ad-dea7d655a1fa",
       "name": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
       "primaryPurpose": [
         "sentence-similarity"
@@ -114,9 +114,9 @@
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-8cc6b0fa-0324-433d-926b-af6eb7f6d98b",
+      "spdxId": "urn:spdx:rel-eb9f576e-1d46-4284-9252-1161bb929c9b",
       "relationshipType": "hasDeclaredLicense",
-      "from": "urn:spdx:sentence-transformers_paraphrase-multilingual-mpnet-base-v2-5383036e-9c7f-43f7-9d17-307c17f2a53d",
+      "from": "urn:spdx:sentence-transformers_paraphrase-multilingual-mpnet-base-v2-df2d49f9-55b2-43ec-980b-353bce661c39",
       "to": [
         "Apache-2.0"
       ]

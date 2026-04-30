@@ -30,7 +30,23 @@ def _get(d: dict, *path, default=None):
 
 
 def _component(cdx: dict) -> dict:
-    return _get(cdx, "metadata", "component", default={}) or {}
+    """Return the ML model component from the CycloneDX BOM.
+
+    ALOHA puts the model directly in metadata.component (with modelCard).
+    aibom-generator puts a job wrapper in metadata.component and the actual
+    model in the components[] array (type=machine-learning-model, has modelCard).
+    Prefer the component that carries a modelCard; fall back to metadata.component.
+    """
+    meta_comp = _get(cdx, "metadata", "component", default={}) or {}
+    if meta_comp.get("modelCard"):
+        return meta_comp
+    # Search components[] for an ML model with a modelCard
+    for comp in cdx.get("components", []) or []:
+        if comp.get("modelCard"):
+            return comp
+        if comp.get("type") == "machine-learning-model":
+            return comp
+    return meta_comp
 
 
 def _props(node: dict) -> Dict[str, Any]:

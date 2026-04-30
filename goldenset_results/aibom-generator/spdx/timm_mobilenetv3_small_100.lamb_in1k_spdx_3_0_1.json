@@ -3,14 +3,14 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-job-2026-04-30-16:36:02-c18d2f94-7872-4a06-acff-ec2cf9ef0bdd",
+      "spdxId": "urn:spdx:doc-mobilenetv3_small_100.lamb_in1k-80bfbc2c-babf-45c2-a831-680f212b3408",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
         "software",
         "ai"
       ],
-      "name": "AIBOM for job-2026-04-30-16:36:02",
+      "name": "AIBOM for mobilenetv3_small_100.lamb_in1k",
       "creationInfo": {
         "type": "CreationInfo",
         "created": "2026-04-30T20:36:02+00:00",
@@ -19,31 +19,58 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-job-2026-04-30-16:36:02-13fb45d7-d2d6-4fc8-a9da-423af3f8d20b"
+        "urn:spdx:ai-mobilenetv3_small_100.lamb_in1k-10c19e6e-0063-42b8-8470-2479247adab2"
       ],
       "element": [
-        "urn:spdx:job-2026-04-30-16:36:02-8e9ec623-6d47-41df-8ee9-6cfb5cc07354",
-        "urn:spdx:ai-job-2026-04-30-16:36:02-13fb45d7-d2d6-4fc8-a9da-423af3f8d20b",
-        "urn:spdx:rel-0d8c331c-2d96-4f9d-a695-70db7c4a4ae2"
+        "urn:spdx:mobilenetv3_small_100.lamb_in1k-b906952b-fc44-4016-9aef-ffe56b5fd709",
+        "urn:spdx:ai-mobilenetv3_small_100.lamb_in1k-10c19e6e-0063-42b8-8470-2479247adab2",
+        "urn:spdx:rel-75f88bce-c101-4f79-8d25-03b22a37b714",
+        "urn:spdx:rel-7e027572-1ad4-4efd-8e14-c70ab940d938",
+        "urn:spdx:rel-adb67b06-9926-4c22-a504-994830664a2c"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:job-2026-04-30-16:36:02-8e9ec623-6d47-41df-8ee9-6cfb5cc07354",
-      "name": "job-2026-04-30-16:36:02",
-      "packageVersion": "1777581362"
+      "spdxId": "urn:spdx:mobilenetv3_small_100.lamb_in1k-b906952b-fc44-4016-9aef-ffe56b5fd709",
+      "name": "mobilenetv3_small_100.lamb_in1k",
+      "packageVersion": "1824797e",
+      "downloadLocation": "https://huggingface.co/timm/mobilenetv3_small_100.lamb_in1k/tree/main",
+      "licenseDeclared": "Apache-2.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-job-2026-04-30-16:36:02-13fb45d7-d2d6-4fc8-a9da-423af3f8d20b",
-      "name": "job-2026-04-30-16:36:02",
-      "summary": "Generating SBOM for timm/mobilenetv3_small_100.lamb_in1k",
-      "suppliedBy": "OWASP AIBOM Generator",
-      "packageVersion": "1777581362"
+      "spdxId": "urn:spdx:ai-mobilenetv3_small_100.lamb_in1k-10c19e6e-0063-42b8-8470-2479247adab2",
+      "name": "mobilenetv3_small_100.lamb_in1k",
+      "summary": "No description available",
+      "downloadLocation": "https://huggingface.co/timm/mobilenetv3_small_100.lamb_in1k/tree/main",
+      "packageUrl": "https://huggingface.co/timm/mobilenetv3_small_100.lamb_in1k/commit/1824797e7887cbec1990e4adbd6675960a36c589",
+      "suppliedBy": "timm",
+      "packageVersion": "1824797e",
+      "primaryPurpose": [
+        "image-classification"
+      ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-0d8c331c-2d96-4f9d-a695-70db7c4a4ae2",
+      "spdxId": "urn:spdx:rel-75f88bce-c101-4f79-8d25-03b22a37b714",
+      "relationshipType": "hasDeclaredLicense",
+      "from": "urn:spdx:mobilenetv3_small_100.lamb_in1k-b906952b-fc44-4016-9aef-ffe56b5fd709",
+      "to": [
+        "Apache-2.0"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-7e027572-1ad4-4efd-8e14-c70ab940d938",
+      "relationshipType": "trainedOn",
+      "from": "urn:spdx:ai-mobilenetv3_small_100.lamb_in1k-10c19e6e-0063-42b8-8470-2479247adab2",
+      "to": [
+        "imagenet-1k"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-adb67b06-9926-4c22-a504-994830664a2c",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/timm/mobilenetv3_small_100.lamb_in1k@1824797e",
       "to": [

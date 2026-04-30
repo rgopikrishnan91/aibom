@@ -3,14 +3,14 @@
   "@graph": [
     {
       "type": "SpdxDocument",
-      "spdxId": "urn:spdx:doc-job-2026-04-30-16:36:24-1eb1651f-6cdb-455a-9445-ef05228df530",
+      "spdxId": "urn:spdx:doc-MuQ-large-msd-iter-87a830e7-bafa-4486-8296-12bf8904fda9",
       "specVersion": "SPDX-3.0.1",
       "profileConformance": [
         "core",
         "software",
         "ai"
       ],
-      "name": "AIBOM for job-2026-04-30-16:36:24",
+      "name": "AIBOM for MuQ-large-msd-iter",
       "creationInfo": {
         "type": "CreationInfo",
         "created": "2026-04-30T20:36:24+00:00",
@@ -19,31 +19,58 @@
         ]
       },
       "rootElement": [
-        "urn:spdx:ai-job-2026-04-30-16:36:24-204520c9-4eed-4674-a602-3f34a38eb07e"
+        "urn:spdx:ai-MuQ-large-msd-iter-c347d220-2c84-4adf-a81b-6f7608acbb10"
       ],
       "element": [
-        "urn:spdx:job-2026-04-30-16:36:24-c0b655a1-188c-4e4a-844b-b39793348ab9",
-        "urn:spdx:ai-job-2026-04-30-16:36:24-204520c9-4eed-4674-a602-3f34a38eb07e",
-        "urn:spdx:rel-e08b87a9-f466-4895-b945-ea35f26e40d0"
+        "urn:spdx:MuQ-large-msd-iter-ea1b7140-bc6c-4ee9-9133-654e995414cd",
+        "urn:spdx:ai-MuQ-large-msd-iter-c347d220-2c84-4adf-a81b-6f7608acbb10",
+        "urn:spdx:rel-3a83b2ab-4d68-44df-a36c-47540d2b19eb",
+        "urn:spdx:rel-a50f2ca2-8ba0-4bc4-b3b8-485fbec3680d",
+        "urn:spdx:rel-ba239c45-a83f-4aaa-9bf8-6311dbb82709"
       ]
     },
     {
       "type": "software_Package",
-      "spdxId": "urn:spdx:job-2026-04-30-16:36:24-c0b655a1-188c-4e4a-844b-b39793348ab9",
-      "name": "job-2026-04-30-16:36:24",
-      "packageVersion": "1777581384"
+      "spdxId": "urn:spdx:MuQ-large-msd-iter-ea1b7140-bc6c-4ee9-9133-654e995414cd",
+      "name": "MuQ-large-msd-iter",
+      "packageVersion": "0562a578",
+      "downloadLocation": "https://huggingface.co/OpenMuQ/MuQ-large-msd-iter/tree/main",
+      "licenseDeclared": "CC-BY-NC-4.0"
     },
     {
       "type": "ai_AIPackage",
-      "spdxId": "urn:spdx:ai-job-2026-04-30-16:36:24-204520c9-4eed-4674-a602-3f34a38eb07e",
-      "name": "job-2026-04-30-16:36:24",
-      "summary": "Generating SBOM for OpenMuQ/MuQ-large-msd-iter",
-      "suppliedBy": "OWASP AIBOM Generator",
-      "packageVersion": "1777581384"
+      "spdxId": "urn:spdx:ai-MuQ-large-msd-iter-c347d220-2c84-4adf-a81b-6f7608acbb10",
+      "name": "MuQ-large-msd-iter",
+      "summary": "No description available",
+      "downloadLocation": "https://huggingface.co/OpenMuQ/MuQ-large-msd-iter/tree/main",
+      "packageUrl": "https://huggingface.co/OpenMuQ/MuQ-large-msd-iter/commit/0562a57814f6f8bbd9fdea0a25921a2fce1a841a",
+      "suppliedBy": "OpenMuQ",
+      "packageVersion": "0562a578",
+      "primaryPurpose": [
+        "audio-classification"
+      ]
     },
     {
       "type": "Relationship",
-      "spdxId": "urn:spdx:rel-e08b87a9-f466-4895-b945-ea35f26e40d0",
+      "spdxId": "urn:spdx:rel-3a83b2ab-4d68-44df-a36c-47540d2b19eb",
+      "relationshipType": "hasDeclaredLicense",
+      "from": "urn:spdx:MuQ-large-msd-iter-ea1b7140-bc6c-4ee9-9133-654e995414cd",
+      "to": [
+        "CC-BY-NC-4.0"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-a50f2ca2-8ba0-4bc4-b3b8-485fbec3680d",
+      "relationshipType": "trainedOn",
+      "from": "urn:spdx:ai-MuQ-large-msd-iter-c347d220-2c84-4adf-a81b-6f7608acbb10",
+      "to": [
+        "size"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-ba239c45-a83f-4aaa-9bf8-6311dbb82709",
       "relationshipType": "dependsOn",
       "from": "pkg:generic/OpenMuQ/MuQ-large-msd-iter@0562a578",
       "to": [
