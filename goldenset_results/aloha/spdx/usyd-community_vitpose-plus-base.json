@@ -1,0 +1,69 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-usyd-community_vitpose-plus-base-0e33474a-5410-47e0-ab0a-cd1cf278c7a8",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for usyd-community/vitpose-plus-base",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:45.782247+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-usyd-community_vitpose-plus-base-05fcc176-828a-4d11-9b89-b23b757b7a7f"
+      ],
+      "element": [
+        "urn:spdx:usyd-community_vitpose-plus-base-32fde822-1a52-4feb-92d9-9b7d1b200536",
+        "urn:spdx:ai-usyd-community_vitpose-plus-base-05fcc176-828a-4d11-9b89-b23b757b7a7f",
+        "urn:spdx:rel-a66109c2-de9c-470b-83ff-6e9dd92671ad"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:usyd-community_vitpose-plus-base-32fde822-1a52-4feb-92d9-9b7d1b200536",
+      "name": "usyd-community/vitpose-plus-base",
+      "licenseDeclared": "Apache-2.0"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-usyd-community_vitpose-plus-base-05fcc176-828a-4d11-9b89-b23b757b7a7f",
+      "name": "usyd-community/vitpose-plus-base",
+      "summary": "Although no specific domain knowledge is considered in the design, plain vision transformers have shown excellent performance in visual recognition tasks. However, little effort has been made to reveal the potential of such simple structures forpose estimation tasks. In this paper, we show the surprisingly good capabilities of plain vision transformers for pose estimation from various aspects, namely simplicity in model structure, scalability in model size, flexibility in training paradigm,and transferability of knowledge between models, through a simple baseline model called ViTPose. Specifically, ViTPose employs plain and non-hierarchical visiontransformers as backbones to extract features for a given person instance and alightweight decoder for pose estimation. It can be scaled up from 100M to 1Bparameters by taking the advantages of the scalable model capacity and highparallelism of transformers, setting a new Pareto front between throughput and performance. Besides, ViTPose is very flexible regarding the attention type, input resolution, pre-training and finetuning strategy, as well as dealing with multiple posetasks. We also empirically demonstrate that the knowledge of large ViTPose modelscan be easily transferred to small ones via a simple knowledge token. Experimentalresults show that our basic ViTPose model outperforms representative methodson the challenging MS COCO Keypoint Detection benchmark, while the largestmodel sets a new state-of-the-art, i.e., 80.9 AP on the MS COCO test-dev set. Thecode and models are available at https://github.com/ViTAE-Transformer/ViTPose",
+      "primaryPurpose": [
+        "keypoint-detection"
+      ],
+      "domain": [
+        "transformers",
+        "safetensors",
+        "vitpose",
+        "keypoint-detection",
+        "en",
+        "arxiv:2204.12484",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "typeOfModel": [
+        "vitpose"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-a66109c2-de9c-470b-83ff-6e9dd92671ad",
+      "relationshipType": "hasDeclaredLicense",
+      "from": "urn:spdx:usyd-community_vitpose-plus-base-32fde822-1a52-4feb-92d9-9b7d1b200536",
+      "to": [
+        "Apache-2.0"
+      ]
+    }
+  ]
+}

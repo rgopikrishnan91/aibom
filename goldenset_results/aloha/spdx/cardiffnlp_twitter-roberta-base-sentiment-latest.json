@@ -1,0 +1,81 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-cardiffnlp_twitter-roberta-base-sentiment-latest-250ca91e-aa02-484f-aa8c-ba4a264e5ac9",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for cardiffnlp/twitter-roberta-base-sentiment-latest",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:42.312942+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-cardiffnlp_twitter-roberta-base-sentiment-latest-96fcd859-a7ea-48a3-aa1d-4fa529c3c426"
+      ],
+      "element": [
+        "urn:spdx:cardiffnlp_twitter-roberta-base-sentiment-latest-c6f33526-f71b-426d-b45a-8906c355a466",
+        "urn:spdx:ai-cardiffnlp_twitter-roberta-base-sentiment-latest-96fcd859-a7ea-48a3-aa1d-4fa529c3c426",
+        "urn:spdx:rel-dc4d4a0d-0f60-49e6-84ed-027131930409",
+        "urn:spdx:rel-46d2e5bd-1158-45db-8aa3-f5cb25c2d212"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:cardiffnlp_twitter-roberta-base-sentiment-latest-c6f33526-f71b-426d-b45a-8906c355a466",
+      "name": "cardiffnlp/twitter-roberta-base-sentiment-latest",
+      "licenseDeclared": "CC-BY-4.0"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-cardiffnlp_twitter-roberta-base-sentiment-latest-96fcd859-a7ea-48a3-aa1d-4fa529c3c426",
+      "name": "cardiffnlp/twitter-roberta-base-sentiment-latest",
+      "primaryPurpose": [
+        "text-classification"
+      ],
+      "domain": [
+        "transformers",
+        "pytorch",
+        "tf",
+        "roberta",
+        "text-classification",
+        "en",
+        "dataset:tweet_eval",
+        "arxiv:2202.03829",
+        "license:cc-by-4.0",
+        "endpoints_compatible",
+        "deploy:azure",
+        "region:us"
+      ],
+      "typeOfModel": [
+        "roberta"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-dc4d4a0d-0f60-49e6-84ed-027131930409",
+      "relationshipType": "hasDeclaredLicense",
+      "from": "urn:spdx:cardiffnlp_twitter-roberta-base-sentiment-latest-c6f33526-f71b-426d-b45a-8906c355a466",
+      "to": [
+        "CC-BY-4.0"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-46d2e5bd-1158-45db-8aa3-f5cb25c2d212",
+      "relationshipType": "trainedOn",
+      "from": "urn:spdx:ai-cardiffnlp_twitter-roberta-base-sentiment-latest-96fcd859-a7ea-48a3-aa1d-4fa529c3c426",
+      "to": [
+        "tweet_eval-2a48b8e0-af85-5c55-93d6-70d9620e1beb"
+      ]
+    }
+  ]
+}

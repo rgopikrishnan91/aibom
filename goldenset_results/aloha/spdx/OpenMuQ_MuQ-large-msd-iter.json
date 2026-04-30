@@ -1,0 +1,65 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-OpenMuQ_MuQ-large-msd-iter-27f0f249-9279-464d-84d5-496d571aa910",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for OpenMuQ/MuQ-large-msd-iter",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:25.532868+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-OpenMuQ_MuQ-large-msd-iter-4a778063-3996-4503-b0f3-375b1b4948e4"
+      ],
+      "element": [
+        "urn:spdx:OpenMuQ_MuQ-large-msd-iter-a422170e-718c-4e67-8b4d-e83e3fe8c810",
+        "urn:spdx:ai-OpenMuQ_MuQ-large-msd-iter-4a778063-3996-4503-b0f3-375b1b4948e4",
+        "urn:spdx:rel-16161c42-3598-498d-99ed-17f5dab5a1e0"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:OpenMuQ_MuQ-large-msd-iter-a422170e-718c-4e67-8b4d-e83e3fe8c810",
+      "name": "OpenMuQ/MuQ-large-msd-iter",
+      "licenseDeclared": "CC-BY-NC-4.0"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-OpenMuQ_MuQ-large-msd-iter-4a778063-3996-4503-b0f3-375b1b4948e4",
+      "name": "OpenMuQ/MuQ-large-msd-iter",
+      "primaryPurpose": [
+        "audio-classification"
+      ],
+      "domain": [
+        "pytorch",
+        "safetensors",
+        "music",
+        "audio-classification",
+        "en",
+        "zh",
+        "arxiv:2501.01108",
+        "license:cc-by-nc-4.0",
+        "region:us"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-16161c42-3598-498d-99ed-17f5dab5a1e0",
+      "relationshipType": "hasDeclaredLicense",
+      "from": "urn:spdx:OpenMuQ_MuQ-large-msd-iter-a422170e-718c-4e67-8b4d-e83e3fe8c810",
+      "to": [
+        "CC-BY-NC-4.0"
+      ]
+    }
+  ]
+}

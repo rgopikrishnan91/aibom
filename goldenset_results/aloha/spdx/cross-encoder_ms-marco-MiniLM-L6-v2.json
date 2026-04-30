@@ -1,0 +1,87 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-cross-encoder_ms-marco-MiniLM-L6-v2-41264ff3-2f56-421f-895f-9dab065f41bd",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for cross-encoder/ms-marco-MiniLM-L6-v2",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:23.794747+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-cross-encoder_ms-marco-MiniLM-L6-v2-529f5fc2-4a59-44de-aeb5-8c33fe6e8ab8"
+      ],
+      "element": [
+        "urn:spdx:cross-encoder_ms-marco-MiniLM-L6-v2-15d96a95-4da2-4322-95c4-c3858139b91f",
+        "urn:spdx:ai-cross-encoder_ms-marco-MiniLM-L6-v2-529f5fc2-4a59-44de-aeb5-8c33fe6e8ab8",
+        "urn:spdx:rel-d9db9d06-e4fb-4e46-866d-379621a214b6",
+        "urn:spdx:rel-7398d906-b75f-4d01-a424-ec61d2baf8dd"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:cross-encoder_ms-marco-MiniLM-L6-v2-15d96a95-4da2-4322-95c4-c3858139b91f",
+      "name": "cross-encoder/ms-marco-MiniLM-L6-v2",
+      "licenseDeclared": "Apache-2.0"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-cross-encoder_ms-marco-MiniLM-L6-v2-529f5fc2-4a59-44de-aeb5-8c33fe6e8ab8",
+      "name": "cross-encoder/ms-marco-MiniLM-L6-v2",
+      "primaryPurpose": [
+        "text-ranking"
+      ],
+      "domain": [
+        "sentence-transformers",
+        "pytorch",
+        "jax",
+        "onnx",
+        "safetensors",
+        "openvino",
+        "bert",
+        "text-classification",
+        "transformers",
+        "text-ranking",
+        "en",
+        "dataset:sentence-transformers/msmarco",
+        "base_model:cross-encoder/ms-marco-MiniLM-L12-v2",
+        "base_model:quantized:cross-encoder/ms-marco-MiniLM-L12-v2",
+        "license:apache-2.0",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "typeOfModel": [
+        "bert"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-d9db9d06-e4fb-4e46-866d-379621a214b6",
+      "relationshipType": "hasDeclaredLicense",
+      "from": "urn:spdx:cross-encoder_ms-marco-MiniLM-L6-v2-15d96a95-4da2-4322-95c4-c3858139b91f",
+      "to": [
+        "Apache-2.0"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-7398d906-b75f-4d01-a424-ec61d2baf8dd",
+      "relationshipType": "trainedOn",
+      "from": "urn:spdx:ai-cross-encoder_ms-marco-MiniLM-L6-v2-529f5fc2-4a59-44de-aeb5-8c33fe6e8ab8",
+      "to": [
+        "sentence-transformers/msmarco-c6ade5ab-d668-519c-9116-836b68fa4270"
+      ]
+    }
+  ]
+}

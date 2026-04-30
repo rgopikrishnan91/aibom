@@ -1,0 +1,80 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-Bingsu_adetailer-f1551571-fc8e-4b38-8443-6a69be512e8d",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for Bingsu/adetailer",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:12.747487+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-Bingsu_adetailer-cbff8622-80b2-44df-a05e-89fe65d2e8c0"
+      ],
+      "element": [
+        "urn:spdx:Bingsu_adetailer-c501a89d-13a9-4610-986a-7f9221ea882b",
+        "urn:spdx:ai-Bingsu_adetailer-cbff8622-80b2-44df-a05e-89fe65d2e8c0",
+        "urn:spdx:rel-050f0ef4-bc0b-468f-9ef8-2e296cf0e9d0",
+        "urn:spdx:rel-64699216-f159-4c45-a2ea-e4c58fb1fa54",
+        "urn:spdx:rel-6093711d-9522-42bd-948e-cfd3328a2e35"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:Bingsu_adetailer-c501a89d-13a9-4610-986a-7f9221ea882b",
+      "name": "Bingsu/adetailer",
+      "licenseDeclared": "Apache-2.0"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-Bingsu_adetailer-cbff8622-80b2-44df-a05e-89fe65d2e8c0",
+      "name": "Bingsu/adetailer",
+      "domain": [
+        "ultralytics",
+        "pytorch",
+        "dataset:wider_face",
+        "dataset:skytnt/anime-segmentation",
+        "doi:10.57967/hf/3633",
+        "license:apache-2.0",
+        "region:us"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-050f0ef4-bc0b-468f-9ef8-2e296cf0e9d0",
+      "relationshipType": "hasDeclaredLicense",
+      "from": "urn:spdx:Bingsu_adetailer-c501a89d-13a9-4610-986a-7f9221ea882b",
+      "to": [
+        "Apache-2.0"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-64699216-f159-4c45-a2ea-e4c58fb1fa54",
+      "relationshipType": "trainedOn",
+      "from": "urn:spdx:ai-Bingsu_adetailer-cbff8622-80b2-44df-a05e-89fe65d2e8c0",
+      "to": [
+        "wider_face-5020c7ea-eb77-5164-b80a-684427671cc3"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-6093711d-9522-42bd-948e-cfd3328a2e35",
+      "relationshipType": "trainedOn",
+      "from": "urn:spdx:ai-Bingsu_adetailer-cbff8622-80b2-44df-a05e-89fe65d2e8c0",
+      "to": [
+        "skytnt/anime-segmentation-ecf1a6ad-107d-5f96-be10-d44c1c54c3ab"
+      ]
+    }
+  ]
+}

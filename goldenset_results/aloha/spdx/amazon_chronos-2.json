@@ -1,0 +1,94 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-amazon_chronos-2-0dcf5a6d-601a-415d-b9ab-5be0bd03dda6",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for amazon/chronos-2",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:15.485010+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-amazon_chronos-2-ce72f398-4387-448e-8f16-edd8015fef6b"
+      ],
+      "element": [
+        "urn:spdx:amazon_chronos-2-6bbf51cb-0708-4fc9-b697-11165ff61ced",
+        "urn:spdx:ai-amazon_chronos-2-ce72f398-4387-448e-8f16-edd8015fef6b",
+        "urn:spdx:rel-8dcc13d2-63da-4c5f-8dc2-3ba3fcf8e671",
+        "urn:spdx:rel-1937e7e4-1466-4a03-8590-b6a5b2fed09c",
+        "urn:spdx:rel-e3503a62-d540-4756-87f3-f3796be4490e"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:amazon_chronos-2-6bbf51cb-0708-4fc9-b697-11165ff61ced",
+      "name": "amazon/chronos-2",
+      "licenseDeclared": "Apache-2.0"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-amazon_chronos-2-ce72f398-4387-448e-8f16-edd8015fef6b",
+      "name": "amazon/chronos-2",
+      "summary": "| Capability | Chronos-2 | Chronos-Bolt | Chronos ||------------|-----------|--------------|----------|| Univariate Forecasting | \u2705 | \u2705 | \u2705 || Cross-learning across items | \u2705 | \u274c | \u274c || Multivariate Forecasting | \u2705 | \u274c | \u274c || Past-only (real/categorical) covariates | \u2705 | \u274c | \u274c || Known future (real/categorical) covariates | \u2705 | \ud83e\udde9 | \ud83e\udde9 || Max. Context Length | 8192 | 2048 | 512 || Max. Prediction Length | 1024 | 64 | 64 |\ud83e\udde9 Chronos & Chronos-Bolt do not natively support future covariates, but they can be combined with external covariate regressors (see [AutoGluon tutorial](https://auto.gluon.ai/1.4.0/tutorials/timeseries/forecasting-chronos.html#incorporating-the-covariates)). This only models per-timestep effects, not effects across time. In contrast, Chronos-2 supports all covariate types natively.",
+      "primaryPurpose": [
+        "time-series-forecasting"
+      ],
+      "domain": [
+        "chronos-forecasting",
+        "safetensors",
+        "t5",
+        "time series",
+        "forecasting",
+        "foundation models",
+        "pretrained models",
+        "time-series-forecasting",
+        "dataset:autogluon/chronos_datasets",
+        "dataset:Salesforce/GiftEvalPretrain",
+        "arxiv:2403.07815",
+        "arxiv:2510.15821",
+        "license:apache-2.0",
+        "region:us"
+      ],
+      "typeOfModel": [
+        "t5"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-8dcc13d2-63da-4c5f-8dc2-3ba3fcf8e671",
+      "relationshipType": "hasDeclaredLicense",
+      "from": "urn:spdx:amazon_chronos-2-6bbf51cb-0708-4fc9-b697-11165ff61ced",
+      "to": [
+        "Apache-2.0"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-1937e7e4-1466-4a03-8590-b6a5b2fed09c",
+      "relationshipType": "trainedOn",
+      "from": "urn:spdx:ai-amazon_chronos-2-ce72f398-4387-448e-8f16-edd8015fef6b",
+      "to": [
+        "autogluon/chronos_datasets-86e62bf2-edab-508b-9dfd-6219dd21c48f"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-e3503a62-d540-4756-87f3-f3796be4490e",
+      "relationshipType": "trainedOn",
+      "from": "urn:spdx:ai-amazon_chronos-2-ce72f398-4387-448e-8f16-edd8015fef6b",
+      "to": [
+        "Salesforce/GiftEvalPretrain-c316cfa2-ab26-5cc7-bcbd-8f599f2c9bb5"
+      ]
+    }
+  ]
+}

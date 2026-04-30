@@ -1,0 +1,47 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-Kijai_WanVideo_comfy-e950c17b-bc20-44e2-97c6-a889a7d4a9fa",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for Kijai/WanVideo_comfy",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:27.434631+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-Kijai_WanVideo_comfy-3ba33418-f3d7-4ffd-b004-4837c9372464"
+      ],
+      "element": [
+        "urn:spdx:Kijai_WanVideo_comfy-c3379008-5de3-4520-ba54-8d4db9cd64b2",
+        "urn:spdx:ai-Kijai_WanVideo_comfy-3ba33418-f3d7-4ffd-b004-4837c9372464"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:Kijai_WanVideo_comfy-c3379008-5de3-4520-ba54-8d4db9cd64b2",
+      "name": "Kijai/WanVideo_comfy"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-Kijai_WanVideo_comfy-3ba33418-f3d7-4ffd-b004-4837c9372464",
+      "name": "Kijai/WanVideo_comfy",
+      "domain": [
+        "diffusion-single-file",
+        "comfyui",
+        "base_model:Wan-AI/Wan2.1-VACE-1.3B",
+        "base_model:finetune:Wan-AI/Wan2.1-VACE-1.3B",
+        "region:us"
+      ]
+    }
+  ]
+}

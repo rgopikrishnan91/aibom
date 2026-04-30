@@ -1,0 +1,72 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-laion_clap-htsat-fused-78327c26-29df-494c-af8f-af602c74f3d9",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for laion/clap-htsat-fused",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:05.272310+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-laion_clap-htsat-fused-07bedc09-35e6-4b9d-bb2b-4caaf3efce7b"
+      ],
+      "element": [
+        "urn:spdx:laion_clap-htsat-fused-8469d343-7ad7-4024-a77d-3513259a2f8c",
+        "urn:spdx:ai-laion_clap-htsat-fused-07bedc09-35e6-4b9d-bb2b-4caaf3efce7b",
+        "urn:spdx:rel-4cecca40-1d1c-4ee9-a43e-f99dcfe07093"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:laion_clap-htsat-fused-8469d343-7ad7-4024-a77d-3513259a2f8c",
+      "name": "laion/clap-htsat-fused",
+      "licenseDeclared": "Apache-2.0"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-laion_clap-htsat-fused-07bedc09-35e6-4b9d-bb2b-4caaf3efce7b",
+      "name": "laion/clap-htsat-fused",
+      "primaryPurpose": [
+        "audio-classification"
+      ],
+      "domain": [
+        "transformers",
+        "pytorch",
+        "safetensors",
+        "clap",
+        "feature-extraction",
+        "zero-shot audio classification",
+        "zero-shot audio retrieval",
+        "audio-classification",
+        "en",
+        "arxiv:2211.06687",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "typeOfModel": [
+        "clap"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-4cecca40-1d1c-4ee9-a43e-f99dcfe07093",
+      "relationshipType": "hasDeclaredLicense",
+      "from": "urn:spdx:laion_clap-htsat-fused-8469d343-7ad7-4024-a77d-3513259a2f8c",
+      "to": [
+        "Apache-2.0"
+      ]
+    }
+  ]
+}

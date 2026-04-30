@@ -1,0 +1,67 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-alana89_TabSTAR-87b1757d-1839-4f52-9762-82be9ff39852",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for alana89/TabSTAR",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:22.068248+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-alana89_TabSTAR-4c5245ad-8732-47b0-8f10-2a5bc0cd9d31"
+      ],
+      "element": [
+        "urn:spdx:alana89_TabSTAR-00072756-0289-45d2-a1aa-eea9ec92b0e6",
+        "urn:spdx:ai-alana89_TabSTAR-4c5245ad-8732-47b0-8f10-2a5bc0cd9d31",
+        "urn:spdx:rel-6d107ed3-c466-4f58-b4c8-fabd8920fc97"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:alana89_TabSTAR-00072756-0289-45d2-a1aa-eea9ec92b0e6",
+      "name": "alana89/TabSTAR",
+      "licenseDeclared": "CC-BY-4.0"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-alana89_TabSTAR-4c5245ad-8732-47b0-8f10-2a5bc0cd9d31",
+      "name": "alana89/TabSTAR",
+      "primaryPurpose": [
+        "tabular-classification"
+      ],
+      "domain": [
+        "safetensors",
+        "tabstar",
+        "tabular-classification",
+        "arxiv:2505.18125",
+        "base_model:intfloat/e5-small-v2",
+        "base_model:finetune:intfloat/e5-small-v2",
+        "license:cc-by-4.0",
+        "region:us"
+      ],
+      "typeOfModel": [
+        "tabstar"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-6d107ed3-c466-4f58-b4c8-fabd8920fc97",
+      "relationshipType": "hasDeclaredLicense",
+      "from": "urn:spdx:alana89_TabSTAR-00072756-0289-45d2-a1aa-eea9ec92b0e6",
+      "to": [
+        "CC-BY-4.0"
+      ]
+    }
+  ]
+}

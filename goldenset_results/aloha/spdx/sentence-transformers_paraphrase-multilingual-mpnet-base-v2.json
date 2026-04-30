@@ -1,0 +1,125 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-sentence-transformers_paraphrase-multilingual-mpnet-base-v2-0118b401-785b-4d59-866c-ac7b195031f2",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:29.128644+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-sentence-transformers_paraphrase-multilingual-mpnet-base-v2-1776a740-6694-463d-8e0f-0c65713a120f"
+      ],
+      "element": [
+        "urn:spdx:sentence-transformers_paraphrase-multilingual-mpnet-base-v2-5383036e-9c7f-43f7-9d17-307c17f2a53d",
+        "urn:spdx:ai-sentence-transformers_paraphrase-multilingual-mpnet-base-v2-1776a740-6694-463d-8e0f-0c65713a120f",
+        "urn:spdx:rel-8cc6b0fa-0324-433d-926b-af6eb7f6d98b"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:sentence-transformers_paraphrase-multilingual-mpnet-base-v2-5383036e-9c7f-43f7-9d17-307c17f2a53d",
+      "name": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
+      "licenseDeclared": "Apache-2.0"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-sentence-transformers_paraphrase-multilingual-mpnet-base-v2-1776a740-6694-463d-8e0f-0c65713a120f",
+      "name": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
+      "primaryPurpose": [
+        "sentence-similarity"
+      ],
+      "domain": [
+        "sentence-transformers",
+        "pytorch",
+        "tf",
+        "onnx",
+        "safetensors",
+        "openvino",
+        "xlm-roberta",
+        "feature-extraction",
+        "sentence-similarity",
+        "transformers",
+        "text-embeddings-inference",
+        "multilingual",
+        "ar",
+        "bg",
+        "ca",
+        "cs",
+        "da",
+        "de",
+        "el",
+        "en",
+        "es",
+        "et",
+        "fa",
+        "fi",
+        "fr",
+        "gl",
+        "gu",
+        "he",
+        "hi",
+        "hr",
+        "hu",
+        "hy",
+        "id",
+        "it",
+        "ja",
+        "ka",
+        "ko",
+        "ku",
+        "lt",
+        "lv",
+        "mk",
+        "mn",
+        "mr",
+        "ms",
+        "my",
+        "nb",
+        "nl",
+        "pl",
+        "pt",
+        "ro",
+        "ru",
+        "sk",
+        "sl",
+        "sq",
+        "sr",
+        "sv",
+        "th",
+        "tr",
+        "uk",
+        "ur",
+        "vi",
+        "arxiv:1908.10084",
+        "license:apache-2.0",
+        "eval-results",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "typeOfModel": [
+        "xlm-roberta"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-8cc6b0fa-0324-433d-926b-af6eb7f6d98b",
+      "relationshipType": "hasDeclaredLicense",
+      "from": "urn:spdx:sentence-transformers_paraphrase-multilingual-mpnet-base-v2-5383036e-9c7f-43f7-9d17-307c17f2a53d",
+      "to": [
+        "Apache-2.0"
+      ]
+    }
+  ]
+}

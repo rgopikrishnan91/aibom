@@ -1,0 +1,99 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-google-bert_bert-base-uncased-8efb86e7-8a5f-4dc0-ab47-9f1ae5eff073",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for google-bert/bert-base-uncased",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:00.056677+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-google-bert_bert-base-uncased-a27656de-76f6-48a2-ac48-6cc1f6a2643e"
+      ],
+      "element": [
+        "urn:spdx:google-bert_bert-base-uncased-6ccef8be-79f9-4b9d-97c6-269dba688dc9",
+        "urn:spdx:ai-google-bert_bert-base-uncased-a27656de-76f6-48a2-ac48-6cc1f6a2643e",
+        "urn:spdx:rel-477d340d-c028-4550-bd1c-2b92b2dae903",
+        "urn:spdx:rel-1c0a2b49-105b-4759-9a64-f0d059c309a3",
+        "urn:spdx:rel-68bee7ab-5603-47d3-bd36-ff9adbacfd75"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:google-bert_bert-base-uncased-6ccef8be-79f9-4b9d-97c6-269dba688dc9",
+      "name": "google-bert/bert-base-uncased",
+      "licenseDeclared": "Apache-2.0"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-google-bert_bert-base-uncased-a27656de-76f6-48a2-ac48-6cc1f6a2643e",
+      "name": "google-bert/bert-base-uncased",
+      "summary": "BERT is a transformers model pretrained on a large corpus of English data in a self-supervised fashion. This means itwas pretrained on the raw texts only, with no humans labeling them in any way (which is why it can use lots ofpublicly available data) with an automatic process to generate inputs and labels from those texts. More precisely, itwas pretrained with two objectives:- Masked language modeling (MLM): taking a sentence, the model randomly masks 15% of the words in the input then runthe entire masked sentence through the model and has to predict the masked words. This is different from traditionalrecurrent neural networks (RNNs) that usually see the words one after the other, or from autoregressive models likeGPT which internally masks the future tokens. It allows the model to learn a bidirectional representation of thesentence.- Next sentence prediction (NSP): the models concatenates two masked sentences as inputs during pretraining. Sometimesthey correspond to sentences that were next to each other in the original text, sometimes not. The model then has topredict if the two sentences were following each other or not.This way, the model learns an inner representation of the English language that can then be used to extract featuresuseful for downstream tasks: if you have a dataset of labeled sentences, for instance, you can train a standardclassifier using the features produced by the BERT model as inputs.",
+      "primaryPurpose": [
+        "fill-mask"
+      ],
+      "domain": [
+        "transformers",
+        "pytorch",
+        "tf",
+        "jax",
+        "rust",
+        "coreml",
+        "onnx",
+        "safetensors",
+        "bert",
+        "fill-mask",
+        "exbert",
+        "en",
+        "dataset:bookcorpus",
+        "dataset:wikipedia",
+        "arxiv:1810.04805",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "deploy:azure",
+        "region:us"
+      ],
+      "typeOfModel": [
+        "bert"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-477d340d-c028-4550-bd1c-2b92b2dae903",
+      "relationshipType": "hasDeclaredLicense",
+      "from": "urn:spdx:google-bert_bert-base-uncased-6ccef8be-79f9-4b9d-97c6-269dba688dc9",
+      "to": [
+        "Apache-2.0"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-1c0a2b49-105b-4759-9a64-f0d059c309a3",
+      "relationshipType": "trainedOn",
+      "from": "urn:spdx:ai-google-bert_bert-base-uncased-a27656de-76f6-48a2-ac48-6cc1f6a2643e",
+      "to": [
+        "bookcorpus-5b88b1fa-89d7-54e0-8076-a03aa22c33e0"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-68bee7ab-5603-47d3-bd36-ff9adbacfd75",
+      "relationshipType": "trainedOn",
+      "from": "urn:spdx:ai-google-bert_bert-base-uncased-a27656de-76f6-48a2-ac48-6cc1f6a2643e",
+      "to": [
+        "wikipedia-8c5eb686-d691-517b-aad7-040fa51febc3"
+      ]
+    }
+  ]
+}

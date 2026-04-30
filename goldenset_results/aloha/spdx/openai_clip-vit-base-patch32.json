@@ -1,0 +1,60 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-openai_clip-vit-base-patch32-0b24c38c-2bd8-42c1-af9e-1bfd3d06f82b",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for openai/clip-vit-base-patch32",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:01.708996+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-openai_clip-vit-base-patch32-e5d82ec2-9537-471d-9519-6a7cf980b443"
+      ],
+      "element": [
+        "urn:spdx:openai_clip-vit-base-patch32-0b864ba6-ea5b-4810-b593-14de7f63a30f",
+        "urn:spdx:ai-openai_clip-vit-base-patch32-e5d82ec2-9537-471d-9519-6a7cf980b443"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:openai_clip-vit-base-patch32-0b864ba6-ea5b-4810-b593-14de7f63a30f",
+      "name": "openai/clip-vit-base-patch32"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-openai_clip-vit-base-patch32-e5d82ec2-9537-471d-9519-6a7cf980b443",
+      "name": "openai/clip-vit-base-patch32",
+      "summary": "The CLIP model was developed by researchers at OpenAI to learn about what contributes to robustness in computer vision tasks. The model was also developed to test the ability of models to generalize to arbitrary image classification tasks in a zero-shot manner. It was not developed for general model deployment - to deploy models like CLIP, researchers will first need to carefully study their capabilities in relation to the specific context they\u2019re being deployed within.",
+      "primaryPurpose": [
+        "zero-shot-image-classification"
+      ],
+      "domain": [
+        "transformers",
+        "pytorch",
+        "tf",
+        "jax",
+        "clip",
+        "zero-shot-image-classification",
+        "vision",
+        "arxiv:2103.00020",
+        "arxiv:1908.04913",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "typeOfModel": [
+        "clip"
+      ]
+    }
+  ]
+}

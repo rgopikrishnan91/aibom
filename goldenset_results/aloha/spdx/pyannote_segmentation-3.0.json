@@ -1,0 +1,72 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-pyannote_segmentation-3.0-d46e4307-ac55-46b5-9670-393d076a9a18",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for pyannote/segmentation-3.0",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:06.873194+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-pyannote_segmentation-3.0-4dce16b6-9ce0-4741-8594-9a52496e2713"
+      ],
+      "element": [
+        "urn:spdx:pyannote_segmentation-3.0-f83f4963-93c7-4ecb-8298-3654cce54e89",
+        "urn:spdx:ai-pyannote_segmentation-3.0-4dce16b6-9ce0-4741-8594-9a52496e2713",
+        "urn:spdx:rel-e935bd6b-c5e7-4a64-9db9-808a3b687c9c"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:pyannote_segmentation-3.0-f83f4963-93c7-4ecb-8298-3654cce54e89",
+      "name": "pyannote/segmentation-3.0",
+      "licenseDeclared": "MIT"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-pyannote_segmentation-3.0-4dce16b6-9ce0-4741-8594-9a52496e2713",
+      "name": "pyannote/segmentation-3.0",
+      "primaryPurpose": [
+        "voice-activity-detection"
+      ],
+      "domain": [
+        "pyannote-audio",
+        "pytorch",
+        "pyannote",
+        "pyannote-audio-model",
+        "audio",
+        "voice",
+        "speech",
+        "speaker",
+        "speaker-diarization",
+        "speaker-change-detection",
+        "speaker-segmentation",
+        "voice-activity-detection",
+        "overlapped-speech-detection",
+        "resegmentation",
+        "license:mit",
+        "region:us"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-e935bd6b-c5e7-4a64-9db9-808a3b687c9c",
+      "relationshipType": "hasDeclaredLicense",
+      "from": "urn:spdx:pyannote_segmentation-3.0-f83f4963-93c7-4ecb-8298-3654cce54e89",
+      "to": [
+        "MIT"
+      ]
+    }
+  ]
+}

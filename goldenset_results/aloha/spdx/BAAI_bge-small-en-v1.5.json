@@ -1,0 +1,4042 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-BAAI_bge-small-en-v1.5-2f626f63-24bf-433c-b4b7-8fe5d3c16312",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for BAAI/bge-small-en-v1.5",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:48.108257+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-BAAI_bge-small-en-v1.5-68e66e1c-e158-4395-91bf-9353fb0ff5f5"
+      ],
+      "element": [
+        "urn:spdx:BAAI_bge-small-en-v1.5-37b8b91d-684a-44ac-9a3b-05f581fd1881",
+        "urn:spdx:ai-BAAI_bge-small-en-v1.5-68e66e1c-e158-4395-91bf-9353fb0ff5f5",
+        "urn:spdx:rel-134f9c8c-a1fb-4000-8620-f01793b1a942"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:BAAI_bge-small-en-v1.5-37b8b91d-684a-44ac-9a3b-05f581fd1881",
+      "name": "BAAI/bge-small-en-v1.5",
+      "licenseDeclared": "MIT"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-BAAI_bge-small-en-v1.5-68e66e1c-e158-4395-91bf-9353fb0ff5f5",
+      "name": "BAAI/bge-small-en-v1.5",
+      "primaryPurpose": [
+        "feature-extraction"
+      ],
+      "domain": [
+        "sentence-transformers",
+        "pytorch",
+        "onnx",
+        "safetensors",
+        "bert",
+        "feature-extraction",
+        "sentence-similarity",
+        "transformers",
+        "mteb",
+        "en",
+        "arxiv:2401.03462",
+        "arxiv:2312.15503",
+        "arxiv:2311.13534",
+        "arxiv:2310.07554",
+        "arxiv:2309.07597",
+        "license:mit",
+        "model-index",
+        "text-embeddings-inference",
+        "endpoints_compatible",
+        "deploy:azure",
+        "region:us"
+      ],
+      "typeOfModel": [
+        "bert"
+      ],
+      "metric": [
+        {
+          "key": "accuracy",
+          "value": "73.79104477611939"
+        },
+        {
+          "key": "ap",
+          "value": "37.21923821573361"
+        },
+        {
+          "key": "f1",
+          "value": "68.0914945617093"
+        },
+        {
+          "key": "accuracy",
+          "value": "92.75377499999999"
+        },
+        {
+          "key": "ap",
+          "value": "89.46766124546022"
+        },
+        {
+          "key": "f1",
+          "value": "92.73884001331487"
+        },
+        {
+          "key": "accuracy",
+          "value": "46.986"
+        },
+        {
+          "key": "f1",
+          "value": "46.55936786727896"
+        },
+        {
+          "key": "map_at_1",
+          "value": "35.846000000000004"
+        },
+        {
+          "key": "map_at_10",
+          "value": "51.388"
+        },
+        {
+          "key": "map_at_100",
+          "value": "52.132999999999996"
+        },
+        {
+          "key": "map_at_1000",
+          "value": "52.141000000000005"
+        },
+        {
+          "key": "map_at_3",
+          "value": "47.037"
+        },
+        {
+          "key": "map_at_5",
+          "value": "49.579"
+        },
+        {
+          "key": "mrr_at_1",
+          "value": "36.558"
+        },
+        {
+          "key": "mrr_at_10",
+          "value": "51.658"
+        },
+        {
+          "key": "mrr_at_100",
+          "value": "52.402"
+        },
+        {
+          "key": "mrr_at_1000",
+          "value": "52.410000000000004"
+        },
+        {
+          "key": "mrr_at_3",
+          "value": "47.345"
+        },
+        {
+          "key": "mrr_at_5",
+          "value": "49.797999999999995"
+        },
+        {
+          "key": "ndcg_at_1",
+          "value": "35.846000000000004"
+        },
+        {
+          "key": "ndcg_at_10",
+          "value": "59.550000000000004"
+        },
+        {
+          "key": "ndcg_at_100",
+          "value": "62.596"
+        },
+        {
+          "key": "ndcg_at_1000",
+          "value": "62.759"
+        },
+        {
+          "key": "ndcg_at_3",
+          "value": "50.666999999999994"
+        },
+        {
+          "key": "ndcg_at_5",
+          "value": "55.228"
+        },
+        {
+          "key": "precision_at_1",
+          "value": "35.846000000000004"
+        },
+        {
+          "key": "precision_at_10",
+          "value": "8.542"
+        },
+        {
+          "key": "precision_at_100",
+          "value": "0.984"
+        },
+        {
+          "key": "precision_at_1000",
+          "value": "0.1"
+        },
+        {
+          "key": "precision_at_3",
+          "value": "20.389"
+        },
+        {
+          "key": "precision_at_5",
+          "value": "14.438"
+        },
+        {
+          "key": "recall_at_1",
+          "value": "35.846000000000004"
+        },
+        {
+          "key": "recall_at_10",
+          "value": "85.42"
+        },
+        {
+          "key": "recall_at_100",
+          "value": "98.43499999999999"
+        },
+        {
+          "key": "recall_at_1000",
+          "value": "99.644"
+        },
+        {
+          "key": "recall_at_3",
+          "value": "61.166"
+        },
+        {
+          "key": "recall_at_5",
+          "value": "72.191"
+        },
+        {
+          "key": "v_measure",
+          "value": "47.402770198163594"
+        },
+        {
+          "key": "v_measure",
+          "value": "40.01545436974177"
+        },
+        {
+          "key": "map",
+          "value": "62.586465273207196"
+        },
+        {
+          "key": "mrr",
+          "value": "74.42169019038825"
+        },
+        {
+          "key": "cos_sim_pearson",
+          "value": "85.1891186537969"
+        },
+        {
+          "key": "cos_sim_spearman",
+          "value": "83.75492046087288"
+        },
+        {
+          "key": "euclidean_pearson",
+          "value": "84.11766204805357"
+        },
+        {
+          "key": "euclidean_spearman",
+          "value": "84.01456493126516"
+        },
+        {
+          "key": "manhattan_pearson",
+          "value": "84.2132950502772"
+        },
+        {
+          "key": "manhattan_spearman",
+          "value": "83.89227298813377"
+        },
+        {
+          "key": "accuracy",
+          "value": "85.74025974025975"
+        },
+        {
+          "key": "f1",
+          "value": "85.71493566466381"
+        },
+        {
+          "key": "v_measure",
+          "value": "38.467181385006434"
+        },
+        {
+          "key": "v_measure",
+          "value": "34.719496037339056"
+        },
+        {
+          "key": "map_at_1",
+          "value": "29.587000000000003"
+        },
+        {
+          "key": "map_at_10",
+          "value": "41.114"
+        },
+        {
+          "key": "map_at_100",
+          "value": "42.532"
+        },
+        {
+          "key": "map_at_1000",
+          "value": "42.661"
+        },
+        {
+          "key": "map_at_3",
+          "value": "37.483"
+        },
+        {
+          "key": "map_at_5",
+          "value": "39.652"
+        },
+        {
+          "key": "mrr_at_1",
+          "value": "36.338"
+        },
+        {
+          "key": "mrr_at_10",
+          "value": "46.763"
+        },
+        {
+          "key": "mrr_at_100",
+          "value": "47.393"
+        },
+        {
+          "key": "mrr_at_1000",
+          "value": "47.445"
+        },
+        {
+          "key": "mrr_at_3",
+          "value": "43.538"
+        },
+        {
+          "key": "mrr_at_5",
+          "value": "45.556000000000004"
+        },
+        {
+          "key": "ndcg_at_1",
+          "value": "36.338"
+        },
+        {
+          "key": "ndcg_at_10",
+          "value": "47.658"
+        },
+        {
+          "key": "ndcg_at_100",
+          "value": "52.824000000000005"
+        },
+        {
+          "key": "ndcg_at_1000",
+          "value": "54.913999999999994"
+        },
+        {
+          "key": "ndcg_at_3",
+          "value": "41.989"
+        },
+        {
+          "key": "ndcg_at_5",
+          "value": "44.944"
+        },
+        {
+          "key": "precision_at_1",
+          "value": "36.338"
+        },
+        {
+          "key": "precision_at_10",
+          "value": "9.156"
+        },
+        {
+          "key": "precision_at_100",
+          "value": "1.4789999999999999"
+        },
+        {
+          "key": "precision_at_1000",
+          "value": "0.196"
+        },
+        {
+          "key": "precision_at_3",
+          "value": "20.076"
+        },
+        {
+          "key": "precision_at_5",
+          "value": "14.85"
+        },
+        {
+          "key": "recall_at_1",
+          "value": "29.587000000000003"
+        },
+        {
+          "key": "recall_at_10",
+          "value": "60.746"
+        },
+        {
+          "key": "recall_at_100",
+          "value": "82.157"
+        },
+        {
+          "key": "recall_at_1000",
+          "value": "95.645"
+        },
+        {
+          "key": "recall_at_3",
+          "value": "44.821"
+        },
+        {
+          "key": "recall_at_5",
+          "value": "52.819"
+        },
+        {
+          "key": "map_at_1",
+          "value": "30.239"
+        },
+        {
+          "key": "map_at_10",
+          "value": "39.989000000000004"
+        },
+        {
+          "key": "map_at_100",
+          "value": "41.196"
+        },
+        {
+          "key": "map_at_1000",
+          "value": "41.325"
+        },
+        {
+          "key": "map_at_3",
+          "value": "37.261"
+        },
+        {
+          "key": "map_at_5",
+          "value": "38.833"
+        },
+        {
+          "key": "mrr_at_1",
+          "value": "37.516"
+        },
+        {
+          "key": "mrr_at_10",
+          "value": "46.177"
+        },
+        {
+          "key": "mrr_at_100",
+          "value": "46.806"
+        },
+        {
+          "key": "mrr_at_1000",
+          "value": "46.849000000000004"
+        },
+        {
+          "key": "mrr_at_3",
+          "value": "44.002"
+        },
+        {
+          "key": "mrr_at_5",
+          "value": "45.34"
+        },
+        {
+          "key": "ndcg_at_1",
+          "value": "37.516"
+        },
+        {
+          "key": "ndcg_at_10",
+          "value": "45.586"
+        },
+        {
+          "key": "ndcg_at_100",
+          "value": "49.897000000000006"
+        },
+        {
+          "key": "ndcg_at_1000",
+          "value": "51.955"
+        },
+        {
+          "key": "ndcg_at_3",
+          "value": "41.684"
+        },
+        {
+          "key": "ndcg_at_5",
+          "value": "43.617"
+        },
+        {
+          "key": "precision_at_1",
+          "value": "37.516"
+        },
+        {
+          "key": "precision_at_10",
+          "value": "8.522"
+        },
+        {
+          "key": "precision_at_100",
+          "value": "1.374"
+        },
+        {
+          "key": "precision_at_1000",
+          "value": "0.184"
+        },
+        {
+          "key": "precision_at_3",
+          "value": "20.105999999999998"
+        },
+        {
+          "key": "precision_at_5",
+          "value": "14.152999999999999"
+        },
+        {
+          "key": "recall_at_1",
+          "value": "30.239"
+        },
+        {
+          "key": "recall_at_10",
+          "value": "55.03"
+        },
+        {
+          "key": "recall_at_100",
+          "value": "73.375"
+        },
+        {
+          "key": "recall_at_1000",
+          "value": "86.29599999999999"
+        },
+        {
+          "key": "recall_at_3",
+          "value": "43.269000000000005"
+        },
+        {
+          "key": "recall_at_5",
+          "value": "48.878"
+        },
+        {
+          "key": "map_at_1",
+          "value": "38.338"
+        },
+        {
+          "key": "map_at_10",
+          "value": "50.468999999999994"
+        },
+        {
+          "key": "map_at_100",
+          "value": "51.553000000000004"
+        },
+        {
+          "key": "map_at_1000",
+          "value": "51.608"
+        },
+        {
+          "key": "map_at_3",
+          "value": "47.107"
+        },
+        {
+          "key": "map_at_5",
+          "value": "49.101"
+        },
+        {
+          "key": "mrr_at_1",
+          "value": "44.201"
+        },
+        {
+          "key": "mrr_at_10",
+          "value": "54.057"
+        },
+        {
+          "key": "mrr_at_100",
+          "value": "54.764"
+        },
+        {
+          "key": "mrr_at_1000",
+          "value": "54.791000000000004"
+        },
+        {
+          "key": "mrr_at_3",
+          "value": "51.56699999999999"
+        },
+        {
+          "key": "mrr_at_5",
+          "value": "53.05"
+        },
+        {
+          "key": "ndcg_at_1",
+          "value": "44.201"
+        },
+        {
+          "key": "ndcg_at_10",
+          "value": "56.379000000000005"
+        },
+        {
+          "key": "ndcg_at_100",
+          "value": "60.645"
+        },
+        {
+          "key": "ndcg_at_1000",
+          "value": "61.73499999999999"
+        },
+        {
+          "key": "ndcg_at_3",
+          "value": "50.726000000000006"
+        },
+        {
+          "key": "ndcg_at_5",
+          "value": "53.58500000000001"
+        },
+        {
+          "key": "precision_at_1",
+          "value": "44.201"
+        },
+        {
+          "key": "precision_at_10",
+          "value": "9.141"
+        },
+        {
+          "key": "precision_at_100",
+          "value": "1.216"
+        },
+        {
+          "key": "precision_at_1000",
+          "value": "0.135"
+        },
+        {
+          "key": "precision_at_3",
+          "value": "22.654"
+        },
+        {
+          "key": "precision_at_5",
+          "value": "15.723999999999998"
+        },
+        {
+          "key": "recall_at_1",
+          "value": "38.338"
+        },
+        {
+          "key": "recall_at_10",
+          "value": "70.30499999999999"
+        },
+        {
+          "key": "recall_at_100",
+          "value": "88.77199999999999"
+        },
+        {
+          "key": "recall_at_1000",
+          "value": "96.49799999999999"
+        },
+        {
+          "key": "recall_at_3",
+          "value": "55.218"
+        },
+        {
+          "key": "recall_at_5",
+          "value": "62.104000000000006"
+        },
+        {
+          "key": "map_at_1",
+          "value": "25.682"
+        },
+        {
+          "key": "map_at_10",
+          "value": "33.498"
+        },
+        {
+          "key": "map_at_100",
+          "value": "34.461000000000006"
+        },
+        {
+          "key": "map_at_1000",
+          "value": "34.544000000000004"
+        },
+        {
+          "key": "map_at_3",
+          "value": "30.503999999999998"
+        },
+        {
+          "key": "map_at_5",
+          "value": "32.216"
+        },
+        {
+          "key": "mrr_at_1",
+          "value": "27.683999999999997"
+        },
+        {
+          "key": "mrr_at_10",
+          "value": "35.467999999999996"
+        },
+        {
+          "key": "mrr_at_100",
+          "value": "36.32"
+        },
+        {
+          "key": "mrr_at_1000",
+          "value": "36.386"
+        },
+        {
+          "key": "mrr_at_3",
+          "value": "32.618"
+        },
+        {
+          "key": "mrr_at_5",
+          "value": "34.262"
+        },
+        {
+          "key": "ndcg_at_1",
+          "value": "27.683999999999997"
+        },
+        {
+          "key": "ndcg_at_10",
+          "value": "38.378"
+        },
+        {
+          "key": "ndcg_at_100",
+          "value": "43.288"
+        },
+        {
+          "key": "ndcg_at_1000",
+          "value": "45.413"
+        },
+        {
+          "key": "ndcg_at_3",
+          "value": "32.586"
+        },
+        {
+          "key": "ndcg_at_5",
+          "value": "35.499"
+        },
+        {
+          "key": "precision_at_1",
+          "value": "27.683999999999997"
+        },
+        {
+          "key": "precision_at_10",
+          "value": "5.864"
+        },
+        {
+          "key": "precision_at_100",
+          "value": "0.882"
+        },
+        {
+          "key": "precision_at_1000",
+          "value": "0.11"
+        },
+        {
+          "key": "precision_at_3",
+          "value": "13.446"
+        },
+        {
+          "key": "precision_at_5",
+          "value": "9.718"
+        },
+        {
+          "key": "recall_at_1",
+          "value": "25.682"
+        },
+        {
+          "key": "recall_at_10",
+          "value": "51.712"
+        },
+        {
+          "key": "recall_at_100",
+          "value": "74.446"
+        },
+        {
+          "key": "recall_at_1000",
+          "value": "90.472"
+        },
+        {
+          "key": "recall_at_3",
+          "value": "36.236000000000004"
+        },
+        {
+          "key": "recall_at_5",
+          "value": "43.234"
+        },
+        {
+          "key": "map_at_1",
+          "value": "16.073999999999998"
+        },
+        {
+          "key": "map_at_10",
+          "value": "24.352999999999998"
+        },
+        {
+          "key": "map_at_100",
+          "value": "25.438"
+        },
+        {
+          "key": "map_at_1000",
+          "value": "25.545"
+        },
+        {
+          "key": "map_at_3",
+          "value": "21.614"
+        },
+        {
+          "key": "map_at_5",
+          "value": "23.104"
+        },
+        {
+          "key": "mrr_at_1",
+          "value": "19.776"
+        },
+        {
+          "key": "mrr_at_10",
+          "value": "28.837000000000003"
+        },
+        {
+          "key": "mrr_at_100",
+          "value": "29.755"
+        },
+        {
+          "key": "mrr_at_1000",
+          "value": "29.817"
+        },
+        {
+          "key": "mrr_at_3",
+          "value": "26.201999999999998"
+        },
+        {
+          "key": "mrr_at_5",
+          "value": "27.714"
+        },
+        {
+          "key": "ndcg_at_1",
+          "value": "19.776"
+        },
+        {
+          "key": "ndcg_at_10",
+          "value": "29.701"
+        },
+        {
+          "key": "ndcg_at_100",
+          "value": "35.307"
+        },
+        {
+          "key": "ndcg_at_1000",
+          "value": "37.942"
+        },
+        {
+          "key": "ndcg_at_3",
+          "value": "24.764"
+        },
+        {
+          "key": "ndcg_at_5",
+          "value": "27.025"
+        },
+        {
+          "key": "precision_at_1",
+          "value": "19.776"
+        },
+        {
+          "key": "precision_at_10",
+          "value": "5.659"
+        },
+        {
+          "key": "precision_at_100",
+          "value": "0.971"
+        },
+        {
+          "key": "precision_at_1000",
+          "value": "0.133"
+        },
+        {
+          "key": "precision_at_3",
+          "value": "12.065"
+        },
+        {
+          "key": "precision_at_5",
+          "value": "8.905000000000001"
+        },
+        {
+          "key": "recall_at_1",
+          "value": "16.073999999999998"
+        },
+        {
+          "key": "recall_at_10",
+          "value": "41.647"
+        },
+        {
+          "key": "recall_at_100",
+          "value": "66.884"
+        },
+        {
+          "key": "recall_at_1000",
+          "value": "85.91499999999999"
+        },
+        {
+          "key": "recall_at_3",
+          "value": "27.916"
+        },
+        {
+          "key": "recall_at_5",
+          "value": "33.729"
+        },
+        {
+          "key": "map_at_1",
+          "value": "28.444999999999997"
+        },
+        {
+          "key": "map_at_10",
+          "value": "38.218999999999994"
+        },
+        {
+          "key": "map_at_100",
+          "value": "39.595"
+        },
+        {
+          "key": "map_at_1000",
+          "value": "39.709"
+        },
+        {
+          "key": "map_at_3",
+          "value": "35.586"
+        },
+        {
+          "key": "map_at_5",
+          "value": "36.895"
+        },
+        {
+          "key": "mrr_at_1",
+          "value": "34.841"
+        },
+        {
+          "key": "mrr_at_10",
+          "value": "44.106"
+        },
+        {
+          "key": "mrr_at_100",
+          "value": "44.98"
+        },
+        {
+          "key": "mrr_at_1000",
+          "value": "45.03"
+        },
+        {
+          "key": "mrr_at_3",
+          "value": "41.979"
+        },
+        {
+          "key": "mrr_at_5",
+          "value": "43.047999999999995"
+        },
+        {
+          "key": "ndcg_at_1",
+          "value": "34.841"
+        },
+        {
+          "key": "ndcg_at_10",
+          "value": "43.922"
+        },
+        {
+          "key": "ndcg_at_100",
+          "value": "49.504999999999995"
+        },
+        {
+          "key": "ndcg_at_1000",
+          "value": "51.675000000000004"
+        },
+        {
+          "key": "ndcg_at_3",
+          "value": "39.858"
+        },
+        {
+          "key": "ndcg_at_5",
+          "value": "41.408"
+        },
+        {
+          "key": "precision_at_1",
+          "value": "34.841"
+        },
+        {
+          "key": "precision_at_10",
+          "value": "7.872999999999999"
+        },
+        {
+          "key": "precision_at_100",
+          "value": "1.2449999999999999"
+        },
+        {
+          "key": "precision_at_1000",
+          "value": "0.161"
+        },
+        {
+          "key": "precision_at_3",
+          "value": "18.993"
+        },
+        {
+          "key": "precision_at_5",
+          "value": "13.032"
+        },
+        {
+          "key": "recall_at_1",
+          "value": "28.444999999999997"
+        },
+        {
+          "key": "recall_at_10",
+          "value": "54.984"
+        },
+        {
+          "key": "recall_at_100",
+          "value": "78.342"
+        },
+        {
+          "key": "recall_at_1000",
+          "value": "92.77"
+        },
+        {
+          "key": "recall_at_3",
+          "value": "42.842999999999996"
+        },
+        {
+          "key": "recall_at_5",
+          "value": "47.247"
+        },
+        {
+          "key": "map_at_1",
+          "value": "23.072"
+        },
+        {
+          "key": "map_at_10",
+          "value": "32.354"
+        },
+        {
+          "key": "map_at_100",
+          "value": "33.800000000000004"
+        },
+        {
+          "key": "map_at_1000",
+          "value": "33.908"
+        },
+        {
+          "key": "map_at_3",
+          "value": "29.232000000000003"
+        },
+        {
+          "key": "map_at_5",
+          "value": "31.049"
+        },
+        {
+          "key": "mrr_at_1",
+          "value": "29.110000000000003"
+        },
+        {
+          "key": "mrr_at_10",
+          "value": "38.03"
+        },
+        {
+          "key": "mrr_at_100",
+          "value": "39.032"
+        },
+        {
+          "key": "mrr_at_1000",
+          "value": "39.086999999999996"
+        },
+        {
+          "key": "mrr_at_3",
+          "value": "35.407"
+        },
+        {
+          "key": "mrr_at_5",
+          "value": "36.76"
+        },
+        {
+          "key": "ndcg_at_1",
+          "value": "29.110000000000003"
+        },
+        {
+          "key": "ndcg_at_10",
+          "value": "38.231"
+        },
+        {
+          "key": "ndcg_at_100",
+          "value": "44.425"
+        },
+        {
+          "key": "ndcg_at_1000",
+          "value": "46.771"
+        },
+        {
+          "key": "ndcg_at_3",
+          "value": "33.095"
+        },
+        {
+          "key": "ndcg_at_5",
+          "value": "35.459"
+        },
+        {
+          "key": "precision_at_1",
+          "value": "29.110000000000003"
+        },
+        {
+          "key": "precision_at_10",
+          "value": "7.215000000000001"
+        },
+        {
+          "key": "precision_at_100",
+          "value": "1.2109999999999999"
+        },
+        {
+          "key": "precision_at_1000",
+          "value": "0.157"
+        },
+        {
+          "key": "precision_at_3",
+          "value": "16.058"
+        },
+        {
+          "key": "precision_at_5",
+          "value": "11.644"
+        },
+        {
+          "key": "recall_at_1",
+          "value": "23.072"
+        },
+        {
+          "key": "recall_at_10",
+          "value": "50.285999999999994"
+        },
+        {
+          "key": "recall_at_100",
+          "value": "76.596"
+        },
+        {
+          "key": "recall_at_1000",
+          "value": "92.861"
+        },
+        {
+          "key": "recall_at_3",
+          "value": "35.702"
+        },
+        {
+          "key": "recall_at_5",
+          "value": "42.152"
+        },
+        {
+          "key": "map_at_1",
+          "value": "24.937916666666666"
+        },
+        {
+          "key": "map_at_10",
+          "value": "33.755250000000004"
+        },
+        {
+          "key": "map_at_100",
+          "value": "34.955999999999996"
+        },
+        {
+          "key": "map_at_1000",
+          "value": "35.070499999999996"
+        },
+        {
+          "key": "map_at_3",
+          "value": "30.98708333333333"
+        },
+        {
+          "key": "map_at_5",
+          "value": "32.51491666666666"
+        },
+        {
+          "key": "mrr_at_1",
+          "value": "29.48708333333333"
+        },
+        {
+          "key": "mrr_at_10",
+          "value": "37.92183333333334"
+        },
+        {
+          "key": "mrr_at_100",
+          "value": "38.76583333333333"
+        },
+        {
+          "key": "mrr_at_1000",
+          "value": "38.82466666666667"
+        },
+        {
+          "key": "mrr_at_3",
+          "value": "35.45125"
+        },
+        {
+          "key": "mrr_at_5",
+          "value": "36.827000000000005"
+        },
+        {
+          "key": "ndcg_at_1",
+          "value": "29.48708333333333"
+        },
+        {
+          "key": "ndcg_at_10",
+          "value": "39.05225"
+        },
+        {
+          "key": "ndcg_at_100",
+          "value": "44.25983333333334"
+        },
+        {
+          "key": "ndcg_at_1000",
+          "value": "46.568333333333335"
+        },
+        {
+          "key": "ndcg_at_3",
+          "value": "34.271583333333325"
+        },
+        {
+          "key": "ndcg_at_5",
+          "value": "36.483916666666666"
+        },
+        {
+          "key": "precision_at_1",
+          "value": "29.48708333333333"
+        },
+        {
+          "key": "precision_at_10",
+          "value": "6.865749999999999"
+        },
+        {
+          "key": "precision_at_100",
+          "value": "1.1195833333333332"
+        },
+        {
+          "key": "precision_at_1000",
+          "value": "0.15058333333333335"
+        },
+        {
+          "key": "precision_at_3",
+          "value": "15.742083333333333"
+        },
+        {
+          "key": "precision_at_5",
+          "value": "11.221916666666667"
+        },
+        {
+          "key": "recall_at_1",
+          "value": "24.937916666666666"
+        },
+        {
+          "key": "recall_at_10",
+          "value": "50.650416666666665"
+        },
+        {
+          "key": "recall_at_100",
+          "value": "73.55383333333334"
+        },
+        {
+          "key": "recall_at_1000",
+          "value": "89.61691666666667"
+        },
+        {
+          "key": "recall_at_3",
+          "value": "37.27808333333334"
+        },
+        {
+          "key": "recall_at_5",
+          "value": "42.99475"
+        },
+        {
+          "key": "map_at_1",
+          "value": "23.947"
+        },
+        {
+          "key": "map_at_10",
+          "value": "30.575000000000003"
+        },
+        {
+          "key": "map_at_100",
+          "value": "31.465"
+        },
+        {
+          "key": "map_at_1000",
+          "value": "31.558000000000003"
+        },
+        {
+          "key": "map_at_3",
+          "value": "28.814"
+        },
+        {
+          "key": "map_at_5",
+          "value": "29.738999999999997"
+        },
+        {
+          "key": "mrr_at_1",
+          "value": "26.994"
+        },
+        {
+          "key": "mrr_at_10",
+          "value": "33.415"
+        },
+        {
+          "key": "mrr_at_100",
+          "value": "34.18"
+        },
+        {
+          "key": "mrr_at_1000",
+          "value": "34.245"
+        },
+        {
+          "key": "mrr_at_3",
+          "value": "31.621"
+        },
+        {
+          "key": "mrr_at_5",
+          "value": "32.549"
+        },
+        {
+          "key": "ndcg_at_1",
+          "value": "26.994"
+        },
+        {
+          "key": "ndcg_at_10",
+          "value": "34.482"
+        },
+        {
+          "key": "ndcg_at_100",
+          "value": "38.915"
+        },
+        {
+          "key": "ndcg_at_1000",
+          "value": "41.355"
+        },
+        {
+          "key": "ndcg_at_3",
+          "value": "31.139"
+        },
+        {
+          "key": "ndcg_at_5",
+          "value": "32.589"
+        },
+        {
+          "key": "precision_at_1",
+          "value": "26.994"
+        },
+        {
+          "key": "precision_at_10",
+          "value": "5.322"
+        },
+        {
+          "key": "precision_at_100",
+          "value": "0.8160000000000001"
+        },
+        {
+          "key": "precision_at_1000",
+          "value": "0.11100000000000002"
+        },
+        {
+          "key": "precision_at_3",
+          "value": "13.344000000000001"
+        },
+        {
+          "key": "precision_at_5",
+          "value": "8.988"
+        },
+        {
+          "key": "recall_at_1",
+          "value": "23.947"
+        },
+        {
+          "key": "recall_at_10",
+          "value": "43.647999999999996"
+        },
+        {
+          "key": "recall_at_100",
+          "value": "63.851"
+        },
+        {
+          "key": "recall_at_1000",
+          "value": "82"
+        },
+        {
+          "key": "recall_at_3",
+          "value": "34.288000000000004"
+        },
+        {
+          "key": "recall_at_5",
+          "value": "38.117000000000004"
+        },
+        {
+          "key": "map_at_1",
+          "value": "16.197"
+        },
+        {
+          "key": "map_at_10",
+          "value": "22.968"
+        },
+        {
+          "key": "map_at_100",
+          "value": "24.095"
+        },
+        {
+          "key": "map_at_1000",
+          "value": "24.217"
+        },
+        {
+          "key": "map_at_3",
+          "value": "20.771"
+        },
+        {
+          "key": "map_at_5",
+          "value": "21.995"
+        },
+        {
+          "key": "mrr_at_1",
+          "value": "19.511"
+        },
+        {
+          "key": "mrr_at_10",
+          "value": "26.55"
+        },
+        {
+          "key": "mrr_at_100",
+          "value": "27.500999999999998"
+        },
+        {
+          "key": "mrr_at_1000",
+          "value": "27.578999999999997"
+        },
+        {
+          "key": "mrr_at_3",
+          "value": "24.421"
+        },
+        {
+          "key": "mrr_at_5",
+          "value": "25.604"
+        },
+        {
+          "key": "ndcg_at_1",
+          "value": "19.511"
+        },
+        {
+          "key": "ndcg_at_10",
+          "value": "27.386"
+        },
+        {
+          "key": "ndcg_at_100",
+          "value": "32.828"
+        },
+        {
+          "key": "ndcg_at_1000",
+          "value": "35.739"
+        },
+        {
+          "key": "ndcg_at_3",
+          "value": "23.405"
+        },
+        {
+          "key": "ndcg_at_5",
+          "value": "25.255"
+        },
+        {
+          "key": "precision_at_1",
+          "value": "19.511"
+        },
+        {
+          "key": "precision_at_10",
+          "value": "5.017"
+        },
+        {
+          "key": "precision_at_100",
+          "value": "0.91"
+        },
+        {
+          "key": "precision_at_1000",
+          "value": "0.133"
+        },
+        {
+          "key": "precision_at_3",
+          "value": "11.023"
+        },
+        {
+          "key": "precision_at_5",
+          "value": "8.025"
+        },
+        {
+          "key": "recall_at_1",
+          "value": "16.197"
+        },
+        {
+          "key": "recall_at_10",
+          "value": "37.09"
+        },
+        {
+          "key": "recall_at_100",
+          "value": "61.778"
+        },
+        {
+          "key": "recall_at_1000",
+          "value": "82.56599999999999"
+        },
+        {
+          "key": "recall_at_3",
+          "value": "26.034000000000002"
+        },
+        {
+          "key": "recall_at_5",
+          "value": "30.762"
+        },
+        {
+          "key": "map_at_1",
+          "value": "25.41"
+        },
+        {
+          "key": "map_at_10",
+          "value": "33.655"
+        },
+        {
+          "key": "map_at_100",
+          "value": "34.892"
+        },
+        {
+          "key": "map_at_1000",
+          "value": "34.995"
+        },
+        {
+          "key": "map_at_3",
+          "value": "30.94"
+        },
+        {
+          "key": "map_at_5",
+          "value": "32.303"
+        },
+        {
+          "key": "mrr_at_1",
+          "value": "29.477999999999998"
+        },
+        {
+          "key": "mrr_at_10",
+          "value": "37.443"
+        },
+        {
+          "key": "mrr_at_100",
+          "value": "38.383"
+        },
+        {
+          "key": "mrr_at_1000",
+          "value": "38.440000000000005"
+        },
+        {
+          "key": "mrr_at_3",
+          "value": "34.949999999999996"
+        },
+        {
+          "key": "mrr_at_5",
+          "value": "36.228"
+        },
+        {
+          "key": "ndcg_at_1",
+          "value": "29.477999999999998"
+        },
+        {
+          "key": "ndcg_at_10",
+          "value": "38.769"
+        },
+        {
+          "key": "ndcg_at_100",
+          "value": "44.245000000000005"
+        },
+        {
+          "key": "ndcg_at_1000",
+          "value": "46.593"
+        },
+        {
+          "key": "ndcg_at_3",
+          "value": "33.623"
+        },
+        {
+          "key": "ndcg_at_5",
+          "value": "35.766"
+        },
+        {
+          "key": "precision_at_1",
+          "value": "29.477999999999998"
+        },
+        {
+          "key": "precision_at_10",
+          "value": "6.455"
+        },
+        {
+          "key": "precision_at_100",
+          "value": "1.032"
+        },
+        {
+          "key": "precision_at_1000",
+          "value": "0.135"
+        },
+        {
+          "key": "precision_at_3",
+          "value": "14.893999999999998"
+        },
+        {
+          "key": "precision_at_5",
+          "value": "10.485"
+        },
+        {
+          "key": "recall_at_1",
+          "value": "25.41"
+        },
+        {
+          "key": "recall_at_10",
+          "value": "50.669"
+        },
+        {
+          "key": "recall_at_100",
+          "value": "74.084"
+        },
+        {
+          "key": "recall_at_1000",
+          "value": "90.435"
+        },
+        {
+          "key": "recall_at_3",
+          "value": "36.679"
+        },
+        {
+          "key": "recall_at_5",
+          "value": "41.94"
+        },
+        {
+          "key": "map_at_1",
+          "value": "23.339"
+        },
+        {
+          "key": "map_at_10",
+          "value": "31.852000000000004"
+        },
+        {
+          "key": "map_at_100",
+          "value": "33.411"
+        },
+        {
+          "key": "map_at_1000",
+          "value": "33.62"
+        },
+        {
+          "key": "map_at_3",
+          "value": "28.929"
+        },
+        {
+          "key": "map_at_5",
+          "value": "30.542"
+        },
+        {
+          "key": "mrr_at_1",
+          "value": "28.063"
+        },
+        {
+          "key": "mrr_at_10",
+          "value": "36.301"
+        },
+        {
+          "key": "mrr_at_100",
+          "value": "37.288"
+        },
+        {
+          "key": "mrr_at_1000",
+          "value": "37.349"
+        },
+        {
+          "key": "mrr_at_3",
+          "value": "33.663"
+        },
+        {
+          "key": "mrr_at_5",
+          "value": "35.165"
+        },
+        {
+          "key": "ndcg_at_1",
+          "value": "28.063"
+        },
+        {
+          "key": "ndcg_at_10",
+          "value": "37.462"
+        },
+        {
+          "key": "ndcg_at_100",
+          "value": "43.620999999999995"
+        },
+        {
+          "key": "ndcg_at_1000",
+          "value": "46.211"
+        },
+        {
+          "key": "ndcg_at_3",
+          "value": "32.68"
+        },
+        {
+          "key": "ndcg_at_5",
+          "value": "34.981"
+        },
+        {
+          "key": "precision_at_1",
+          "value": "28.063"
+        },
+        {
+          "key": "precision_at_10",
+          "value": "7.1739999999999995"
+        },
+        {
+          "key": "precision_at_100",
+          "value": "1.486"
+        },
+        {
+          "key": "precision_at_1000",
+          "value": "0.23500000000000001"
+        },
+        {
+          "key": "precision_at_3",
+          "value": "15.217"
+        },
+        {
+          "key": "precision_at_5",
+          "value": "11.265"
+        },
+        {
+          "key": "recall_at_1",
+          "value": "23.339"
+        },
+        {
+          "key": "recall_at_10",
+          "value": "48.376999999999995"
+        },
+        {
+          "key": "recall_at_100",
+          "value": "76.053"
+        },
+        {
+          "key": "recall_at_1000",
+          "value": "92.455"
+        },
+        {
+          "key": "recall_at_3",
+          "value": "34.735"
+        },
+        {
+          "key": "recall_at_5",
+          "value": "40.71"
+        },
+        {
+          "key": "map_at_1",
+          "value": "18.925"
+        },
+        {
+          "key": "map_at_10",
+          "value": "26.017000000000003"
+        },
+        {
+          "key": "map_at_100",
+          "value": "27.034000000000002"
+        },
+        {
+          "key": "map_at_1000",
+          "value": "27.156000000000002"
+        },
+        {
+          "key": "map_at_3",
+          "value": "23.604"
+        },
+        {
+          "key": "map_at_5",
+          "value": "24.75"
+        },
+        {
+          "key": "mrr_at_1",
+          "value": "20.333000000000002"
+        },
+        {
+          "key": "mrr_at_10",
+          "value": "27.915"
+        },
+        {
+          "key": "mrr_at_100",
+          "value": "28.788000000000004"
+        },
+        {
+          "key": "mrr_at_1000",
+          "value": "28.877999999999997"
+        },
+        {
+          "key": "mrr_at_3",
+          "value": "25.446999999999996"
+        },
+        {
+          "key": "mrr_at_5",
+          "value": "26.648"
+        },
+        {
+          "key": "ndcg_at_1",
+          "value": "20.333000000000002"
+        },
+        {
+          "key": "ndcg_at_10",
+          "value": "30.673000000000002"
+        },
+        {
+          "key": "ndcg_at_100",
+          "value": "35.618"
+        },
+        {
+          "key": "ndcg_at_1000",
+          "value": "38.517"
+        },
+        {
+          "key": "ndcg_at_3",
+          "value": "25.71"
+        },
+        {
+          "key": "ndcg_at_5",
+          "value": "27.679"
+        },
+        {
+          "key": "precision_at_1",
+          "value": "20.333000000000002"
+        },
+        {
+          "key": "precision_at_10",
+          "value": "4.9910000000000005"
+        },
+        {
+          "key": "precision_at_100",
+          "value": "0.8130000000000001"
+        },
+        {
+          "key": "precision_at_1000",
+          "value": "0.117"
+        },
+        {
+          "key": "precision_at_3",
+          "value": "11.029"
+        },
+        {
+          "key": "precision_at_5",
+          "value": "7.8740000000000006"
+        },
+        {
+          "key": "recall_at_1",
+          "value": "18.925"
+        },
+        {
+          "key": "recall_at_10",
+          "value": "43.311"
+        },
+        {
+          "key": "recall_at_100",
+          "value": "66.308"
+        },
+        {
+          "key": "recall_at_1000",
+          "value": "87.49"
+        },
+        {
+          "key": "recall_at_3",
+          "value": "29.596"
+        },
+        {
+          "key": "recall_at_5",
+          "value": "34.245"
+        },
+        {
+          "key": "map_at_1",
+          "value": "13.714"
+        },
+        {
+          "key": "map_at_10",
+          "value": "23.194"
+        },
+        {
+          "key": "map_at_100",
+          "value": "24.976000000000003"
+        },
+        {
+          "key": "map_at_1000",
+          "value": "25.166"
+        },
+        {
+          "key": "map_at_3",
+          "value": "19.709"
+        },
+        {
+          "key": "map_at_5",
+          "value": "21.523999999999997"
+        },
+        {
+          "key": "mrr_at_1",
+          "value": "30.619000000000003"
+        },
+        {
+          "key": "mrr_at_10",
+          "value": "42.563"
+        },
+        {
+          "key": "mrr_at_100",
+          "value": "43.386"
+        },
+        {
+          "key": "mrr_at_1000",
+          "value": "43.423"
+        },
+        {
+          "key": "mrr_at_3",
+          "value": "39.555"
+        },
+        {
+          "key": "mrr_at_5",
+          "value": "41.268"
+        },
+        {
+          "key": "ndcg_at_1",
+          "value": "30.619000000000003"
+        },
+        {
+          "key": "ndcg_at_10",
+          "value": "31.836"
+        },
+        {
+          "key": "ndcg_at_100",
+          "value": "38.652"
+        },
+        {
+          "key": "ndcg_at_1000",
+          "value": "42.088"
+        },
+        {
+          "key": "ndcg_at_3",
+          "value": "26.733"
+        },
+        {
+          "key": "ndcg_at_5",
+          "value": "28.435"
+        },
+        {
+          "key": "precision_at_1",
+          "value": "30.619000000000003"
+        },
+        {
+          "key": "precision_at_10",
+          "value": "9.751999999999999"
+        },
+        {
+          "key": "precision_at_100",
+          "value": "1.71"
+        },
+        {
+          "key": "precision_at_1000",
+          "value": "0.23500000000000001"
+        },
+        {
+          "key": "precision_at_3",
+          "value": "19.935"
+        },
+        {
+          "key": "precision_at_5",
+          "value": "14.984"
+        },
+        {
+          "key": "recall_at_1",
+          "value": "13.714"
+        },
+        {
+          "key": "recall_at_10",
+          "value": "37.26"
+        },
+        {
+          "key": "recall_at_100",
+          "value": "60.546"
+        },
+        {
+          "key": "recall_at_1000",
+          "value": "79.899"
+        },
+        {
+          "key": "recall_at_3",
+          "value": "24.325"
+        },
+        {
+          "key": "recall_at_5",
+          "value": "29.725"
+        },
+        {
+          "key": "map_at_1",
+          "value": "8.462"
+        },
+        {
+          "key": "map_at_10",
+          "value": "18.637"
+        },
+        {
+          "key": "map_at_100",
+          "value": "26.131999999999998"
+        },
+        {
+          "key": "map_at_1000",
+          "value": "27.607"
+        },
+        {
+          "key": "map_at_3",
+          "value": "13.333"
+        },
+        {
+          "key": "map_at_5",
+          "value": "15.654000000000002"
+        },
+        {
+          "key": "mrr_at_1",
+          "value": "66.25"
+        },
+        {
+          "key": "mrr_at_10",
+          "value": "74.32600000000001"
+        },
+        {
+          "key": "mrr_at_100",
+          "value": "74.60900000000001"
+        },
+        {
+          "key": "mrr_at_1000",
+          "value": "74.62"
+        },
+        {
+          "key": "mrr_at_3",
+          "value": "72.667"
+        },
+        {
+          "key": "mrr_at_5",
+          "value": "73.817"
+        },
+        {
+          "key": "ndcg_at_1",
+          "value": "53.87499999999999"
+        },
+        {
+          "key": "ndcg_at_10",
+          "value": "40.028999999999996"
+        },
+        {
+          "key": "ndcg_at_100",
+          "value": "44.199"
+        },
+        {
+          "key": "ndcg_at_1000",
+          "value": "51.629999999999995"
+        },
+        {
+          "key": "ndcg_at_3",
+          "value": "44.113"
+        },
+        {
+          "key": "ndcg_at_5",
+          "value": "41.731"
+        },
+        {
+          "key": "precision_at_1",
+          "value": "66.25"
+        },
+        {
+          "key": "precision_at_10",
+          "value": "31.900000000000002"
+        },
+        {
+          "key": "precision_at_100",
+          "value": "10.043000000000001"
+        },
+        {
+          "key": "precision_at_1000",
+          "value": "1.926"
+        },
+        {
+          "key": "precision_at_3",
+          "value": "47.417"
+        },
+        {
+          "key": "precision_at_5",
+          "value": "40.65"
+        },
+        {
+          "key": "recall_at_1",
+          "value": "8.462"
+        },
+        {
+          "key": "recall_at_10",
+          "value": "24.293"
+        },
+        {
+          "key": "recall_at_100",
+          "value": "50.146"
+        },
+        {
+          "key": "recall_at_1000",
+          "value": "74.034"
+        },
+        {
+          "key": "recall_at_3",
+          "value": "14.967"
+        },
+        {
+          "key": "recall_at_5",
+          "value": "18.682000000000002"
+        },
+        {
+          "key": "accuracy",
+          "value": "47.84499999999999"
+        },
+        {
+          "key": "f1",
+          "value": "42.48106691979349"
+        },
+        {
+          "key": "map_at_1",
+          "value": "74.034"
+        },
+        {
+          "key": "map_at_10",
+          "value": "82.76"
+        },
+        {
+          "key": "map_at_100",
+          "value": "82.968"
+        },
+        {
+          "key": "map_at_1000",
+          "value": "82.98299999999999"
+        },
+        {
+          "key": "map_at_3",
+          "value": "81.768"
+        },
+        {
+          "key": "map_at_5",
+          "value": "82.418"
+        },
+        {
+          "key": "mrr_at_1",
+          "value": "80.048"
+        },
+        {
+          "key": "mrr_at_10",
+          "value": "87.64999999999999"
+        },
+        {
+          "key": "mrr_at_100",
+          "value": "87.712"
+        },
+        {
+          "key": "mrr_at_1000",
+          "value": "87.713"
+        },
+        {
+          "key": "mrr_at_3",
+          "value": "87.01100000000001"
+        },
+        {
+          "key": "mrr_at_5",
+          "value": "87.466"
+        },
+        {
+          "key": "ndcg_at_1",
+          "value": "80.048"
+        },
+        {
+          "key": "ndcg_at_10",
+          "value": "86.643"
+        },
+        {
+          "key": "ndcg_at_100",
+          "value": "87.361"
+        },
+        {
+          "key": "ndcg_at_1000",
+          "value": "87.606"
+        },
+        {
+          "key": "ndcg_at_3",
+          "value": "85.137"
+        },
+        {
+          "key": "ndcg_at_5",
+          "value": "86.016"
+        },
+        {
+          "key": "precision_at_1",
+          "value": "80.048"
+        },
+        {
+          "key": "precision_at_10",
+          "value": "10.372"
+        },
+        {
+          "key": "precision_at_100",
+          "value": "1.093"
+        },
+        {
+          "key": "precision_at_1000",
+          "value": "0.11299999999999999"
+        },
+        {
+          "key": "precision_at_3",
+          "value": "32.638"
+        },
+        {
+          "key": "precision_at_5",
+          "value": "20.177"
+        },
+        {
+          "key": "recall_at_1",
+          "value": "74.034"
+        },
+        {
+          "key": "recall_at_10",
+          "value": "93.769"
+        },
+        {
+          "key": "recall_at_100",
+          "value": "96.569"
+        },
+        {
+          "key": "recall_at_1000",
+          "value": "98.039"
+        },
+        {
+          "key": "recall_at_3",
+          "value": "89.581"
+        },
+        {
+          "key": "recall_at_5",
+          "value": "91.906"
+        },
+        {
+          "key": "map_at_1",
+          "value": "20.5"
+        },
+        {
+          "key": "map_at_10",
+          "value": "32.857"
+        },
+        {
+          "key": "map_at_100",
+          "value": "34.589"
+        },
+        {
+          "key": "map_at_1000",
+          "value": "34.778"
+        },
+        {
+          "key": "map_at_3",
+          "value": "29.160999999999998"
+        },
+        {
+          "key": "map_at_5",
+          "value": "31.033"
+        },
+        {
+          "key": "mrr_at_1",
+          "value": "40.123"
+        },
+        {
+          "key": "mrr_at_10",
+          "value": "48.776"
+        },
+        {
+          "key": "mrr_at_100",
+          "value": "49.495"
+        },
+        {
+          "key": "mrr_at_1000",
+          "value": "49.539"
+        },
+        {
+          "key": "mrr_at_3",
+          "value": "46.605000000000004"
+        },
+        {
+          "key": "mrr_at_5",
+          "value": "47.654"
+        },
+        {
+          "key": "ndcg_at_1",
+          "value": "40.123"
+        },
+        {
+          "key": "ndcg_at_10",
+          "value": "40.343"
+        },
+        {
+          "key": "ndcg_at_100",
+          "value": "46.56"
+        },
+        {
+          "key": "ndcg_at_1000",
+          "value": "49.777"
+        },
+        {
+          "key": "ndcg_at_3",
+          "value": "37.322"
+        },
+        {
+          "key": "ndcg_at_5",
+          "value": "37.791000000000004"
+        },
+        {
+          "key": "precision_at_1",
+          "value": "40.123"
+        },
+        {
+          "key": "precision_at_10",
+          "value": "11.08"
+        },
+        {
+          "key": "precision_at_100",
+          "value": "1.752"
+        },
+        {
+          "key": "precision_at_1000",
+          "value": "0.232"
+        },
+        {
+          "key": "precision_at_3",
+          "value": "24.897"
+        },
+        {
+          "key": "precision_at_5",
+          "value": "17.809"
+        },
+        {
+          "key": "recall_at_1",
+          "value": "20.5"
+        },
+        {
+          "key": "recall_at_10",
+          "value": "46.388"
+        },
+        {
+          "key": "recall_at_100",
+          "value": "69.552"
+        },
+        {
+          "key": "recall_at_1000",
+          "value": "89.011"
+        },
+        {
+          "key": "recall_at_3",
+          "value": "33.617999999999995"
+        },
+        {
+          "key": "recall_at_5",
+          "value": "38.211"
+        },
+        {
+          "key": "map_at_1",
+          "value": "39.135999999999996"
+        },
+        {
+          "key": "map_at_10",
+          "value": "61.673"
+        },
+        {
+          "key": "map_at_100",
+          "value": "62.562"
+        },
+        {
+          "key": "map_at_1000",
+          "value": "62.62"
+        },
+        {
+          "key": "map_at_3",
+          "value": "58.467999999999996"
+        },
+        {
+          "key": "map_at_5",
+          "value": "60.463"
+        },
+        {
+          "key": "mrr_at_1",
+          "value": "78.271"
+        },
+        {
+          "key": "mrr_at_10",
+          "value": "84.119"
+        },
+        {
+          "key": "mrr_at_100",
+          "value": "84.29299999999999"
+        },
+        {
+          "key": "mrr_at_1000",
+          "value": "84.299"
+        },
+        {
+          "key": "mrr_at_3",
+          "value": "83.18900000000001"
+        },
+        {
+          "key": "mrr_at_5",
+          "value": "83.786"
+        },
+        {
+          "key": "ndcg_at_1",
+          "value": "78.271"
+        },
+        {
+          "key": "ndcg_at_10",
+          "value": "69.935"
+        },
+        {
+          "key": "ndcg_at_100",
+          "value": "73.01299999999999"
+        },
+        {
+          "key": "ndcg_at_1000",
+          "value": "74.126"
+        },
+        {
+          "key": "ndcg_at_3",
+          "value": "65.388"
+        },
+        {
+          "key": "ndcg_at_5",
+          "value": "67.906"
+        },
+        {
+          "key": "precision_at_1",
+          "value": "78.271"
+        },
+        {
+          "key": "precision_at_10",
+          "value": "14.562"
+        },
+        {
+          "key": "precision_at_100",
+          "value": "1.6969999999999998"
+        },
+        {
+          "key": "precision_at_1000",
+          "value": "0.184"
+        },
+        {
+          "key": "precision_at_3",
+          "value": "41.841"
+        },
+        {
+          "key": "precision_at_5",
+          "value": "27.087"
+        },
+        {
+          "key": "recall_at_1",
+          "value": "39.135999999999996"
+        },
+        {
+          "key": "recall_at_10",
+          "value": "72.809"
+        },
+        {
+          "key": "recall_at_100",
+          "value": "84.86200000000001"
+        },
+        {
+          "key": "recall_at_1000",
+          "value": "92.208"
+        },
+        {
+          "key": "recall_at_3",
+          "value": "62.76199999999999"
+        },
+        {
+          "key": "recall_at_5",
+          "value": "67.718"
+        },
+        {
+          "key": "accuracy",
+          "value": "90.60600000000001"
+        },
+        {
+          "key": "ap",
+          "value": "86.6579587804335"
+        },
+        {
+          "key": "f1",
+          "value": "90.5938853929307"
+        },
+        {
+          "key": "map_at_1",
+          "value": "21.852"
+        },
+        {
+          "key": "map_at_10",
+          "value": "33.982"
+        },
+        {
+          "key": "map_at_100",
+          "value": "35.116"
+        },
+        {
+          "key": "map_at_1000",
+          "value": "35.167"
+        },
+        {
+          "key": "map_at_3",
+          "value": "30.134"
+        },
+        {
+          "key": "map_at_5",
+          "value": "32.340999999999994"
+        },
+        {
+          "key": "mrr_at_1",
+          "value": "22.479"
+        },
+        {
+          "key": "mrr_at_10",
+          "value": "34.594"
+        },
+        {
+          "key": "mrr_at_100",
+          "value": "35.672"
+        },
+        {
+          "key": "mrr_at_1000",
+          "value": "35.716"
+        },
+        {
+          "key": "mrr_at_3",
+          "value": "30.84"
+        },
+        {
+          "key": "mrr_at_5",
+          "value": "32.998"
+        },
+        {
+          "key": "ndcg_at_1",
+          "value": "22.493"
+        },
+        {
+          "key": "ndcg_at_10",
+          "value": "40.833000000000006"
+        },
+        {
+          "key": "ndcg_at_100",
+          "value": "46.357"
+        },
+        {
+          "key": "ndcg_at_1000",
+          "value": "47.637"
+        },
+        {
+          "key": "ndcg_at_3",
+          "value": "32.995999999999995"
+        },
+        {
+          "key": "ndcg_at_5",
+          "value": "36.919000000000004"
+        },
+        {
+          "key": "precision_at_1",
+          "value": "22.493"
+        },
+        {
+          "key": "precision_at_10",
+          "value": "6.465999999999999"
+        },
+        {
+          "key": "precision_at_100",
+          "value": "0.9249999999999999"
+        },
+        {
+          "key": "precision_at_1000",
+          "value": "0.104"
+        },
+        {
+          "key": "precision_at_3",
+          "value": "14.030999999999999"
+        },
+        {
+          "key": "precision_at_5",
+          "value": "10.413"
+        },
+        {
+          "key": "recall_at_1",
+          "value": "21.852"
+        },
+        {
+          "key": "recall_at_10",
+          "value": "61.934999999999995"
+        },
+        {
+          "key": "recall_at_100",
+          "value": "87.611"
+        },
+        {
+          "key": "recall_at_1000",
+          "value": "97.441"
+        },
+        {
+          "key": "recall_at_3",
+          "value": "40.583999999999996"
+        },
+        {
+          "key": "recall_at_5",
+          "value": "49.992999999999995"
+        },
+        {
+          "key": "accuracy",
+          "value": "93.36069311445507"
+        },
+        {
+          "key": "f1",
+          "value": "93.16456330371453"
+        },
+        {
+          "key": "accuracy",
+          "value": "74.74692202462381"
+        },
+        {
+          "key": "f1",
+          "value": "58.17903579421599"
+        },
+        {
+          "key": "accuracy",
+          "value": "74.80833893745796"
+        },
+        {
+          "key": "f1",
+          "value": "72.70786592684664"
+        },
+        {
+          "key": "accuracy",
+          "value": "78.69872225958305"
+        },
+        {
+          "key": "f1",
+          "value": "78.61626934504731"
+        },
+        {
+          "key": "v_measure",
+          "value": "33.058658628717694"
+        },
+        {
+          "key": "v_measure",
+          "value": "30.85561739360599"
+        },
+        {
+          "key": "map",
+          "value": "31.290259910144385"
+        },
+        {
+          "key": "mrr",
+          "value": "32.44223046102856"
+        },
+        {
+          "key": "map_at_1",
+          "value": "5.288"
+        },
+        {
+          "key": "map_at_10",
+          "value": "12.267999999999999"
+        },
+        {
+          "key": "map_at_100",
+          "value": "15.557000000000002"
+        },
+        {
+          "key": "map_at_1000",
+          "value": "16.98"
+        },
+        {
+          "key": "map_at_3",
+          "value": "8.866"
+        },
+        {
+          "key": "map_at_5",
+          "value": "10.418"
+        },
+        {
+          "key": "mrr_at_1",
+          "value": "43.653"
+        },
+        {
+          "key": "mrr_at_10",
+          "value": "52.681"
+        },
+        {
+          "key": "mrr_at_100",
+          "value": "53.315999999999995"
+        },
+        {
+          "key": "mrr_at_1000",
+          "value": "53.357"
+        },
+        {
+          "key": "mrr_at_3",
+          "value": "51.393"
+        },
+        {
+          "key": "mrr_at_5",
+          "value": "51.903999999999996"
+        },
+        {
+          "key": "ndcg_at_1",
+          "value": "42.415000000000006"
+        },
+        {
+          "key": "ndcg_at_10",
+          "value": "34.305"
+        },
+        {
+          "key": "ndcg_at_100",
+          "value": "30.825999999999997"
+        },
+        {
+          "key": "ndcg_at_1000",
+          "value": "39.393"
+        },
+        {
+          "key": "ndcg_at_3",
+          "value": "39.931"
+        },
+        {
+          "key": "ndcg_at_5",
+          "value": "37.519999999999996"
+        },
+        {
+          "key": "precision_at_1",
+          "value": "43.653"
+        },
+        {
+          "key": "precision_at_10",
+          "value": "25.728"
+        },
+        {
+          "key": "precision_at_100",
+          "value": "7.932"
+        },
+        {
+          "key": "precision_at_1000",
+          "value": "2.07"
+        },
+        {
+          "key": "precision_at_3",
+          "value": "38.184000000000005"
+        },
+        {
+          "key": "precision_at_5",
+          "value": "32.879000000000005"
+        },
+        {
+          "key": "recall_at_1",
+          "value": "5.288"
+        },
+        {
+          "key": "recall_at_10",
+          "value": "16.195"
+        },
+        {
+          "key": "recall_at_100",
+          "value": "31.135"
+        },
+        {
+          "key": "recall_at_1000",
+          "value": "61.531000000000006"
+        },
+        {
+          "key": "recall_at_3",
+          "value": "10.313"
+        },
+        {
+          "key": "recall_at_5",
+          "value": "12.754999999999999"
+        },
+        {
+          "key": "map_at_1",
+          "value": "28.216"
+        },
+        {
+          "key": "map_at_10",
+          "value": "42.588"
+        },
+        {
+          "key": "map_at_100",
+          "value": "43.702999999999996"
+        },
+        {
+          "key": "map_at_1000",
+          "value": "43.739"
+        },
+        {
+          "key": "map_at_3",
+          "value": "38.177"
+        },
+        {
+          "key": "map_at_5",
+          "value": "40.754000000000005"
+        },
+        {
+          "key": "mrr_at_1",
+          "value": "31.866"
+        },
+        {
+          "key": "mrr_at_10",
+          "value": "45.189"
+        },
+        {
+          "key": "mrr_at_100",
+          "value": "46.056000000000004"
+        },
+        {
+          "key": "mrr_at_1000",
+          "value": "46.081"
+        },
+        {
+          "key": "mrr_at_3",
+          "value": "41.526999999999994"
+        },
+        {
+          "key": "mrr_at_5",
+          "value": "43.704"
+        },
+        {
+          "key": "ndcg_at_1",
+          "value": "31.837"
+        },
+        {
+          "key": "ndcg_at_10",
+          "value": "50.178"
+        },
+        {
+          "key": "ndcg_at_100",
+          "value": "54.98800000000001"
+        },
+        {
+          "key": "ndcg_at_1000",
+          "value": "55.812"
+        },
+        {
+          "key": "ndcg_at_3",
+          "value": "41.853"
+        },
+        {
+          "key": "ndcg_at_5",
+          "value": "46.153"
+        },
+        {
+          "key": "precision_at_1",
+          "value": "31.837"
+        },
+        {
+          "key": "precision_at_10",
+          "value": "8.43"
+        },
+        {
+          "key": "precision_at_100",
+          "value": "1.1119999999999999"
+        },
+        {
+          "key": "precision_at_1000",
+          "value": "0.11900000000000001"
+        },
+        {
+          "key": "precision_at_3",
+          "value": "19.023"
+        },
+        {
+          "key": "precision_at_5",
+          "value": "13.911000000000001"
+        },
+        {
+          "key": "recall_at_1",
+          "value": "28.216"
+        },
+        {
+          "key": "recall_at_10",
+          "value": "70.8"
+        },
+        {
+          "key": "recall_at_100",
+          "value": "91.857"
+        },
+        {
+          "key": "recall_at_1000",
+          "value": "97.941"
+        },
+        {
+          "key": "recall_at_3",
+          "value": "49.196"
+        },
+        {
+          "key": "recall_at_5",
+          "value": "59.072"
+        },
+        {
+          "key": "map_at_1",
+          "value": "71.22800000000001"
+        },
+        {
+          "key": "map_at_10",
+          "value": "85.115"
+        },
+        {
+          "key": "map_at_100",
+          "value": "85.72"
+        },
+        {
+          "key": "map_at_1000",
+          "value": "85.737"
+        },
+        {
+          "key": "map_at_3",
+          "value": "82.149"
+        },
+        {
+          "key": "map_at_5",
+          "value": "84.029"
+        },
+        {
+          "key": "mrr_at_1",
+          "value": "81.96"
+        },
+        {
+          "key": "mrr_at_10",
+          "value": "88.00200000000001"
+        },
+        {
+          "key": "mrr_at_100",
+          "value": "88.088"
+        },
+        {
+          "key": "mrr_at_1000",
+          "value": "88.089"
+        },
+        {
+          "key": "mrr_at_3",
+          "value": "87.055"
+        },
+        {
+          "key": "mrr_at_5",
+          "value": "87.715"
+        },
+        {
+          "key": "ndcg_at_1",
+          "value": "82.01"
+        },
+        {
+          "key": "ndcg_at_10",
+          "value": "88.78"
+        },
+        {
+          "key": "ndcg_at_100",
+          "value": "89.91"
+        },
+        {
+          "key": "ndcg_at_1000",
+          "value": "90.013"
+        },
+        {
+          "key": "ndcg_at_3",
+          "value": "85.957"
+        },
+        {
+          "key": "ndcg_at_5",
+          "value": "87.56"
+        },
+        {
+          "key": "precision_at_1",
+          "value": "82.01"
+        },
+        {
+          "key": "precision_at_10",
+          "value": "13.462"
+        },
+        {
+          "key": "precision_at_100",
+          "value": "1.528"
+        },
+        {
+          "key": "precision_at_1000",
+          "value": "0.157"
+        },
+        {
+          "key": "precision_at_3",
+          "value": "37.553"
+        },
+        {
+          "key": "precision_at_5",
+          "value": "24.732000000000003"
+        },
+        {
+          "key": "recall_at_1",
+          "value": "71.22800000000001"
+        },
+        {
+          "key": "recall_at_10",
+          "value": "95.69"
+        },
+        {
+          "key": "recall_at_100",
+          "value": "99.531"
+        },
+        {
+          "key": "recall_at_1000",
+          "value": "99.98"
+        },
+        {
+          "key": "recall_at_3",
+          "value": "87.632"
+        },
+        {
+          "key": "recall_at_5",
+          "value": "92.117"
+        },
+        {
+          "key": "v_measure",
+          "value": "52.31768034366916"
+        },
+        {
+          "key": "v_measure",
+          "value": "60.640266772723606"
+        },
+        {
+          "key": "map_at_1",
+          "value": "4.7780000000000005"
+        },
+        {
+          "key": "map_at_10",
+          "value": "12.299"
+        },
+        {
+          "key": "map_at_100",
+          "value": "14.363000000000001"
+        },
+        {
+          "key": "map_at_1000",
+          "value": "14.71"
+        },
+        {
+          "key": "map_at_3",
+          "value": "8.738999999999999"
+        },
+        {
+          "key": "map_at_5",
+          "value": "10.397"
+        },
+        {
+          "key": "mrr_at_1",
+          "value": "23.599999999999998"
+        },
+        {
+          "key": "mrr_at_10",
+          "value": "34.845"
+        },
+        {
+          "key": "mrr_at_100",
+          "value": "35.916"
+        },
+        {
+          "key": "mrr_at_1000",
+          "value": "35.973"
+        },
+        {
+          "key": "mrr_at_3",
+          "value": "31.7"
+        },
+        {
+          "key": "mrr_at_5",
+          "value": "33.535"
+        },
+        {
+          "key": "ndcg_at_1",
+          "value": "23.599999999999998"
+        },
+        {
+          "key": "ndcg_at_10",
+          "value": "20.522000000000002"
+        },
+        {
+          "key": "ndcg_at_100",
+          "value": "28.737000000000002"
+        },
+        {
+          "key": "ndcg_at_1000",
+          "value": "34.596"
+        },
+        {
+          "key": "ndcg_at_3",
+          "value": "19.542"
+        },
+        {
+          "key": "ndcg_at_5",
+          "value": "16.958000000000002"
+        },
+        {
+          "key": "precision_at_1",
+          "value": "23.599999999999998"
+        },
+        {
+          "key": "precision_at_10",
+          "value": "10.67"
+        },
+        {
+          "key": "precision_at_100",
+          "value": "2.259"
+        },
+        {
+          "key": "precision_at_1000",
+          "value": "0.367"
+        },
+        {
+          "key": "precision_at_3",
+          "value": "18.333"
+        },
+        {
+          "key": "precision_at_5",
+          "value": "14.879999999999999"
+        },
+        {
+          "key": "recall_at_1",
+          "value": "4.7780000000000005"
+        },
+        {
+          "key": "recall_at_10",
+          "value": "21.617"
+        },
+        {
+          "key": "recall_at_100",
+          "value": "45.905"
+        },
+        {
+          "key": "recall_at_1000",
+          "value": "74.42"
+        },
+        {
+          "key": "recall_at_3",
+          "value": "11.148"
+        },
+        {
+          "key": "recall_at_5",
+          "value": "15.082999999999998"
+        },
+        {
+          "key": "cos_sim_pearson",
+          "value": "83.22372750297885"
+        },
+        {
+          "key": "cos_sim_spearman",
+          "value": "79.40972617119405"
+        },
+        {
+          "key": "euclidean_pearson",
+          "value": "80.6101072020434"
+        },
+        {
+          "key": "euclidean_spearman",
+          "value": "79.53844217225202"
+        },
+        {
+          "key": "manhattan_pearson",
+          "value": "80.57265975286111"
+        },
+        {
+          "key": "manhattan_spearman",
+          "value": "79.46335611792958"
+        },
+        {
+          "key": "cos_sim_pearson",
+          "value": "85.43713315520749"
+        },
+        {
+          "key": "cos_sim_spearman",
+          "value": "77.44128693329532"
+        },
+        {
+          "key": "euclidean_pearson",
+          "value": "81.63869928101123"
+        },
+        {
+          "key": "euclidean_spearman",
+          "value": "77.29512977961515"
+        },
+        {
+          "key": "manhattan_pearson",
+          "value": "81.63704185566183"
+        },
+        {
+          "key": "manhattan_spearman",
+          "value": "77.29909412738657"
+        },
+        {
+          "key": "cos_sim_pearson",
+          "value": "81.59451537860527"
+        },
+        {
+          "key": "cos_sim_spearman",
+          "value": "82.97994638856723"
+        },
+        {
+          "key": "euclidean_pearson",
+          "value": "82.89478688288412"
+        },
+        {
+          "key": "euclidean_spearman",
+          "value": "83.58740751053104"
+        },
+        {
+          "key": "manhattan_pearson",
+          "value": "82.69140840941608"
+        },
+        {
+          "key": "manhattan_spearman",
+          "value": "83.33665956040555"
+        },
+        {
+          "key": "cos_sim_pearson",
+          "value": "82.00756527711764"
+        },
+        {
+          "key": "cos_sim_spearman",
+          "value": "81.83560996841379"
+        },
+        {
+          "key": "euclidean_pearson",
+          "value": "82.07684151976518"
+        },
+        {
+          "key": "euclidean_spearman",
+          "value": "82.00913052060511"
+        },
+        {
+          "key": "manhattan_pearson",
+          "value": "82.05690778488794"
+        },
+        {
+          "key": "manhattan_spearman",
+          "value": "82.02260252019525"
+        },
+        {
+          "key": "cos_sim_pearson",
+          "value": "86.13710262895447"
+        },
+        {
+          "key": "cos_sim_spearman",
+          "value": "87.26412811156248"
+        },
+        {
+          "key": "euclidean_pearson",
+          "value": "86.94151453230228"
+        },
+        {
+          "key": "euclidean_spearman",
+          "value": "87.5363796699571"
+        },
+        {
+          "key": "manhattan_pearson",
+          "value": "86.86989424083748"
+        },
+        {
+          "key": "manhattan_spearman",
+          "value": "87.47315940781353"
+        },
+        {
+          "key": "cos_sim_pearson",
+          "value": "83.0230597603627"
+        },
+        {
+          "key": "cos_sim_spearman",
+          "value": "84.93344499318864"
+        },
+        {
+          "key": "euclidean_pearson",
+          "value": "84.23754743431141"
+        },
+        {
+          "key": "euclidean_spearman",
+          "value": "85.09707376597099"
+        },
+        {
+          "key": "manhattan_pearson",
+          "value": "84.04325160987763"
+        },
+        {
+          "key": "manhattan_spearman",
+          "value": "84.89353071339909"
+        },
+        {
+          "key": "cos_sim_pearson",
+          "value": "86.75620824563921"
+        },
+        {
+          "key": "cos_sim_spearman",
+          "value": "87.15065513706398"
+        },
+        {
+          "key": "euclidean_pearson",
+          "value": "88.26281533633521"
+        },
+        {
+          "key": "euclidean_spearman",
+          "value": "87.51963738643983"
+        },
+        {
+          "key": "manhattan_pearson",
+          "value": "88.25599267618065"
+        },
+        {
+          "key": "manhattan_spearman",
+          "value": "87.58048736047483"
+        },
+        {
+          "key": "cos_sim_pearson",
+          "value": "64.74645319195137"
+        },
+        {
+          "key": "cos_sim_spearman",
+          "value": "65.29996325037214"
+        },
+        {
+          "key": "euclidean_pearson",
+          "value": "67.04297794086443"
+        },
+        {
+          "key": "euclidean_spearman",
+          "value": "65.43841726694343"
+        },
+        {
+          "key": "manhattan_pearson",
+          "value": "67.39459955690904"
+        },
+        {
+          "key": "manhattan_spearman",
+          "value": "65.92864704413651"
+        },
+        {
+          "key": "cos_sim_pearson",
+          "value": "84.31291020270801"
+        },
+        {
+          "key": "cos_sim_spearman",
+          "value": "85.86473738688068"
+        },
+        {
+          "key": "euclidean_pearson",
+          "value": "85.65537275064152"
+        },
+        {
+          "key": "euclidean_spearman",
+          "value": "86.13087454209642"
+        },
+        {
+          "key": "manhattan_pearson",
+          "value": "85.43946955047609"
+        },
+        {
+          "key": "manhattan_spearman",
+          "value": "85.91568175344916"
+        },
+        {
+          "key": "map",
+          "value": "85.93798118350695"
+        },
+        {
+          "key": "mrr",
+          "value": "95.93536274908824"
+        },
+        {
+          "key": "map_at_1",
+          "value": "57.594"
+        },
+        {
+          "key": "map_at_10",
+          "value": "66.81899999999999"
+        },
+        {
+          "key": "map_at_100",
+          "value": "67.368"
+        },
+        {
+          "key": "map_at_1000",
+          "value": "67.4"
+        },
+        {
+          "key": "map_at_3",
+          "value": "64.061"
+        },
+        {
+          "key": "map_at_5",
+          "value": "65.47"
+        },
+        {
+          "key": "mrr_at_1",
+          "value": "60.667"
+        },
+        {
+          "key": "mrr_at_10",
+          "value": "68.219"
+        },
+        {
+          "key": "mrr_at_100",
+          "value": "68.655"
+        },
+        {
+          "key": "mrr_at_1000",
+          "value": "68.684"
+        },
+        {
+          "key": "mrr_at_3",
+          "value": "66.22200000000001"
+        },
+        {
+          "key": "mrr_at_5",
+          "value": "67.289"
+        },
+        {
+          "key": "ndcg_at_1",
+          "value": "60.667"
+        },
+        {
+          "key": "ndcg_at_10",
+          "value": "71.275"
+        },
+        {
+          "key": "ndcg_at_100",
+          "value": "73.642"
+        },
+        {
+          "key": "ndcg_at_1000",
+          "value": "74.373"
+        },
+        {
+          "key": "ndcg_at_3",
+          "value": "66.521"
+        },
+        {
+          "key": "ndcg_at_5",
+          "value": "68.581"
+        },
+        {
+          "key": "precision_at_1",
+          "value": "60.667"
+        },
+        {
+          "key": "precision_at_10",
+          "value": "9.433"
+        },
+        {
+          "key": "precision_at_100",
+          "value": "1.0699999999999998"
+        },
+        {
+          "key": "precision_at_1000",
+          "value": "0.11299999999999999"
+        },
+        {
+          "key": "precision_at_3",
+          "value": "25.556"
+        },
+        {
+          "key": "precision_at_5",
+          "value": "16.8"
+        },
+        {
+          "key": "recall_at_1",
+          "value": "57.594"
+        },
+        {
+          "key": "recall_at_10",
+          "value": "83.622"
+        },
+        {
+          "key": "recall_at_100",
+          "value": "94.167"
+        },
+        {
+          "key": "recall_at_1000",
+          "value": "99.667"
+        },
+        {
+          "key": "recall_at_3",
+          "value": "70.64399999999999"
+        },
+        {
+          "key": "recall_at_5",
+          "value": "75.983"
+        },
+        {
+          "key": "cos_sim_accuracy",
+          "value": "99.85841584158416"
+        },
+        {
+          "key": "cos_sim_ap",
+          "value": "96.66996142314342"
+        },
+        {
+          "key": "cos_sim_f1",
+          "value": "92.83208020050125"
+        },
+        {
+          "key": "cos_sim_precision",
+          "value": "93.06532663316584"
+        },
+        {
+          "key": "cos_sim_recall",
+          "value": "92.60000000000001"
+        },
+        {
+          "key": "dot_accuracy",
+          "value": "99.85841584158416"
+        },
+        {
+          "key": "dot_ap",
+          "value": "96.6775307676576"
+        },
+        {
+          "key": "dot_f1",
+          "value": "92.69289729177312"
+        },
+        {
+          "key": "dot_precision",
+          "value": "94.77533960292581"
+        },
+        {
+          "key": "dot_recall",
+          "value": "90.7"
+        },
+        {
+          "key": "euclidean_accuracy",
+          "value": "99.86138613861387"
+        },
+        {
+          "key": "euclidean_ap",
+          "value": "96.6338454403108"
+        },
+        {
+          "key": "euclidean_f1",
+          "value": "92.92214357937311"
+        },
+        {
+          "key": "euclidean_precision",
+          "value": "93.96728016359918"
+        },
+        {
+          "key": "euclidean_recall",
+          "value": "91.9"
+        },
+        {
+          "key": "manhattan_accuracy",
+          "value": "99.86237623762376"
+        },
+        {
+          "key": "manhattan_ap",
+          "value": "96.60370449645053"
+        },
+        {
+          "key": "manhattan_f1",
+          "value": "92.91177970423253"
+        },
+        {
+          "key": "manhattan_precision",
+          "value": "94.7970863683663"
+        },
+        {
+          "key": "manhattan_recall",
+          "value": "91.10000000000001"
+        },
+        {
+          "key": "max_accuracy",
+          "value": "99.86237623762376"
+        },
+        {
+          "key": "max_ap",
+          "value": "96.6775307676576"
+        },
+        {
+          "key": "max_f1",
+          "value": "92.92214357937311"
+        },
+        {
+          "key": "v_measure",
+          "value": "60.77977058695198"
+        },
+        {
+          "key": "v_measure",
+          "value": "35.2725272535638"
+        },
+        {
+          "key": "map",
+          "value": "53.64052466362125"
+        },
+        {
+          "key": "mrr",
+          "value": "54.533067014684654"
+        },
+        {
+          "key": "cos_sim_pearson",
+          "value": "30.677624219206578"
+        },
+        {
+          "key": "cos_sim_spearman",
+          "value": "30.121368518123447"
+        },
+        {
+          "key": "dot_pearson",
+          "value": "30.69870088041608"
+        },
+        {
+          "key": "dot_spearman",
+          "value": "29.61284927093751"
+        },
+        {
+          "key": "map_at_1",
+          "value": "0.22"
+        },
+        {
+          "key": "map_at_10",
+          "value": "1.855"
+        },
+        {
+          "key": "map_at_100",
+          "value": "9.885"
+        },
+        {
+          "key": "map_at_1000",
+          "value": "23.416999999999998"
+        },
+        {
+          "key": "map_at_3",
+          "value": "0.637"
+        },
+        {
+          "key": "map_at_5",
+          "value": "1.024"
+        },
+        {
+          "key": "mrr_at_1",
+          "value": "88"
+        },
+        {
+          "key": "mrr_at_10",
+          "value": "93.067"
+        },
+        {
+          "key": "mrr_at_100",
+          "value": "93.067"
+        },
+        {
+          "key": "mrr_at_1000",
+          "value": "93.067"
+        },
+        {
+          "key": "mrr_at_3",
+          "value": "92.667"
+        },
+        {
+          "key": "mrr_at_5",
+          "value": "93.067"
+        },
+        {
+          "key": "ndcg_at_1",
+          "value": "82"
+        },
+        {
+          "key": "ndcg_at_10",
+          "value": "75.899"
+        },
+        {
+          "key": "ndcg_at_100",
+          "value": "55.115"
+        },
+        {
+          "key": "ndcg_at_1000",
+          "value": "48.368"
+        },
+        {
+          "key": "ndcg_at_3",
+          "value": "79.704"
+        },
+        {
+          "key": "ndcg_at_5",
+          "value": "78.39699999999999"
+        },
+        {
+          "key": "precision_at_1",
+          "value": "88"
+        },
+        {
+          "key": "precision_at_10",
+          "value": "79.60000000000001"
+        },
+        {
+          "key": "precision_at_100",
+          "value": "56.06"
+        },
+        {
+          "key": "precision_at_1000",
+          "value": "21.206"
+        },
+        {
+          "key": "precision_at_3",
+          "value": "84.667"
+        },
+        {
+          "key": "precision_at_5",
+          "value": "83.2"
+        },
+        {
+          "key": "recall_at_1",
+          "value": "0.22"
+        },
+        {
+          "key": "recall_at_10",
+          "value": "2.078"
+        },
+        {
+          "key": "recall_at_100",
+          "value": "13.297"
+        },
+        {
+          "key": "recall_at_1000",
+          "value": "44.979"
+        },
+        {
+          "key": "recall_at_3",
+          "value": "0.6689999999999999"
+        },
+        {
+          "key": "recall_at_5",
+          "value": "1.106"
+        },
+        {
+          "key": "map_at_1",
+          "value": "2.258"
+        },
+        {
+          "key": "map_at_10",
+          "value": "10.439"
+        },
+        {
+          "key": "map_at_100",
+          "value": "16.89"
+        },
+        {
+          "key": "map_at_1000",
+          "value": "18.407999999999998"
+        },
+        {
+          "key": "map_at_3",
+          "value": "5.668"
+        },
+        {
+          "key": "map_at_5",
+          "value": "7.718"
+        },
+        {
+          "key": "mrr_at_1",
+          "value": "32.653"
+        },
+        {
+          "key": "mrr_at_10",
+          "value": "51.159"
+        },
+        {
+          "key": "mrr_at_100",
+          "value": "51.714000000000006"
+        },
+        {
+          "key": "mrr_at_1000",
+          "value": "51.714000000000006"
+        },
+        {
+          "key": "mrr_at_3",
+          "value": "47.959"
+        },
+        {
+          "key": "mrr_at_5",
+          "value": "50.407999999999994"
+        },
+        {
+          "key": "ndcg_at_1",
+          "value": "29.592000000000002"
+        },
+        {
+          "key": "ndcg_at_10",
+          "value": "26.037"
+        },
+        {
+          "key": "ndcg_at_100",
+          "value": "37.924"
+        },
+        {
+          "key": "ndcg_at_1000",
+          "value": "49.126999999999995"
+        },
+        {
+          "key": "ndcg_at_3",
+          "value": "30.631999999999998"
+        },
+        {
+          "key": "ndcg_at_5",
+          "value": "28.571"
+        },
+        {
+          "key": "precision_at_1",
+          "value": "32.653"
+        },
+        {
+          "key": "precision_at_10",
+          "value": "22.857"
+        },
+        {
+          "key": "precision_at_100",
+          "value": "7.754999999999999"
+        },
+        {
+          "key": "precision_at_1000",
+          "value": "1.529"
+        },
+        {
+          "key": "precision_at_3",
+          "value": "34.014"
+        },
+        {
+          "key": "precision_at_5",
+          "value": "29.796"
+        },
+        {
+          "key": "recall_at_1",
+          "value": "2.258"
+        },
+        {
+          "key": "recall_at_10",
+          "value": "16.554"
+        },
+        {
+          "key": "recall_at_100",
+          "value": "48.439"
+        },
+        {
+          "key": "recall_at_1000",
+          "value": "82.80499999999999"
+        },
+        {
+          "key": "recall_at_3",
+          "value": "7.283"
+        },
+        {
+          "key": "recall_at_5",
+          "value": "10.732"
+        },
+        {
+          "key": "accuracy",
+          "value": "69.8858"
+        },
+        {
+          "key": "ap",
+          "value": "13.835684144362109"
+        },
+        {
+          "key": "f1",
+          "value": "53.803351693244586"
+        },
+        {
+          "key": "accuracy",
+          "value": "60.50650820599886"
+        },
+        {
+          "key": "f1",
+          "value": "60.84357825979259"
+        },
+        {
+          "key": "v_measure",
+          "value": "48.52131044852134"
+        },
+        {
+          "key": "cos_sim_accuracy",
+          "value": "85.59337187816654"
+        },
+        {
+          "key": "cos_sim_ap",
+          "value": "73.23925826533437"
+        },
+        {
+          "key": "cos_sim_f1",
+          "value": "67.34693877551021"
+        },
+        {
+          "key": "cos_sim_precision",
+          "value": "62.40432237730752"
+        },
+        {
+          "key": "cos_sim_recall",
+          "value": "73.13984168865434"
+        },
+        {
+          "key": "dot_accuracy",
+          "value": "85.31322644096085"
+        },
+        {
+          "key": "dot_ap",
+          "value": "72.30723963807422"
+        },
+        {
+          "key": "dot_f1",
+          "value": "66.47051612112296"
+        },
+        {
+          "key": "dot_precision",
+          "value": "62.0792305930845"
+        },
+        {
+          "key": "dot_recall",
+          "value": "71.53034300791556"
+        },
+        {
+          "key": "euclidean_accuracy",
+          "value": "85.61125350181797"
+        },
+        {
+          "key": "euclidean_ap",
+          "value": "73.32843720487845"
+        },
+        {
+          "key": "euclidean_f1",
+          "value": "67.36549633745895"
+        },
+        {
+          "key": "euclidean_precision",
+          "value": "64.60755813953489"
+        },
+        {
+          "key": "euclidean_recall",
+          "value": "70.36939313984169"
+        },
+        {
+          "key": "manhattan_accuracy",
+          "value": "85.63509566668654"
+        },
+        {
+          "key": "manhattan_ap",
+          "value": "73.16658488311325"
+        },
+        {
+          "key": "manhattan_f1",
+          "value": "67.20597386434349"
+        },
+        {
+          "key": "manhattan_precision",
+          "value": "63.60424028268551"
+        },
+        {
+          "key": "manhattan_recall",
+          "value": "71.2401055408971"
+        },
+        {
+          "key": "max_accuracy",
+          "value": "85.63509566668654"
+        },
+        {
+          "key": "max_ap",
+          "value": "73.32843720487845"
+        },
+        {
+          "key": "max_f1",
+          "value": "67.36549633745895"
+        },
+        {
+          "key": "cos_sim_accuracy",
+          "value": "88.33779640625606"
+        },
+        {
+          "key": "cos_sim_ap",
+          "value": "84.83868375898157"
+        },
+        {
+          "key": "cos_sim_f1",
+          "value": "77.16506154017773"
+        },
+        {
+          "key": "cos_sim_precision",
+          "value": "74.62064005753327"
+        },
+        {
+          "key": "cos_sim_recall",
+          "value": "79.88912842623961"
+        },
+        {
+          "key": "dot_accuracy",
+          "value": "88.02732176815307"
+        },
+        {
+          "key": "dot_ap",
+          "value": "83.95089283763002"
+        },
+        {
+          "key": "dot_f1",
+          "value": "76.29635101196631"
+        },
+        {
+          "key": "dot_precision",
+          "value": "73.31771720613288"
+        },
+        {
+          "key": "dot_recall",
+          "value": "79.52725592854944"
+        },
+        {
+          "key": "euclidean_accuracy",
+          "value": "88.44452206310397"
+        },
+        {
+          "key": "euclidean_ap",
+          "value": "84.98384576824827"
+        },
+        {
+          "key": "euclidean_f1",
+          "value": "77.29311047696697"
+        },
+        {
+          "key": "euclidean_precision",
+          "value": "74.51232583065381"
+        },
+        {
+          "key": "euclidean_recall",
+          "value": "80.28949799815214"
+        },
+        {
+          "key": "manhattan_accuracy",
+          "value": "88.47362906042613"
+        },
+        {
+          "key": "manhattan_ap",
+          "value": "84.91421462218432"
+        },
+        {
+          "key": "manhattan_f1",
+          "value": "77.05107637204792"
+        },
+        {
+          "key": "manhattan_precision",
+          "value": "74.74484256243214"
+        },
+        {
+          "key": "manhattan_recall",
+          "value": "79.50415768401602"
+        },
+        {
+          "key": "max_accuracy",
+          "value": "88.47362906042613"
+        },
+        {
+          "key": "max_ap",
+          "value": "84.98384576824827"
+        },
+        {
+          "key": "max_f1",
+          "value": "77.29311047696697"
+        }
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-134f9c8c-a1fb-4000-8620-f01793b1a942",
+      "relationshipType": "hasDeclaredLicense",
+      "from": "urn:spdx:BAAI_bge-small-en-v1.5-37b8b91d-684a-44ac-9a3b-05f581fd1881",
+      "to": [
+        "MIT"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "urn:spdx:doc-autogluon_chronos-bolt-small-52210c17-873d-4f62-90d6-0f89cd4470da",
+      "specVersion": "SPDX-3.0.1",
+      "profileConformance": [
+        "core",
+        "software",
+        "ai"
+      ],
+      "name": "AIBOM for autogluon/chronos-bolt-small",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "created": "2026-04-30T20:36:17.203721+00:00",
+        "createdBy": [
+          "Tool-cdx_to_spdx.py"
+        ]
+      },
+      "rootElement": [
+        "urn:spdx:ai-autogluon_chronos-bolt-small-636980e0-5c34-4396-85d2-5ca0ff508afa"
+      ],
+      "element": [
+        "urn:spdx:autogluon_chronos-bolt-small-bec45137-aafc-4e03-9d37-67c4deee8a51",
+        "urn:spdx:ai-autogluon_chronos-bolt-small-636980e0-5c34-4396-85d2-5ca0ff508afa",
+        "urn:spdx:rel-ff7ef1b5-5a6c-48b6-8e5e-5d270d70f023"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "urn:spdx:autogluon_chronos-bolt-small-bec45137-aafc-4e03-9d37-67c4deee8a51",
+      "name": "autogluon/chronos-bolt-small",
+      "licenseDeclared": "Apache-2.0"
+    },
+    {
+      "type": "ai_AIPackage",
+      "spdxId": "urn:spdx:ai-autogluon_chronos-bolt-small-636980e0-5c34-4396-85d2-5ca0ff508afa",
+      "name": "autogluon/chronos-bolt-small",
+      "primaryPurpose": [
+        "time-series-forecasting"
+      ],
+      "domain": [
+        "safetensors",
+        "t5",
+        "time series",
+        "forecasting",
+        "pretrained models",
+        "foundation models",
+        "time series foundation models",
+        "time-series",
+        "time-series-forecasting",
+        "arxiv:1910.10683",
+        "arxiv:2403.07815",
+        "license:apache-2.0",
+        "region:us"
+      ],
+      "typeOfModel": [
+        "t5"
+      ]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "urn:spdx:rel-ff7ef1b5-5a6c-48b6-8e5e-5d270d70f023",
+      "relationshipType": "hasDeclaredLicense",
+      "from": "urn:spdx:autogluon_chronos-bolt-small-bec45137-aafc-4e03-9d37-67c4deee8a51",
+      "to": [
+        "Apache-2.0"
+      ]
+    }
+  ]
+}
