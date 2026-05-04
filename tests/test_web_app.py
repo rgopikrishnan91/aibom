@@ -228,3 +228,65 @@ class TestFlaskApp:
         assert data["spdx_validation"]["valid"] is True
         assert data["linked_bom"]["validation"]["validator"] == "jsonschema+shacl"
         assert data["linked_bom"]["validation"]["valid"] is True
+
+    def test_process_beta_fields_only_lists_what_ran(self, client, monkeypatch):
+        """beta_fields must reflect only the features actually emitted in
+        this run — empty when nothing beta is requested, populated when
+        cyclonedx / recursive_bom / linked_spdx_bundle do run."""
+        import importlib
+
+        web_app_module = importlib.import_module("aikaboom.web.app")
+
+        class DummyProcessor:
+            use_case = "complete"
+
+            def process_ai_model(self, repo_id=None, arxiv_url=None, github_url=None):
+                return {
+                    "model_id": "test_model",
+                    "direct_fields": {"license": "MIT"},
+                    "rag_fields": {
+                        "model_name": "Test Model",
+                        "trainedOnDatasets": "squad",
+                    },
+                }
+
+        monkeypatch.setattr(
+            web_app_module, "get_processor", lambda **kwargs: DummyProcessor(),
+        )
+
+        # Vanilla SPDX-only run: no recursive_bom, default cyclonedx still runs.
+        # The /process route always emits cyclonedx so beta_fields[0] == "cyclonedx".
+        response = client.post(
+            "/process",
+            json={
+                "bom_type": "ai", "mode": "rag", "repo_id": "test/model",
+                "skip_fallback": True,
+                "validate_spdx": True, "strict_spdx_validation": False,
+                "recursive_bom": False, "recursive_depth": 0,
+            },
+            content_type="application/json",
+        )
+        data = response.get_json()
+        assert response.status_code == 200
+        assert "beta_fields" in data
+        assert "cyclonedx" in data["beta_fields"]
+        assert "recursive_bom" not in data["beta_fields"]
+        assert "linked_spdx_bundle" not in data["beta_fields"]
+
+        # Toggle recursive on; expect both cyclonedx and recursive_bom and
+        # linked_spdx_bundle (the latter is auto-emitted with recursive).
+        response = client.post(
+            "/process",
+            json={
+                "bom_type": "ai", "mode": "rag", "repo_id": "test/model",
+                "skip_fallback": True,
+                "validate_spdx": True, "strict_spdx_validation": False,
+                "recursive_bom": True, "recursive_depth": 1,
+            },
+            content_type="application/json",
+        )
+        data = response.get_json()
+        assert response.status_code == 200
+        assert "cyclonedx" in data["beta_fields"]
+        assert "recursive_bom" in data["beta_fields"]
+        assert "linked_spdx_bundle" in data["beta_fields"]

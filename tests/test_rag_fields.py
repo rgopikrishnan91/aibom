@@ -49,10 +49,12 @@ class TestNewAIQuestions:
         assert "license" in ai, "license RAG question must be defined for AI BOMs"
         assert ai["license"]["post_process"] == "normalize_license"
 
-    def test_primary_purpose_present_with_post_process(self):
+    def test_primary_purpose_has_no_rag_post_process(self):
+        """primaryPurpose stays human-readable in the Provenance BOM; SPDX
+        enum coercion happens only at export time."""
         ai = _question_priorities("FIXED_QUESTIONS_AI")
         assert "primaryPurpose" in ai
-        assert ai["primaryPurpose"]["post_process"] == "normalize_purpose_enum"
+        assert ai["primaryPurpose"]["post_process"] is None
 
     def test_priorities_match_doc(self):
         ai = _question_priorities("FIXED_QUESTIONS_AI")
@@ -69,10 +71,13 @@ class TestNewDatasetQuestions:
             assert field in data, f"{field} RAG question must be defined for Dataset BOMs"
 
     def test_post_processors_set(self):
+        """Post-processors only fire when they aid conflict identification or
+        readability. primaryPurpose / datasetAvailability stay human-readable;
+        SPDX enum coercion happens at export time."""
         data = _question_priorities("FIXED_QUESTIONS_DATA")
         assert data["license"]["post_process"] == "normalize_license"
-        assert data["primaryPurpose"]["post_process"] == "normalize_purpose_enum"
-        assert data["datasetAvailability"]["post_process"] == "normalize_availability_enum"
+        assert data["primaryPurpose"]["post_process"] is None
+        assert data["datasetAvailability"]["post_process"] is None
         assert data["description"]["post_process"] == "collapse_whitespace"
         assert data["sourceInfo"]["post_process"] == "dedupe_named_entities"
 
@@ -103,20 +108,43 @@ class TestPostProcessorRoundTrip:
             assert callable(fn), f"post_process '{name}' for {field} is not resolvable"
 
 
+class TestProvenanceBOMHumanReadable:
+    """Regression lock: the Provenance BOM must keep the raw human-readable
+    LLM answer for fields where SPDX shape coercion happens only at export.
+    """
+
+    def test_primary_purpose_has_no_rag_post_processor(self):
+        """primaryPurpose has no RAG-stage post-processor, so a string like
+        'text generation system' lands in the Provenance BOM as-is."""
+        ai = _question_priorities("FIXED_QUESTIONS_AI")
+        data = _question_priorities("FIXED_QUESTIONS_DATA")
+        assert ai["primaryPurpose"]["post_process"] is None
+        assert data["primaryPurpose"]["post_process"] is None
+
+    def test_dataset_availability_has_no_rag_post_processor(self):
+        """datasetAvailability stays raw too; SPDX enum coercion happens at
+        emission time inside spdx_validator._normalize_enum."""
+        data = _question_priorities("FIXED_QUESTIONS_DATA")
+        assert data["datasetAvailability"]["post_process"] is None
+
+
 class TestPostProcessorBehaviour:
-    """Quick sanity that each canonicaliser produces the right shape."""
+    """Quick sanity that each active canonicaliser produces the right shape."""
 
     def test_license_post_processor(self):
         from aikaboom.utils.normalise import normalize_license
         assert normalize_license("Apache 2.0") == "Apache-2.0"
         assert normalize_license("mit license") == "MIT"
 
-    def test_purpose_post_processor(self):
+    def test_purpose_helper_is_still_available_for_emitter(self):
+        """normalize_purpose_enum is no longer a RAG post-processor but the
+        SPDX emitter uses the underlying _normalize_enum helper, so the
+        callable must still behave correctly when invoked directly."""
         from aikaboom.utils.normalise import normalize_purpose_enum
         assert normalize_purpose_enum("model") == "model"
         assert normalize_purpose_enum("text generation system") == "other"
 
-    def test_availability_post_processor(self):
+    def test_availability_helper_is_still_available_for_emitter(self):
         from aikaboom.utils.normalise import normalize_availability_enum
         assert normalize_availability_enum("clickthrough") == "clickthrough"
         assert normalize_availability_enum("public download") == "directDownload"

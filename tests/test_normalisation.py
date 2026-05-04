@@ -176,6 +176,111 @@ class TestEnumPostProcessors:
         assert N.normalize_availability_enum("free download") == "directDownload"
 
 
+class TestCoerceDatasetSizeBytes:
+    """Tests for the SPDX emitter's unit-aware byte-count parser."""
+
+    def test_plain_int(self):
+        from aikaboom.utils.spdx_validator import _coerce_dataset_size_bytes
+        assert _coerce_dataset_size_bytes(12345) == 12345
+        assert _coerce_dataset_size_bytes("12345") == 12345
+
+    def test_thousands_separator(self):
+        from aikaboom.utils.spdx_validator import _coerce_dataset_size_bytes
+        assert _coerce_dataset_size_bytes("1,234,567") == 1_234_567
+        assert _coerce_dataset_size_bytes("1_234_567") == 1_234_567
+
+    def test_decimal_si_suffixes(self):
+        from aikaboom.utils.spdx_validator import _coerce_dataset_size_bytes
+        assert _coerce_dataset_size_bytes("1 KB") == 1_000
+        assert _coerce_dataset_size_bytes("1 MB") == 1_000_000
+        assert _coerce_dataset_size_bytes("1.5 GB") == 1_500_000_000
+        assert _coerce_dataset_size_bytes("5 TB") == 5_000_000_000_000
+
+    def test_iec_binary_suffixes(self):
+        from aikaboom.utils.spdx_validator import _coerce_dataset_size_bytes
+        assert _coerce_dataset_size_bytes("1 KiB") == 1024
+        assert _coerce_dataset_size_bytes("1 MiB") == 1024 ** 2
+        assert _coerce_dataset_size_bytes("2 GiB") == 2 * 1024 ** 3
+
+    def test_bare_kmgt_treated_as_decimal(self):
+        from aikaboom.utils.spdx_validator import _coerce_dataset_size_bytes
+        assert _coerce_dataset_size_bytes("5T") == 5_000_000_000_000
+        assert _coerce_dataset_size_bytes("100M") == 100_000_000
+
+    def test_non_byte_units_return_none(self):
+        from aikaboom.utils.spdx_validator import _coerce_dataset_size_bytes
+        # "examples" / "tokens" / "rows" aren't byte units → noAssertion.
+        assert _coerce_dataset_size_bytes("10000 examples") is None
+        assert _coerce_dataset_size_bytes("1.5 million tokens") is None
+
+    def test_empty_or_invalid(self):
+        from aikaboom.utils.spdx_validator import _coerce_dataset_size_bytes
+        assert _coerce_dataset_size_bytes("") is None
+        assert _coerce_dataset_size_bytes(None) is None
+        assert _coerce_dataset_size_bytes("nonsense") is None
+        assert _coerce_dataset_size_bytes(True) is None  # bool rejected
+
+    def test_negative_treated_as_invalid(self):
+        from aikaboom.utils.spdx_validator import _coerce_dataset_size_bytes
+        assert _coerce_dataset_size_bytes("-500 MB") is None
+
+    def test_float_input(self):
+        from aikaboom.utils.spdx_validator import _coerce_dataset_size_bytes
+        assert _coerce_dataset_size_bytes(1024.5) == 1024  # truncated
+
+
+class TestSPDXCoercesFromHumanReadable:
+    """The Provenance BOM keeps the raw human-readable LLM answer; the SPDX
+    emitter's _normalize_enum / _normalize_enum_list helpers must turn it
+    into the right SPDX enum at export time."""
+
+    def test_purpose_enum_alias(self):
+        from aikaboom.utils.spdx_validator import SPDXValidator, _SOFTWARE_PURPOSES
+        v = SPDXValidator(bom_type="ai")
+        assert v._normalize_enum("model", _SOFTWARE_PURPOSES, "other") == "model"
+        assert v._normalize_enum("MODEL", _SOFTWARE_PURPOSES, "other") == "model"
+        assert v._normalize_enum("text-generation system", _SOFTWARE_PURPOSES, "other") == "other"
+
+    def test_availability_enum_alias(self):
+        from aikaboom.utils.spdx_validator import SPDXValidator, _DATASET_AVAILABILITY_VALUES
+        v = SPDXValidator(bom_type="data")
+        assert v._normalize_enum(
+            "clickthrough", _DATASET_AVAILABILITY_VALUES, "directDownload",
+        ) == "clickthrough"
+        assert v._normalize_enum(
+            "REGISTRATION", _DATASET_AVAILABILITY_VALUES, "directDownload",
+        ) == "registration"
+        # Unknown phrase falls back to default.
+        assert v._normalize_enum(
+            "publicly downloadable", _DATASET_AVAILABILITY_VALUES, "directDownload",
+        ) == "directDownload"
+
+    def test_dataset_emitter_omits_size_on_no_assertion(self):
+        from aikaboom.utils.spdx_validator import SPDXValidator
+        v = SPDXValidator(bom_type="data")
+        # Free-text answer that doesn't yield bytes → property omitted.
+        spdx = v.validate_and_convert({
+            "dataset_id": "test/ds",
+            "direct_metadata": {"name": "Test"},
+            "rag_metadata": {"datasetSize": "10000 examples"},
+            "urls": {},
+        })
+        ds = next(e for e in spdx["@graph"] if e.get("type") == "dataset_DatasetPackage")
+        assert "dataset_datasetSize" not in ds
+
+    def test_dataset_emitter_keeps_size_when_parseable(self):
+        from aikaboom.utils.spdx_validator import SPDXValidator
+        v = SPDXValidator(bom_type="data")
+        spdx = v.validate_and_convert({
+            "dataset_id": "test/ds",
+            "direct_metadata": {"name": "Test"},
+            "rag_metadata": {"datasetSize": "1.2 GB"},
+            "urls": {},
+        })
+        ds = next(e for e in spdx["@graph"] if e.get("type") == "dataset_DatasetPackage")
+        assert ds["dataset_datasetSize"] == 1_200_000_000
+
+
 class TestPostProcessorDispatch:
     def test_known_names_resolve(self):
         assert N.get_post_processor("normalize_license") is N.normalize_license

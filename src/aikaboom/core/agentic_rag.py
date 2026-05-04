@@ -264,8 +264,7 @@ FIXED_QUESTIONS_AI = {
         'question': 'What is the primary purpose / main task of this AI model (one of: model, application, data, framework, library, other)?',
         'priority': ['huggingface', 'arxiv', 'github'],
         'keywords': 'task category pipeline classification generation segmentation translation summarisation embedding retrieval purpose role intent',
-        'description': 'Per SPDX 3.0.1 software_primaryPurpose: a single value identifying what the AI artefact is. Tags from HuggingFace and topics from GitHub are strong direct signals; the arXiv abstract is a strong narrative signal.',
-        'post_process': 'normalize_purpose_enum',
+        'description': 'Per SPDX 3.0.1 software_primaryPurpose: a single value identifying what the AI artefact is. Tags from HuggingFace and topics from GitHub are strong direct signals; the arXiv abstract is a strong narrative signal. The Provenance BOM keeps the raw human-readable answer; the SPDX emitter coerces it to the SPDX enum at export time.',
     },
 }
 
@@ -309,7 +308,7 @@ FIXED_QUESTIONS_DATA = {
     },
     'datasetSize': {
         'question': 'What is the size of the dataset.',
-        'priority': ['huggingface', 'arxiv', 'github'],
+        'priority': ['huggingface', 'github', 'arxiv'],
         'keywords': 'size samples examples instances records entries GB MB TB bytes volume count number',
         'description': 'Captures how large a dataset is, measured in bytes.'
     },
@@ -360,15 +359,13 @@ FIXED_QUESTIONS_DATA = {
         'question': 'What is the primary purpose of this dataset (one of: data, model, application, …)?',
         'priority': ['huggingface', 'arxiv', 'github'],
         'keywords': 'task category benchmark training evaluation purpose role',
-        'description': 'Per SPDX 3.0.1 software_primaryPurpose: a single value identifying what the dataset is for. HF task_categories and the arXiv abstract are the strongest signals.',
-        'post_process': 'normalize_purpose_enum',
+        'description': 'Per SPDX 3.0.1 software_primaryPurpose: a single value identifying what the dataset is for. HF task_categories and the arXiv abstract are the strongest signals. The Provenance BOM keeps the raw human-readable answer; the SPDX emitter coerces it to the SPDX enum at export time.',
     },
     'datasetAvailability': {
         'question': 'How is the dataset accessible — direct download, behind a clickthrough, by query, after a registration form, or via a scraping script?',
         'priority': ['huggingface', 'github', 'arxiv'],
         'keywords': 'available availability download access public private clickthrough registration scraping query restricted gated',
-        'description': 'Some datasets are publicly available and can be downloaded directly. Others are only accessible behind a clickthrough, or after filling a registration form. This field describes the dataset availability from that perspective.',
-        'post_process': 'normalize_availability_enum',
+        'description': 'Some datasets are publicly available and can be downloaded directly. Others are only accessible behind a clickthrough, or after filling a registration form. This field describes the dataset availability from that perspective. The Provenance BOM keeps the raw human-readable answer; the SPDX emitter coerces it to the SPDX enum at export time.',
     },
     'description': {
         'question': 'In one or two sentences, what is this dataset?',

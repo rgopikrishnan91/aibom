@@ -35,7 +35,7 @@
     "dataPreprocessing":                  ["github", "huggingface", "arxiv"],
     "datasetAvailability":                ["huggingface", "github", "arxiv"],
     "datasetNoise":                       ["huggingface", "arxiv", "github"],
-    "datasetSize":                        ["huggingface", "arxiv", "github"],
+    "datasetSize":                        ["huggingface", "github", "arxiv"],
     "datasetType":                        ["huggingface", "github", "arxiv"],
     "datasetUpdateMechanism":             ["github", "huggingface", "arxiv"],
     "hasSensitivePersonalInformation":    ["huggingface", "arxiv", "github"],

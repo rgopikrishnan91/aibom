@@ -335,6 +335,20 @@ class MetadataFetcher:
                 lines.append(_maybe("annotations_creators", card.get("annotations_creators")))
                 lines.append(_maybe("language", card.get("language")))
                 lines.append(_maybe("size_categories", card.get("size_categories")))
+        # Sum sibling-file sizes when HF returns them so the RAG retriever
+        # has a precise byte count to compare against arXiv text. Datasets
+        # only — model siblings rarely carry ``size`` and HF model APIs
+        # don't expose a meaningful aggregate.
+        if bom_type != "ai":
+            siblings = list(getattr(repo_info, "siblings", None) or [])
+            total = 0
+            for sib in siblings:
+                size = getattr(sib, "size", None)
+                if isinstance(size, int) and size > 0:
+                    total += size
+            if total > 0:
+                lines.append(f"- estimated_total_size_bytes: {total}")
+
         cleaned = [l for l in lines if l]
         if len(cleaned) <= 1:
             return ""
@@ -373,6 +387,12 @@ class MetadataFetcher:
                 lines.append(f"- primary_language: {repo.language}")
             if getattr(repo, "default_branch", None):
                 lines.append(f"- default_branch: {repo.default_branch}")
+            # repo.size is in KB per the GitHub API contract. Surface it as
+            # bytes so the RAG retriever has a precise number for the
+            # `datasetSize` answer when no other source is available.
+            repo_size_kb = getattr(repo, "size", None)
+            if isinstance(repo_size_kb, int) and repo_size_kb > 0:
+                lines.append(f"- repository_size_bytes: {repo_size_kb * 1024}")
             if len(lines) <= 1:
                 return ""
             return "\n".join(lines)

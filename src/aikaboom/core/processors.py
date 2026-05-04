@@ -387,6 +387,11 @@ class AIBOMProcessor:
             "use_case": self.use_case,
             "direct_fields": direct_fields,
             "rag_fields": rag_fields,
+            # Surfaces beta features that *did run* in this BOM. Callers
+            # (CLI / web app) append labels like "cyclonedx",
+            # "recursive_bom", "linked_spdx_bundle" once they actually
+            # produce those exports. Empty list = vanilla SPDX-only run.
+            "beta_fields": [],
         }
 
         return complete_metadata
@@ -663,6 +668,11 @@ class DATABOMProcessor:
             "processing_timestamp": datetime.now().isoformat(),
             "direct_fields": direct_fields,
             "rag_fields": rag_fields,
+            # Surfaces beta features that *did run* in this BOM. Populated
+            # by callers (CLI / web app) when they emit cyclonedx,
+            # recursive_bom, or linked_spdx_bundle outputs. Empty list =
+            # vanilla SPDX-only run.
+            "beta_fields": [],
         }
-        
+
         return complete_metadata

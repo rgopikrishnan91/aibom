@@ -88,6 +88,44 @@ class TestBundledConfig:
         # 'limitation' prefers arxiv per the shipped config
         assert sp.get_rag_priority("limitation", bom_type="ai")[0] == "arxiv"
 
+    def test_config_is_canonical_design_choice(self):
+        """Lock the runtime behaviour to the bundled config exactly. Every
+        explicit entry in `source_priority.json` must be returned verbatim
+        by the loader; no implicit override / fallback path may quietly
+        return something else.
+
+        Priorities are a working-group design choice that the config
+        exposes for community editing — this test catches anyone who
+        accidentally introduces a hard-coded override."""
+        import os
+        cfg_path = os.path.join(
+            os.path.dirname(__file__), "..", "src", "aikaboom", "config", "source_priority.json",
+        )
+        with open(cfg_path, encoding="utf-8") as f:
+            shipped = json.load(f)
+
+        for field, expected in shipped.get("direct_fields", {}).items():
+            if field == "default":
+                continue
+            assert sp.get_direct_priority(field) == expected, (
+                f"direct_fields.{field}: code returned {sp.get_direct_priority(field)} "
+                f"but config says {expected}"
+            )
+        for field, expected in shipped.get("rag_fields_ai", {}).items():
+            if field == "default":
+                continue
+            assert sp.get_rag_priority(field, bom_type="ai") == expected, (
+                f"rag_fields_ai.{field}: code returned "
+                f"{sp.get_rag_priority(field, bom_type='ai')} but config says {expected}"
+            )
+        for field, expected in shipped.get("rag_fields_data", {}).items():
+            if field == "default":
+                continue
+            assert sp.get_rag_priority(field, bom_type="data") == expected, (
+                f"rag_fields_data.{field}: code returned "
+                f"{sp.get_rag_priority(field, bom_type='data')} but config says {expected}"
+            )
+
 
 class TestUserOverride:
     def test_env_var_override_changes_priority(self, tmp_path, monkeypatch):
