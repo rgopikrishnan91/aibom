@@ -194,6 +194,8 @@ A complete sample lives at [`examples/sample-output.json`](examples/sample-outpu
 
 ## Conflict Detection and Value Selection
 
+A field-by-field reference of how each AI and Dataset BOM property is resolved (sources, priority, normalisation, conflict criterion) lives in [docs/FIELD_STRATEGIES.md](docs/FIELD_STRATEGIES.md).
+
 AIkaBoOM detects two kinds of conflicts and surfaces both in the `conflict` field of every triplet.
 
 **Inter-source.** Different sources report different values:
