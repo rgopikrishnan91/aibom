@@ -253,6 +253,20 @@ FIXED_QUESTIONS_AI = {
         'keywords': 'base model parent model derived from fine-tuned from pre-trained foundation model ancestor lineage',
         'description': 'Per SPDX 3.0.1 dependsOn relationship: identifies the base or parent model from which this model was derived (e.g. "meta-llama/Llama-3" or "google-bert/bert-base-uncased"). Maps to SPDX dependsOn relationship and CycloneDX pedigree.ancestors.'
     },
+    'license': {
+        'question': 'Under what license is the AI model and its code released? Quote the SPDX identifier (e.g. "MIT", "Apache-2.0", "Llama-2") if any source states it.',
+        'priority': ['huggingface', 'github', 'arxiv'],
+        'keywords': 'license licensed under released under apache mit gpl bsd cc-by openrail llama gemma proprietary',
+        'description': 'Per SPDX 3.0.1: the license expression governing use of the AI package. Sources include HuggingFace cardData.license, GitHub LICENSE file, and any license clause in the README or arXiv paper.',
+        'post_process': 'normalize_license',
+    },
+    'primaryPurpose': {
+        'question': 'What is the primary purpose / main task of this AI model (one of: model, application, data, framework, library, other)?',
+        'priority': ['huggingface', 'arxiv', 'github'],
+        'keywords': 'task category pipeline classification generation segmentation translation summarisation embedding retrieval purpose role intent',
+        'description': 'Per SPDX 3.0.1 software_primaryPurpose: a single value identifying what the AI artefact is. Tags from HuggingFace and topics from GitHub are strong direct signals; the arXiv abstract is a strong narrative signal.',
+        'post_process': 'normalize_purpose_enum',
+    },
 }
 
 # FIXED DATASET QUESTIONS WITH PRE-DEFINED SOURCE PRIORITY
@@ -334,7 +348,42 @@ FIXED_QUESTIONS_DATA = {
         'priority': ['arxiv', 'github', 'huggingface'],
         'keywords': 'sensor device instrument equipment camera microphone accelerometer calibration hardware',
         'description': 'Describes a sensor that was used for collecting the data and its calibration value.'
-    }
+    },
+    'license': {
+        'question': 'Under what license is this dataset distributed? Quote the SPDX identifier if any source states it.',
+        'priority': ['huggingface', 'github', 'arxiv'],
+        'keywords': 'license licensed under released under cc-by cc0 odc-by mit apache gpl creative commons',
+        'description': 'Per SPDX 3.0.1: the license governing use of the dataset. Sources include HuggingFace cardData.license, GitHub LICENSE file, and any license clause in the README or arXiv paper.',
+        'post_process': 'normalize_license',
+    },
+    'primaryPurpose': {
+        'question': 'What is the primary purpose of this dataset (one of: data, model, application, …)?',
+        'priority': ['huggingface', 'arxiv', 'github'],
+        'keywords': 'task category benchmark training evaluation purpose role',
+        'description': 'Per SPDX 3.0.1 software_primaryPurpose: a single value identifying what the dataset is for. HF task_categories and the arXiv abstract are the strongest signals.',
+        'post_process': 'normalize_purpose_enum',
+    },
+    'datasetAvailability': {
+        'question': 'How is the dataset accessible — direct download, behind a clickthrough, by query, after a registration form, or via a scraping script?',
+        'priority': ['huggingface', 'github', 'arxiv'],
+        'keywords': 'available availability download access public private clickthrough registration scraping query restricted gated',
+        'description': 'Some datasets are publicly available and can be downloaded directly. Others are only accessible behind a clickthrough, or after filling a registration form. This field describes the dataset availability from that perspective.',
+        'post_process': 'normalize_availability_enum',
+    },
+    'description': {
+        'question': 'In one or two sentences, what is this dataset?',
+        'priority': ['arxiv', 'huggingface', 'github'],
+        'keywords': 'dataset description abstract summary overview',
+        'description': 'A free-form short description of the dataset. The arXiv abstract is canonical when present; HuggingFace cardData.description and GitHub repo description are fallbacks.',
+        'post_process': 'collapse_whitespace',
+    },
+    'sourceInfo': {
+        'question': 'Which upstream datasets, papers, or models contributed to this dataset? List the named sources only.',
+        'priority': ['arxiv', 'huggingface', 'github'],
+        'keywords': 'source upstream derived from based on aggregated combined merged contains uses parent dataset',
+        'description': 'Free-form list of upstream sources that contributed to this dataset (other datasets, papers, models). Combined from HuggingFace cardData.source_datasets and the model-tree, README mentions, and arXiv paper references.',
+        'post_process': 'dedupe_named_entities',
+    },
 }
 
 # The inline `priority` lists above are the failsafe defaults: when the
@@ -1179,16 +1228,22 @@ class AgenticRAG:
             "chunks_per_source": chunks_by_source
         }
 
-    def process_ai_model(self, repo_id: str, arxiv_url: str, github_url: str, huggingface_url: str) -> List[Dict]:
+    def process_ai_model(self, repo_id: str, arxiv_url: str, github_url: str, huggingface_url: str, structured_chunks: Optional[Dict[str, str]] = None) -> List[Dict]:
         """Process a single AI model and answer all questions"""
-        return self.process(repo_id, arxiv_url, github_url, huggingface_url, 'ai')
-    
-    def process_dataset(self, dataset_id: str, arxiv_url: str, github_url: str, huggingface_url: str) -> List[Dict]:
+        return self.process(repo_id, arxiv_url, github_url, huggingface_url, 'ai', structured_chunks=structured_chunks)
+
+    def process_dataset(self, dataset_id: str, arxiv_url: str, github_url: str, huggingface_url: str, structured_chunks: Optional[Dict[str, str]] = None) -> List[Dict]:
         """Process a single dataset and answer all questions"""
-        return self.process(dataset_id, arxiv_url, github_url, huggingface_url, 'data')
+        return self.process(dataset_id, arxiv_url, github_url, huggingface_url, 'data', structured_chunks=structured_chunks)
     
-    def process(self, item_id: str, arxiv_url: str, github_url: str, huggingface_url: str, item_type: str = None) -> List[Dict]:
-        """Unified process method that handles both AI models and datasets"""
+    def process(self, item_id: str, arxiv_url: str, github_url: str, huggingface_url: str, item_type: str = None, structured_chunks: Optional[Dict[str, str]] = None) -> List[Dict]:
+        """Unified process method that handles both AI models and datasets.
+
+        ``structured_chunks`` is an optional mapping ``{source_name: prose}``
+        that gets prepended to that source's README / PDF text before
+        retrieval, so HF/GH structured metadata (license, tags, topics, …)
+        participates in RAG conflict detection.
+        """
         if item_type is None:
             item_type = self.bom_type
         item_type = item_type.lower()
@@ -1237,11 +1292,22 @@ class AgenticRAG:
                     except Exception as e:
                         print(f"  ✗ {source}: fetch failed — {e}")
 
+        # Inject structured-metadata chunks (HF tags, GH topics, license,
+        # base_model, etc.) at the top of each source's text so the RAG
+        # retriever can compare them against README / arXiv text.
+        if structured_chunks:
+            for source, chunk in structured_chunks.items():
+                if not chunk:
+                    continue
+                existing = content_dict.get(source, "")
+                content_dict[source] = (chunk + "\n\n" + existing) if existing else chunk
+                print(f"  ➕ {source}: prepended structured chunk ({len(chunk):,} chars)")
+
         # Print content statistics
         print("\n  📊 Content Statistics:")
         for source, content in content_dict.items():
             print(f"    {source}: {len(content):,} characters")
-        
+
         # Create vector stores
         print("\n  Creating vector stores...")
         retrievers = self.create_vector_stores(content_dict)

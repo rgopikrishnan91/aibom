@@ -72,27 +72,29 @@ the priority winner unless 2-of-3 sources agree on a normalised value.
 | `knownBias` | Inferred | HF + GH + arXiv | arXiv > HF > GH | RAG | list-of-strings | RAG flag |
 | `sensorUsed` | Inferred | HF + GH + arXiv | arXiv > GH > HF | RAG | DictionaryEntry coercion | RAG flag |
 
-## TODO — items not yet reflected in code
+## Status
 
-The tables above describe the **target** strategies. The following entries
-in the code do not yet match this document; the migration is tracked
-separately:
+The tables above match the implementation as of this commit:
 
-- `license`, `primaryPurpose` are still in the direct pipeline (move to
-  RAG with synthetic structured chunks for HF/GH).
-- `datasetAvailability`, `sourceInfo` are still in the direct pipeline
-  (move to RAG; `sourceInfo` gains the post-processed list shape).
-- `description`, `contentIdentifier` are not implemented yet.
-- The 7-day conflict criterion for `releaseTime` / `builtTime` is not
-  enforced yet (today date-merge silently picks the chosen date).
-- The org-name, URL, and version normalisers are not implemented yet
-  (today comparison uses raw lowercase strip).
-- Several inferred-field priorities in
-  [`config/source_priority.json`](../src/aikaboom/config/source_priority.json)
-  diverge from the priorities in this document
-  (`informationAboutApplication`, `hyperparameter`,
-  `modelDataPreprocessing`, `modelExplainability`, `safetyRiskAssessment`,
-  `standardCompliance`, `useSensitivePersonalInformation`,
-  `dataCollectionProcess`, `dataPreprocessing`, `datasetSize`,
-  `datasetNoise`, `datasetUpdateMechanism`,
-  `hasSensitivePersonalInformation`, `intendedUse`, `sensorUsed`).
+- ✅ `license`, `primaryPurpose`, `datasetAvailability`, `sourceInfo`,
+  `description` are all in the RAG pipeline; the synthetic structured
+  chunks for HuggingFace and GitHub feed their tags / topics / license-
+  header / model-tree into the RAG retriever alongside the README and
+  arXiv text.
+- ✅ `contentIdentifier` is implemented for Dataset BOMs (HuggingFace
+  `repo_info.sha`, GitHub default-branch HEAD SHA).
+- ✅ `releaseTime` and `builtTime` raise a 7-day-window conflict.
+- ✅ URL, version, and org-name normalisers are wired into the direct
+  resolution path. The org-name alias map ships empty; populate
+  `_ORG_ALIASES` in `aikaboom.utils.normalise` to add canonical mappings.
+- ✅ Per-question RAG post-processors (`normalize_license`,
+  `normalize_purpose_enum`, `normalize_availability_enum`,
+  `dedupe_named_entities`, `collapse_whitespace`) canonicalise LLM
+  answers before they land in the triplet.
+
+Remaining priority drift between this document and
+[`config/source_priority.json`](../src/aikaboom/config/source_priority.json)
+for inferred fields (e.g. `informationAboutApplication`,
+`hasSensitivePersonalInformation`, `intendedUse`, `sensorUsed`) is
+deliberate — those priorities are working-group choices that the config
+exposes for community editing rather than a missing implementation.

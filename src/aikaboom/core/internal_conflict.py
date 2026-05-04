@@ -146,95 +146,12 @@ class LicenseConflictChecker:
             return 1.0
         return difflib.SequenceMatcher(None, norm_a.lower(), norm_b.lower()).ratio()
 
-    @classmethod
-    def check(
-        cls,
-        structured_license: Optional[str],
-        unstructured_text: Optional[str],
-        source_name: str = "readme",
-        similarity_threshold: float = 0.8,
-    ) -> Dict:
-        """
-        Compare a structured metadata license against the license extracted
-        from one unstructured text source.
-
-        Returns a dict with keys:
-            has_conflict, similarity_score, structured_license, extracted_license,
-            normalized_structured, normalized_extracted, source, conflict_description.
-        """
-        extracted = cls.extract_license_from_text(unstructured_text)
-
-        result = {
-            "has_conflict": False,
-            "similarity_score": None,
-            "structured_license": structured_license,
-            "extracted_license": extracted,
-            "normalized_structured": cls.normalize_license(structured_license) if structured_license else "",
-            "normalized_extracted": cls.normalize_license(extracted) if extracted else "",
-            "source": source_name,
-            "conflict_description": None,
-        }
-
-        if not structured_license or not extracted:
-            missing = (
-                "structured license missing" if not structured_license
-                else "no license found in unstructured text"
-            )
-            result["conflict_description"] = f"Cannot compare: {missing}"
-            return result
-
-        score = cls.compute_similarity(structured_license, extracted)
-        result["similarity_score"] = round(score, 4)
-
-        if score < similarity_threshold:
-            result["has_conflict"] = True
-            result["conflict_description"] = (
-                f"License mismatch between metadata ({structured_license!r}) "
-                f"and {source_name} ({extracted!r}). "
-                f"Similarity: {score:.2%}"
-            )
-
-        return result
-
-    @classmethod
-    def check_all_sources(
-        cls,
-        structured_license: Optional[str],
-        readme_texts: Dict[str, Optional[str]],
-        similarity_threshold: float = 0.8,
-    ) -> Dict:
-        """
-        Run check() against multiple unstructured sources and aggregate results.
-
-        Args:
-            structured_license: License from structured metadata (HF card / GitHub API).
-            readme_texts: Mapping of source_name → raw text.
-                          e.g. {"github_readme": "...", "hf_readme": "..."}
-            similarity_threshold: Score below which a conflict is flagged.
-
-        Returns:
-            {
-              "has_conflict": bool,
-              "per_source": dict,
-              "conflict_description": str | None,
-            }
-        """
-        per_source = {}
-        conflict_descriptions = []
-
-        for source_name, text in readme_texts.items():
-            result = cls.check(
-                structured_license=structured_license,
-                unstructured_text=text,
-                source_name=source_name,
-                similarity_threshold=similarity_threshold,
-            )
-            per_source[source_name] = result
-            if result["has_conflict"]:
-                conflict_descriptions.append(result["conflict_description"])
-
-        return {
-            "has_conflict": bool(conflict_descriptions),
-            "per_source": per_source,
-            "conflict_description": "; ".join(conflict_descriptions) if conflict_descriptions else None,
-        }
+    # ------------------------------------------------------------------
+    # NOTE: The legacy ``check`` / ``check_all_sources`` methods that ran
+    # an intra-source license consistency pass were removed when
+    # ``license`` migrated from the direct pipeline to RAG. The remaining
+    # public surface (``SPDX_ALIASES``, ``LICENSE_PATTERNS``,
+    # ``normalize_license``, ``extract_license_from_text``,
+    # ``compute_similarity``) is what the RAG post-processor uses to
+    # canonicalise an LLM-extracted license string.
+    # ------------------------------------------------------------------
