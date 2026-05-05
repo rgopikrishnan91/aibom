@@ -116,20 +116,23 @@ def _coerce_dataset_size_bytes(value: Any) -> Optional[int]:
     Recognises decimal SI (``KB``/``MB``/``GB``/``TB``/``PB``) and IEC
     binary (``KiB``/``MiB``/…) suffixes plus bare ``K``/``M``/``G``/``T``,
     plain integers, and integers with thousands separators (``1,234,567``).
-    Returns ``None`` when no byte count can be derived — callers should
-    omit the SPDX ``dataset_datasetSize`` property in that case rather
-    than emit a misleading ``0``.
+    Returns ``None`` when no positive byte count can be derived — callers
+    should omit the SPDX ``dataset_datasetSize`` property in that case
+    rather than emit a misleading ``0``. Zero bytes is treated as
+    no-assertion: a dataset that genuinely has zero bytes is the same
+    signal as "we don't know".
     """
     if value is None or value == "":
         return None
     if isinstance(value, bool):  # bool is a subclass of int; reject explicitly.
         return None
     if isinstance(value, int):
-        return max(0, value)
+        return value if value > 0 else None
     if isinstance(value, float):
         if value <= 0:
             return None
-        return int(value)
+        result = int(value)
+        return result if result > 0 else None
     text = str(value).strip()
     if not text:
         return None
@@ -142,13 +145,14 @@ def _coerce_dataset_size_bytes(value: Any) -> Optional[int]:
         number = float(number_text)
     except ValueError:
         return None
-    if number < 0:
+    if number <= 0:
         return None
     if suffix and suffix not in _SIZE_UNITS:
         # Suffix present but not a byte unit (e.g. "10000 examples").
         return None
     multiplier = _SIZE_UNITS.get(suffix, 1)
-    return int(number * multiplier)
+    result = int(number * multiplier)
+    return result if result > 0 else None
 
 
 class SPDXValidator:

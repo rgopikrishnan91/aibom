@@ -387,12 +387,15 @@ class MetadataFetcher:
                 lines.append(f"- primary_language: {repo.language}")
             if getattr(repo, "default_branch", None):
                 lines.append(f"- default_branch: {repo.default_branch}")
-            # repo.size is in KB per the GitHub API contract. Surface it as
-            # bytes so the RAG retriever has a precise number for the
+            # repo.size is in KB per the GitHub API contract. Surface it
+            # as bytes so the RAG retriever has a precise number for the
             # `datasetSize` answer when no other source is available.
-            repo_size_kb = getattr(repo, "size", None)
-            if isinstance(repo_size_kb, int) and repo_size_kb > 0:
-                lines.append(f"- repository_size_bytes: {repo_size_kb * 1024}")
+            # Dataset BOMs only — AI BOMs have no datasetSize question and
+            # don't need this signal in their structured chunk.
+            if bom_type != "ai":
+                repo_size_kb = getattr(repo, "size", None)
+                if isinstance(repo_size_kb, int) and repo_size_kb > 0:
+                    lines.append(f"- repository_size_bytes: {repo_size_kb * 1024}")
             if len(lines) <= 1:
                 return ""
             return "\n".join(lines)

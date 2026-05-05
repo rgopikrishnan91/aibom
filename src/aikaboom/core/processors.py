@@ -200,7 +200,14 @@ class AIBOMProcessor:
         for result in results:
             question_type = result['question_type']
             answer = result['answer']
-            cfg = self.questions_config.get(question_type) or FIXED_QUESTIONS_AI.get(question_type, {})
+            # Honour the user-supplied questions_config first — even an
+            # explicit ``{}`` override means "no per-field metadata".
+            # FIXED_QUESTIONS_AI is only consulted when the question_type
+            # is genuinely missing from the user's config.
+            if question_type in self.questions_config:
+                cfg = self.questions_config[question_type]
+            else:
+                cfg = FIXED_QUESTIONS_AI.get(question_type, {})
             post = get_post_processor(cfg.get('post_process'))
             if post is not None:
                 try:
@@ -608,7 +615,13 @@ class DATABOMProcessor:
         for result in rag_results:
             question_type = result['question_type']
             answer = result['answer']
-            cfg = self.questions_config.get(question_type) or FIXED_QUESTIONS_DATA.get(question_type, {})
+            # Honour the user-supplied questions_config first; only fall
+            # back to FIXED_QUESTIONS_DATA when the question_type is
+            # genuinely missing from the user's config.
+            if question_type in self.questions_config:
+                cfg = self.questions_config[question_type]
+            else:
+                cfg = FIXED_QUESTIONS_DATA.get(question_type, {})
             post = get_post_processor(cfg.get('post_process'))
             value = answer
             if post is not None:

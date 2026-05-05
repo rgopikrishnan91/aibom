@@ -209,3 +209,11 @@ class TestStructuredChunks:
         repo = _FakeGHRepo()
         chunk = MetadataFetcher.github_structured_chunk(repo, bom_type="data")
         assert chunk == ""
+
+    def test_gh_ai_chunk_omits_repository_size_bytes(self):
+        """Regression: AI BOMs have no datasetSize question, so the GH
+        structured chunk for AI mustn't carry a `repository_size_bytes`
+        line — keeps the AI chunk free of data-side noise."""
+        repo = _FakeGHRepo(size=4096, description="An AI model repo")
+        chunk = MetadataFetcher.github_structured_chunk(repo, bom_type="ai")
+        assert "repository_size_bytes" not in chunk

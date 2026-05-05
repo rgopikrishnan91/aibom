@@ -388,7 +388,7 @@ FIXED_QUESTIONS_DATA = {
 # every entry's priority from it so the community can tune ranking
 # without editing this module. If config loading fails for any reason
 # we keep the inline values untouched.
-def _apply_source_priority_config(force: bool = False) -> None:
+def _apply_source_priority_config() -> None:
     try:
         from aikaboom.utils.source_priority import get_rag_priority
     except Exception:

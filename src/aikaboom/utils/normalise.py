@@ -236,16 +236,24 @@ _POST_PROCESSORS = {
 }
 
 
+# Track names we've already warned about so a typo in the question bank
+# doesn't flood stderr when the dispatch is hit per-question on every run.
+_WARNED_UNKNOWN_POST_PROCESSORS: set = set()
+
+
 def get_post_processor(name: Optional[str]):
     """Return the callable named in a question's ``post_process`` key, or
-    ``None`` if the name is unknown / unset. Unknown names emit a one-time
-    warning so typos surface; missing names are a silent no-op.
+    ``None`` if the name is unknown / unset. Unknown names emit a single
+    warning per name so typos surface without flooding logs; missing names
+    are a silent no-op.
     """
     if not name:
         return None
     fn = _POST_PROCESSORS.get(name)
     if fn is None and name not in _POST_PROCESSORS:
-        print(f"[aikaboom] warning: unknown RAG post_process '{name}' — skipping")
+        if name not in _WARNED_UNKNOWN_POST_PROCESSORS:
+            _WARNED_UNKNOWN_POST_PROCESSORS.add(name)
+            print(f"[aikaboom] warning: unknown RAG post_process '{name}' — skipping")
     return fn
 
 

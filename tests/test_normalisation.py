@@ -228,6 +228,21 @@ class TestCoerceDatasetSizeBytes:
         from aikaboom.utils.spdx_validator import _coerce_dataset_size_bytes
         assert _coerce_dataset_size_bytes(1024.5) == 1024  # truncated
 
+    def test_zero_int_is_no_assertion(self):
+        """Regression: a literal ``0`` byte count is treated as no-assertion
+        (caller omits the property) rather than emitted as ``"0 bytes"``."""
+        from aikaboom.utils.spdx_validator import _coerce_dataset_size_bytes
+        assert _coerce_dataset_size_bytes(0) is None
+        assert _coerce_dataset_size_bytes("0") is None
+        assert _coerce_dataset_size_bytes("0 KB") is None
+
+    def test_sub_byte_float_is_no_assertion(self):
+        """Regression: a fractional value that rounds to 0 bytes (e.g.
+        ``0.5``) is no-assertion, not ``"0 bytes"``."""
+        from aikaboom.utils.spdx_validator import _coerce_dataset_size_bytes
+        assert _coerce_dataset_size_bytes(0.5) is None
+        assert _coerce_dataset_size_bytes(0.999) is None
+
 
 class TestSPDXCoercesFromHumanReadable:
     """The Provenance BOM keeps the raw human-readable LLM answer; the SPDX
@@ -298,3 +313,18 @@ class TestPostProcessorDispatch:
         assert out is None
         captured = capsys.readouterr()
         assert "definitely-not-a-real-postprocessor" in (captured.out + captured.err)
+
+    def test_unknown_name_warning_is_deduplicated(self, capsys):
+        """Regression: unknown post_process names warn at most once per
+        name so a typo doesn't flood stderr when the dispatch is hit
+        per-question on every run."""
+        # Reset the warned-set so this test is order-independent.
+        N._WARNED_UNKNOWN_POST_PROCESSORS.discard("typo-name-once")
+        N.get_post_processor("typo-name-once")
+        first = capsys.readouterr()
+        N.get_post_processor("typo-name-once")
+        N.get_post_processor("typo-name-once")
+        N.get_post_processor("typo-name-once")
+        rest = capsys.readouterr()
+        assert "typo-name-once" in (first.out + first.err)
+        assert "typo-name-once" not in (rest.out + rest.err)
