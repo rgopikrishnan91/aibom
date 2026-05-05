@@ -1,0 +1,8 @@
+{
+  "field": "datasetType",
+  "bom_type": "data",
+  "question": "What is the type of the given dataset.",
+  "keywords": "type format datatype image text audio video multimodal tabular structured unstructured",
+  "description": "Describes the datatype contained in the dataset.",
+  "post_process": null
+}

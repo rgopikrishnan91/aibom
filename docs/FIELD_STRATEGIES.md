@@ -124,3 +124,10 @@ The tables above match the implementation as of this commit:
   `tests/test_source_priority.py::test_config_is_canonical_design_choice`
   locks the runtime behaviour to whatever
   `config/source_priority.json` declares.
+- ✅ The RAG question bank lives as one JSON per field under
+  `src/aikaboom/question_bank/<bom_type>/<field>.json`. Each file
+  carries the question prompt, retrieval keywords, SPDX-citing
+  description, and `post_process` name. Priority is layered on at
+  module load from `config/source_priority.json`. Edit any field's
+  prompt independently of the rest — the loader picks up the change
+  at next process start.

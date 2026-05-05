@@ -196,7 +196,31 @@ A complete sample lives at [`examples/sample-output.json`](examples/sample-outpu
 
 A field-by-field reference of how each AI and Dataset BOM property is resolved (sources, priority, normalisation, conflict criterion, SPDX/CycloneDX export shape) lives in [docs/FIELD_STRATEGIES.md](docs/FIELD_STRATEGIES.md).
 
-> **TODO — question-bank enhancement.** The recently added RAG entries (`license`, `primaryPurpose`, `datasetAvailability`, `description`, `sourceInfo`) cite the SPDX 3.0.1 spec verbatim in their `description` slot. The older 13 inferred entries (`autonomyType`, `domain`, `hyperparameter`, `informationAboutTraining`, `metric`, …) pre-date the spec lock and use shorter freeform descriptions; aligning them with the official SPDX 3.0.1 [`AIPackage`](https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Classes/AIPackage/) and [`DatasetPackage`](https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Classes/DatasetPackage/) class text — and harmonising prompt phrasing and keyword density — is an open work item. PR welcome.
+### Editing RAG question prompts
+
+The RAG question bank lives as one JSON per field under
+[`src/aikaboom/question_bank/`](src/aikaboom/question_bank/), split into
+`ai/` and `data/` folders. Each file carries the question prompt, the
+keywords used for retrieval, the SPDX-citing description, and the
+`post_process` callable name (if any). Edit a file to tune one field's
+prompt without touching Python; the loader picks the change up at the
+next module-load. Source priority is **not** in these files — it lives
+in [`src/aikaboom/config/source_priority.json`](src/aikaboom/config/source_priority.json)
+so prompt edits and ranking edits don't collide in PR review.
+
+> **TODO — question-bank enhancement.** The recently added entries
+> (`license`, `primaryPurpose`, `datasetAvailability`, `description`,
+> `sourceInfo`) cite the SPDX 3.0.1 spec verbatim in their `description`
+> slot. The older 13 inferred entries (`autonomyType`, `domain`,
+> `hyperparameter`, `informationAboutTraining`, `metric`, …) pre-date
+> the spec lock and use shorter freeform descriptions; aligning them
+> with the official SPDX 3.0.1
+> [`AIPackage`](https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Classes/AIPackage/)
+> and
+> [`DatasetPackage`](https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Classes/DatasetPackage/)
+> class text — and harmonising prompt phrasing and keyword density — is
+> an open work item. Edits land in
+> `src/aikaboom/question_bank/<bom_type>/<field>.json`. PRs welcome.
 
 AIkaBoOM detects two kinds of conflicts and surfaces both in the `conflict` field of every triplet.
 

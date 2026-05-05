@@ -1,6 +1,5 @@
 """Tests for the community-editable source-priority config."""
 import json
-import re
 
 import pytest
 
@@ -16,37 +15,6 @@ def _flush_cache():
     sp.set_source_priority_path(None)
 
 
-def _bundled_inline_priorities():
-    """Pull the inline `priority` lists from agentic_rag's source without
-    importing the module (avoids the langgraph dependency in tests)."""
-    import ast
-    import os
-
-    src_path = os.path.join(
-        os.path.dirname(__file__), "..", "src", "aikaboom", "core", "agentic_rag.py"
-    )
-    with open(src_path, encoding="utf-8") as f:
-        src = f.read()
-
-    def parse_block(block_name):
-        m = re.search(
-            rf"{block_name}\s*=\s*(\{{.*?^\}})", src, re.S | re.M,
-        )
-        out = {}
-        if not m:
-            return out
-        for entry in re.finditer(
-            r"^    '([\w]+)': \{(.*?)^    \}", m.group(1), re.S | re.M
-        ):
-            field, body = entry.group(1), entry.group(2)
-            prio = re.search(r"'priority':\s*(\[[^\]]+\])", body)
-            if prio:
-                out[field] = ast.literal_eval(prio.group(1))
-        return out
-
-    return parse_block("FIXED_QUESTIONS_AI"), parse_block("FIXED_QUESTIONS_DATA")
-
-
 class TestBundledConfig:
     def test_config_parses_and_has_required_sections(self):
         cfg = sp.load_source_priority()
@@ -56,20 +24,24 @@ class TestBundledConfig:
         assert isinstance(cfg["direct_fields"]["default"], list)
         assert isinstance(cfg["rag_fields_ai"]["default"], list)
 
-    def test_config_matches_inline_defaults(self):
-        """Regression lock: the bundled config must mirror the inline
-        priorities in agentic_rag.py exactly. Editing one without the other
-        breaks this test."""
-        ai_inline, data_inline = _bundled_inline_priorities()
-        cfg = sp.load_source_priority()
+    def test_config_covers_every_question_bank_entry(self):
+        """The shipped source-priority config must declare a priority
+        for every field that has a question-bank JSON file. After moving
+        the question bank to JSON, the source-priority config remains
+        the single place priorities are declared — every JSON-declared
+        field needs an entry here."""
+        from aikaboom.utils.question_bank import load_question_bank
 
-        for field, expected in ai_inline.items():
-            assert cfg["rag_fields_ai"].get(field) == expected, (
-                f"rag_fields_ai.{field} drifted"
+        cfg = sp.load_source_priority()
+        for field in load_question_bank("ai"):
+            assert field in cfg["rag_fields_ai"], (
+                f"rag_fields_ai.{field}: question-bank JSON exists but no "
+                f"config priority is declared"
             )
-        for field, expected in data_inline.items():
-            assert cfg["rag_fields_data"].get(field) == expected, (
-                f"rag_fields_data.{field} drifted"
+        for field in load_question_bank("data"):
+            assert field in cfg["rag_fields_data"], (
+                f"rag_fields_data.{field}: question-bank JSON exists but no "
+                f"config priority is declared"
             )
 
     def test_get_direct_priority_returns_default_for_unknown_field(self):

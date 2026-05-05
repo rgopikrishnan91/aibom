@@ -1,0 +1,8 @@
+{
+  "field": "license",
+  "bom_type": "data",
+  "question": "Under what license is this dataset distributed? Quote the SPDX identifier if any source states it.",
+  "keywords": "license licensed under released under cc-by cc0 odc-by mit apache gpl creative commons",
+  "description": "Per SPDX 3.0.1: the license governing use of the dataset. Sources include HuggingFace cardData.license, GitHub LICENSE file, and any license clause in the README or arXiv paper.",
+  "post_process": "normalize_license"
+}

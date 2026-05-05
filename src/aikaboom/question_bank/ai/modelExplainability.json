@@ -1,0 +1,8 @@
+{
+  "field": "modelExplainability",
+  "bom_type": "ai",
+  "question": "Describes methods that can be used to explain the results from the AI model.",
+  "keywords": "explainability interpretability model results explanation",
+  "description": "A free-form text that lists the different explainability mechanisms and how they can be used to explain the results from the AI model.",
+  "post_process": null
+}

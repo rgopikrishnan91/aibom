@@ -1,0 +1,8 @@
+{
+  "field": "useSensitivePersonalInformation",
+  "bom_type": "ai",
+  "question": "Records if sensitive personal information is used during model training or could be used during the inference.",
+  "keywords": "sensitive personal information PII privacy data protection",
+  "description": "Notes if sensitive personal information is used in the training or inference of the AI models. This might include biometric data, addresses or other data that can be used to infer a persons identity.",
+  "post_process": null
+}

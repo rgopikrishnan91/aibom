@@ -1,0 +1,8 @@
+{
+  "field": "datasetNoise",
+  "bom_type": "data",
+  "question": "What is the potentially noisy elements of the dataset?",
+  "keywords": "noise noisy quality errors artifacts outliers inaccuracies inconsistencies corrupted",
+  "description": "Describes what kinds of noises a dataset might encompass.",
+  "post_process": null
+}

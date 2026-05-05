@@ -1,46 +1,31 @@
-"""Tests for the RAG-pipeline post-processors and the new question-bank
+"""Tests for the RAG-pipeline post-processors and the question-bank
 entries (license, primaryPurpose, datasetAvailability, description,
-sourceInfo).
+sourceInfo, …).
 
 These tests don't spin up the full LangGraph workflow — they exercise the
-post-processor dispatch and assert that each new question entry has the
-expected metadata so the wiring stays sound.
+post-processor dispatch and assert each entry's metadata so the wiring
+stays sound. Question metadata is loaded directly from the per-field
+JSON bank under ``src/aikaboom/question_bank/<bom_type>/<field>.json``.
 """
-import importlib
-import re
-
 import pytest
 
-
-def _read_question_bank_source():
-    """Pull the FIXED_QUESTIONS_AI / DATA dict bodies from the source file
-    without importing :mod:`aikaboom.core.agentic_rag` (which transitively
-    requires langgraph)."""
-    import os
-    src_path = os.path.join(
-        os.path.dirname(__file__), "..", "src", "aikaboom", "core", "agentic_rag.py",
-    )
-    with open(src_path, encoding="utf-8") as f:
-        return f.read()
+from aikaboom.utils.question_bank import load_with_priorities
 
 
 def _question_priorities(block_name: str):
-    src = _read_question_bank_source()
-    m = re.search(rf"{block_name}\s*=\s*(\{{.*?^\}})", src, re.S | re.M)
-    if not m:
-        return {}
-    out = {}
-    for entry in re.finditer(r"^    '([\w]+)': \{(.*?)^    \}", m.group(1), re.S | re.M):
-        field, body = entry.group(1), entry.group(2)
-        prio = re.search(r"'priority':\s*(\[[^\]]+\])", body)
-        post = re.search(r"'post_process':\s*'([^']+)'", body)
-        if prio:
-            import ast
-            out[field] = {
-                "priority": ast.literal_eval(prio.group(1)),
-                "post_process": post.group(1) if post else None,
-            }
-    return out
+    """Back-compat helper used by test bodies below.
+    ``block_name`` is the legacy ``"FIXED_QUESTIONS_AI"`` /
+    ``"FIXED_QUESTIONS_DATA"`` selector; it picks the matching BOM type
+    out of the JSON bank."""
+    bom_type = "ai" if "AI" in block_name else "data"
+    bank = load_with_priorities(bom_type)
+    return {
+        field: {
+            "priority": entry["priority"],
+            "post_process": entry.get("post_process"),
+        }
+        for field, entry in bank.items()
+    }
 
 
 class TestNewAIQuestions:

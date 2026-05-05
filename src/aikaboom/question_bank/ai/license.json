@@ -1,0 +1,8 @@
+{
+  "field": "license",
+  "bom_type": "ai",
+  "question": "Under what license is the AI model and its code released? Quote the SPDX identifier (e.g. \"MIT\", \"Apache-2.0\", \"Llama-2\") if any source states it.",
+  "keywords": "license licensed under released under apache mit gpl bsd cc-by openrail llama gemma proprietary",
+  "description": "Per SPDX 3.0.1: the license expression governing use of the AI package. Sources include HuggingFace cardData.license, GitHub LICENSE file, and any license clause in the README or arXiv paper.",
+  "post_process": "normalize_license"
+}
