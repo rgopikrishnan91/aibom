@@ -3,6 +3,6 @@
   "bom_type": "ai",
   "question": "What is the primary purpose / main task of this AI model (one of: model, application, data, framework, library, other)?",
   "keywords": "task category pipeline classification generation segmentation translation summarisation embedding retrieval purpose role intent",
-  "description": "Per SPDX 3.0.1 software_primaryPurpose: a single value identifying what the AI artefact is. Tags from HuggingFace and topics from GitHub are strong direct signals; the arXiv abstract is a strong narrative signal. The Provenance BOM keeps the raw human-readable answer; the SPDX emitter coerces it to the SPDX enum at export time.",
+  "description": "Provides information about the primary purpose of the software artifact.\n\nprimaryPurpose provides information about the primary purpose of the software\nartifact.",
   "post_process": null
 }

@@ -3,6 +3,6 @@
   "bom_type": "data",
   "question": "What is the type of the given dataset.",
   "keywords": "type format datatype image text audio video multimodal tabular structured unstructured",
-  "description": "Describes the datatype contained in the dataset.",
+  "description": "Describes the type of the given dataset.\n\nDescribes the datatype contained in the dataset.\n\nFor example, a dataset can be an image dataset for computer vision applications, a text dataset such as the contents of a book or Wikipedia article, or sometimes a multimodal dataset that contains multiple types of data.",
   "post_process": null
 }

@@ -3,6 +3,6 @@
   "bom_type": "ai",
   "question": "Records if sensitive personal information is used during model training or could be used during the inference.",
   "keywords": "sensitive personal information PII privacy data protection",
-  "description": "Notes if sensitive personal information is used in the training or inference of the AI models. This might include biometric data, addresses or other data that can be used to infer a persons identity.",
+  "description": "Records if sensitive personal information is used during model training or\ncould be used during the inference.\n\nNotes if sensitive personal information is used in the training or inference of\nthe AI models.\n\nThis might include biometric data, addresses or other data that can be used to\ninfer a person's identity.\n\nRelated: `hasSensitivePersonalInformation` in `/Dataset/DatasetPackage`",
   "post_process": null
 }

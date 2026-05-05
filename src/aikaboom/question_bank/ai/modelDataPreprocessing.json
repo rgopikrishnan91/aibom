@@ -3,6 +3,6 @@
   "bom_type": "ai",
   "question": "Describes all the preprocessing steps applied to the training data before the model training.",
   "keywords": "data preprocessing cleaning normalization transformation",
-  "description": "A free-form text that describes the preprocessing steps applied to the training data before training of the model(s) contained in the AI software.",
+  "description": "Describes all the preprocessing steps applied to the training data before the\nmodel training.\n\nA free-form text that describes the preprocessing steps applied to the training\ndata before training of the model(s) contained in the AI software.",
   "post_process": null
 }

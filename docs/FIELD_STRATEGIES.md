@@ -126,8 +126,17 @@ The tables above match the implementation as of this commit:
   `config/source_priority.json` declares.
 - ✅ The RAG question bank lives as one JSON per field under
   `src/aikaboom/question_bank/<bom_type>/<field>.json`. Each file
-  carries the question prompt, retrieval keywords, SPDX-citing
+  carries the question prompt, retrieval keywords, SPDX-canonical
   description, and `post_process` name. Priority is layered on at
   module load from `config/source_priority.json`. Edit any field's
   prompt independently of the rest — the loader picks up the change
   at next process start.
+- ✅ Every mapped field's `description` slot is sourced **verbatim**
+  from the official `spdx/spdx-3-model` repository at tag `3.0.1`,
+  harvested into
+  [`docs/SPDX_3.0.1_FIELD_REFERENCE.md`](SPDX_3.0.1_FIELD_REFERENCE.md)
+  by `tools/harvest_spdx_3_0_1.py`. AIkaBoOM-internal fields
+  (`trainedOnDatasets`, `testedOnDatasets`, `modelLineage`,
+  `sourceInfo`) carry `"aikaboom_internal": true` and keep their own
+  description. The regression test
+  `tests/test_question_bank_descriptions.py` fails CI on drift.

@@ -4,5 +4,6 @@
   "question": "What specific named datasets were used to train this AI model? List only the dataset names.",
   "keywords": "training data dataset corpus fine-tuned trained on pre-trained pre-training data source",
   "description": "Per SPDX 3.0.1 trainedOn relationship: identifies the specific datasets used to train the AI model. The answer should list concrete dataset names (e.g. \"SQuAD\", \"Common Crawl\", \"The Pile\") rather than generic descriptions. Maps to SPDX trainedOn relationship and CycloneDX modelCard.datasets with type=training.",
-  "post_process": null
+  "post_process": null,
+  "aikaboom_internal": true
 }

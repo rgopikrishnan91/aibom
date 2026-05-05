@@ -3,6 +3,6 @@
   "bom_type": "ai",
   "question": "Records the type of the model used in the AI software.",
   "keywords": "model type supervised unsupervised reinforcement learning",
-  "description": "A free-form text that records the type of the AI model(s) used in the software. For instance, if it is a supervised model, unsupervised model, reinforcement learning model or a combination of those.",
+  "description": "Records the type of the model used in the AI software.\n\nA free-form text that records the type of the AI model(s) used in the software.\n\nFor instance, if it is a supervised model, unsupervised model, reinforcement\nlearning model or a combination of those.",
   "post_process": null
 }

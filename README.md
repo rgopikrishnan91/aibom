@@ -208,19 +208,21 @@ next module-load. Source priority is **not** in these files — it lives
 in [`src/aikaboom/config/source_priority.json`](src/aikaboom/config/source_priority.json)
 so prompt edits and ranking edits don't collide in PR review.
 
-> **TODO — question-bank enhancement.** The recently added entries
-> (`license`, `primaryPurpose`, `datasetAvailability`, `description`,
-> `sourceInfo`) cite the SPDX 3.0.1 spec verbatim in their `description`
-> slot. The older 13 inferred entries (`autonomyType`, `domain`,
-> `hyperparameter`, `informationAboutTraining`, `metric`, …) pre-date
-> the spec lock and use shorter freeform descriptions; aligning them
-> with the official SPDX 3.0.1
-> [`AIPackage`](https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Classes/AIPackage/)
-> and
-> [`DatasetPackage`](https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Classes/DatasetPackage/)
-> class text — and harmonising prompt phrasing and keyword density — is
-> an open work item. Edits land in
-> `src/aikaboom/question_bank/<bom_type>/<field>.json`. PRs welcome.
+Question-bank descriptions are sourced **verbatim** from the official
+[`spdx/spdx-3-model`](https://github.com/spdx/spdx-3-model) at tag
+`3.0.1`, harvested into
+[`docs/SPDX_3.0.1_FIELD_REFERENCE.md`](docs/SPDX_3.0.1_FIELD_REFERENCE.md).
+Each mapped field's `description` slot carries the spec's full Summary
+and Description blocks; AIkaBoOM-internal fields
+(`trainedOnDatasets`, `testedOnDatasets`, `modelLineage`, `sourceInfo`)
+are flagged `"aikaboom_internal": true` and exempted. The regression
+test [`tests/test_question_bank_descriptions.py`](tests/test_question_bank_descriptions.py)
+fails CI if any entry drifts. To refresh after a SPDX rev:
+
+```bash
+python tools/harvest_spdx_3_0_1.py --version 3.1.0
+python tools/sync_question_bank_descriptions.py --apply
+```
 
 AIkaBoOM detects two kinds of conflicts and surfaces both in the `conflict` field of every triplet.
 

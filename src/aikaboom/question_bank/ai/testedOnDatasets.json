@@ -4,5 +4,6 @@
   "question": "What specific named datasets or benchmarks were used to evaluate or test this AI model?",
   "keywords": "evaluation benchmark test dataset tested evaluated assessment validation",
   "description": "Per SPDX 3.0.1 testedOn relationship: identifies the specific datasets or benchmarks used to evaluate the AI model. Examples include GLUE, SuperGLUE, MMLU, HellaSwag, etc. Maps to SPDX testedOn relationship and CycloneDX modelCard.datasets with type=evaluation.",
-  "post_process": null
+  "post_process": null,
+  "aikaboom_internal": true
 }

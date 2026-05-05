@@ -3,6 +3,7 @@
 ## Contents
 
 - [Field Resolution Strategies](./FIELD_STRATEGIES.md) — per-field reference for source priority, normalisation, and SPDX/CycloneDX export shape.
+- [SPDX 3.0.1 Field Reference](./SPDX_3.0.1_FIELD_REFERENCE.md) — verbatim Summary + Description blocks harvested from the [`spdx/spdx-3-model`](https://github.com/spdx/spdx-3-model) repo. Canonical text for the question-bank `description` slots.
 - [HuggingFace Spaces Deployment](./HF_SPACES.md)
 - [Local Embeddings Guide](./LOCAL_EMBEDDINGS.md)
 - [Migration Guide](./migration.md)

@@ -3,6 +3,6 @@
   "bom_type": "data",
   "question": "What is the potentially noisy elements of the dataset?",
   "keywords": "noise noisy quality errors artifacts outliers inaccuracies inconsistencies corrupted",
-  "description": "Describes what kinds of noises a dataset might encompass.",
+  "description": "Describes potentially noisy elements of the dataset.\n\nDescribes what kinds of noises a dataset might encompass.\n\nThe free-form text specifies fields or samples that might be noisy.\n\nAlternatively, it can also be used to describe various noises that could impact the whole dataset.",
   "post_process": null
 }

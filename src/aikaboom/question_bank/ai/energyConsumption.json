@@ -3,6 +3,6 @@
   "bom_type": "ai",
   "question": "Indicates the amount of energy consumption incurred by an AI model.",
   "keywords": "energy consumption power usage electricity computational resources GPU CPU training inference kWh joules watts",
-  "description": "Captures the energy consumption of an AI model, either known or estimated. In the absence of direct measurements, an SPDX data creator may choose to estimate the energy consumption based on information about computational resources (e.g., number of floating-point operations), training time, and other relevant training details.",
+  "description": "Indicates the amount of energy consumption incurred by an AI model.\n\nCaptures the energy consumption of an AI model, either known or estimated.\n\nIn the absence of direct measurements, an SPDX data creator may choose to\nestimate the energy consumption based on information about computational\nresources (e.g., number of floating-point operations), training time, and other\nrelevant training details.",
   "post_process": null
 }

@@ -3,6 +3,6 @@
   "bom_type": "data",
   "question": "What is the biases that the dataset is known to encompass?",
   "keywords": "bias biased fairness demographic representation imbalance skewed prejudice limitation",
-  "description": "A free-form text that describes the different biases that the dataset encompasses.",
+  "description": "Records the biases that the dataset is known to encompass.\n\nA free-form text that describes the different biases that the dataset encompasses.",
   "post_process": null
 }
