@@ -1,7 +1,7 @@
 # Migration Guide: Switching to Local Embeddings
 
 ## Summary
-Your BOM Tools project now uses **FREE local embeddings** by default instead of requiring OpenAI API credentials!
+Your AIkaBoOM project now uses **FREE local embeddings** by default instead of requiring OpenAI API credentials!
 
 ## What Changed
 - **✅ Default now:** Local HuggingFace embeddings (completely free, no API key needed)
@@ -72,14 +72,17 @@ The web interface (`python run.py`) automatically uses local embeddings - no con
 ## Environment Variables
 You can now remove `OPENAI_API_KEY` from your `.env` file if you're only using local embeddings and not OpenAI LLMs.
 
-**Still Required:**
-- `GITHUB_TOKEN` - For GitHub API access
-- `hug_token` or `HUGGINGFACE_TOKEN` - For Hugging Face metadata
+**Optional (raise rate limits / unlock private repos):**
+- `GITHUB_TOKEN` - Higher GitHub API rate limit
+- `HUGGINGFACE_TOKEN` - Higher HF rate limit + access to gated/private repos
 
-**Optional:**
-- `OPENAI_API_KEY` - Only if using OpenAI LLMs or OpenAI embeddings
-- `GEMINI_API_KEY` - Only if using link fallback feature
-- `OLLAMA_BASE_URL` - Only if using Ollama
+**LLM provider (pick one — all optional, RAG embeddings are local):**
+- `OPENROUTER_API_KEY` - OpenRouter (free `:free` models work)
+- `OPENAI_API_KEY` - OpenAI directly
+- `OLLAMA_BASE_URL` - Local Ollama (e.g. `http://localhost:11434/v1/`)
+
+**Optional helper:**
+- `GEMINI_API_KEY` - Enables the Link Fallback Agent (auto-discovers missing arXiv / GitHub links)
 
 ## First-Time Model Download
 The first time you run with local embeddings, the model will be downloaded (80-440MB depending on model choice). This is a one-time download:
@@ -96,15 +99,16 @@ Models are cached in: `~/.cache/huggingface/hub/`
 - **OpenAI embeddings:** Limited by API rate limits + network latency
 
 ## GPU Support (Optional)
-To use GPU for faster embeddings (if you have CUDA):
-```python
-from aikaboom.core.agentic_rag import AgenticRAG
+To use GPU for faster embeddings (if you have CUDA), edit
+`src/aikaboom/core/agentic_rag.py` — search for the
+`HuggingFaceEmbeddings(...)` call and change the `model_kwargs` device
+from `'cpu'` to `'cuda'`:
 
-# Edit agentic_rag.py line ~478 to change 'cpu' to 'cuda':
+```python
 self.embeddings = HuggingFaceEmbeddings(
     model_name=embedding_model,
-    model_kwargs={'device': 'cuda'},  # Change from 'cpu' to 'cuda'
-    encode_kwargs={'normalize_embeddings': True}
+    model_kwargs={'device': 'cuda'},  # change from 'cpu' to 'cuda'
+    encode_kwargs={'normalize_embeddings': True},
 )
 ```
 
@@ -126,5 +130,5 @@ embedding_model="sentence-transformers/all-MiniLM-L6-v2"  # Smallest, fastest
 First run downloads the model (~80-440MB). Subsequent runs are instant.
 
 ## Questions?
-- Check [README.md](README.md) section "Embedding Options for RAG Mode"
-- All code defaults to local embeddings - just run it!
+- See the top-level [README.md](../README.md) for installation, CLI usage, and HF Spaces deployment.
+- All code defaults to local embeddings — just run it.

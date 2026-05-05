@@ -35,14 +35,16 @@ python Demo_UI.py
 
 #### New Way
 ```bash
-# Option 1: Using Python module
-python -m aikaboom.web.app
+# Option 1: Run a Python helper that starts Flask
+python run.py
 
-# Option 2: Using installed command (after pip install)
-aikaboom
+# Option 2: Subcommand on the installed CLI (after pip install -e .)
+aikaboom serve --port 5000
 
-# Option 3: From anywhere after installation
-aikaboom
+# Generate a BOM directly
+aikaboom generate --type ai --repo microsoft/DialoGPT-medium --output result.json
+
+# Plain `aikaboom` prints the available subcommands.
 ```
 
 ### File Locations
