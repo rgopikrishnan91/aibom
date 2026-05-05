@@ -1,0 +1,8 @@
+{
+  "field": "datasetUpdateMechanism",
+  "bom_type": "data",
+  "question": "What is the mechanism to update the dataset.",
+  "keywords": "update updated updating version maintenance versioning refresh dynamic static mechanism",
+  "description": "A free-form text that describes a mechanism to update the dataset.",
+  "post_process": null
+}

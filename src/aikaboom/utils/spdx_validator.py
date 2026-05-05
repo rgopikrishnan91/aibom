@@ -93,6 +93,68 @@ def _load_json_schema() -> Dict[str, Any]:
         return json.load(f)
 
 
+_SIZE_UNITS = {
+    # Decimal SI
+    "b": 1, "byte": 1, "bytes": 1,
+    "k": 10 ** 3, "kb": 10 ** 3,
+    "m": 10 ** 6, "mb": 10 ** 6,
+    "g": 10 ** 9, "gb": 10 ** 9,
+    "t": 10 ** 12, "tb": 10 ** 12,
+    "p": 10 ** 15, "pb": 10 ** 15,
+    # IEC binary
+    "kib": 2 ** 10, "mib": 2 ** 20, "gib": 2 ** 30, "tib": 2 ** 40, "pib": 2 ** 50,
+}
+
+_SIZE_PATTERN = re.compile(
+    r"^\s*([0-9][\d_,]*(?:\.\d+)?)\s*([a-zA-Z]+)?\s*$"
+)
+
+
+def _coerce_dataset_size_bytes(value: Any) -> Optional[int]:
+    """Best-effort parse of a free-form size string into integer bytes.
+
+    Recognises decimal SI (``KB``/``MB``/``GB``/``TB``/``PB``) and IEC
+    binary (``KiB``/``MiB``/…) suffixes plus bare ``K``/``M``/``G``/``T``,
+    plain integers, and integers with thousands separators (``1,234,567``).
+    Returns ``None`` when no positive byte count can be derived — callers
+    should omit the SPDX ``dataset_datasetSize`` property in that case
+    rather than emit a misleading ``0``. Zero bytes is treated as
+    no-assertion: a dataset that genuinely has zero bytes is the same
+    signal as "we don't know".
+    """
+    if value is None or value == "":
+        return None
+    if isinstance(value, bool):  # bool is a subclass of int; reject explicitly.
+        return None
+    if isinstance(value, int):
+        return value if value > 0 else None
+    if isinstance(value, float):
+        if value <= 0:
+            return None
+        result = int(value)
+        return result if result > 0 else None
+    text = str(value).strip()
+    if not text:
+        return None
+    match = _SIZE_PATTERN.match(text)
+    if not match:
+        return None
+    number_text = match.group(1).replace(",", "").replace("_", "")
+    suffix = (match.group(2) or "").lower()
+    try:
+        number = float(number_text)
+    except ValueError:
+        return None
+    if number <= 0:
+        return None
+    if suffix and suffix not in _SIZE_UNITS:
+        # Suffix present but not a byte unit (e.g. "10000 examples").
+        return None
+    multiplier = _SIZE_UNITS.get(suffix, 1)
+    result = int(number * multiplier)
+    return result if result > 0 else None
+
+
 class SPDXValidator:
     """Unified validator that converts both AI and Dataset BOM data to SPDX 3.0.1 format"""
     
@@ -643,12 +705,12 @@ class SPDXValidator:
         
         data_collection = self._extract_value(rag.get('dataCollectionProcess') or "")
         
-        dataset_size = self._extract_value(rag.get('datasetSize', 0))
-        if isinstance(dataset_size, str):
-            try:
-                dataset_size = int(dataset_size)
-            except (ValueError, TypeError):
-                dataset_size = 0
+        dataset_size = _coerce_dataset_size_bytes(
+            self._extract_value(rag.get('datasetSize'))
+        )
+        # `dataset_size is None` means we couldn't parse a byte count from
+        # the answer; the property is omitted from the Dataset element so
+        # the SPDX export carries no misleading "0 bytes" claim.
         
         dataset_type = self._normalize_enum_list(
             rag.get('datasetType', []), _DATASET_TYPES, "other"
@@ -665,7 +727,42 @@ class SPDXValidator:
         known_bias = self._extract_value(rag.get('knownBias', []))
         if isinstance(known_bias, str):
             known_bias = [known_bias] if known_bias else []
-        
+
+        # Build the DatasetPackage element first so we can conditionally
+        # omit dataset_datasetSize when the LLM answer didn't yield a
+        # parseable byte count (the SPDX schema allows omission, which is
+        # less misleading than emitting "0").
+        dataset_package = {
+            "type": "dataset_DatasetPackage",
+            "spdxId": f"https://spdx.org/spdxdocs/DatasetPackage1-{dataset_uuid}",
+            "creationInfo": "_:creationinfo",
+            "name": dataset_name,
+            "originatedBy": [f"https://spdx.org/spdxdocs/Organization1-{org_uuid}"],
+            "builtTime": built_time,
+            "releaseTime": release_time,
+            "software_downloadLocation": download_location,
+            "software_primaryPurpose": primary_purpose,
+            "dataset_anonymizationMethodUsed": self._as_list(rag.get('anonymizationMethodUsed', "")),
+            "dataset_confidentialityLevel": self._normalize_enum(
+                rag.get('confidentialityLevel', "clear"),
+                _DATASET_CONFIDENTIALITY_VALUES,
+                "clear",
+            ),
+            "dataset_dataPreprocessing": data_preprocessing,
+            "dataset_datasetAvailability": dataset_availability,
+            "dataset_dataCollectionProcess": data_collection,
+            "dataset_datasetNoise": self._extract_value(rag.get('datasetNoise', "")),
+            "dataset_datasetType": dataset_type,
+            "dataset_datasetUpdateMechanism": dataset_update,
+            "dataset_hasSensitivePersonalInformation": has_pii,
+            "dataset_intendedUse": intended_use,
+            "dataset_knownBias": known_bias,
+            "dataset_sensor": self._dictionary_entries(rag.get('sensorUsed', "")),
+            "comment": "Generated by AIkaBoOM.",
+        }
+        if dataset_size is not None:
+            dataset_package["dataset_datasetSize"] = dataset_size
+
         # Build SPDX document
         spdx_doc = {
             "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
@@ -720,36 +817,8 @@ class SPDXValidator:
                     "profileConformance": ["core", "dataset"],
                     "rootElement": [f"https://spdx.org/spdxdocs/DatasetPackage1-{dataset_uuid}"]
                 },
-                # 6. DatasetPackage
-                {
-                    "type": "dataset_DatasetPackage",
-                    "spdxId": f"https://spdx.org/spdxdocs/DatasetPackage1-{dataset_uuid}",
-                    "creationInfo": "_:creationinfo",
-                    "name": dataset_name,
-                    "originatedBy": [f"https://spdx.org/spdxdocs/Organization1-{org_uuid}"],
-                    "builtTime": built_time,
-                    "releaseTime": release_time,
-                    "software_downloadLocation": download_location,
-                    "software_primaryPurpose": primary_purpose,
-                    "dataset_anonymizationMethodUsed": self._as_list(rag.get('anonymizationMethodUsed', "")),
-                    "dataset_confidentialityLevel": self._normalize_enum(
-                        rag.get('confidentialityLevel', "clear"),
-                        _DATASET_CONFIDENTIALITY_VALUES,
-                        "clear",
-                    ),
-                    "dataset_dataPreprocessing": data_preprocessing,
-                    "dataset_datasetAvailability": dataset_availability,
-                    "dataset_dataCollectionProcess": data_collection,
-                    "dataset_datasetNoise": self._extract_value(rag.get('datasetNoise', "")),
-                    "dataset_datasetSize": dataset_size,
-                    "dataset_datasetType": dataset_type,
-                    "dataset_datasetUpdateMechanism": dataset_update,
-                    "dataset_hasSensitivePersonalInformation": has_pii,
-                    "dataset_intendedUse": intended_use,
-                    "dataset_knownBias": known_bias,
-                    "dataset_sensor": self._dictionary_entries(rag.get('sensorUsed', "")),
-                    "comment": "Generated by AIkaBoOM."
-                },
+                # 6. DatasetPackage (built above so dataset_datasetSize can be omitted on no-assertion)
+                dataset_package,
                 # 7. LicenseExpression
                 {
                     "type": "simplelicensing_LicenseExpression",

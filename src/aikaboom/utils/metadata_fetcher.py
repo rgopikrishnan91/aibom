@@ -160,6 +160,13 @@ class MetadataFetcher:
                 github_metadata["releaseTime"] = repo.pushed_at.isoformat() if repo.pushed_at else None
                 github_metadata["name"] = repo.name if repo.name else None
                 github_metadata["datasetAvailability"] = "public" if not repo.private else "private"
+                # contentIdentifier: latest commit SHA from the default branch
+                try:
+                    default_branch = getattr(repo, "default_branch", None) or "main"
+                    branch = repo.get_branch(default_branch)
+                    github_metadata["contentIdentifier"] = (branch.commit.sha or "").lower() or None
+                except Exception:
+                    github_metadata["contentIdentifier"] = None
                 # Primary Purpose (description + topics, same as AI BOM)
                 purpose_indicators = []
                 if repo.description:
@@ -281,12 +288,119 @@ class MetadataFetcher:
                 hf_metadata["primaryPurpose"] = repo_info.cardData.get("task_categories") if repo_info.cardData else None
                 hf_metadata["license"] = repo_info.cardData.get("license") if repo_info.cardData else None
                 hf_metadata["sourceInfo"] = repo_info.cardData.get("source_datasets") if repo_info.cardData else None
+                # contentIdentifier: HF dataset commit SHA
+                hf_metadata["contentIdentifier"] = (getattr(repo_info, "sha", "") or "").lower() or None
 
         except Exception as e:
             print(f"Error retrieving Hugging Face metadata for {repo_info.id}: {e}")
             return {}
 
         return hf_metadata
+
+    @staticmethod
+    def huggingface_structured_chunk(repo_info, bom_type: str = "ai") -> str:
+        """Render a prose summary of an HF repo's structured metadata so the
+        RAG retriever can compare it against README / arXiv text.
+
+        The chunk packs license, tags, task_categories, pipeline_tag,
+        base_model, and dataset references into one text blob with the same
+        ``source`` label as the README. Returns an empty string when there's
+        nothing useful to say.
+        """
+        if repo_info is None:
+            return ""
+        card = getattr(repo_info, "cardData", None) or {}
+        tags = list(getattr(repo_info, "tags", None) or [])
+
+        def _maybe(prefix, value):
+            if value in (None, "", []):
+                return None
+            if isinstance(value, (list, tuple, set)):
+                value = ", ".join(str(v) for v in value if v not in (None, ""))
+                if not value:
+                    return None
+            return f"- {prefix}: {value}"
+
+        lines = [f"HuggingFace structured metadata for {getattr(repo_info, 'id', 'unknown')}:"]
+        lines.append(_maybe("license", card.get("license") if isinstance(card, dict) else None))
+        if tags:
+            lines.append(_maybe("tags", tags[:30]))
+        if isinstance(card, dict):
+            lines.append(_maybe("task_categories", card.get("task_categories")))
+            lines.append(_maybe("pipeline_tag", card.get("pipeline_tag")))
+            lines.append(_maybe("base_model", card.get("base_model")))
+            lines.append(_maybe("datasets", card.get("datasets")))
+            if bom_type != "ai":
+                lines.append(_maybe("source_datasets", card.get("source_datasets")))
+                lines.append(_maybe("annotations_creators", card.get("annotations_creators")))
+                lines.append(_maybe("language", card.get("language")))
+                lines.append(_maybe("size_categories", card.get("size_categories")))
+        # Sum sibling-file sizes when HF returns them so the RAG retriever
+        # has a precise byte count to compare against arXiv text. Datasets
+        # only — model siblings rarely carry ``size`` and HF model APIs
+        # don't expose a meaningful aggregate.
+        if bom_type != "ai":
+            siblings = list(getattr(repo_info, "siblings", None) or [])
+            total = 0
+            for sib in siblings:
+                size = getattr(sib, "size", None)
+                if isinstance(size, int) and size > 0:
+                    total += size
+            if total > 0:
+                lines.append(f"- estimated_total_size_bytes: {total}")
+
+        cleaned = [l for l in lines if l]
+        if len(cleaned) <= 1:
+            return ""
+        return "\n".join(cleaned)
+
+    @staticmethod
+    def github_structured_chunk(github_repo, bom_type: str = "ai") -> str:
+        """Render a prose summary of a GitHub repo's structured metadata.
+
+        Includes description, topics, license name, default branch, and
+        primary language so they participate in RAG retrieval as part of the
+        ``github`` source.
+        """
+        if github_repo is None:
+            return ""
+        try:
+            repo = github_repo
+            license_name = None
+            try:
+                lic = repo.get_license()
+                license_name = lic.license.name if lic else None
+            except Exception:
+                license_name = getattr(getattr(repo, "license", None), "name", None)
+            try:
+                topics = repo.get_topics() or []
+            except Exception:
+                topics = []
+            lines = [f"GitHub structured metadata for {getattr(repo, 'full_name', 'unknown')}:"]
+            if getattr(repo, "description", None):
+                lines.append(f"- description: {repo.description}")
+            if license_name:
+                lines.append(f"- license: {license_name}")
+            if topics:
+                lines.append(f"- topics: {', '.join(topics[:30])}")
+            if getattr(repo, "language", None):
+                lines.append(f"- primary_language: {repo.language}")
+            if getattr(repo, "default_branch", None):
+                lines.append(f"- default_branch: {repo.default_branch}")
+            # repo.size is in KB per the GitHub API contract. Surface it
+            # as bytes so the RAG retriever has a precise number for the
+            # `datasetSize` answer when no other source is available.
+            # Dataset BOMs only — AI BOMs have no datasetSize question and
+            # don't need this signal in their structured chunk.
+            if bom_type != "ai":
+                repo_size_kb = getattr(repo, "size", None)
+                if isinstance(repo_size_kb, int) and repo_size_kb > 0:
+                    lines.append(f"- repository_size_bytes: {repo_size_kb * 1024}")
+            if len(lines) <= 1:
+                return ""
+            return "\n".join(lines)
+        except Exception:
+            return ""
 
     @staticmethod
     def extract_huggingface_model_tree(repo_info):

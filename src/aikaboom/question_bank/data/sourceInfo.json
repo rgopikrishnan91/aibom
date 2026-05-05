@@ -1,0 +1,8 @@
+{
+  "field": "sourceInfo",
+  "bom_type": "data",
+  "question": "Which upstream datasets, papers, or models contributed to this dataset? List the named sources only.",
+  "keywords": "source upstream derived from based on aggregated combined merged contains uses parent dataset",
+  "description": "Free-form list of upstream sources that contributed to this dataset (other datasets, papers, models). Combined from HuggingFace cardData.source_datasets and the model-tree, README mentions, and arXiv paper references.",
+  "post_process": "dedupe_named_entities"
+}

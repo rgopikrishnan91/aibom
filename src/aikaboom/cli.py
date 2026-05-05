@@ -225,6 +225,7 @@ def cmd_generate(args):
         from aikaboom.utils.cyclonedx_exporter import bom_to_cyclonedx
         bom_to_cyclonedx(result, bom_type=bom_type, output_path=args.cyclonedx)
         print(f"CycloneDX 1.7 BOM saved to {args.cyclonedx} (beta)")
+        result.setdefault("beta_fields", []).append("cyclonedx")
 
     if args.recursive_bom:
         from aikaboom.utils.recursive_bom import (
@@ -248,6 +249,7 @@ def cmd_generate(args):
             validate_spdx=args.validate_spdx,
             strict_spdx=args.strict_spdx_validation,
         )
+        result.setdefault("beta_fields", []).append("recursive_bom")
         if args.recursive_output:
             with open(args.recursive_output, "w", encoding="utf-8") as f:
                 json.dump(recursive_result, f, indent=2, ensure_ascii=False)
@@ -263,6 +265,7 @@ def cmd_generate(args):
             linked = build_linked_spdx_bundle(result, recursive_result, bom_type=bom_type)
             with open(args.linked_bom_output, "w", encoding="utf-8") as f:
                 json.dump(linked, f, indent=2, ensure_ascii=False)
+            result.setdefault("beta_fields", []).append("linked_spdx_bundle")
             summary = linked_bundle_summary(linked, recursive_result)
             print(
                 f"Linked SPDX BOM bundle saved to {args.linked_bom_output} (beta) — "

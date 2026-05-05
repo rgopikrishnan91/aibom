@@ -1,0 +1,8 @@
+{
+  "field": "hasSensitivePersonalInformation",
+  "bom_type": "data",
+  "question": "Does any sensitive personal information is present in the dataset?",
+  "keywords": "sensitive personal information PII privacy identifying identity protected health financial",
+  "description": "Indicates the presence of sensitive personal data or information.",
+  "post_process": null
+}

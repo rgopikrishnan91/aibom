@@ -552,6 +552,8 @@ def process():
                 'use_case': proc.use_case,
                 'use_case_label': get_use_case_label(proc.use_case, 'ai'),
                 'download_url': f'/download/{os.path.basename(output_file)}',
+                # beta-feature labels populated below as features run
+                'beta_fields': [],
                 'field_counts': {
                     'direct': direct_count,
                     'rag': rag_count,
@@ -673,6 +675,8 @@ def process():
                 'use_case': proc.use_case,
                 'use_case_label': get_use_case_label(proc.use_case, 'data'),
                 'download_url': f'/download/{os.path.basename(output_file)}',
+                # beta-feature labels populated below as features run
+                'beta_fields': [],
                 'field_counts': {
                     'direct': direct_count,
                     'rag': rag_count,
@@ -738,6 +742,7 @@ def process():
             response_data['cyclonedx_download_url'] = f'/download/{cdx_filename}'
             response_data['cyclonedx_data'] = cdx_output
             response_data['cyclonedx_beta'] = True
+            response_data.setdefault('beta_fields', []).append('cyclonedx')
         except Exception as cdx_exc:
             import traceback
             print(f"⚠️ CycloneDX conversion failed: {cdx_exc}")
@@ -766,6 +771,7 @@ def process():
                     json.dump(recursive_output, f, indent=2, ensure_ascii=False)
                 response_data['recursive_bom'] = recursive_output
                 response_data['recursive_bom_download_url'] = f'/download/{recursive_filename}'
+                response_data.setdefault('beta_fields', []).append('recursive_bom')
 
                 try:
                     linked_bundle = build_linked_spdx_bundle(
@@ -784,6 +790,7 @@ def process():
                         )
                     response_data['linked_bom'] = summary
                     response_data['linked_bom_download_url'] = f'/download/{linked_filename}'
+                    response_data.setdefault('beta_fields', []).append('linked_spdx_bundle')
                 except Exception as linked_exc:
                     response_data['linked_bom'] = {'error': str(linked_exc), 'beta': True}
             except Exception as recursive_exc:

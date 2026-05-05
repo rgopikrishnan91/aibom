@@ -113,229 +113,30 @@ def _invoke_with_retry(fn, *args, max_retries=3, initial_delay=2.0, **kwargs):
 ssl_context = ssl.create_default_context(cafile=certifi.where())
 
 
-# FIXED AI MODEL QUESTIONS WITH PRE-DEFINED SOURCE PRIORITY
-FIXED_QUESTIONS_AI = {
-    'autonomyType': {
-        'question': 'Does the system can perform a decision or action without human involvement or guidance (yes, no, or noAssertion)?',
-        'priority': ['arxiv', 'huggingface', 'github'],
-        'keywords': 'autonomous automation automated decision-making human involvement guidance manual intervention oversight supervision fully automated system self-governing independent unsupervised human-in-the-loop semi-autonomous user-controlled operator-assisted',
-        'description': 'Indicates if the system is fully automated or a human is involved in any of the decisions of the AI system. yes: Indicates that the system is fully automated. no: Indicates that a human is involved in any of the decisions of the AI system. noAssertion: Makes no assertion about the autonomy.'
-    },
-    'domain': {
-        'question': 'What is the domain in which the AI package can be used?',
-        'priority': ['arxiv', 'huggingface', 'github'],
-        'keywords': 'domain application area field sector industry vertical computer vision natural language processing NLP machine learning classification regression detection segmentation speech recognition image processing text analysis audio processing video analysis time series forecasting recommendation systems robotics healthcare finance automotive agriculture education retail manufacturing cybersecurity gaming entertainment',
-        'description': 'A free-form text that describes the domain where the AI model contained in the AI software can be expected to operate successfully. Examples include computer vision, natural language processing, etc.'
-    },
-    'energyConsumption': {
-        'question': 'Indicates the amount of energy consumption incurred by an AI model.',
-        'priority': ['huggingface', 'arxiv', 'github'],
-        'keywords': 'energy consumption power usage electricity computational resources GPU CPU training inference kWh joules watts',
-        'description': 'Captures the energy consumption of an AI model, either known or estimated. In the absence of direct measurements, an SPDX data creator may choose to estimate the energy consumption based on information about computational resources (e.g., number of floating-point operations), training time, and other relevant training details.'
-    },
-    # 'energyQuantity': {
-    #     'question': 'Represents the energy quantity.',
-    #     'priority': ['github', 'huggingface', 'arxiv'],
-    #     'keywords': 'energy quantity measurement value estimation calculation',
-    #     'description': 'Provides the quantity information of the energy.'
-    # },
-    # 'energyUnit': {
-    #     'question': 'Specifies the unit in which energy is measured.',
-    #     'priority': ['arxiv', 'huggingface', 'github'],
-    #     'keywords': 'energy unit measurement kWh kilowatt-hour kilowatt-hours kw-hr kwh joules joule J kilojoule kJ megajoule MJ GJ megawatt MW  british thermal unit BTU btu  calorie cal kcal kilocalorie foot-pound ftlb therm therms quad quadrillion electron-volt eV keV MeV GeV TeV newton-meter Nm horsepower-hour hph power consumption electricity electrical energy thermal energy mechanical energy unit of measurement units measurement scale metric imperial SI international system base unit derived unit energy efficiency power rating electrical consumption carbon footprint CO2 equivalent emissions per unit computational energy training energy inference energy GPU-hours CPU-hours TPU-hours floating point operations FLOPS energy per FLOP',
-    #     'description': 'Provides the unit information of the energy.'
-    # },
-    # 'finetuningEnergyConsumption': {
-    #     'question': 'Specifies the amount of energy consumed when finetuning the AI model that is being used in the AI system.',
-    #     'priority': ['huggingface', 'arxiv', 'github'],
-    #     'keywords': 'finetuning energy consumption power usage computational resources',
-    #     'description': 'The field specifies the amount of energy consumed when finetuning the AI model that is being used in the AI system.'
-    # },
-    'hyperparameter': {
-        'question': 'Records a hyperparameter used to build the AI model contained in the AI package.',
-        'priority': ['arxiv', 'huggingface', 'github'],
-        'keywords': 'hyperparameter learning rate batch size layers tuning settings',
-        'description': 'Records a hyperparameter value. Hyperparameters are settings defined before the training process that control the learning algorithms behavior. They differ from model parameters, which are learned from the data during training. Developers typically set hyperparameters manually or through a process of hyperparameter tuning (also known as trial and error). Examples of hyperparameters include learning rate, batch size, and the number of layers in a neural network.'
-    },
-    # 'inferenceEnergyConsumption': {
-    #     'question': 'Provides relevant information about the AI software, not including the model description.',
-    #     'priority': ['huggingface', 'github', 'arxiv'],
-    #     'keywords': 'inference energy consumption runtime power usage efficiency',
-    #     'description': 'The field specifies the amount of energy consumed during inference time by an AI model that is being used in the AI system.'
-    # },
-    'informationAboutApplication': {
-        'question': 'Provides relevant information about the AI software, not including the model description.',
-        'priority': ['github', 'huggingface', 'arxiv'],
-        'keywords': 'application functionality pre-processing APIs dependencies',
-        'description': 'A free-form text description of how the AI model is used within the software. It should include any relevant information, such as pre-processing steps, third-party APIs, and other pertinent details. It can also include: Functionality provided by the AI model within the software application, including: any specific tasks or decisions it is designed to perform; any pre-processing steps that are applied to the input data before it is fed into the AI model for inference, such as data cleaning, normalization, or feature extraction; and any third-party APIs or services that are used in conjunction with the AI model, such as data sources, cloud services, or other AI models. Description of any dependencies or requirements needed to run the AI model within the software application, including: specific hardware, software libraries, and operating systems.'
-    },
-    'informationAboutTraining': {
-        'question': 'Describes relevant information about different steps of the training process.',
-        'priority': ['arxiv', 'huggingface', 'github'],
-        'keywords': 'training process data algorithms techniques evaluation metrics',
-        'description': 'A detailed explanation of the training process, including the specific techniques, algorithms, and methods employed. Examples include: training data used to train the AI model, along with any relevant details about its source, quality, and pre-processing steps; specific training algorithms employed, including stochastic gradient descent, backpropagation, and reinforcement learning; specific training techniques used to improve the performance or accuracy of the AI model, such as transfer learning, fine-tuning, or active learning; and any evaluation metrics used to assess the performance of the AI model during the training process, including accuracy, precision, recall, and F1 score.'
-    },
-    'limitation': {
-        'question': 'Captures a limitation of the AI software.',
-        'priority': ['arxiv', 'huggingface', 'github'],
-        'keywords': 'limitations constraints challenges restrictions',
-        'description': 'A free-form text that captures a limitation of the AI package (or of the AI models present in the AI package). Note that this is not guaranteed to be exhaustive. For instance, a limitation might be that the AI package cannot be used on datasets from a certain demography.'
-    },
-    'metric': {
-        'question': 'Records the measurement of prediction quality of the AI model.',
-        'priority': ['arxiv', 'huggingface', 'github'],
-        'keywords': 'metrics evaluation accuracy precision recall F1-score',
-        'description': 'Records the measurement with which the AI model was evaluated. This makes statements about the prediction quality including uncertainty, accuracy, characteristics of the tested population, quality, fairness, explainability, robustness etc.'
-    },
-    'metricDecisionThreshold': {
-        'question': 'Captures the threshold that was used for computation of a metric described in the metric field.',
-        'priority': ['arxiv', 'huggingface', 'github'],
-        'keywords': 'decision threshold metric computation evaluation',
-        'description': 'Each metric might be computed based on a decision threshold. For instance, precision or recall is typically computed by checking if the probability of the outcome is larger than 0.5. Each decision threshold should match with a metric field defined in the AI package.'
-    },
-    'modelDataPreprocessing': {
-        'question': 'Describes all the preprocessing steps applied to the training data before the model training.',
-        'priority': ['arxiv', 'github', 'huggingface'],
-        'keywords': 'data preprocessing cleaning normalization transformation',
-        'description': 'A free-form text that describes the preprocessing steps applied to the training data before training of the model(s) contained in the AI software.'
-    },
-    'modelExplainability': {
-        'question': 'Describes methods that can be used to explain the results from the AI model.',
-        'priority': ['arxiv', 'github', 'huggingface'],
-        'keywords': 'explainability interpretability model results explanation',
-        'description': 'A free-form text that lists the different explainability mechanisms and how they can be used to explain the results from the AI model.'
-    },
-    'safetyRiskAssessment': {
-        'question': 'Records the results of general safety risk assessment of the AI system.',
-        'priority': ['huggingface', 'arxiv', 'github'],
-        'keywords': 'safety risk assessment compliance evaluation',
-        'description': 'Records the results of general safety risk assessment of the AI system. Using categorization according to the EU general risk assessment methodology. The methodology implements Article 20 of Regulation (EC) No 765/2008 and is intended to assist authorities when they assess general product safety compliance. It is important to note that this categorization differs from the one proposed in the EU AI Acts provisional agreement.'
-    },
-    'standardCompliance': {
-        'question': 'Captures a standard that is being complied with.',
-        'priority': ['arxiv', 'github', 'huggingface'],
-        'keywords': 'standards compliance ISO IEEE ETSI regulations',
-        'description': 'A free-form text that captures a standard that the AI software complies with. This includes both published and unpublished standards, such as those developed by ISO, IEEE, and ETSI. The standard may, but is not necessarily required to, satisfy a legal or regulatory requirement.'
-    },
-    # 'trainingEnergyConsumption': {
-    #     'question': 'Specifies the amount of energy consumed when training the AI model that is being used in the AI system.',
-    #     'priority': ['arxiv', 'github', 'huggingface'],
-    #     'keywords': 'training energy consumption computational resources power usage',
-    #     'description': 'The field specifies the amount of energy consumed when training the AI model that is being used in the AI system.'
-    # },
-    'typeOfModel': {
-        'question': 'Records the type of the model used in the AI software.',
-        'priority': ['arxiv', 'huggingface', 'github'],
-        'keywords': 'model type supervised unsupervised reinforcement learning',
-        'description': 'A free-form text that records the type of the AI model(s) used in the software. For instance, if it is a supervised model, unsupervised model, reinforcement learning model or a combination of those.'
-    },
-    'useSensitivePersonalInformation': {
-        'question': 'Records if sensitive personal information is used during model training or could be used during the inference.',
-        'priority': ['huggingface', 'arxiv', 'github'],
-        'keywords': 'sensitive personal information PII privacy data protection',
-        'description': 'Notes if sensitive personal information is used in the training or inference of the AI models. This might include biometric data, addresses or other data that can be used to infer a persons identity.'
-    },
-    'trainedOnDatasets': {
-        'question': 'What specific named datasets were used to train this AI model? List only the dataset names.',
-        'priority': ['huggingface', 'arxiv', 'github'],
-        'keywords': 'training data dataset corpus fine-tuned trained on pre-trained pre-training data source',
-        'description': 'Per SPDX 3.0.1 trainedOn relationship: identifies the specific datasets used to train the AI model. The answer should list concrete dataset names (e.g. "SQuAD", "Common Crawl", "The Pile") rather than generic descriptions. Maps to SPDX trainedOn relationship and CycloneDX modelCard.datasets with type=training.'
-    },
-    'testedOnDatasets': {
-        'question': 'What specific named datasets or benchmarks were used to evaluate or test this AI model?',
-        'priority': ['arxiv', 'huggingface', 'github'],
-        'keywords': 'evaluation benchmark test dataset tested evaluated assessment validation',
-        'description': 'Per SPDX 3.0.1 testedOn relationship: identifies the specific datasets or benchmarks used to evaluate the AI model. Examples include GLUE, SuperGLUE, MMLU, HellaSwag, etc. Maps to SPDX testedOn relationship and CycloneDX modelCard.datasets with type=evaluation.'
-    },
-    'modelLineage': {
-        'question': 'What is the base model or parent model that this AI model was derived from or fine-tuned on?',
-        'priority': ['huggingface', 'arxiv', 'github'],
-        'keywords': 'base model parent model derived from fine-tuned from pre-trained foundation model ancestor lineage',
-        'description': 'Per SPDX 3.0.1 dependsOn relationship: identifies the base or parent model from which this model was derived (e.g. "meta-llama/Llama-3" or "google-bert/bert-base-uncased"). Maps to SPDX dependsOn relationship and CycloneDX pedigree.ancestors.'
-    },
-}
+# RAG question banks live as one-JSON-per-field files under
+# ``aikaboom/question_bank/<bom_type>/<field>.json``. Edit those files to
+# tune any field's prompt, keywords, or description without touching
+# Python; the loader reads them at module load and overlays the priority
+# from ``aikaboom/config/source_priority.json``.
+from aikaboom.utils.question_bank import load_with_priorities as _load_qb
 
-# FIXED DATASET QUESTIONS WITH PRE-DEFINED SOURCE PRIORITY
-FIXED_QUESTIONS_DATA = {
-    'anonymizationMethodUsed': {
-        'question': 'What is the anonymization methods used in this dataset?',
-        'priority': ['arxiv', 'huggingface', 'github'],
-        'keywords': 'anonymization anonymous anonymized privacy protection de-identification pseudonymization masking',
-        'description': 'A free-form text that describes the methods used to anonymize the dataset or fields in the dataset.'
-    },
-    'confidentialityLevel': {
-        'question': 'What is the confidentiality level of the data points contained in the dataset?',
-        'priority': ['arxiv', 'huggingface', 'github'],
-        'keywords': 'confidential confidentiality sensitive privacy classification level public private restricted',
-        'description': 'Describes the levels of confidentiality of the data points contained in the dataset.'
-    },
-    'dataCollectionProcess': {
-        'question': 'How the dataset was collected?',
-        'priority': ['huggingface', 'arxiv', 'github'],
-        'keywords': 'collected collection gathering scraping crawling sources method methodology acquisition obtained compiled',
-        'description': 'A free-form text that describes how a dataset was collected.'
-    },
-    'dataPreprocessing': {
-        'question': 'What is the preprocessing steps that were applied to the raw data to create the given dataset.',
-        'priority': ['github', 'huggingface', 'arxiv'],
-        'keywords': 'preprocessing cleaning normalization standardization tokenization filtering transformation deduplication removal',
-        'description': 'A free-form text that describes the various preprocessing steps applied to the raw data.'
-    },
-    'datasetAvailability': {
-        'question': 'Does the dataset publicaly available or not?',
-        'priority': ['huggingface', 'arxiv', 'github'],
-        'keywords': 'available availability download access public private registration clickthrough restricted open',
-        'description': 'Describes the dataset availability from accessibility perspective.'
-    },
-    'datasetNoise': {
-        'question': 'What is the potentially noisy elements of the dataset?',
-        'priority': ['huggingface', 'arxiv', 'github'],
-        'keywords': 'noise noisy quality errors artifacts outliers inaccuracies inconsistencies corrupted',
-        'description': 'Describes what kinds of noises a dataset might encompass.'
-    },
-    'datasetSize': {
-        'question': 'What is the size of the dataset.',
-        'priority': ['huggingface', 'arxiv', 'github'],
-        'keywords': 'size samples examples instances records entries GB MB TB bytes volume count number',
-        'description': 'Captures how large a dataset is, measured in bytes.'
-    },
-    'datasetType': {
-        'question': 'What is the type of the given dataset.',
-        'priority': ['huggingface', 'github', 'arxiv'],
-        'keywords': 'type format datatype image text audio video multimodal tabular structured unstructured',
-        'description': 'Describes the datatype contained in the dataset.'
-    },
-    'datasetUpdateMechanism': {
-        'question': 'What is the mechanism to update the dataset.',
-        'priority': ['github', 'huggingface', 'arxiv'],
-        'keywords': 'update updated updating version maintenance versioning refresh dynamic static mechanism',
-        'description': 'A free-form text that describes a mechanism to update the dataset.'
-    },
-    'hasSensitivePersonalInformation': {
-        'question': 'Does any sensitive personal information is present in the dataset?',
-        'priority': ['huggingface', 'arxiv', 'github'],
-        'keywords': 'sensitive personal information PII privacy identifying identity protected health financial',
-        'description': 'Indicates the presence of sensitive personal data or information.'
-    },
-    'intendedUse': {
-        'question': 'For what the given dataset should be used for?',
-        'priority': ['arxiv', 'huggingface', 'github'],
-        'keywords': 'intended use purpose application task designed goal objective research training evaluation',
-        'description': 'A free-form text that describes what the given dataset should be used for.'
-    },
-    'knownBias': {
-        'question': 'What is the biases that the dataset is known to encompass?',
-        'priority': ['arxiv', 'huggingface', 'github'],
-        'keywords': 'bias biased fairness demographic representation imbalance skewed prejudice limitation',
-        'description': 'A free-form text that describes the different biases that the dataset encompasses.'
-    },
-    'sensorUsed': {
-        'question': 'What is the sensor used for collecting the data?',
-        'priority': ['arxiv', 'github', 'huggingface'],
-        'keywords': 'sensor device instrument equipment camera microphone accelerometer calibration hardware',
-        'description': 'Describes a sensor that was used for collecting the data and its calibration value.'
-    }
-}
+FIXED_QUESTIONS_AI = _load_qb("ai")
+FIXED_QUESTIONS_DATA = _load_qb("data")
+
+
+def _apply_source_priority_config() -> None:
+    """Re-apply the source-priority config onto the runtime question
+    banks. Called once at module load; callers can re-invoke after a
+    :func:`set_source_priority_path` flush to refresh."""
+    try:
+        from aikaboom.utils.source_priority import get_rag_priority
+    except Exception:
+        return
+    for field, cfg in FIXED_QUESTIONS_AI.items():
+        cfg["priority"] = get_rag_priority(field, bom_type="ai")
+    for field, cfg in FIXED_QUESTIONS_DATA.items():
+        cfg["priority"] = get_rag_priority(field, bom_type="data")
+
 
 # Unified function to get questions based on BOM type
 def get_fixed_questions(bom_type='ai'):
@@ -1160,16 +961,22 @@ class AgenticRAG:
             "chunks_per_source": chunks_by_source
         }
 
-    def process_ai_model(self, repo_id: str, arxiv_url: str, github_url: str, huggingface_url: str) -> List[Dict]:
+    def process_ai_model(self, repo_id: str, arxiv_url: str, github_url: str, huggingface_url: str, structured_chunks: Optional[Dict[str, str]] = None) -> List[Dict]:
         """Process a single AI model and answer all questions"""
-        return self.process(repo_id, arxiv_url, github_url, huggingface_url, 'ai')
-    
-    def process_dataset(self, dataset_id: str, arxiv_url: str, github_url: str, huggingface_url: str) -> List[Dict]:
+        return self.process(repo_id, arxiv_url, github_url, huggingface_url, 'ai', structured_chunks=structured_chunks)
+
+    def process_dataset(self, dataset_id: str, arxiv_url: str, github_url: str, huggingface_url: str, structured_chunks: Optional[Dict[str, str]] = None) -> List[Dict]:
         """Process a single dataset and answer all questions"""
-        return self.process(dataset_id, arxiv_url, github_url, huggingface_url, 'data')
+        return self.process(dataset_id, arxiv_url, github_url, huggingface_url, 'data', structured_chunks=structured_chunks)
     
-    def process(self, item_id: str, arxiv_url: str, github_url: str, huggingface_url: str, item_type: str = None) -> List[Dict]:
-        """Unified process method that handles both AI models and datasets"""
+    def process(self, item_id: str, arxiv_url: str, github_url: str, huggingface_url: str, item_type: str = None, structured_chunks: Optional[Dict[str, str]] = None) -> List[Dict]:
+        """Unified process method that handles both AI models and datasets.
+
+        ``structured_chunks`` is an optional mapping ``{source_name: prose}``
+        that gets prepended to that source's README / PDF text before
+        retrieval, so HF/GH structured metadata (license, tags, topics, …)
+        participates in RAG conflict detection.
+        """
         if item_type is None:
             item_type = self.bom_type
         item_type = item_type.lower()
@@ -1218,11 +1025,22 @@ class AgenticRAG:
                     except Exception as e:
                         print(f"  ✗ {source}: fetch failed — {e}")
 
+        # Inject structured-metadata chunks (HF tags, GH topics, license,
+        # base_model, etc.) at the top of each source's text so the RAG
+        # retriever can compare them against README / arXiv text.
+        if structured_chunks:
+            for source, chunk in structured_chunks.items():
+                if not chunk:
+                    continue
+                existing = content_dict.get(source, "")
+                content_dict[source] = (chunk + "\n\n" + existing) if existing else chunk
+                print(f"  ➕ {source}: prepended structured chunk ({len(chunk):,} chars)")
+
         # Print content statistics
         print("\n  📊 Content Statistics:")
         for source, content in content_dict.items():
             print(f"    {source}: {len(content):,} characters")
-        
+
         # Create vector stores
         print("\n  Creating vector stores...")
         retrievers = self.create_vector_stores(content_dict)

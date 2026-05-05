@@ -1,0 +1,8 @@
+{
+  "field": "modelLineage",
+  "bom_type": "ai",
+  "question": "What is the base model or parent model that this AI model was derived from or fine-tuned on?",
+  "keywords": "base model parent model derived from fine-tuned from pre-trained foundation model ancestor lineage",
+  "description": "Per SPDX 3.0.1 dependsOn relationship: identifies the base or parent model from which this model was derived (e.g. \"meta-llama/Llama-3\" or \"google-bert/bert-base-uncased\"). Maps to SPDX dependsOn relationship and CycloneDX pedigree.ancestors.",
+  "post_process": null
+}

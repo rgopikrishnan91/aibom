@@ -1,0 +1,8 @@
+{
+  "field": "dataPreprocessing",
+  "bom_type": "data",
+  "question": "What is the preprocessing steps that were applied to the raw data to create the given dataset.",
+  "keywords": "preprocessing cleaning normalization standardization tokenization filtering transformation deduplication removal",
+  "description": "A free-form text that describes the various preprocessing steps applied to the raw data.",
+  "post_process": null
+}

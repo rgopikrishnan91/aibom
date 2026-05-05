@@ -16,7 +16,12 @@ import requests
 from aikaboom.core.agentic_rag import AgenticRAG, DirectLLM, FIXED_QUESTIONS_AI, FIXED_QUESTIONS_DATA
 from aikaboom.utils.metadata_fetcher import MetadataFetcher
 from aikaboom.core.source_handler import SourceHandler
-from aikaboom.core.internal_conflict import LicenseConflictChecker
+from aikaboom.utils.source_priority import get_direct_priority
+from aikaboom.utils.normalise import (
+    normalize_org,
+    normalize_url,
+    normalize_version,
+)
 
 
 def _clean_value(value):
@@ -84,6 +89,10 @@ def _build_triplet_payload(mapping, conflict_suffix='_conflict', source_suffix=N
             continue
         if source_suffix and key.endswith(source_suffix):
             continue
+        # Carry-over debug fields (e.g. '<field>_raw_answer') are not
+        # promoted to triplets.
+        if key.endswith("_raw_answer"):
+            continue
         raw_conflict = _clean_value(mapping.get(f"{key}{conflict_suffix}")) if conflict_suffix else None
         source_value = _clean_value(mapping.get(f"{key}{source_suffix}")) if source_suffix else None
         payload[key] = {
@@ -92,36 +101,6 @@ def _build_triplet_payload(mapping, conflict_suffix='_conflict', source_suffix=N
             "conflict": _parse_conflict_string(raw_conflict)
         }
     return payload
-
-
-def _merge_license_intra_conflict(direct_fields: dict, license_internal_conflict: dict) -> dict:
-    """Fold the LicenseConflictChecker result into direct_fields['license'].conflict.
-
-    If a real conflict is detected (has_conflict=True), overrides or sets the conflict
-    entry on the license field using the unified {value, type} structure.
-    The top-level 'license_internal_conflict' key is then no longer needed.
-    """
-    if not license_internal_conflict or not license_internal_conflict.get('has_conflict'):
-        return direct_fields
-
-    description = license_internal_conflict.get('conflict_description')
-    if not description:
-        # Build description from per-source details
-        parts = []
-        for src, detail in license_internal_conflict.get('per_source', {}).items():
-            if detail.get('has_conflict') and detail.get('conflict_description'):
-                parts.append(f"{src}: {detail['conflict_description']}")
-        description = '; '.join(parts) if parts else 'License conflict detected'
-
-    if 'license' in direct_fields:
-        # Collect conflicting source names from per_source details
-        conflict_sources = []
-        for src, detail in license_internal_conflict.get('per_source', {}).items():
-            if detail.get('has_conflict'):
-                conflict_sources.append(src)
-        source_str = ', '.join(conflict_sources) if conflict_sources else None
-        direct_fields['license']['conflict'] = {'value': description, 'source': source_str, 'type': 'intra'}
-    return direct_fields
 
 
 class AIBOMProcessor:
@@ -205,63 +184,84 @@ class AIBOMProcessor:
         return f"ai_model_{timestamp}"
     
     def pivot_results_to_wide_format(self, results: list, model_id: str) -> dict:
-        """Convert results from long format to wide format with answer, source and structured conflict."""
+        """Convert results from long format to wide format with answer, source and structured conflict.
+
+        Applies the per-question ``post_process`` callable (declared in
+        ``FIXED_QUESTIONS_AI``) to the raw answer before it lands in the
+        wide table, so SPDX/CycloneDX consumers see canonicalised values
+        (license SPDX ids, primaryPurpose enum, deduplicated source lists,
+        …). Original raw answer is preserved as ``<field>_raw_answer`` for
+        debugging.
+        """
+        from aikaboom.utils.normalise import get_post_processor
+
         wide_result = {"model_id": model_id}
-        
+
         for result in results:
             question_type = result['question_type']
-            wide_result[question_type] = result['answer']
+            answer = result['answer']
+            # Honour the user-supplied questions_config first — even an
+            # explicit ``{}`` override means "no per-field metadata".
+            # FIXED_QUESTIONS_AI is only consulted when the question_type
+            # is genuinely missing from the user's config.
+            if question_type in self.questions_config:
+                cfg = self.questions_config[question_type]
+            else:
+                cfg = FIXED_QUESTIONS_AI.get(question_type, {})
+            post = get_post_processor(cfg.get('post_process'))
+            if post is not None:
+                try:
+                    processed = post(answer)
+                except Exception as exc:
+                    print(f"  ⚠️ post_process for {question_type} failed: {exc}")
+                    processed = answer
+                wide_result[question_type] = processed
+                wide_result[f"{question_type}_raw_answer"] = answer
+            else:
+                wide_result[question_type] = answer
             wide_result[f"{question_type}_source"] = ', '.join(result.get('sources_used', []))
-            wide_result[f"{question_type}_conflict"] = result.get('conflict')  # dict or None
-        
+            wide_result[f"{question_type}_conflict"] = result.get('conflict')
+
         return wide_result
     
     def fetch_direct_metadata(self, github_url: str, hf_repo_id: str = None) -> dict:
-        """Fetch direct metadata from GitHub and HuggingFace"""
+        """Backwards-compatible wrapper: fetch source objects then resolve.
+
+        Prefer :meth:`process_ai_model`, which fetches the source objects
+        once and reuses them for both RAG structured chunks and direct
+        resolution.
+        """
+        _, github_metadata, _, huggingface_metadata = self._fetch_source_objects(
+            github_url=github_url, hf_repo_id=hf_repo_id, bom_type='ai',
+        )
+        return self._resolve_direct_fields_ai(huggingface_metadata, github_metadata)
+
+    def _resolve_direct_fields_ai(self, huggingface_metadata, github_metadata) -> dict:
+        """Resolve AI BOM direct fields from already-inspected source dicts."""
         direct_metadata = {}
-        github_metadata = {}
-        if self.github_client and github_url and "github.com" in str(github_url):
-            try:
-                repo_path = MetadataFetcher.extract_repo_path(github_url)
-                github_repo = self.github_client.get_repo(repo_path)
-                github_metadata = MetadataFetcher.inspect_github_BOM_Fields(github_repo, bom_type='ai')
-            except Exception as e:
-                print(f"Error fetching GitHub metadata: {e}")
+        named_sources = {"huggingface": huggingface_metadata, "github": github_metadata}
 
-        huggingface_metadata = {}
-        if self.hf_api and hf_repo_id:
-            repo_id = hf_repo_id.strip()
-            if repo_id:
-                info = None
-                try:
-                    info = self.hf_api.dataset_info(repo_id)
-                except RepositoryNotFoundError:
-                    try:
-                        info = self.hf_api.model_info(repo_id)
-                    except (RepositoryNotFoundError, HTTPError) as e:
-                        print(f"Error fetching Hugging Face metadata for {repo_id}: {e}")
-                except HTTPError as e:
-                    print(f"Error fetching Hugging Face metadata for {repo_id}: {e}")
-                if info:
-                    huggingface_metadata = MetadataFetcher.inspect_huggingface_BOM_Fields(info, bom_type='ai')
-
-        direct_metadata["releaseTime"], direct_metadata["releaseTime_source"] = SourceHandler.get_field(
-            "releaseTime", huggingface_metadata, github_metadata, mode="latest"
+        # releaseTime: pick the most recent date across sources, but flag a
+        # conflict when the gap is wider than the agreed 7-day window.
+        direct_metadata["releaseTime"], direct_metadata["releaseTime_source"], direct_metadata["releaseTime_conflicts"] = (
+            SourceHandler.get_date_field_with_window_conflict(
+                "releaseTime", named_sources, mode="latest", window_days=7,
+            )
         )
-        direct_metadata["suppliedBy"], direct_metadata["suppliedBy_source"], direct_metadata["suppliedBy_conflicts"] = SourceHandler.get_field_conflict(
-            "suppliedBy", huggingface_metadata, github_metadata
+        direct_metadata["suppliedBy"], direct_metadata["suppliedBy_source"], direct_metadata["suppliedBy_conflicts"] = SourceHandler.get_field_conflict_with_priority(
+            "suppliedBy", named_sources,
+            priority=get_direct_priority("suppliedBy"),
+            normaliser=normalize_org,
         )
-        direct_metadata["downloadLocation"], direct_metadata["downloadLocation_source"], direct_metadata["downloadLocation_conflicts"] = SourceHandler.get_field_conflict(
-            "software_downloadLocation", huggingface_metadata, github_metadata
+        direct_metadata["downloadLocation"], direct_metadata["downloadLocation_source"], direct_metadata["downloadLocation_conflicts"] = SourceHandler.get_field_conflict_with_priority(
+            "software_downloadLocation", named_sources,
+            priority=get_direct_priority("downloadLocation"),
+            normaliser=normalize_url,
         )
-        direct_metadata["packageVersion"], direct_metadata["packageVersion_source"], direct_metadata["packageVersion_conflicts"] = SourceHandler.get_field_conflict(
-            "packageVersion", huggingface_metadata, github_metadata
-        )
-        direct_metadata["primaryPurpose"], direct_metadata["primaryPurpose_source"], direct_metadata["primaryPurpose_conflicts"] = SourceHandler.get_field_conflict(
-            "primaryPurpose", huggingface_metadata, github_metadata, fuzzy=True
-        )
-        direct_metadata["license"], direct_metadata["license_source"], direct_metadata["license_conflicts"] = SourceHandler.get_field_conflict(
-            "license", huggingface_metadata, github_metadata
+        direct_metadata["packageVersion"], direct_metadata["packageVersion_source"], direct_metadata["packageVersion_conflicts"] = SourceHandler.get_field_conflict_with_priority(
+            "packageVersion", named_sources,
+            priority=get_direct_priority("packageVersion"),
+            normaliser=normalize_version,
         )
         return direct_metadata
 
@@ -293,25 +293,81 @@ class AIBOMProcessor:
             print(f"  ⚠️ Could not fetch HuggingFace README: {e}")
         return ""
 
+    def _fetch_source_objects(self, github_url: str, hf_repo_id: str = None, bom_type: str = 'ai'):
+        """Fetch the raw HF / GH API objects and their inspected dicts.
+
+        Returns ``(github_repo, github_metadata, hf_info, hf_metadata)``;
+        any element may be ``None`` / ``{}`` if the source isn't configured
+        or the fetch fails. Centralised so the structured-metadata chunks
+        (consumed by RAG) and the direct-field resolver share a single
+        API round-trip per source.
+        """
+        github_repo = None
+        github_metadata = {}
+        if self.github_client and github_url and "github.com" in str(github_url):
+            try:
+                repo_path = MetadataFetcher.extract_repo_path(github_url)
+                github_repo = self.github_client.get_repo(repo_path)
+                github_metadata = MetadataFetcher.inspect_github_BOM_Fields(github_repo, bom_type=bom_type)
+            except Exception as e:
+                print(f"Error fetching GitHub metadata: {e}")
+                github_repo = None
+
+        hf_info = None
+        hf_metadata = {}
+        if self.hf_api and hf_repo_id:
+            repo_id = str(hf_repo_id).strip()
+            if repo_id:
+                try:
+                    hf_info = self.hf_api.dataset_info(repo_id) if bom_type == 'data' else self.hf_api.model_info(repo_id)
+                except RepositoryNotFoundError:
+                    if bom_type == 'ai':
+                        try:
+                            hf_info = self.hf_api.dataset_info(repo_id)
+                        except (RepositoryNotFoundError, HTTPError) as e:
+                            print(f"Error fetching Hugging Face metadata for {repo_id}: {e}")
+                except HTTPError as e:
+                    print(f"Error fetching Hugging Face metadata for {repo_id}: {e}")
+                if hf_info is not None:
+                    hf_metadata = MetadataFetcher.inspect_huggingface_BOM_Fields(hf_info, bom_type=bom_type)
+
+        return github_repo, github_metadata, hf_info, hf_metadata
+
+    def _build_structured_chunks(self, github_repo, hf_info, bom_type: str = 'ai') -> dict:
+        chunks = {}
+        if hf_info is not None:
+            chunks["huggingface"] = MetadataFetcher.huggingface_structured_chunk(hf_info, bom_type=bom_type)
+        if github_repo is not None:
+            chunks["github"] = MetadataFetcher.github_structured_chunk(github_repo, bom_type=bom_type)
+        return {k: v for k, v in chunks.items() if v}
+
     def process_ai_model(self, repo_id: str, arxiv_url: str, github_url: str) -> tuple:
         """Main processing function for a single AI model"""
         model_id = self.generate_model_id(repo_id, github_url)
-        
+
         print(f"\nProcessing model: {model_id}")
         print(f"Use case: {self.use_case}")
         print(f"Questions to ask: {len(self.questions_config)}")
-        
+
         # Construct HuggingFace URL if repo_id is provided
         huggingface_url = None
         if repo_id and '/' in repo_id:  # repo_id should be in format 'owner/model'
             huggingface_url = f"https://huggingface.co/{repo_id}"
             print(f"Constructed HuggingFace URL: {huggingface_url}")
-        
+
+        # Pre-fetch the source objects once: feed structured chunks into RAG
+        # and reuse the inspected dicts for direct-field resolution below.
+        github_repo, github_metadata, hf_info, huggingface_metadata = self._fetch_source_objects(
+            github_url=github_url, hf_repo_id=repo_id, bom_type='ai',
+        )
+        structured_chunks = self._build_structured_chunks(github_repo, hf_info, bom_type='ai')
+
         rag_results = self.processor.process_ai_model(
             repo_id=model_id,
             arxiv_url=arxiv_url,
             github_url=github_url,
-            huggingface_url=huggingface_url
+            huggingface_url=huggingface_url,
+            structured_chunks=structured_chunks,
         )
         
         wide_metadata = self.pivot_results_to_wide_format(rag_results, model_id)
@@ -322,9 +378,8 @@ class AIBOMProcessor:
             skip_keys={'model_id'}
         )
         
-        direct_metadata_raw = self.fetch_direct_metadata(
-            github_url=github_url,
-            hf_repo_id=repo_id
+        direct_metadata_raw = self._resolve_direct_fields_ai(
+            huggingface_metadata, github_metadata,
         )
         
         direct_fields = _build_triplet_payload(
@@ -333,27 +388,17 @@ class AIBOMProcessor:
             source_suffix='_source'
         )
 
-        # Check for internal license conflict between structured metadata and README text
-        readme_texts = {
-            "github_readme": self._fetch_github_readme(github_url),
-            "hf_readme": self._fetch_hf_readme(repo_id),
-        }
-        license_internal_conflict = LicenseConflictChecker.check_all_sources(
-            structured_license=direct_metadata_raw.get("license"),
-            readme_texts=readme_texts,
-        )
-        print(
-            f"  {'⚠️ License internal conflict detected' if license_internal_conflict['has_conflict'] else '✓ No license internal conflict'}"
-        )
-        # Fold the license intra-conflict into direct_fields['license'].conflict
-        direct_fields = _merge_license_intra_conflict(direct_fields, license_internal_conflict)
-
         complete_metadata = {
             "repo_id": repo_id or model_id,
             "model_id": model_id,
             "use_case": self.use_case,
             "direct_fields": direct_fields,
             "rag_fields": rag_fields,
+            # Surfaces beta features that *did run* in this BOM. Callers
+            # (CLI / web app) append labels like "cyclonedx",
+            # "recursive_bom", "linked_spdx_bundle" once they actually
+            # produce those exports. Empty list = vanilla SPDX-only run.
+            "beta_fields": [],
         }
 
         return complete_metadata
@@ -441,64 +486,86 @@ class DATABOMProcessor:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         return f"dataset_{timestamp}"
     
-    def fetch_direct_metadata(self, github_url: str, hf_url: str) -> dict:
-        """Perform direct metadata fetching from GitHub and Hugging Face"""
-        direct_metadata = {}
-        
-        # GitHub Metadata
+    def _fetch_source_objects(self, github_url: str, hf_url: str = None):
+        """Fetch the raw HF dataset_info / GH repo objects and their
+        inspected dicts, mirroring AIBOMProcessor._fetch_source_objects."""
+        github_repo = None
         github_metadata = {}
-        if github_url and "github.com" in str(github_url):
+        if self.github_client and github_url and "github.com" in str(github_url):
             try:
                 repo_path = MetadataFetcher.extract_repo_path(github_url)
                 github_repo = self.github_client.get_repo(repo_path)
                 github_metadata = MetadataFetcher.inspect_github_BOM_Fields(github_repo, bom_type='data')
             except Exception as e:
                 print(f"Error fetching GitHub metadata: {e}")
-        
-        # Hugging Face Metadata
-        huggingface_metadata = {}
-        if hf_url:
+                github_repo = None
+
+        hf_info = None
+        hf_metadata = {}
+        if self.hf_api and hf_url:
             try:
                 repo_id = MetadataFetcher.extract_repo_id_from_hf_url(hf_url)
                 if repo_id:
-                    info = self.hf_api.dataset_info(repo_id)
-                    huggingface_metadata = MetadataFetcher.inspect_huggingface_BOM_Fields(info, bom_type='data')
+                    hf_info = self.hf_api.dataset_info(repo_id)
+                    hf_metadata = MetadataFetcher.inspect_huggingface_BOM_Fields(hf_info, bom_type='data')
             except Exception as e:
                 print(f"Error fetching Hugging Face metadata: {e}")
-        
-        # Aggregate metadata using SourceHandler
-        direct_metadata["builtTime"], direct_metadata["builtTime_source"] = SourceHandler.get_field(
-            "builtTime", huggingface_metadata, github_metadata, mode='earliest'
+
+        return github_repo, github_metadata, hf_info, hf_metadata
+
+    def _build_structured_chunks(self, github_repo, hf_info) -> dict:
+        chunks = {}
+        if hf_info is not None:
+            chunks["huggingface"] = MetadataFetcher.huggingface_structured_chunk(hf_info, bom_type='data')
+        if github_repo is not None:
+            chunks["github"] = MetadataFetcher.github_structured_chunk(github_repo, bom_type='data')
+        return {k: v for k, v in chunks.items() if v}
+
+    def fetch_direct_metadata(self, github_url: str, hf_url: str) -> dict:
+        """Backwards-compatible wrapper: fetch source objects then resolve."""
+        _, github_metadata, _, huggingface_metadata = self._fetch_source_objects(
+            github_url=github_url, hf_url=hf_url,
         )
-        
-        direct_metadata["originatedBy"], direct_metadata["originatedBy_source"], direct_metadata["originatedBy_conflicts"] = SourceHandler.get_field_conflict(
-            "originatedBy", huggingface_metadata, github_metadata
+        return self._resolve_direct_fields_data(huggingface_metadata, github_metadata)
+
+    def _resolve_direct_fields_data(self, huggingface_metadata, github_metadata) -> dict:
+        """Resolve Dataset BOM direct fields from already-inspected dicts."""
+        direct_metadata = {}
+        named_sources = {"huggingface": huggingface_metadata, "github": github_metadata}
+
+        # builtTime: pick the earliest "first created" date, flag a conflict
+        # when sources differ by more than 7 days.
+        direct_metadata["builtTime"], direct_metadata["builtTime_source"], direct_metadata["builtTime_conflicts"] = (
+            SourceHandler.get_date_field_with_window_conflict(
+                "builtTime", named_sources, mode="earliest", window_days=7,
+            )
         )
-        
-        direct_metadata["releaseTime"], direct_metadata["releaseTime_source"] = SourceHandler.get_field(
-            "releaseTime", huggingface_metadata, github_metadata, mode='latest'
+
+        direct_metadata["originatedBy"], direct_metadata["originatedBy_source"], direct_metadata["originatedBy_conflicts"] = SourceHandler.get_field_conflict_with_priority(
+            "originatedBy", named_sources,
+            priority=get_direct_priority("originatedBy"),
+            normaliser=normalize_org,
         )
-        
-        direct_metadata["downloadLocation"], direct_metadata["downloadLocation_source"], direct_metadata["downloadLocation_conflicts"] = SourceHandler.get_field_conflict(
-            "software_downloadLocation", huggingface_metadata, github_metadata
+
+        # releaseTime: most-recent activity date, with the same 7-day window.
+        direct_metadata["releaseTime"], direct_metadata["releaseTime_source"], direct_metadata["releaseTime_conflicts"] = (
+            SourceHandler.get_date_field_with_window_conflict(
+                "releaseTime", named_sources, mode="latest", window_days=7,
+            )
         )
-        
-        direct_metadata["primaryPurpose"], direct_metadata["primaryPurpose_source"], direct_metadata["primaryPurpose_conflicts"] = SourceHandler.get_field_conflict(
-            "primaryPurpose", huggingface_metadata, github_metadata, fuzzy=True
+
+        direct_metadata["downloadLocation"], direct_metadata["downloadLocation_source"], direct_metadata["downloadLocation_conflicts"] = SourceHandler.get_field_conflict_with_priority(
+            "software_downloadLocation", named_sources,
+            priority=get_direct_priority("downloadLocation"),
+            normaliser=normalize_url,
         )
-        
-        direct_metadata["license"], direct_metadata["license_source"], direct_metadata["license_conflicts"] = SourceHandler.get_field_conflict(
-            "license", huggingface_metadata, github_metadata
+
+        # contentIdentifier: dataset content hash. GH > HF per the spec.
+        direct_metadata["contentIdentifier"], direct_metadata["contentIdentifier_source"], direct_metadata["contentIdentifier_conflicts"] = SourceHandler.get_field_conflict_with_priority(
+            "contentIdentifier", named_sources,
+            priority=get_direct_priority("contentIdentifier"),
         )
-        
-        direct_metadata["sourceInfo"], direct_metadata["sourceInfo_source"], direct_metadata["sourceInfo_conflicts"] = SourceHandler.get_field_conflict(
-            "sourceInfo", huggingface_metadata, github_metadata
-        )
-        
-        direct_metadata["datasetAvailability"], direct_metadata["datasetAvailability_source"], direct_metadata["datasetAvailability_conflicts"] = SourceHandler.get_field_conflict(
-            "datasetAvailability", huggingface_metadata, github_metadata
-        )
-        
+
         return direct_metadata
 
     def _fetch_github_readme(self, github_url: str) -> str:
@@ -532,35 +599,68 @@ class DATABOMProcessor:
             print(f"  ⚠️ Could not fetch HuggingFace README: {e}")
         return ""
 
-    def fetch_rag_metadata(self, dataset_id: str, arxiv_url: str, github_url: str, hf_url: str) -> dict:
+    def fetch_rag_metadata(self, dataset_id: str, arxiv_url: str, github_url: str, hf_url: str, structured_chunks: dict = None) -> dict:
         """Perform agentic RAG to extract detailed information from documents"""
         rag_results = self.processor.process_dataset(
             dataset_id=dataset_id,
             arxiv_url=arxiv_url,
             github_url=github_url,
-            huggingface_url=hf_url
+            huggingface_url=hf_url,
+            structured_chunks=structured_chunks,
         )
         
+        from aikaboom.utils.normalise import get_post_processor
+
         rag_fields = {}
         for result in rag_results:
             question_type = result['question_type']
-            rag_fields[question_type] = {
-                "value": result['answer'],
+            answer = result['answer']
+            # Honour the user-supplied questions_config first; only fall
+            # back to FIXED_QUESTIONS_DATA when the question_type is
+            # genuinely missing from the user's config.
+            if question_type in self.questions_config:
+                cfg = self.questions_config[question_type]
+            else:
+                cfg = FIXED_QUESTIONS_DATA.get(question_type, {})
+            post = get_post_processor(cfg.get('post_process'))
+            value = answer
+            if post is not None:
+                try:
+                    value = post(answer)
+                except Exception as exc:
+                    print(f"  ⚠️ post_process for {question_type} failed: {exc}")
+            entry = {
+                "value": value,
                 "source": ', '.join(result.get('sources_used', [])),
-                "conflict": result.get('conflict')  # dict or None
+                "conflict": result.get('conflict'),
             }
-        
+            if post is not None and value != answer:
+                entry["raw_answer"] = answer
+            rag_fields[question_type] = entry
+
         return rag_fields
     
     def process_dataset(self, arxiv_url: str, github_url: str, hf_url: str) -> tuple:
         """Main processing function that combines direct fetching and RAG"""
         dataset_id = self.generate_dataset_id(arxiv_url, github_url, hf_url)
-        
-        # Step 1: Direct Metadata Fetching
-        direct_metadata_raw = self.fetch_direct_metadata(github_url, hf_url)
-        
+
+        # Pre-fetch source objects once: feed structured chunks into RAG
+        # and reuse the inspected dicts for direct-field resolution.
+        github_repo, github_metadata, hf_info, huggingface_metadata = self._fetch_source_objects(
+            github_url=github_url, hf_url=hf_url,
+        )
+        structured_chunks = self._build_structured_chunks(github_repo, hf_info)
+
+        # Step 1: Direct Metadata Resolution
+        direct_metadata_raw = self._resolve_direct_fields_data(
+            huggingface_metadata, github_metadata,
+        )
+
         # Step 2: Agentic RAG Processing
-        rag_fields = self.fetch_rag_metadata(dataset_id, arxiv_url, github_url, hf_url)
+        rag_fields = self.fetch_rag_metadata(
+            dataset_id, arxiv_url, github_url, hf_url,
+            structured_chunks=structured_chunks,
+        )
 
         # Step 3: Convert direct metadata flat dict into triplet format
         direct_fields = _build_triplet_payload(
@@ -568,21 +668,6 @@ class DATABOMProcessor:
             conflict_suffix='_conflicts',
             source_suffix='_source'
         )
-
-        # Step 4: Internal license conflict check between structured metadata and README text
-        readme_texts = {
-            "github_readme": self._fetch_github_readme(github_url),
-            "hf_readme": self._fetch_hf_readme(hf_url),
-        }
-        license_internal_conflict = LicenseConflictChecker.check_all_sources(
-            structured_license=direct_metadata_raw.get("license"),
-            readme_texts=readme_texts,
-        )
-        print(
-            f"  {'⚠️ License internal conflict detected' if license_internal_conflict['has_conflict'] else '✓ No license internal conflict'}"
-        )
-        # Fold the license intra-conflict into direct_fields['license'].conflict
-        direct_fields = _merge_license_intra_conflict(direct_fields, license_internal_conflict)
 
         # Combine all metadata
         complete_metadata = {
@@ -596,6 +681,11 @@ class DATABOMProcessor:
             "processing_timestamp": datetime.now().isoformat(),
             "direct_fields": direct_fields,
             "rag_fields": rag_fields,
+            # Surfaces beta features that *did run* in this BOM. Populated
+            # by callers (CLI / web app) when they emit cyclonedx,
+            # recursive_bom, or linked_spdx_bundle outputs. Empty list =
+            # vanilla SPDX-only run.
+            "beta_fields": [],
         }
-        
+
         return complete_metadata

@@ -1,0 +1,8 @@
+{
+  "field": "datasetSize",
+  "bom_type": "data",
+  "question": "What is the size of the dataset.",
+  "keywords": "size samples examples instances records entries GB MB TB bytes volume count number",
+  "description": "Captures how large a dataset is, measured in bytes.",
+  "post_process": null
+}

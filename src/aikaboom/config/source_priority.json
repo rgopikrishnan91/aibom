@@ -1,0 +1,50 @@
+{
+  "$comment": "AIkaBoOM source-priority config — community-editable. When AIkaBoOM detects a conflict between sources for a field, it uses these lists to pick which value goes into the triplet's `value` slot and into the SPDX/CycloneDX exports. Edit this file to change the defaults, or set AIKABOOM_SOURCE_PRIORITY=/path/to/your/copy.json to override without touching the package. Missing fields fall back to the matching `default` list, then to the loader's hard-coded fallback. See docs/FIELD_STRATEGIES.md for the full per-field reference.",
+  "direct_fields": {
+    "default":              ["huggingface", "github"],
+    "contentIdentifier":    ["github", "huggingface"]
+  },
+  "rag_fields_ai": {
+    "default":                            ["huggingface", "arxiv", "github"],
+    "autonomyType":                       ["arxiv", "huggingface", "github"],
+    "domain":                             ["arxiv", "huggingface", "github"],
+    "energyConsumption":                  ["huggingface", "arxiv", "github"],
+    "hyperparameter":                     ["arxiv", "huggingface", "github"],
+    "informationAboutApplication":        ["github", "huggingface", "arxiv"],
+    "informationAboutTraining":           ["arxiv", "huggingface", "github"],
+    "limitation":                         ["arxiv", "huggingface", "github"],
+    "metric":                             ["arxiv", "huggingface", "github"],
+    "metricDecisionThreshold":            ["arxiv", "huggingface", "github"],
+    "modelDataPreprocessing":             ["arxiv", "github", "huggingface"],
+    "modelExplainability":                ["arxiv", "github", "huggingface"],
+    "safetyRiskAssessment":               ["huggingface", "arxiv", "github"],
+    "standardCompliance":                 ["arxiv", "github", "huggingface"],
+    "typeOfModel":                        ["arxiv", "huggingface", "github"],
+    "useSensitivePersonalInformation":    ["huggingface", "arxiv", "github"],
+    "trainedOnDatasets":                  ["huggingface", "arxiv", "github"],
+    "testedOnDatasets":                   ["arxiv", "huggingface", "github"],
+    "modelLineage":                       ["huggingface", "arxiv", "github"],
+    "license":                            ["huggingface", "github", "arxiv"],
+    "primaryPurpose":                     ["huggingface", "arxiv", "github"]
+  },
+  "rag_fields_data": {
+    "default":                            ["huggingface", "arxiv", "github"],
+    "anonymizationMethodUsed":            ["arxiv", "huggingface", "github"],
+    "confidentialityLevel":               ["arxiv", "huggingface", "github"],
+    "dataCollectionProcess":              ["huggingface", "arxiv", "github"],
+    "dataPreprocessing":                  ["github", "huggingface", "arxiv"],
+    "datasetAvailability":                ["huggingface", "github", "arxiv"],
+    "datasetNoise":                       ["huggingface", "arxiv", "github"],
+    "datasetSize":                        ["huggingface", "github", "arxiv"],
+    "datasetType":                        ["huggingface", "github", "arxiv"],
+    "datasetUpdateMechanism":             ["github", "huggingface", "arxiv"],
+    "hasSensitivePersonalInformation":    ["huggingface", "arxiv", "github"],
+    "intendedUse":                        ["arxiv", "huggingface", "github"],
+    "knownBias":                          ["arxiv", "huggingface", "github"],
+    "sensorUsed":                         ["arxiv", "github", "huggingface"],
+    "license":                            ["huggingface", "github", "arxiv"],
+    "primaryPurpose":                     ["huggingface", "arxiv", "github"],
+    "description":                        ["arxiv", "huggingface", "github"],
+    "sourceInfo":                         ["arxiv", "huggingface", "github"]
+  }
+}

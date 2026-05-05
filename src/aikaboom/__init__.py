@@ -8,6 +8,12 @@ from aikaboom.utils.recursive_bom import (
     build_linked_spdx_bundle,
     linked_bundle_summary,
 )
+from aikaboom.utils.source_priority import (
+    load_source_priority,
+    get_direct_priority,
+    get_rag_priority,
+    set_source_priority_path,
+)
 
 # Optional dependencies that may legitimately be missing in slim install
 # profiles (HF Spaces base images, schema-only consumers, etc). We only
@@ -80,4 +86,8 @@ __all__ = [
     "generate_recursive_boms",
     "build_linked_spdx_bundle",
     "linked_bundle_summary",
+    "load_source_priority",
+    "get_direct_priority",
+    "get_rag_priority",
+    "set_source_priority_path",
 ]

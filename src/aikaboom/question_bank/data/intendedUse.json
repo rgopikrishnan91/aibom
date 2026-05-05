@@ -1,0 +1,8 @@
+{
+  "field": "intendedUse",
+  "bom_type": "data",
+  "question": "For what the given dataset should be used for?",
+  "keywords": "intended use purpose application task designed goal objective research training evaluation",
+  "description": "A free-form text that describes what the given dataset should be used for.",
+  "post_process": null
+}

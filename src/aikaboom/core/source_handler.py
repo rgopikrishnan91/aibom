@@ -21,7 +21,7 @@ def _tag_similarity(v1, v2):
 
 class SourceHandler:
     @staticmethod
-    def get_field_conflict(key, *sources, fuzzy=False, fuzzy_threshold=0.5):
+    def get_field_conflict(key, *sources, fuzzy=False, fuzzy_threshold=0.5, normaliser=None):
         """
         Return (value, source_name, conflict) based on priority and conflict resolution rules.
         
@@ -76,8 +76,17 @@ class SourceHandler:
         if len(collected) == 1:
             return collected[0][0], collected[0][1], None
         
-        # Normalize values for comparison (strip whitespace, lowercase)
+        # Normalize values for comparison. By default this just lowercases
+        # and strips whitespace; callers can pass a field-specific
+        # ``normaliser`` (e.g. ``utils.normalise.normalize_url``) so things
+        # like a trailing slash or a leading "v" don't register as a
+        # disagreement.
         def normalize(v):
+            if normaliser is not None:
+                try:
+                    return normaliser(v)
+                except Exception:
+                    pass
             if isinstance(v, str):
                 return v.strip().lower()
             return str(v).strip().lower()
@@ -154,7 +163,77 @@ class SourceHandler:
         conflict = ", ".join(conflict_parts) if conflict_parts else None
         
         return chosen_val, chosen_src, conflict
-    
+
+    @staticmethod
+    def get_date_field_with_window_conflict(key, sources_by_name, mode='latest', window_days=7):
+        """Pick a date via :meth:`get_field` (``mode='earliest'``/``'latest'``)
+        and additionally flag a conflict if any sibling source's date differs
+        from the chosen one by more than ``window_days``.
+
+        Args:
+            key: Field name to extract from each source dict.
+            sources_by_name: ``{source_name: source_dict}``.
+            mode: ``"earliest"`` or ``"latest"``.
+            window_days: Threshold above which a sibling counts as conflicting.
+
+        Returns:
+            ``(value, source, conflict|None)`` — same shape as
+            :meth:`get_field_conflict`, where ``conflict`` carries
+            ``{value, source, type='inter', delta_days}``.
+        """
+        from aikaboom.utils.normalise import date_window_conflict
+
+        ordered = [(name, src) for name, src in sources_by_name.items() if src is not None]
+        chosen_value, chosen_source = SourceHandler.get_field(
+            key, *ordered, mode=mode,
+        )
+        if chosen_value is None:
+            return None, None, None
+
+        siblings = [
+            (name, src.get(key))
+            for name, src in ordered
+            if isinstance(src, dict) and src.get(key) not in (None, "")
+        ]
+        conflict = date_window_conflict(
+            chosen_value, chosen_source, siblings, window_days=window_days,
+        )
+        return chosen_value, chosen_source, conflict
+
+    @staticmethod
+    def get_field_conflict_with_priority(key, sources_by_name, priority=None, fuzzy=False, fuzzy_threshold=0.5, normaliser=None):
+        """Reorder named sources by ``priority`` and delegate to
+        :meth:`get_field_conflict`.
+
+        Lets call sites describe sources by name (``{"huggingface": ..., "github": ...}``)
+        and look the order up from the community-editable
+        ``source_priority.json`` config rather than baking it into argument
+        position. Sources whose name is not in ``priority`` are appended in
+        dict-iteration order.
+
+        Args:
+            key: Field name to extract from each source dict.
+            sources_by_name: Mapping of source name -> source dict (or None).
+            priority: Optional list of source names; the resulting argument
+                order to ``get_field_conflict`` is this list followed by any
+                remaining sources.
+            fuzzy / fuzzy_threshold: Forwarded.
+        """
+        ordered = []
+        consumed = set()
+        for name in (priority or []):
+            src = sources_by_name.get(name)
+            if src is not None:
+                ordered.append((name, src))
+                consumed.add(name)
+        for name, src in sources_by_name.items():
+            if name not in consumed and src is not None:
+                ordered.append((name, src))
+        return SourceHandler.get_field_conflict(
+            key, *ordered, fuzzy=fuzzy, fuzzy_threshold=fuzzy_threshold,
+            normaliser=normaliser,
+        )
+
     @staticmethod
     def get_field(key, *sources, mode='priority'):
         """

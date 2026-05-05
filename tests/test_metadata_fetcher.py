@@ -72,10 +72,17 @@ class TestExtractRepoIdFromHfUrl:
         assert MetadataFetcher.extract_repo_id_from_hf_url(123) is None
 
 
+class _FakeHFSibling:
+    def __init__(self, size=None):
+        self.size = size
+
+
 class _FakeHFRepoInfo:
     """Minimal stand-in for huggingface_hub ModelInfo."""
 
-    def __init__(self, cardData=None, tags=None):
+    def __init__(self, cardData=None, tags=None, siblings=None, repo_id="test/repo"):
+        self.id = repo_id
+        self.siblings = siblings
         self.cardData = cardData or {}
         self.tags = tags or []
 
@@ -121,3 +128,92 @@ class TestExtractHuggingfaceModelTree:
     def test_none_input_returns_empty_buckets(self):
         tree = MetadataFetcher.extract_huggingface_model_tree(None)
         assert tree == {"trainedOnDatasets": [], "testedOnDatasets": [], "modelLineage": []}
+
+
+class _FakeGHRepo:
+    """Minimal stand-in for a PyGithub Repository."""
+
+    def __init__(
+        self,
+        full_name="org/repo",
+        description=None,
+        topics=None,
+        license_name=None,
+        language=None,
+        default_branch=None,
+        size=None,
+    ):
+        self.full_name = full_name
+        self.description = description
+        self._topics = topics or []
+        self._license_name = license_name
+        self.language = language
+        self.default_branch = default_branch
+        self.size = size
+
+    def get_topics(self):
+        return self._topics
+
+    def get_license(self):
+        if self._license_name is None:
+            return None
+        class _Wrapper:
+            class license:
+                pass
+        w = _Wrapper()
+        w.license.name = self._license_name
+        return w
+
+
+class TestStructuredChunks:
+    """Synthetic structured chunks pack HF/GH metadata into prose so the
+    RAG retriever can compare against README / arXiv text. The dataset
+    size signal in particular feeds the new HF > GH > arXiv priority for
+    `datasetSize`.
+    """
+
+    def test_hf_dataset_chunk_includes_estimated_total_size_bytes(self):
+        info = _FakeHFRepoInfo(
+            siblings=[_FakeHFSibling(size=1_000_000_000), _FakeHFSibling(size=200_000_000)],
+            cardData={"license": "cc-by-4.0"},
+        )
+        chunk = MetadataFetcher.huggingface_structured_chunk(info, bom_type="data")
+        assert "estimated_total_size_bytes: 1200000000" in chunk
+
+    def test_hf_ai_chunk_omits_size(self):
+        # Even with siblings, AI BOM chunks don't include a size aggregate.
+        info = _FakeHFRepoInfo(
+            siblings=[_FakeHFSibling(size=999)],
+            cardData={"license": "mit"},
+        )
+        chunk = MetadataFetcher.huggingface_structured_chunk(info, bom_type="ai")
+        assert "estimated_total_size_bytes" not in chunk
+
+    def test_hf_chunk_skips_size_when_no_siblings(self):
+        info = _FakeHFRepoInfo(cardData={"license": "mit"})
+        chunk = MetadataFetcher.huggingface_structured_chunk(info, bom_type="data")
+        assert "estimated_total_size_bytes" not in chunk
+
+    def test_gh_chunk_includes_repository_size_bytes(self):
+        repo = _FakeGHRepo(size=4096, description="A test repo")
+        chunk = MetadataFetcher.github_structured_chunk(repo, bom_type="data")
+        # GitHub returns size in KB; we render bytes.
+        assert "repository_size_bytes: 4194304" in chunk
+
+    def test_gh_chunk_skips_size_when_zero(self):
+        repo = _FakeGHRepo(size=0, description="empty repo")
+        chunk = MetadataFetcher.github_structured_chunk(repo, bom_type="data")
+        assert "repository_size_bytes" not in chunk
+
+    def test_gh_chunk_with_no_metadata_returns_empty(self):
+        repo = _FakeGHRepo()
+        chunk = MetadataFetcher.github_structured_chunk(repo, bom_type="data")
+        assert chunk == ""
+
+    def test_gh_ai_chunk_omits_repository_size_bytes(self):
+        """Regression: AI BOMs have no datasetSize question, so the GH
+        structured chunk for AI mustn't carry a `repository_size_bytes`
+        line — keeps the AI chunk free of data-side noise."""
+        repo = _FakeGHRepo(size=4096, description="An AI model repo")
+        chunk = MetadataFetcher.github_structured_chunk(repo, bom_type="ai")
+        assert "repository_size_bytes" not in chunk

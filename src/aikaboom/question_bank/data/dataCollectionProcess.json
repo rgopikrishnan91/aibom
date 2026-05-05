@@ -1,0 +1,8 @@
+{
+  "field": "dataCollectionProcess",
+  "bom_type": "data",
+  "question": "How the dataset was collected?",
+  "keywords": "collected collection gathering scraping crawling sources method methodology acquisition obtained compiled",
+  "description": "A free-form text that describes how a dataset was collected.",
+  "post_process": null
+}
