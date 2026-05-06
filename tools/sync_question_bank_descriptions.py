@@ -30,14 +30,20 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 QB_ROOT = REPO_ROOT / "src" / "aikaboom" / "question_bank"
 
 
-def _spdx_description(prop: dict) -> str:
-    """Concatenate Summary + Description verbatim per the design.
-    The spec text is canonical; no truncation, no length cap."""
-    summary = (prop.get("summary") or "").strip()
-    description = (prop.get("description") or "").strip()
-    if summary and description:
-        return f"{summary}\n\n{description}"
-    return summary or description
+_CANONICAL_KEYS = (
+    "field", "bom_type", "aikaboom_internal", "question", "keywords",
+    "summary", "description", "post_process", "priority",
+)
+
+
+def _canonical_field_order(entry: dict) -> dict:
+    """Return entry with known keys in a stable display order; unknown
+    keys preserved at the end in their original order."""
+    ordered = {k: entry[k] for k in _CANONICAL_KEYS if k in entry}
+    for k, v in entry.items():
+        if k not in ordered:
+            ordered[k] = v
+    return ordered
 
 
 def _load_index(version: str) -> dict:
@@ -62,10 +68,13 @@ def _process_entry(
     spdx_name = aik_to_spdx.get(field)
 
     if spdx_name is None:
-        # AIkaBoOM-internal: mark and bail.
-        if entry.get("aikaboom_internal") is True:
+        # AIkaBoOM-internal: mark, drop any stale `summary` slot, bail.
+        already_internal = entry.get("aikaboom_internal") is True
+        had_summary = "summary" in entry
+        if already_internal and not had_summary:
             return None
         entry["aikaboom_internal"] = True
+        entry.pop("summary", None)
         return entry
 
     prop = properties.get(spdx_name)
@@ -77,12 +86,17 @@ def _process_entry(
             f"re-run the harvester."
         )
 
-    new_description = _spdx_description(prop)
-    if entry.get("description") == new_description and not entry.get("aikaboom_internal"):
+    new_summary = (prop.get("summary") or "").strip()
+    new_description = (prop.get("description") or "").strip()
+    if (
+        entry.get("summary") == new_summary
+        and entry.get("description") == new_description
+        and not entry.get("aikaboom_internal")
+    ):
         return None  # already in sync
 
+    entry["summary"] = new_summary
     entry["description"] = new_description
-    # Make sure we don't carry a stale aikaboom_internal flag.
     entry.pop("aikaboom_internal", None)
     return entry
 
@@ -114,7 +128,7 @@ def main(argv: Optional[list] = None) -> int:
                 continue
             target = entry_path if args.apply else entry_path.with_suffix(".json.proposed")
             target.write_text(
-                json.dumps(new_entry, indent=2, ensure_ascii=False) + "\n",
+                json.dumps(_canonical_field_order(new_entry), indent=2, ensure_ascii=False) + "\n",
                 encoding="utf-8",
             )
             changed += 1

@@ -3,6 +3,7 @@
   "bom_type": "ai",
   "question": "Captures the threshold that was used for computation of a metric described in the metric field.",
   "keywords": "decision threshold metric computation evaluation",
-  "description": "Captures the threshold that was used for computation of a metric described in\nthe metric field.\n\nEach metric might be computed based on a decision threshold.\n\nFor instance, precision or recall is typically computed by checking if the\nprobability of the outcome is larger than 0.5.\n\nEach decision threshold should match with a metric field defined in the AI\npackage.",
+  "summary": "Captures the threshold that was used for computation of a metric described in\nthe metric field.",
+  "description": "Each metric might be computed based on a decision threshold.\n\nFor instance, precision or recall is typically computed by checking if the\nprobability of the outcome is larger than 0.5.\n\nEach decision threshold should match with a metric field defined in the AI\npackage.",
   "post_process": null
 }

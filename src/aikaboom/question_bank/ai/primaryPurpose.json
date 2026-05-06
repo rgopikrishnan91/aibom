@@ -3,6 +3,7 @@
   "bom_type": "ai",
   "question": "What is the primary purpose / main task of this AI model (one of: model, application, data, framework, library, other)?",
   "keywords": "task category pipeline classification generation segmentation translation summarisation embedding retrieval purpose role intent",
-  "description": "Provides information about the primary purpose of the software artifact.\n\nprimaryPurpose provides information about the primary purpose of the software\nartifact.",
+  "summary": "Provides information about the primary purpose of the software artifact.",
+  "description": "primaryPurpose provides information about the primary purpose of the software\nartifact.",
   "post_process": null
 }

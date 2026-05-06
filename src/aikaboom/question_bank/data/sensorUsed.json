@@ -3,6 +3,7 @@
   "bom_type": "data",
   "question": "What is the sensor used for collecting the data?",
   "keywords": "sensor device instrument equipment camera microphone accelerometer calibration hardware",
-  "description": "Describes a sensor used for collecting the data.\n\nDescribes a sensor that was used for collecting the data\nand its calibration value as a key-value pair.",
+  "summary": "Describes a sensor used for collecting the data.",
+  "description": "Describes a sensor that was used for collecting the data\nand its calibration value as a key-value pair.",
   "post_process": null
 }

@@ -3,6 +3,7 @@
   "bom_type": "ai",
   "question": "Records the measurement of prediction quality of the AI model.",
   "keywords": "metrics evaluation accuracy precision recall F1-score",
-  "description": "Records the measurement of prediction quality of the AI model.\n\nRecords the measurement with which the AI model was evaluated.\n\nThis makes statements about the prediction quality including uncertainty,\naccuracy, characteristics of the tested population, quality, fairness,\nexplainability, robustness etc.",
+  "summary": "Records the measurement of prediction quality of the AI model.",
+  "description": "Records the measurement with which the AI model was evaluated.\n\nThis makes statements about the prediction quality including uncertainty,\naccuracy, characteristics of the tested population, quality, fairness,\nexplainability, robustness etc.",
   "post_process": null
 }

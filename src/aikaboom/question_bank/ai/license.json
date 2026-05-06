@@ -3,6 +3,7 @@
   "bom_type": "ai",
   "question": "Under what license is the AI model and its code released? Quote the SPDX identifier (e.g. \"MIT\", \"Apache-2.0\", \"Llama-2\") if any source states it.",
   "keywords": "license licensed under released under apache mit gpl bsd cc-by openrail llama gemma proprietary",
-  "description": "An SPDX Element containing an SPDX license expression string.\n\nA LicenseExpression enables the representation, in a single string, of a\ncombination of one or more licenses, together with additions such as license\nexceptions.\n\nThe syntax for a licenseExpression string is set forth in the corresponding\nAnnex of this specification\n([\"SPDX license expressions\"](../../../annexes/spdx-license-expressions.md)).\nA licenseExpression string is not valid if it does not conform to the grammar\nset forth in that Annex.\n\nThe ExpandedLicensing profile can be used to represent the complete parsed\nlicense expression as a combination of license objects.",
+  "summary": "An SPDX Element containing an SPDX license expression string.",
+  "description": "A LicenseExpression enables the representation, in a single string, of a\ncombination of one or more licenses, together with additions such as license\nexceptions.\n\nThe syntax for a licenseExpression string is set forth in the corresponding\nAnnex of this specification\n([\"SPDX license expressions\"](../../../annexes/spdx-license-expressions.md)).\nA licenseExpression string is not valid if it does not conform to the grammar\nset forth in that Annex.\n\nThe ExpandedLicensing profile can be used to represent the complete parsed\nlicense expression as a combination of license objects.",
   "post_process": "normalize_license"
 }

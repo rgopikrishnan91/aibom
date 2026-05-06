@@ -3,6 +3,7 @@
   "bom_type": "data",
   "question": "Does any sensitive personal information is present in the dataset?",
   "keywords": "sensitive personal information PII privacy identifying identity protected health financial",
-  "description": "Describes if any sensitive personal information is present in the dataset.\n\nIndicates the presence of sensitive personal data\nor information that allows drawing conclusions about a person's identity.\n\nRelated: `useSensitivePersonalInformation` in `/AI/AIPackage`",
+  "summary": "Describes if any sensitive personal information is present in the dataset.",
+  "description": "Indicates the presence of sensitive personal data\nor information that allows drawing conclusions about a person's identity.\n\nRelated: `useSensitivePersonalInformation` in `/AI/AIPackage`",
   "post_process": null
 }

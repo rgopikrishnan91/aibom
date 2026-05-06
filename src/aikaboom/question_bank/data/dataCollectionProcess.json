@@ -3,6 +3,7 @@
   "bom_type": "data",
   "question": "How the dataset was collected?",
   "keywords": "collected collection gathering scraping crawling sources method methodology acquisition obtained compiled",
-  "description": "Describes how the dataset was collected.\n\nA free-form text that describes how a dataset was collected.\n\nExamples include the sources from which a dataset was scrapped and\nthe interview protocol that was used for data collection.",
+  "summary": "Describes how the dataset was collected.",
+  "description": "A free-form text that describes how a dataset was collected.\n\nExamples include the sources from which a dataset was scrapped and\nthe interview protocol that was used for data collection.",
   "post_process": null
 }

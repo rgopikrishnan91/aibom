@@ -1,5 +1,6 @@
-"""Regression test: every question-bank `description` matches the SPDX 3.0.1
-spec text (verbatim) or is explicitly marked as AIkaBoOM-internal.
+"""Regression test: every question-bank `summary` and `description` matches
+the SPDX 3.0.1 spec blocks (verbatim, separate fields) or the entry is
+explicitly marked AIkaBoOM-internal.
 
 Re-run ``python tools/harvest_spdx_3_0_1.py`` and
 ``python tools/sync_question_bank_descriptions.py --apply`` to refresh
@@ -18,15 +19,6 @@ _INDEX_PATH = os.path.join(_REPO_ROOT, "docs", "SPDX_3.0.1_FIELD_REFERENCE.json"
 def _load_index():
     with open(_INDEX_PATH, encoding="utf-8") as f:
         return json.load(f)
-
-
-def _expected_description(prop: dict) -> str:
-    """Mirror tools/sync_question_bank_descriptions.py::_spdx_description."""
-    summary = (prop.get("summary") or "").strip()
-    description = (prop.get("description") or "").strip()
-    if summary and description:
-        return f"{summary}\n\n{description}"
-    return summary or description
 
 
 def _entries():
@@ -83,6 +75,11 @@ class TestDescriptionsMatchSpec:
                         f"{bom_type}/{field}.json: AIkaBoOM-internal field must "
                         f"declare `\"aikaboom_internal\": true`"
                     )
+                if "summary" in entry:
+                    failures.append(
+                        f"{bom_type}/{field}.json: AIkaBoOM-internal field must "
+                        f"not carry a `summary` slot (no SPDX property page)"
+                    )
                 continue
             if entry.get("aikaboom_internal") is True:
                 failures.append(
@@ -97,10 +94,17 @@ class TestDescriptionsMatchSpec:
                     f"in reference index; re-run harvest"
                 )
                 continue
-            expected = _expected_description(prop)
-            if entry["description"] != expected:
+            expected_summary = (prop.get("summary") or "").strip()
+            expected_description = (prop.get("description") or "").strip()
+            if entry.get("summary", "") != expected_summary:
                 failures.append(
-                    f"{bom_type}/{field}.json: description drifted from SPDX "
+                    f"{bom_type}/{field}.json: `summary` drifted from SPDX "
+                    f"3.0.1 `{spdx_name}` — re-run "
+                    f"`python tools/sync_question_bank_descriptions.py --apply`"
+                )
+            if entry.get("description", "") != expected_description:
+                failures.append(
+                    f"{bom_type}/{field}.json: `description` drifted from SPDX "
                     f"3.0.1 `{spdx_name}` — re-run "
                     f"`python tools/sync_question_bank_descriptions.py --apply`"
                 )

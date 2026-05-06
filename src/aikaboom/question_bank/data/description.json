@@ -3,6 +3,7 @@
   "bom_type": "data",
   "question": "In one or two sentences, what is this dataset?",
   "keywords": "dataset description abstract summary overview",
-  "description": "Provides a detailed description of the Element.\n\nThis field is a detailed description of the Element. It may also be extracted\nfrom the Element itself.\n\nThe intent is to provide recipients of the SPDX file with a detailed technical\nexplanation of the functionality, anticipated use, and anticipated\nimplementation of the Element.\n\nThis field may also include a description of improvements over prior versions\nof the Element.",
+  "summary": "Provides a detailed description of the Element.",
+  "description": "This field is a detailed description of the Element. It may also be extracted\nfrom the Element itself.\n\nThe intent is to provide recipients of the SPDX file with a detailed technical\nexplanation of the functionality, anticipated use, and anticipated\nimplementation of the Element.\n\nThis field may also include a description of improvements over prior versions\nof the Element.",
   "post_process": "collapse_whitespace"
 }

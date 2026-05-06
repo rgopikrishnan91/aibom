@@ -3,6 +3,7 @@
   "bom_type": "data",
   "question": "What is the preprocessing steps that were applied to the raw data to create the given dataset.",
   "keywords": "preprocessing cleaning normalization standardization tokenization filtering transformation deduplication removal",
-  "description": "Describes the preprocessing steps that were applied to the raw data to create the given dataset.\n\nA free-form text that describes the various preprocessing steps\nthat were applied to the raw data to create the dataset.\n\nExamples include standardization, normalization, deduplication, tokenization, and removal of tokens.",
+  "summary": "Describes the preprocessing steps that were applied to the raw data to create the given dataset.",
+  "description": "A free-form text that describes the various preprocessing steps\nthat were applied to the raw data to create the dataset.\n\nExamples include standardization, normalization, deduplication, tokenization, and removal of tokens.",
   "post_process": null
 }

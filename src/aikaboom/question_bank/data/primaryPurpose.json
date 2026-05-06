@@ -3,6 +3,7 @@
   "bom_type": "data",
   "question": "What is the primary purpose of this dataset (one of: data, model, application, …)?",
   "keywords": "task category benchmark training evaluation purpose role",
-  "description": "Provides information about the primary purpose of the software artifact.\n\nprimaryPurpose provides information about the primary purpose of the software\nartifact.",
+  "summary": "Provides information about the primary purpose of the software artifact.",
+  "description": "primaryPurpose provides information about the primary purpose of the software\nartifact.",
   "post_process": null
 }

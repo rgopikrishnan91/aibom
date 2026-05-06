@@ -3,6 +3,7 @@
   "bom_type": "ai",
   "question": "What is the domain in which the AI package can be used?",
   "keywords": "domain application area field sector industry vertical computer vision natural language processing NLP machine learning classification regression detection segmentation speech recognition image processing text analysis audio processing video analysis time series forecasting recommendation systems robotics healthcare finance automotive agriculture education retail manufacturing cybersecurity gaming entertainment",
-  "description": "Captures the domain in which the AI package can be used.\n\nA free-form text that describes the domain where the AI model contained in the\nAI software can be expected to operate successfully.\n\nExamples include computer vision, natural language processing, etc.",
+  "summary": "Captures the domain in which the AI package can be used.",
+  "description": "A free-form text that describes the domain where the AI model contained in the\nAI software can be expected to operate successfully.\n\nExamples include computer vision, natural language processing, etc.",
   "post_process": null
 }

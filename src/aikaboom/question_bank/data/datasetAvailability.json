@@ -3,6 +3,7 @@
   "bom_type": "data",
   "question": "How is the dataset accessible — direct download, behind a clickthrough, by query, after a registration form, or via a scraping script?",
   "keywords": "available availability download access public private clickthrough registration scraping query restricted gated",
-  "description": "The field describes the availability of a dataset.\n\nSome datasets are publicly available and can be downloaded directly. Others are only accessible behind a clickthrough, or after filling a registration form. This field will describe the dataset availability from that perspective.",
+  "summary": "The field describes the availability of a dataset.",
+  "description": "Some datasets are publicly available and can be downloaded directly. Others are only accessible behind a clickthrough, or after filling a registration form. This field will describe the dataset availability from that perspective.",
   "post_process": null
 }
