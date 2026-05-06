@@ -5,5 +5,14 @@
   "keywords": "dataset description abstract summary overview",
   "summary": "Provides a detailed description of the Element.",
   "description": "This field is a detailed description of the Element. It may also be extracted\nfrom the Element itself.\n\nThe intent is to provide recipients of the SPDX file with a detailed technical\nexplanation of the functionality, anticipated use, and anticipated\nimplementation of the Element.\n\nThis field may also include a description of improvements over prior versions\nof the Element.",
-  "post_process": "collapse_whitespace"
+  "post_process": "collapse_whitespace",
+  "retrieval": {
+    "hypothetical_passage": "# Dataset Card for SQuAD v2\n\nSQuAD 2.0 combines the 100,000 questions in SQuAD 1.1 with over 50,000 unanswerable questions written adversarially by crowdworkers to look similar to answerable ones. Each example contains a Wikipedia paragraph, a natural-language question, and span-level answer annotations. The dataset is widely used as a reading-comprehension benchmark for transformer-based QA models. Released alongside the EMNLP 2018 paper by Rajpurkar et al.",
+    "bm25_terms": ["Dataset Card for", "## Dataset Summary", "## Dataset Description", "abstract", "TL;DR", "consists of", "contains", "examples", "instances", "annotations", "benchmark", "corpus", "crowdsourced", "Wikipedia paragraphs", "released alongside", "introduced in"]
+  },
+  "extraction": {
+    "instruction": "Extract a one-to-two-sentence factual description of the dataset, summarising what it contains, how it was built, and its intended task.",
+    "field_spec": "SPDX property `description` (Core profile). Free-form xsd:string, plain text. Format: one or two complete sentences, no markdown, no headings, no trailing newline.",
+    "output_guidance": "Prefer the first paragraph of the dataset card's summary or the paper abstract's opening sentence. If multiple sources conflict, prefer the canonical HuggingFace dataset card over a third-party README. Strip markdown, citations, and badge syntax. If no descriptive text appears in the sources, return 'Not found.' rather than synthesising a description from the dataset name."
+  }
 }

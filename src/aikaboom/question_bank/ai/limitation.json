@@ -5,5 +5,14 @@
   "keywords": "limitations constraints challenges restrictions",
   "summary": "Captures a limitation of the AI software.",
   "description": "A free-form text that captures a limitation of the AI package\n(or of the AI models present in the AI package).\n\nNote that this is not guaranteed to be exhaustive.\n\nFor instance, a limitation might be that the AI package cannot be used on\ndatasets from a certain demography.",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "## Limitations and biases\n\nThe model was trained primarily on English-language web text scraped before 2022, so it has limited knowledge of recent events and degrades on low-resource languages. Performance drops noticeably on dialectal speech, code-switched text, and domains under-represented in the training corpus (e.g. legal contracts, clinical notes). The model may produce hallucinated facts, reproduce stereotypes present in the training data, and is **not** suitable for high-stakes decisions in healthcare, finance, or hiring without human review.",
+    "bm25_terms": ["limitations", "known limitations", "biases", "out of scope", "not suitable for", "hallucination", "knowledge cutoff", "low-resource languages", "fairness", "demographic bias", "stereotypes", "failure modes", "edge cases", "caveats", "intended use", "misuse", "high-stakes", "domain shift"]
+  },
+  "extraction": {
+    "instruction": "Extract each stated limitation, caveat, or out-of-scope use of the AI model and return them as a list.",
+    "field_spec": "SPDX property `ai_limitation`. Free-form text; typically a bullet list of distinct limitations. When multiple are present, return them as a single string with each limitation separated by `; ` or as numbered items.",
+    "output_guidance": "Capture each limitation with the source's wording, deduplicating near-identical phrasings across sections. Include domain restrictions, demographic biases, knowledge cutoffs, hallucination warnings, and explicit 'not suitable for' clauses. Do NOT include generic disclaimers ('use at your own risk') with no substantive content. If the source explicitly says 'no known limitations' record that verbatim; if the topic is simply absent, return `noAssertion`."
+  }
 }

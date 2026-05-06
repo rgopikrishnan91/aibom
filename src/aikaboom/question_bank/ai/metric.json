@@ -5,5 +5,14 @@
   "keywords": "metrics evaluation accuracy precision recall F1-score",
   "summary": "Records the measurement of prediction quality of the AI model.",
   "description": "Records the measurement with which the AI model was evaluated.\n\nThis makes statements about the prediction quality including uncertainty,\naccuracy, characteristics of the tested population, quality, fairness,\nexplainability, robustness etc.",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "## Evaluation results\n\n| Benchmark | Metric | Score |\n|---|---|---|\n| GLUE (avg) | accuracy | 87.4 |\n| SQuAD v2 | F1 | 89.1 / EM 85.6 |\n| MMLU (5-shot) | accuracy | 64.2 |\n| HellaSwag | accuracy | 79.0 |\n\nWe additionally report a macro-F1 of 0.81 on a held-out fairness slice and an AUROC of 0.94 for the binary classification task. All numbers are mean over 3 seeds; standard deviations are below 0.5.",
+    "bm25_terms": ["accuracy", "precision", "recall", "F1", "macro-F1", "AUROC", "BLEU", "ROUGE", "perplexity", "MMLU", "GLUE", "SQuAD", "exact match", "RMSE", "MAE", "top-1", "top-5", "evaluation results", "benchmark", "test set"]
+  },
+  "extraction": {
+    "instruction": "Extract every evaluation metric reported for the model: the metric name, the numeric value, and the dataset or benchmark it was measured on.",
+    "field_spec": "SPDX property `ai_metric`. Set of DictionaryEntry pairs with `key` (metric name, optionally with dataset) and `value` (numeric score, optionally with unit %). Suggested form: 'metric@dataset=value', e.g. 'accuracy@MMLU=64.2; F1@SQuADv2=89.1'.",
+    "output_guidance": "Record values verbatim including units (% or fraction); do not normalise. Pair every metric with its dataset or benchmark when stated. Omit ablation numbers that the authors describe as preliminary. If multiple seeds are reported keep the mean and note std if given. If no quantitative evaluation is reported anywhere, return `noAssertion`."
+  }
 }

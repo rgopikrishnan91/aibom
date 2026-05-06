@@ -5,5 +5,32 @@
   "keywords": "noise noisy quality errors artifacts outliers inaccuracies inconsistencies corrupted",
   "summary": "Describes potentially noisy elements of the dataset.",
   "description": "Describes what kinds of noises a dataset might encompass.\n\nThe free-form text specifies fields or samples that might be noisy.\n\nAlternatively, it can also be used to describe various noises that could impact the whole dataset.",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "Users should be aware of several known noise sources. OCR errors are present in roughly 4% of documents scanned from pre-1990 archives, particularly affecting numerals and ligatures. Crowdworker labels in the `sentiment` column have an estimated 7% disagreement rate; gold labels are only available for the dev split. Audio recordings include background traffic noise in the field-collected subset, and timestamps occasionally drift by up to 200 ms. Duplicate near-identical posts from bot accounts were not fully filtered.",
+    "bm25_terms": [
+      "noise",
+      "noisy labels",
+      "label noise",
+      "OCR errors",
+      "label disagreement",
+      "annotation errors",
+      "background noise",
+      "outliers",
+      "missing values",
+      "corrupted samples",
+      "artifacts",
+      "mislabeled",
+      "inter-annotator disagreement",
+      "data quality issues",
+      "duplicates",
+      "spurious",
+      "known issues"
+    ]
+  },
+  "extraction": {
+    "instruction": "Extract the noise, errors, or quality issues the source acknowledges in the dataset, including which fields, splits, or sample percentages they affect.",
+    "field_spec": "SPDX property `dataset_datasetNoise`. Free-form text (xsd:string), 0..* values; each value names a noise source and the affected scope when stated.",
+    "output_guidance": "Capture quantitative estimates (error rates, percentages) verbatim. Distinguish per-field noise from dataset-wide noise. If the card explicitly states 'no known noise issues', record that. If noise is not discussed at all, return 'Not found.' rather than 'noAssertion' for free-form fields."
+  }
 }

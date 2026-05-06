@@ -5,5 +5,33 @@
   "keywords": "task category pipeline classification generation segmentation translation summarisation embedding retrieval purpose role intent",
   "summary": "Provides information about the primary purpose of the software artifact.",
   "description": "primaryPurpose provides information about the primary purpose of the software\nartifact.",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "## Model description\n\nThis model is designed for English text classification, specifically sentiment analysis on product reviews. Pipeline tag: `text-classification`. It can also be used as a feature extractor for downstream tasks. The repository ships the model weights, a tokenizer, and a small inference library; the primary artifact is the fine-tuned transformer model itself rather than an application or framework.",
+    "bm25_terms": [
+      "pipeline_tag",
+      "text-classification",
+      "text-generation",
+      "image-classification",
+      "token-classification",
+      "translation",
+      "summarization",
+      "embedding",
+      "feature-extraction",
+      "sentence-similarity",
+      "zero-shot",
+      "model card",
+      "primary purpose",
+      "intended use",
+      "task",
+      "library",
+      "framework",
+      "application"
+    ]
+  },
+  "extraction": {
+    "instruction": "Extract the primary purpose of the software artifact, choosing the single best-fit category from the SPDX SoftwarePurpose enum based on what the artifact is (a model, a runnable application, a dataset, a library, a framework, or other).",
+    "field_spec": "SPDX property `software_primaryPurpose`. Enum value (SoftwarePurpose): one of `model`, `application`, `data`, `framework`, `library`, `container`, `source`, `archive`, `file`, `install`, `documentation`, `evidence`, `manifest`, `module`, `operatingSystem`, `patch`, `requirement`, `specification`, `test`, `other`. For AI BOMs, expect `model`, `application`, `framework`, or `library`.",
+    "output_guidance": "Return exactly one enum value. If the artifact is a HuggingFace model checkpoint, choose `model`. If it is a runnable demo or end-user app, choose `application`. If it bundles training/inference utilities for others to build on, choose `library` or `framework`. Return `other` only if no enum fits. Return 'noAssertion' when the source neither states purpose nor exposes a pipeline tag."
+  }
 }

@@ -5,5 +5,14 @@
   "keywords": "sensor device instrument equipment camera microphone accelerometer calibration hardware",
   "summary": "Describes a sensor used for collecting the data.",
   "description": "Describes a sensor that was used for collecting the data\nand its calibration value as a key-value pair.",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "## Data Collection\n\nDriving footage was captured using a forward-facing **FLIR Blackfly S** RGB camera (1920x1200 at 30 fps) and a **Velodyne VLP-16** 3D LiDAR rotating at 10 Hz, both mounted on a roof rack and calibrated extrinsically against a Novatel SPAN-CPT IMU/GNSS unit. Audio was recorded via a Sennheiser MKH-416 shotgun microphone sampled at 48 kHz. Cameras were intrinsically calibrated using a Zhang checkerboard pattern; LiDAR-camera extrinsics were refined via ICP.",
+    "bm25_terms": ["sensor", "camera", "LiDAR", "microphone", "IMU", "GNSS", "RGB camera", "depth camera", "Kinect", "Velodyne", "FLIR", "calibration", "intrinsic parameters", "extrinsic parameters", "frame rate", "sample rate", "Hz", "fps", "mounted on", "data acquisition"]
+  },
+  "extraction": {
+    "instruction": "Extract every sensor used to capture the data, together with any reported calibration values, sampling rates, model numbers, or mounting configuration.",
+    "field_spec": "SPDX property `dataset_sensor`. List of key-value pairs (`sensorName: calibrationOrSpec`). Format: 'Velodyne VLP-16: 10 Hz; FLIR Blackfly S: 30 fps 1920x1200; Novatel SPAN-CPT IMU: 100 Hz'.",
+    "output_guidance": "Capture sensor make/model where stated, then any calibration value (rate, resolution, intrinsic/extrinsic notes). Separate multiple sensors with semicolons. If only the sensor type is named with no calibration, include the type with value `unspecified`. Return 'Not found.' if no sensors are mentioned; do not infer sensors from dataset modality (e.g. an image dataset is not necessarily camera-sourced if it is synthetic or scraped)."
+  }
 }

@@ -5,5 +5,14 @@
   "keywords": "sensitive personal information PII privacy identifying identity protected health financial",
   "summary": "Describes if any sensitive personal information is present in the dataset.",
   "description": "Indicates the presence of sensitive personal data\nor information that allows drawing conclusions about a person's identity.\n\nRelated: `useSensitivePersonalInformation` in `/AI/AIPackage`",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "## Personal and Sensitive Information\n\nThe dataset contains user-generated Reddit comments scraped between 2015 and 2019. Although usernames and explicit email addresses were stripped via regex, residual PII may remain: phone numbers, home addresses, and quasi-identifiers such as employer or location mentioned in free text. No biometric, medical, or financial records are included. Researchers should treat the corpus as containing potentially identifiable content and apply additional anonymisation before public release or downstream use.",
+    "bm25_terms": ["personal information", "sensitive information", "PII", "personally identifiable", "GDPR", "HIPAA", "anonymized", "de-identified", "pseudonymized", "biometric", "health records", "PHI", "scrubbed", "redacted", "identifiable individuals", "## Personal and Sensitive Information", "privacy", "names removed", "faces blurred"]
+  },
+  "extraction": {
+    "instruction": "Determine whether the dataset contains sensitive personal information (PII, biometric, health, financial, or other identity-revealing data) and report yes, no, or noAssertion with a brief justification quoted from the source.",
+    "field_spec": "SPDX property `dataset_hasSensitivePersonalInformation`. Enum: `yes` | `no` | `noAssertion`. Optional accompanying free-text rationale citing what kind of data is present.",
+    "output_guidance": "Return `yes` if the source explicitly mentions names, faces, voice recordings, addresses, medical/financial records, or 'contains PII'. Return `no` only if the source explicitly states the data is anonymised, synthetic, or contains no PII. Return `noAssertion` when sources are silent or ambiguous. If anonymisation is mentioned but residual PII is acknowledged, return `yes` with the caveat. Do not infer presence of PII from dataset domain alone."
+  }
 }

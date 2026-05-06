@@ -5,5 +5,33 @@
   "keywords": "model type supervised unsupervised reinforcement learning",
   "summary": "Records the type of the model used in the AI software.",
   "description": "A free-form text that records the type of the AI model(s) used in the software.\n\nFor instance, if it is a supervised model, unsupervised model, reinforcement\nlearning model or a combination of those.",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "The system is a decoder-only transformer language model with 7 billion parameters, trained via self-supervised next-token prediction (an unsupervised objective) and then aligned with RLHF (reinforcement learning from human feedback). The vision tower is a supervised CNN classifier fine-tuned on labeled data. Together they form a multi-modal architecture combining supervised, unsupervised, and reinforcement-learning components.",
+    "bm25_terms": [
+      "transformer",
+      "decoder-only",
+      "encoder-decoder",
+      "CNN",
+      "supervised",
+      "unsupervised",
+      "self-supervised",
+      "reinforcement learning",
+      "RLHF",
+      "diffusion model",
+      "GAN",
+      "autoregressive",
+      "language model",
+      "classifier",
+      "regression",
+      "embedding model",
+      "architecture",
+      "model type"
+    ]
+  },
+  "extraction": {
+    "instruction": "Extract the type of AI model used, including learning paradigm (supervised, unsupervised, self-supervised, reinforcement) and architecture family (e.g. transformer, CNN, diffusion).",
+    "field_spec": "SPDX property `ai_typeOfModel`. Free-form text (xsd:string). Conventional values cover learning paradigm (supervised | unsupervised | self-supervised | reinforcement | hybrid) and architecture (e.g. transformer decoder-only, CNN, RNN, diffusion, GAN, MoE).",
+    "output_guidance": "Return both the learning paradigm and the architecture when both are reported, separated by ' / ' (e.g. `self-supervised / transformer decoder-only`). For hybrid systems list each component. If only the architecture is given, return that alone. Return 'noAssertion' when the source describes the model's behavior but never names a paradigm or architecture. Return 'Not found.' when neither is mentioned."
+  }
 }

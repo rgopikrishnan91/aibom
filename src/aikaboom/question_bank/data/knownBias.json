@@ -5,5 +5,14 @@
   "keywords": "bias biased fairness demographic representation imbalance skewed prejudice limitation",
   "summary": "Records the biases that the dataset is known to encompass.",
   "description": "A free-form text that describes the different biases that the dataset encompasses.",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "## Bias, Risks, and Limitations\n\nThe corpus is heavily skewed toward English-language Wikipedia articles authored predominantly by editors from North America and Western Europe, leading to under-representation of Global South perspectives and non-Western entities. Gender imbalance is documented: male-coded pronouns outnumber female-coded ones roughly 3:1 across biographical articles. Topic distribution over-indexes on STEM, sports, and pop culture. Models trained on this data may amplify these representational biases, particularly for low-resource demographics.",
+    "bm25_terms": ["known bias", "biases", "## Bias, Risks, and Limitations", "## Discussion of Biases", "skewed toward", "under-represented", "over-represented", "demographic imbalance", "gender bias", "racial bias", "Western perspectives", "English-centric", "fairness", "stereotypes", "spurious correlations", "amplify bias", "imbalanced classes", "social bias"]
+  },
+  "extraction": {
+    "instruction": "Extract the documented biases of the dataset, including demographic skew, language coverage, sampling bias, label bias, or any other limitation explicitly framed as a bias.",
+    "field_spec": "SPDX property `dataset_knownBias`. Free-form xsd:string. Format: short paragraph or semicolon-separated list of named biases (e.g. 'gender skew 3:1 male; English-only; Western-centric topics').",
+    "output_guidance": "Prefer text under a section titled 'Bias', 'Biases', 'Discussion of Biases', or 'Bias, Risks, and Limitations'. Quote concrete numbers when present. If multiple biases are listed, combine them. Return 'Not found.' if the sources contain no bias discussion; do not extrapolate bias from dataset domain. If the source explicitly states 'no known biases', record that verbatim rather than 'Not found.'."
+  }
 }

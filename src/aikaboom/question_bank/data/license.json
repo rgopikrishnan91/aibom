@@ -5,5 +5,14 @@
   "keywords": "license licensed under released under cc-by cc0 odc-by mit apache gpl creative commons",
   "summary": "An SPDX Element containing an SPDX license expression string.",
   "description": "A LicenseExpression enables the representation, in a single string, of a\ncombination of one or more licenses, together with additions such as license\nexceptions.\n\nThe syntax for a licenseExpression string is set forth in the corresponding\nAnnex of this specification\n([\"SPDX license expressions\"](../../../annexes/spdx-license-expressions.md)).\nA licenseExpression string is not valid if it does not conform to the grammar\nset forth in that Annex.\n\nThe ExpandedLicensing profile can be used to represent the complete parsed\nlicense expression as a combination of license objects.",
-  "post_process": "normalize_license"
+  "post_process": "normalize_license",
+  "retrieval": {
+    "hypothetical_passage": "## Licensing Information\n\nThe dataset is released under the **Creative Commons Attribution 4.0 International (CC-BY-4.0)** license. Users must provide attribution to the original authors, link to the license, and indicate if changes were made. The accompanying code in this repository is dual-licensed under Apache-2.0. Some derivative subsets that include third-party Wikipedia text inherit CC-BY-SA-3.0 and must be redistributed under share-alike terms.",
+    "bm25_terms": ["license:", "licensed under", "released under", "## Licensing Information", "CC-BY-4.0", "CC-BY-SA-4.0", "CC0-1.0", "ODC-By-1.0", "ODbL-1.0", "MIT", "Apache-2.0", "GPL-3.0", "BSD-3-Clause", "Creative Commons", "public domain", "non-commercial", "share-alike", "attribution required", "LICENSE file", "SPDX-License-Identifier"]
+  },
+  "extraction": {
+    "instruction": "Extract the SPDX license identifier under which the dataset is distributed; if multiple licenses apply, return them combined as an SPDX expression.",
+    "field_spec": "SPDX property `simplelicensing_LicenseExpression`. Value MUST conform to the SPDX license-expression grammar (e.g. `MIT`, `Apache-2.0`, `CC-BY-4.0`, `CC-BY-SA-3.0 OR MIT`, `GPL-3.0-or-later WITH Classpath-exception-2.0`). Use `NOASSERTION` when sources are silent and `LicenseRef-...` for non-listed licenses.",
+    "output_guidance": "Prefer an explicit SPDX identifier from the source over license name prose ('MIT License' -> `MIT`). If the source gives only a free-text license name, map it to the closest SPDX listed identifier; if no match exists, emit `LicenseRef-<slug>`. For dual-licensing use ` OR `; for combined obligations use ` AND `. Return `NOASSERTION` (not 'Not found.') when no license info appears in any source. If dataset and code carry different licenses, return only the dataset license."
+  }
 }

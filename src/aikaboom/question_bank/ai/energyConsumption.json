@@ -5,5 +5,14 @@
   "keywords": "energy consumption power usage electricity computational resources GPU CPU training inference kWh joules watts",
   "summary": "Indicates the amount of energy consumption incurred by an AI model.",
   "description": "Captures the energy consumption of an AI model, either known or estimated.\n\nIn the absence of direct measurements, an SPDX data creator may choose to\nestimate the energy consumption based on information about computational\nresources (e.g., number of floating-point operations), training time, and other\nrelevant training details.",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "## Compute & Carbon Footprint\n\nPretraining was performed on a cluster of 256 H100 GPUs for 21 days, consuming an estimated **412 MWh** of electricity. Using the codecarbon tracker against the eu-west-1 grid mix (0.32 kgCO2eq/kWh), this corresponds to roughly 132 t CO2eq. Per-token inference cost is about 0.6 J on a single A100. Numbers were derived from total wall-clock GPU-hours times 700 W TDP and a PUE of 1.12; we have not measured at the wall socket directly.",
+    "bm25_terms": ["MWh", "kWh", "GPU-hours", "TDP", "PUE", "codecarbon", "kgCO2eq", "grid mix", "training compute", "inference cost", "joules per token", "carbon footprint", "FLOPs", "wall-clock hours", "H100", "A100", "power draw", "watts"]
+  },
+  "extraction": {
+    "instruction": "Extract reported energy figures for the model across training, fine-tuning, and inference phases, with units and any estimation method.",
+    "field_spec": "SPDX property `ai_energyConsumption`. Composite of up to three EnergyConsumptionDescription records (training, fine-tuning, inference); each carries `ai_energyQuantity` (xsd:decimal) and `ai_energyUnit` (one of `kilowattHour`, `megajoule`, `other`). Suggested string form: 'training=<n> <unit>; finetuning=<n> <unit>; inference=<n> <unit>'.",
+    "output_guidance": "Quote numeric values exactly as published, including the unit symbol (kWh, MWh, MJ, J/token). If only GPU-hours or FLOPs are given, capture them verbatim and tag as estimate. If only CO2eq is reported with no energy figure, record the CO2eq and note 'energy not reported'. Stages with no data are marked 'not reported'; if no phase has any figure, return `noAssertion`. Always preserve the cited methodology (codecarbon, ML CO2 Impact, Strubell et al.)."
+  }
 }

@@ -5,5 +5,32 @@
   "keywords": "base model parent model derived from fine-tuned from pre-trained foundation model ancestor lineage",
   "description": "Per SPDX 3.0.1 dependsOn relationship: identifies the base or parent model from which this model was derived (e.g. \"meta-llama/Llama-3\" or \"google-bert/bert-base-uncased\"). Maps to SPDX dependsOn relationship and CycloneDX pedigree.ancestors.",
   "post_process": null,
-  "aikaboom_internal": true
+  "aikaboom_internal": true,
+  "retrieval": {
+    "hypothetical_passage": "This model is a fine-tuned version of `meta-llama/Llama-3-8B` on a custom instruction dataset. The base checkpoint was distilled from Llama-2-70B and continues the lineage from the original LLaMA release. We initialized weights from `bert-base-uncased` and applied LoRA adapters with r=16. See the parent repo for the pre-training recipe; this card documents only the downstream fine-tuning stage.",
+    "bm25_terms": [
+      "fine-tuned from",
+      "base model",
+      "parent model",
+      "derived from",
+      "pre-trained",
+      "checkpoint",
+      "initialized from",
+      "distilled from",
+      "LoRA adapter",
+      "continued pretraining",
+      "ancestor",
+      "foundation model",
+      "meta-llama/Llama-3",
+      "bert-base-uncased",
+      "base_model",
+      "pedigree",
+      "lineage"
+    ]
+  },
+  "extraction": {
+    "instruction": "Extract the base model or parent checkpoint this model was derived from, fine-tuned on, or distilled from. Report the canonical repo identifier (e.g. `org/model-name`).",
+    "field_spec": "AIkaBoOM-internal. Value space: a single base-model identifier string, typically a HuggingFace repo (`<org>/<model>`) or canonical name. Maps to SPDX `dependsOn` relationship and CycloneDX `pedigree.ancestors`.",
+    "output_guidance": "Prefer the HuggingFace repo identifier over a free-form name. If multiple ancestors form a chain, list them oldest-to-newest separated by ' -> '. If the model is trained from scratch with no parent, return 'from scratch'. Return 'noAssertion' when fine-tuning is implied but no specific base model is named. Return 'Not found.' when the source is silent on lineage."
+  }
 }

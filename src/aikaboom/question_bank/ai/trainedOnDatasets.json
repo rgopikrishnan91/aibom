@@ -5,5 +5,34 @@
   "keywords": "training data dataset corpus fine-tuned trained on pre-trained pre-training data source",
   "description": "Per SPDX 3.0.1 trainedOn relationship: identifies the specific datasets used to train the AI model. The answer should list concrete dataset names (e.g. \"SQuAD\", \"Common Crawl\", \"The Pile\") rather than generic descriptions. Maps to SPDX trainedOn relationship and CycloneDX modelCard.datasets with type=training.",
   "post_process": null,
-  "aikaboom_internal": true
+  "aikaboom_internal": true,
+  "retrieval": {
+    "hypothetical_passage": "The model was pre-trained on a 1.5T-token mixture of Common Crawl (filtered with CCNet), C4, The Pile, Wikipedia, GitHub, ArXiv, and StackExchange. We then fine-tuned on the SQuAD v2 question-answering set and a small instruction-tuning corpus derived from FLAN. Dataset card links and per-source token counts are listed in the appendix; license terms for each constituent corpus are documented in DATA_LICENSES.md.",
+    "bm25_terms": [
+      "Common Crawl",
+      "C4",
+      "The Pile",
+      "Wikipedia",
+      "RefinedWeb",
+      "RedPajama",
+      "FLAN",
+      "SQuAD",
+      "ImageNet",
+      "LAION",
+      "trained on",
+      "pre-training data",
+      "fine-tuned on",
+      "instruction tuning",
+      "dataset card",
+      "tokens",
+      "corpus",
+      "training mixture",
+      "data sources"
+    ]
+  },
+  "extraction": {
+    "instruction": "Extract the named datasets used to train (pre-train and/or fine-tune) this AI model. Return only the canonical dataset names, comma-separated.",
+    "field_spec": "AIkaBoOM-internal. Value space: a list of dataset names (canonical short forms preferred, e.g. `Common Crawl`, `C4`, `The Pile`, `SQuAD`). Maps to SPDX `trainedOn` relationship and CycloneDX `modelCard.datasets` with `type=training`.",
+    "output_guidance": "List concrete dataset names only; exclude generic phrases such as 'a large web corpus' unless that is the only signal. Include both pre-training and fine-tuning corpora when both are reported, and preserve official names. De-duplicate. If training data is acknowledged but no dataset is named (e.g. 'proprietary internal data'), return 'noAssertion'. If training data is not discussed, return 'Not found.'. Do not include evaluation-only datasets."
+  }
 }

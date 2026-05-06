@@ -5,5 +5,32 @@
   "keywords": "explainability interpretability model results explanation",
   "summary": "Describes methods that can be used to explain the results from the AI model.",
   "description": "A free-form text that lists the different explainability mechanisms and how\nthey can be used to explain the results from the AI model.\n\nThe mechanisms can be model-agnostic methods, such as\n[SHapley Additive exPlanations (SHAP)](https://shap.readthedocs.io/) and\n[Local Interpretable Model-agnostic Explanations (LIME)](https://github.com/marcotcr/lime),\nand model-specific methods that applied to a limited category of models.",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "We provide attention visualizations and integrated gradients to interpret predictions. SHAP values are computed on the test set to attribute output logits to input tokens, and LIME is used for local surrogate explanations on tabular features. Grad-CAM heatmaps highlight the image regions that most influence the classifier decision. The model is otherwise a black box; users should treat saliency maps as approximations rather than ground-truth explanations.",
+    "bm25_terms": [
+      "explainability",
+      "interpretability",
+      "SHAP",
+      "LIME",
+      "Grad-CAM",
+      "integrated gradients",
+      "saliency map",
+      "attention visualization",
+      "feature attribution",
+      "Shapley values",
+      "counterfactual explanation",
+      "post-hoc explanation",
+      "model-agnostic",
+      "black box",
+      "surrogate model",
+      "captum",
+      "InterpretML"
+    ]
+  },
+  "extraction": {
+    "instruction": "Extract the explainability or interpretability methods applied to this AI model, naming each technique (e.g. SHAP, LIME, attention, Grad-CAM) and how it is used to explain outputs.",
+    "field_spec": "SPDX property `ai_modelExplainability`. Free-form text (xsd:string) listing explainability mechanisms. Format: comma-separated method names with one-line description of how each interprets predictions.",
+    "output_guidance": "If multiple methods are listed, separate with semicolons. Distinguish model-agnostic methods (SHAP, LIME) from model-specific ones (attention rollout, Grad-CAM). If the source explicitly says the model is a black box with no explainability, record that verbatim. Return 'noAssertion' if the model card discusses outputs but never addresses interpretability. Return 'Not found.' when the topic is absent."
+  }
 }

@@ -5,5 +5,32 @@
   "keywords": "update updated updating version maintenance versioning refresh dynamic static mechanism",
   "summary": "Describes a mechanism to update the dataset.",
   "description": "A free-form text that describes a mechanism to update the dataset.",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "The dataset is refreshed quarterly via a GitHub Actions workflow that re-runs the scraping pipeline on the first day of each calendar quarter and pushes a new tagged release (v2024.Q1, v2024.Q2, ...) to the Hub. Older snapshots remain pinned and downloadable for reproducibility. Bug fixes between scheduled releases are published as patch versions. Users can subscribe to release notifications on the GitHub repository or pin a specific revision via `datasets.load_dataset(..., revision='v2024.Q1')`.",
+    "bm25_terms": [
+      "update mechanism",
+      "updated quarterly",
+      "monthly refresh",
+      "static dataset",
+      "frozen snapshot",
+      "versioning",
+      "release schedule",
+      "tagged release",
+      "GitHub Actions",
+      "CI pipeline",
+      "rolling release",
+      "revision",
+      "changelog",
+      "patch version",
+      "deprecation",
+      "no further updates",
+      "maintenance"
+    ]
+  },
+  "extraction": {
+    "instruction": "Extract the mechanism and cadence by which the dataset is updated or maintained, including who runs it and how users obtain new versions.",
+    "field_spec": "SPDX property `dataset_datasetUpdateMechanism`. Free-form text (xsd:string), single value. Typical content: cadence (daily/quarterly/static), automation (cron, CI, GitHub Actions), versioning scheme, distribution channel.",
+    "output_guidance": "Capture the cadence verbatim ('quarterly', 'one-time release', 'on demand'). If the dataset is explicitly frozen with no planned updates, record that. If the source mentions a versioning scheme (semver, date-based tags), include it. Return 'Not found.' if neither update cadence nor maintenance status is stated."
+  }
 }

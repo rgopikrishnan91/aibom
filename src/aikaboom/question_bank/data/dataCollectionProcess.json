@@ -5,5 +5,32 @@
   "keywords": "collected collection gathering scraping crawling sources method methodology acquisition obtained compiled",
   "summary": "Describes how the dataset was collected.",
   "description": "A free-form text that describes how a dataset was collected.\n\nExamples include the sources from which a dataset was scrapped and\nthe interview protocol that was used for data collection.",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "We collected the corpus by scraping Common Crawl dumps from 2019-2023 and filtering to English news domains using a fastText language identifier. An additional 50k passages were sourced from licensed Wikipedia snapshots. Annotations were gathered through Amazon Mechanical Turk: three workers labeled each example following a 12-page guideline, and we kept only items with majority agreement. Edge cases were adjudicated by two in-house linguists. Collection ran from March to August 2022.",
+    "bm25_terms": [
+      "data collection",
+      "scraped from",
+      "Common Crawl",
+      "web crawl",
+      "Wikipedia dump",
+      "Mechanical Turk",
+      "MTurk",
+      "crowdsourced",
+      "annotation guidelines",
+      "interview protocol",
+      "data sources",
+      "collected between",
+      "annotators",
+      "inter-annotator agreement",
+      "scraping script",
+      "API queries",
+      "licensed from"
+    ]
+  },
+  "extraction": {
+    "instruction": "Extract how the dataset was collected, including data sources, collection methods, time period, and any annotation or interview protocols.",
+    "field_spec": "SPDX property `dataset_dataCollectionProcess`. Free-form text (xsd:string), single value. Should read as a brief narrative covering source(s), method (scraping / crowdsourcing / interviews / API), and timeframe when stated.",
+    "output_guidance": "Quote source URLs, dataset names, and crowdsourcing platforms verbatim. If the source covers multiple stages (raw collection vs. annotation), capture both. If only the upstream dataset is cited without describing how it was collected, note that the process is inherited from the upstream source and name it. Return 'Not found.' if the card omits collection details entirely."
+  }
 }

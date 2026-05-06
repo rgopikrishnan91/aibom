@@ -5,5 +5,32 @@
   "keywords": "confidential confidentiality sensitive privacy classification level public private restricted",
   "summary": "Describes the confidentiality level of the data points contained in the dataset.",
   "description": "Describes the levels of confidentiality of the data points contained in the dataset.",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "The dataset is classified internally at the AMBER traffic-light level: it may be shared with named partners under NDA but must not be redistributed publicly. Records derived from clinical notes are tagged RED and remain on-prem. Aggregated statistics released alongside the paper are CLEAR and freely redistributable. Access requests for the AMBER tier go through a Data Use Agreement reviewed by the IRB; downloads are logged and credentials expire after 90 days.",
+    "bm25_terms": [
+      "confidentiality level",
+      "TLP:AMBER",
+      "TLP:RED",
+      "TLP:GREEN",
+      "TLP:CLEAR",
+      "traffic light protocol",
+      "public",
+      "restricted",
+      "sensitive",
+      "internal use only",
+      "NDA",
+      "Data Use Agreement",
+      "PHI",
+      "PII",
+      "classified",
+      "proprietary",
+      "open data"
+    ]
+  },
+  "extraction": {
+    "instruction": "Extract the confidentiality classification the dataset assigns to its data points, mapping it to the SPDX ConfidentialityLevelType vocabulary when possible.",
+    "field_spec": "SPDX property `dataset_confidentialityLevel`. Enum ConfidentialityLevelType with members: `amber`, `clear`, `green`, `red`. Format: a single enum token, optionally with a parenthetical quote of the source phrasing.",
+    "output_guidance": "Map common phrasings: 'public'/'open' -> clear; 'shareable with limits' -> green; 'partner/NDA' -> amber; 'highly restricted'/'PHI' -> red. If multiple tiers apply to different splits, list each tier with the split it covers. If no confidentiality statement appears, return 'noAssertion'. Do not infer from license alone unless the license explicitly speaks to confidentiality."
+  }
 }

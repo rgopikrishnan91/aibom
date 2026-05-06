@@ -1,42 +1,9 @@
 {
-  "generated_by": "tools/build_master_question_bank.py",
-  "spdx_version": "3.0.1",
-  "field_count": {
-    "ai": 20,
-    "data": 17,
-    "total": 37,
-    "ai_mapped": 17,
-    "ai_internal": 3,
-    "data_mapped": 16,
-    "data_internal": 1
-  },
-  "schema": {
-    "field": "AIkaBoOM field name (filename stem of the per-field JSON)",
-    "bom_type": "'ai' or 'data'",
-    "aikaboom_internal": "true if the field has no SPDX 3.0.1 property page; false if it maps to one",
-    "spdx_property": "full SPDX property name (e.g. 'ai_typeOfModel') or null for internal fields",
-    "spec_url": "SPDX 3.0.1 spec page URL or null for internal fields",
-    "question": "legacy prompt text (audit-only; no longer used at runtime)",
-    "keywords": "legacy retrieval-only tokens (audit-only; superseded by retrieval.bm25_terms)",
-    "summary": "verbatim SPDX 3.0.1 Summary block (mapped fields only; '' for internal)",
-    "description": "verbatim SPDX 3.0.1 Description block (mapped) or hand-written text (internal)",
-    "retrieval": "{'hypothetical_passage': HyDE prose for FAISS dense retrieval (Gao et al. ACL 2023), 'bm25_terms': list of exact-match strings for BM25 sparse retrieval}",
-    "extraction": "{'instruction': imperative for the LLM, 'field_spec': SPDX/internal contract + legal values, 'output_guidance': edge-case decision rules}",
-    "post_process": "name of a post-processor in aikaboom.utils.post_process or null",
-    "priority": "ordered list of source names used by the agentic RAG router"
-  },
+  "model": "claude-opus-4-7 (via in-session subagent dispatch)",
+  "temperature": 0.0,
   "fields": {
     "ai": {
       "autonomyType": {
-        "field": "autonomyType",
-        "bom_type": "ai",
-        "aikaboom_internal": false,
-        "spdx_property": "ai_autonomyType",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/autonomyType/",
-        "question": "Does the system can perform a decision or action without human involvement or guidance (yes, no, or noAssertion)?",
-        "keywords": "autonomous automation automated decision-making human involvement guidance manual intervention oversight supervision fully automated system self-governing independent unsupervised human-in-the-loop semi-autonomous user-controlled operator-assisted",
-        "summary": "Indicates whether the system can perform a decision or action without human\ninvolvement or guidance.",
-        "description": "Indicates if the system is fully automated or a human is involved in any of the\ndecisions of the AI system.\n\n- yes: Indicates that the system is fully automated.\n- no: Indicates that a human is involved in any of the decisions of the AI\n  system.\n- noAssertion: Makes no assertion about the autonomy.",
         "retrieval": {
           "hypothetical_passage": "## Intended use\n\nThis model is designed for human-in-the-loop deployments: predictions are surfaced to a clinician who reviews and confirms each output before any downstream action is taken. The system is **not** intended for fully autonomous use; a human reviewer must remain in the decision loop. For high-stakes settings we recommend manual oversight on every inference, with optional confidence-based triage. Operators should treat outputs as decision support, not as final decisions.",
           "bm25_terms": [
@@ -62,24 +29,9 @@
           "instruction": "Determine whether the AI system makes decisions or takes actions without any human involvement, and return one of the three allowed enum values.",
           "field_spec": "SPDX property `ai_autonomyType`. Enum of exactly one of: `yes` (fully automated, no human in the loop), `no` (a human is involved in at least some decisions), or `noAssertion` (insufficient evidence). Lowercase camelCase string, no surrounding quotes or punctuation.",
           "output_guidance": "Return `yes` only if the source explicitly states the system runs without human review (e.g. 'fully autonomous', 'no human intervention'). Return `no` if any human-in-the-loop, reviewer, operator approval, or oversight step is mentioned. If the source is silent or contradictory across sections, return `noAssertion`. Do not include explanatory prose; return only the bare enum value."
-        },
-        "post_process": null,
-        "priority": [
-          "arxiv",
-          "huggingface",
-          "github"
-        ]
+        }
       },
       "domain": {
-        "field": "domain",
-        "bom_type": "ai",
-        "aikaboom_internal": false,
-        "spdx_property": "ai_domain",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/domain/",
-        "question": "What is the domain in which the AI package can be used?",
-        "keywords": "domain application area field sector industry vertical computer vision natural language processing NLP machine learning classification regression detection segmentation speech recognition image processing text analysis audio processing video analysis time series forecasting recommendation systems robotics healthcare finance automotive agriculture education retail manufacturing cybersecurity gaming entertainment",
-        "summary": "Captures the domain in which the AI package can be used.",
-        "description": "A free-form text that describes the domain where the AI model contained in the\nAI software can be expected to operate successfully.\n\nExamples include computer vision, natural language processing, etc.",
         "retrieval": {
           "hypothetical_passage": "# Model Card for clinical-bert-ner\n\nThis model targets the **biomedical natural language processing** domain, specifically named-entity recognition over electronic health records and PubMed abstracts. It has been validated on English-language clinical text and is not expected to generalise to general-purpose web text, code, or non-English corpora. Downstream tasks include de-identification, ICD-10 code suggestion, and adverse-event extraction. Out-of-domain inputs (e.g. legal contracts, social media) will degrade sharply.",
           "bm25_terms": [
@@ -107,24 +59,9 @@
           "instruction": "Extract the domain or application area in which the AI model is intended to operate, as stated by the source.",
           "field_spec": "SPDX property `ai_domain`. Free-form short text (typically 1-5 words per domain). Multiple domains MAY be returned as a comma-separated list. No fixed enum.",
           "output_guidance": "Prefer the wording the source uses (e.g. 'computer vision', 'natural language processing', 'speech recognition', 'tabular regression'). If multiple complementary domains are mentioned, list them comma-separated in source order. If only a downstream task is stated (e.g. 'sentiment analysis'), infer the umbrella domain only when unambiguous; otherwise return the task verbatim. If no domain is stated anywhere, return `noAssertion`."
-        },
-        "post_process": null,
-        "priority": [
-          "arxiv",
-          "huggingface",
-          "github"
-        ]
+        }
       },
       "energyConsumption": {
-        "field": "energyConsumption",
-        "bom_type": "ai",
-        "aikaboom_internal": false,
-        "spdx_property": "ai_energyConsumption",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/energyConsumption/",
-        "question": "Indicates the amount of energy consumption incurred by an AI model.",
-        "keywords": "energy consumption power usage electricity computational resources GPU CPU training inference kWh joules watts",
-        "summary": "Indicates the amount of energy consumption incurred by an AI model.",
-        "description": "Captures the energy consumption of an AI model, either known or estimated.\n\nIn the absence of direct measurements, an SPDX data creator may choose to\nestimate the energy consumption based on information about computational\nresources (e.g., number of floating-point operations), training time, and other\nrelevant training details.",
         "retrieval": {
           "hypothetical_passage": "## Compute & Carbon Footprint\n\nPretraining was performed on a cluster of 256 H100 GPUs for 21 days, consuming an estimated **412 MWh** of electricity. Using the codecarbon tracker against the eu-west-1 grid mix (0.32 kgCO2eq/kWh), this corresponds to roughly 132 t CO2eq. Per-token inference cost is about 0.6 J on a single A100. Numbers were derived from total wall-clock GPU-hours times 700 W TDP and a PUE of 1.12; we have not measured at the wall socket directly.",
           "bm25_terms": [
@@ -152,24 +89,9 @@
           "instruction": "Extract reported energy figures for the model across training, fine-tuning, and inference phases, with units and any estimation method.",
           "field_spec": "SPDX property `ai_energyConsumption`. Composite of up to three EnergyConsumptionDescription records (training, fine-tuning, inference); each carries `ai_energyQuantity` (xsd:decimal) and `ai_energyUnit` (one of `kilowattHour`, `megajoule`, `other`). Suggested string form: 'training=<n> <unit>; finetuning=<n> <unit>; inference=<n> <unit>'.",
           "output_guidance": "Quote numeric values exactly as published, including the unit symbol (kWh, MWh, MJ, J/token). If only GPU-hours or FLOPs are given, capture them verbatim and tag as estimate. If only CO2eq is reported with no energy figure, record the CO2eq and note 'energy not reported'. Stages with no data are marked 'not reported'; if no phase has any figure, return `noAssertion`. Always preserve the cited methodology (codecarbon, ML CO2 Impact, Strubell et al.)."
-        },
-        "post_process": null,
-        "priority": [
-          "huggingface",
-          "arxiv",
-          "github"
-        ]
+        }
       },
       "hyperparameter": {
-        "field": "hyperparameter",
-        "bom_type": "ai",
-        "aikaboom_internal": false,
-        "spdx_property": "ai_hyperparameter",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/hyperparameter/",
-        "question": "Records a hyperparameter used to build the AI model contained in the AI package.",
-        "keywords": "hyperparameter learning rate batch size layers tuning settings",
-        "summary": "Records a hyperparameter used to build the AI model contained in the AI\npackage.",
-        "description": "Records a hyperparameter value.\n\nHyperparameters are settings defined before the training process that control\nthe learning algorithm's behavior. They differ from model parameters,\nwhich are learned from the data during training. Developers typically set\nhyperparameters manually or through a process of hyperparameter tuning\n(also known as trial and error).\n\nExamples of hyperparameters include learning rate, batch size, and the number\nof layers in a neural network.",
         "retrieval": {
           "hypothetical_passage": "### Training hyperparameters\n\nThe model was trained with the AdamW optimizer (beta1=0.9, beta2=0.999, weight_decay=0.01), a peak learning_rate of 2e-5 with linear warmup over the first 500 steps and cosine decay, batch_size=32 per GPU (effective batch 256), max_seq_length=512, dropout=0.1, and 3 epochs. Mixed-precision (bf16) was enabled. Gradient clipping at 1.0. Random seed 42. These settings follow the recipe of Devlin et al. (2019) with minor adjustments for the longer context.",
           "bm25_terms": [
@@ -199,24 +121,9 @@
           "instruction": "Extract every training hyperparameter and its value reported by the source (optimizer, learning rate, batch size, epochs, schedule, regularization, seed, precision, etc.).",
           "field_spec": "SPDX property `ai_hyperparameter`. Set of DictionaryEntry pairs each with `key` (string) and `value` (string). Suggested serialization: 'key=value' pairs, semicolon-separated, e.g. 'learning_rate=2e-5; batch_size=32; epochs=3; optimizer=AdamW'.",
           "output_guidance": "List each named hyperparameter once with its value verbatim from the source (preserve scientific notation like `2e-5`). If a value differs between sources (e.g. README vs paper), keep the model-card value and note the discrepancy. Skip qualitative phrases like 'standard settings' that lack numbers. If the source reports no hyperparameters at all, return `noAssertion`."
-        },
-        "post_process": null,
-        "priority": [
-          "arxiv",
-          "huggingface",
-          "github"
-        ]
+        }
       },
       "informationAboutApplication": {
-        "field": "informationAboutApplication",
-        "bom_type": "ai",
-        "aikaboom_internal": false,
-        "spdx_property": "ai_informationAboutApplication",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/informationAboutApplication/",
-        "question": "Provides relevant information about the AI software, not including the model description.",
-        "keywords": "application functionality pre-processing APIs dependencies",
-        "summary": "Provides relevant information about the AI software, not including the model\ndescription.",
-        "description": "A free-form text description of how the AI model is used within the software.\n\nIt should include any relevant information, such as pre-processing steps,\nthird-party APIs, and other pertinent details.\n\nIt can also include:\n\n- Functionality provided by the AI model within the software application,\n  including: any specific tasks or decisions it is designed to perform;\n  any pre-processing steps that are applied to the input data before it is\n  fed into the AI model for inference, such as data cleaning, normalization,\n  or feature extraction;\n  and any third-party APIs or services that are used in conjunction with\n  the AI model, such as data sources, cloud services, or other AI models.\n- Description of any dependencies or requirements needed to run the AI model\n  within the software application, including: specific hardware,\n  software libraries, and operating systems.",
         "retrieval": {
           "hypothetical_passage": "## How to use\n\nThe model is served behind a FastAPI endpoint. Incoming text is normalised (NFC, lowercased, stripped of HTML), tokenised with the bundled SentencePiece model, and truncated to 1024 tokens before inference. The pipeline calls the OpenAI Embeddings API for query expansion and then ranks candidates with this model. Requires Python 3.10+, PyTorch 2.1, CUDA 12.1, transformers>=4.40, and at least 16 GB of GPU memory. A Dockerfile is provided; CPU-only inference is supported but ~30x slower.",
           "bm25_terms": [
@@ -245,24 +152,9 @@
           "instruction": "Extract how the AI model is integrated into the surrounding software: pre/post-processing, third-party APIs or services it depends on, and runtime requirements (hardware, libraries, OS).",
           "field_spec": "SPDX property `ai_informationAboutApplication`. Free-form text. Suggested structure: a short paragraph or bullet list covering (a) functionality, (b) preprocessing pipeline, (c) external services/APIs, (d) hardware/software dependencies.",
           "output_guidance": "Capture concrete pipeline details verbatim where possible (library versions, API names, GPU requirements). Exclude pure model architecture description (that belongs in `typeOfModel`) and exclude training details (that belongs in `informationAboutTraining`). If the source describes only the model and gives no integration or deployment info, return `noAssertion`. Merge multi-section content into one coherent paragraph; do not invent dependencies."
-        },
-        "post_process": null,
-        "priority": [
-          "github",
-          "huggingface",
-          "arxiv"
-        ]
+        }
       },
       "informationAboutTraining": {
-        "field": "informationAboutTraining",
-        "bom_type": "ai",
-        "aikaboom_internal": false,
-        "spdx_property": "ai_informationAboutTraining",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/informationAboutTraining/",
-        "question": "Describes relevant information about different steps of the training process.",
-        "keywords": "training process data algorithms techniques evaluation metrics",
-        "summary": "Describes relevant information about different steps of the training process.",
-        "description": "A detailed explanation of the training process,\nincluding the specific techniques, algorithms, and methods employed.\n\nExamples include:\n\n- training data used to train the AI model, along with any relevant details\n  about its source, quality, and pre-processing steps;\n- specific training algorithms employed, including stochastic gradient descent,\n  backpropagation, and reinforcement learning;\n- specific training techniques used to improve the performance or accuracy\n  of the AI model, such as transfer learning, fine-tuning, or active learning;\n  and\n- any evaluation metrics used to assess the performance of the AI model\n  during the training process, including accuracy, precision, recall, and F1\n  score.",
         "retrieval": {
           "hypothetical_passage": "## Training procedure\n\nWe initialise from `roberta-base` and continue pretraining with masked-language-modelling on a 40 GB cleaned subset of CommonCrawl plus the OpenWebText corpus. Training proceeds for 100k steps of AdamW with linear warmup over 5k steps. We then fine-tune on the downstream classification dataset for 5 epochs with early stopping on validation F1. Curriculum learning is applied for the first epoch. All experiments use distributed data parallel across 16 A100 GPUs. Validation accuracy is logged every 500 steps.",
           "bm25_terms": [
@@ -292,24 +184,9 @@
           "instruction": "Extract a description of the training process: starting checkpoint, training data and preprocessing, algorithms and techniques used (pretraining, fine-tuning, RLHF, distillation), and any in-training evaluation.",
           "field_spec": "SPDX property `ai_informationAboutTraining`. Free-form text, typically a short paragraph. Should cover (a) data, (b) algorithm/objective, (c) techniques (transfer learning, fine-tuning, etc.), (d) evaluation during training.",
           "output_guidance": "Quote concrete techniques and dataset names from the source. Hyperparameters belong in `hyperparameter` and final benchmark numbers belong in `metric`; only mention them here if they describe the training procedure itself (e.g. 'early stopping on val F1'). Skip pure inference / deployment notes. If no training process is described (e.g. third-party redistribution with no detail), return `noAssertion`."
-        },
-        "post_process": null,
-        "priority": [
-          "arxiv",
-          "huggingface",
-          "github"
-        ]
+        }
       },
       "license": {
-        "field": "license",
-        "bom_type": "ai",
-        "aikaboom_internal": false,
-        "spdx_property": "simplelicensing_LicenseExpression",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/SimpleLicensing/Classes/LicenseExpression/",
-        "question": "Under what license is the AI model and its code released? Quote the SPDX identifier (e.g. \"MIT\", \"Apache-2.0\", \"Llama-2\") if any source states it.",
-        "keywords": "license licensed under released under apache mit gpl bsd cc-by openrail llama gemma proprietary",
-        "summary": "An SPDX Element containing an SPDX license expression string.",
-        "description": "A LicenseExpression enables the representation, in a single string, of a\ncombination of one or more licenses, together with additions such as license\nexceptions.\n\nThe syntax for a licenseExpression string is set forth in the corresponding\nAnnex of this specification\n([\"SPDX license expressions\"](../../../annexes/spdx-license-expressions.md)).\nA licenseExpression string is not valid if it does not conform to the grammar\nset forth in that Annex.\n\nThe ExpandedLicensing profile can be used to represent the complete parsed\nlicense expression as a combination of license objects.",
         "retrieval": {
           "hypothetical_passage": "---\nlicense: apache-2.0\n---\n\n# License\n\nThis repository is released under the **Apache License 2.0**; see the `LICENSE` file for the full text. Model weights are distributed under the same terms. The training corpus contains components under CC-BY-SA-4.0, which apply only to derivative datasets. Commercial use is permitted with attribution. The Llama 2 base weights, where used, remain subject to the Meta Llama 2 Community License Agreement.",
           "bm25_terms": [
@@ -339,24 +216,9 @@
           "instruction": "Extract the license under which the model and its code are released, as an SPDX license identifier or expression.",
           "field_spec": "SPDX class `simplelicensing_LicenseExpression`. Value MUST be a valid SPDX license expression string per the SPDX License List (e.g. `Apache-2.0`, `MIT`, `Apache-2.0 AND CC-BY-4.0`, `LicenseRef-Llama-2`). Use `LicenseRef-<id>` for licenses not on the SPDX List. Use `NOASSERTION` only when truly unstated.",
           "output_guidance": "Prefer the canonical SPDX identifier even if the source uses prose ('Apache 2.0' -> `Apache-2.0`, 'MIT licensed' -> `MIT`). When weights and code differ, return both joined with `AND` (e.g. `Apache-2.0 AND CC-BY-NC-4.0`). For non-SPDX-List licenses (Llama 2 Community License, Gemma Terms), emit `LicenseRef-Llama-2` style. If no license text or YAML field is found anywhere in card / README / paper, return `NOASSERTION`."
-        },
-        "post_process": "normalize_license",
-        "priority": [
-          "huggingface",
-          "github",
-          "arxiv"
-        ]
+        }
       },
       "limitation": {
-        "field": "limitation",
-        "bom_type": "ai",
-        "aikaboom_internal": false,
-        "spdx_property": "ai_limitation",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/limitation/",
-        "question": "Captures a limitation of the AI software.",
-        "keywords": "limitations constraints challenges restrictions",
-        "summary": "Captures a limitation of the AI software.",
-        "description": "A free-form text that captures a limitation of the AI package\n(or of the AI models present in the AI package).\n\nNote that this is not guaranteed to be exhaustive.\n\nFor instance, a limitation might be that the AI package cannot be used on\ndatasets from a certain demography.",
         "retrieval": {
           "hypothetical_passage": "## Limitations and biases\n\nThe model was trained primarily on English-language web text scraped before 2022, so it has limited knowledge of recent events and degrades on low-resource languages. Performance drops noticeably on dialectal speech, code-switched text, and domains under-represented in the training corpus (e.g. legal contracts, clinical notes). The model may produce hallucinated facts, reproduce stereotypes present in the training data, and is **not** suitable for high-stakes decisions in healthcare, finance, or hiring without human review.",
           "bm25_terms": [
@@ -384,24 +246,9 @@
           "instruction": "Extract each stated limitation, caveat, or out-of-scope use of the AI model and return them as a list.",
           "field_spec": "SPDX property `ai_limitation`. Free-form text; typically a bullet list of distinct limitations. When multiple are present, return them as a single string with each limitation separated by `; ` or as numbered items.",
           "output_guidance": "Capture each limitation with the source's wording, deduplicating near-identical phrasings across sections. Include domain restrictions, demographic biases, knowledge cutoffs, hallucination warnings, and explicit 'not suitable for' clauses. Do NOT include generic disclaimers ('use at your own risk') with no substantive content. If the source explicitly says 'no known limitations' record that verbatim; if the topic is simply absent, return `noAssertion`."
-        },
-        "post_process": null,
-        "priority": [
-          "arxiv",
-          "huggingface",
-          "github"
-        ]
+        }
       },
       "metric": {
-        "field": "metric",
-        "bom_type": "ai",
-        "aikaboom_internal": false,
-        "spdx_property": "ai_metric",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/metric/",
-        "question": "Records the measurement of prediction quality of the AI model.",
-        "keywords": "metrics evaluation accuracy precision recall F1-score",
-        "summary": "Records the measurement of prediction quality of the AI model.",
-        "description": "Records the measurement with which the AI model was evaluated.\n\nThis makes statements about the prediction quality including uncertainty,\naccuracy, characteristics of the tested population, quality, fairness,\nexplainability, robustness etc.",
         "retrieval": {
           "hypothetical_passage": "## Evaluation results\n\n| Benchmark | Metric | Score |\n|---|---|---|\n| GLUE (avg) | accuracy | 87.4 |\n| SQuAD v2 | F1 | 89.1 / EM 85.6 |\n| MMLU (5-shot) | accuracy | 64.2 |\n| HellaSwag | accuracy | 79.0 |\n\nWe additionally report a macro-F1 of 0.81 on a held-out fairness slice and an AUROC of 0.94 for the binary classification task. All numbers are mean over 3 seeds; standard deviations are below 0.5.",
           "bm25_terms": [
@@ -431,24 +278,9 @@
           "instruction": "Extract every evaluation metric reported for the model: the metric name, the numeric value, and the dataset or benchmark it was measured on.",
           "field_spec": "SPDX property `ai_metric`. Set of DictionaryEntry pairs with `key` (metric name, optionally with dataset) and `value` (numeric score, optionally with unit %). Suggested form: 'metric@dataset=value', e.g. 'accuracy@MMLU=64.2; F1@SQuADv2=89.1'.",
           "output_guidance": "Record values verbatim including units (% or fraction); do not normalise. Pair every metric with its dataset or benchmark when stated. Omit ablation numbers that the authors describe as preliminary. If multiple seeds are reported keep the mean and note std if given. If no quantitative evaluation is reported anywhere, return `noAssertion`."
-        },
-        "post_process": null,
-        "priority": [
-          "arxiv",
-          "huggingface",
-          "github"
-        ]
+        }
       },
       "metricDecisionThreshold": {
-        "field": "metricDecisionThreshold",
-        "bom_type": "ai",
-        "aikaboom_internal": false,
-        "spdx_property": "ai_metricDecisionThreshold",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/metricDecisionThreshold/",
-        "question": "Captures the threshold that was used for computation of a metric described in the metric field.",
-        "keywords": "decision threshold metric computation evaluation",
-        "summary": "Captures the threshold that was used for computation of a metric described in\nthe metric field.",
-        "description": "Each metric might be computed based on a decision threshold.\n\nFor instance, precision or recall is typically computed by checking if the\nprobability of the outcome is larger than 0.5.\n\nEach decision threshold should match with a metric field defined in the AI\npackage.",
         "retrieval": {
           "hypothetical_passage": "### Decision threshold\n\nClassification metrics in the table above use a probability cut-off of **0.5** on the sigmoid output. We additionally swept thresholds from 0.1 to 0.9 in 0.05 increments and selected 0.42 on the validation set to maximise F1 under the operating point used in production. Precision-recall curves are shown in Figure 3. For the toxicity classifier, recall is reported at a stricter threshold of 0.7 to reduce false positives.",
           "bm25_terms": [
@@ -474,24 +306,9 @@
           "instruction": "Extract the decision threshold(s) used to convert model scores into class predictions when computing the reported metrics, and pair each threshold with its metric.",
           "field_spec": "SPDX property `ai_metricDecisionThreshold`. Set of DictionaryEntry pairs with `key` (metric name, matching a key in `ai_metric`) and `value` (numeric threshold as string, typically in [0,1]). Suggested form: 'metric=threshold', e.g. 'F1=0.42; recall=0.7'.",
           "output_guidance": "Only record thresholds that are explicitly tied to a metric computation. Default thresholds (e.g. 0.5 / argmax) should be captured only when the source states them; do not assume 0.5 by default. If multiple thresholds are reported (sweep, per-class), return each pairing. If metrics are present but no threshold is mentioned, return `noAssertion` for this field rather than guessing."
-        },
-        "post_process": null,
-        "priority": [
-          "arxiv",
-          "huggingface",
-          "github"
-        ]
+        }
       },
       "modelDataPreprocessing": {
-        "field": "modelDataPreprocessing",
-        "bom_type": "ai",
-        "aikaboom_internal": false,
-        "spdx_property": "ai_modelDataPreprocessing",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/modelDataPreprocessing/",
-        "question": "Describes all the preprocessing steps applied to the training data before the model training.",
-        "keywords": "data preprocessing cleaning normalization transformation",
-        "summary": "Describes all the preprocessing steps applied to the training data before the\nmodel training.",
-        "description": "A free-form text that describes the preprocessing steps applied to the training\ndata before training of the model(s) contained in the AI software.",
         "retrieval": {
           "hypothetical_passage": "Before training, the raw text was deduplicated using MinHash LSH, lowercased, and tokenized with a 32k SentencePiece BPE vocabulary. Documents shorter than 50 tokens were dropped, HTML boilerplate stripped, and PII redacted via regex. Image inputs were resized to 224x224, center-cropped, and normalized with ImageNet mean and std. Audio clips were resampled to 16 kHz mono and converted to log-Mel spectrograms with 80 bins.",
           "bm25_terms": [
@@ -520,24 +337,9 @@
           "instruction": "Extract the preprocessing steps applied to the training data before model training, listing each step (e.g. tokenization, deduplication, normalization, filtering) with any reported parameters.",
           "field_spec": "SPDX property `ai_modelDataPreprocessing`. Free-form text (xsd:string) describing preprocessing pipeline. Format: ordered list or prose covering cleaning, tokenization, normalization, augmentation, and filtering steps.",
           "output_guidance": "If multiple preprocessing steps are reported, list them in pipeline order, separated by semicolons. If only modality-specific preprocessing is described (text vs. image vs. audio), capture each modality. Return 'noAssertion' if the source mentions training data but says nothing about preprocessing. Return 'Not found.' if neither training data nor preprocessing is mentioned. Do not invent steps from the model architecture alone."
-        },
-        "post_process": null,
-        "priority": [
-          "arxiv",
-          "github",
-          "huggingface"
-        ]
+        }
       },
       "modelExplainability": {
-        "field": "modelExplainability",
-        "bom_type": "ai",
-        "aikaboom_internal": false,
-        "spdx_property": "ai_modelExplainability",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/modelExplainability/",
-        "question": "Describes methods that can be used to explain the results from the AI model.",
-        "keywords": "explainability interpretability model results explanation",
-        "summary": "Describes methods that can be used to explain the results from the AI model.",
-        "description": "A free-form text that lists the different explainability mechanisms and how\nthey can be used to explain the results from the AI model.\n\nThe mechanisms can be model-agnostic methods, such as\n[SHapley Additive exPlanations (SHAP)](https://shap.readthedocs.io/) and\n[Local Interpretable Model-agnostic Explanations (LIME)](https://github.com/marcotcr/lime),\nand model-specific methods that applied to a limited category of models.",
         "retrieval": {
           "hypothetical_passage": "We provide attention visualizations and integrated gradients to interpret predictions. SHAP values are computed on the test set to attribute output logits to input tokens, and LIME is used for local surrogate explanations on tabular features. Grad-CAM heatmaps highlight the image regions that most influence the classifier decision. The model is otherwise a black box; users should treat saliency maps as approximations rather than ground-truth explanations.",
           "bm25_terms": [
@@ -564,24 +366,9 @@
           "instruction": "Extract the explainability or interpretability methods applied to this AI model, naming each technique (e.g. SHAP, LIME, attention, Grad-CAM) and how it is used to explain outputs.",
           "field_spec": "SPDX property `ai_modelExplainability`. Free-form text (xsd:string) listing explainability mechanisms. Format: comma-separated method names with one-line description of how each interprets predictions.",
           "output_guidance": "If multiple methods are listed, separate with semicolons. Distinguish model-agnostic methods (SHAP, LIME) from model-specific ones (attention rollout, Grad-CAM). If the source explicitly says the model is a black box with no explainability, record that verbatim. Return 'noAssertion' if the model card discusses outputs but never addresses interpretability. Return 'Not found.' when the topic is absent."
-        },
-        "post_process": null,
-        "priority": [
-          "arxiv",
-          "github",
-          "huggingface"
-        ]
+        }
       },
       "modelLineage": {
-        "field": "modelLineage",
-        "bom_type": "ai",
-        "aikaboom_internal": true,
-        "spdx_property": null,
-        "spec_url": null,
-        "question": "What is the base model or parent model that this AI model was derived from or fine-tuned on?",
-        "keywords": "base model parent model derived from fine-tuned from pre-trained foundation model ancestor lineage",
-        "summary": "",
-        "description": "Per SPDX 3.0.1 dependsOn relationship: identifies the base or parent model from which this model was derived (e.g. \"meta-llama/Llama-3\" or \"google-bert/bert-base-uncased\"). Maps to SPDX dependsOn relationship and CycloneDX pedigree.ancestors.",
         "retrieval": {
           "hypothetical_passage": "This model is a fine-tuned version of `meta-llama/Llama-3-8B` on a custom instruction dataset. The base checkpoint was distilled from Llama-2-70B and continues the lineage from the original LLaMA release. We initialized weights from `bert-base-uncased` and applied LoRA adapters with r=16. See the parent repo for the pre-training recipe; this card documents only the downstream fine-tuning stage.",
           "bm25_terms": [
@@ -608,24 +395,9 @@
           "instruction": "Extract the base model or parent checkpoint this model was derived from, fine-tuned on, or distilled from. Report the canonical repo identifier (e.g. `org/model-name`).",
           "field_spec": "AIkaBoOM-internal. Value space: a single base-model identifier string, typically a HuggingFace repo (`<org>/<model>`) or canonical name. Maps to SPDX `dependsOn` relationship and CycloneDX `pedigree.ancestors`.",
           "output_guidance": "Prefer the HuggingFace repo identifier over a free-form name. If multiple ancestors form a chain, list them oldest-to-newest separated by ' -> '. If the model is trained from scratch with no parent, return 'from scratch'. Return 'noAssertion' when fine-tuning is implied but no specific base model is named. Return 'Not found.' when the source is silent on lineage."
-        },
-        "post_process": null,
-        "priority": [
-          "huggingface",
-          "arxiv",
-          "github"
-        ]
+        }
       },
       "primaryPurpose": {
-        "field": "primaryPurpose",
-        "bom_type": "ai",
-        "aikaboom_internal": false,
-        "spdx_property": "software_primaryPurpose",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Software/Properties/primaryPurpose/",
-        "question": "What is the primary purpose / main task of this AI model (one of: model, application, data, framework, library, other)?",
-        "keywords": "task category pipeline classification generation segmentation translation summarisation embedding retrieval purpose role intent",
-        "summary": "Provides information about the primary purpose of the software artifact.",
-        "description": "primaryPurpose provides information about the primary purpose of the software\nartifact.",
         "retrieval": {
           "hypothetical_passage": "## Model description\n\nThis model is designed for English text classification, specifically sentiment analysis on product reviews. Pipeline tag: `text-classification`. It can also be used as a feature extractor for downstream tasks. The repository ships the model weights, a tokenizer, and a small inference library; the primary artifact is the fine-tuned transformer model itself rather than an application or framework.",
           "bm25_terms": [
@@ -653,24 +425,9 @@
           "instruction": "Extract the primary purpose of the software artifact, choosing the single best-fit category from the SPDX SoftwarePurpose enum based on what the artifact is (a model, a runnable application, a dataset, a library, a framework, or other).",
           "field_spec": "SPDX property `software_primaryPurpose`. Enum value (SoftwarePurpose): one of `model`, `application`, `data`, `framework`, `library`, `container`, `source`, `archive`, `file`, `install`, `documentation`, `evidence`, `manifest`, `module`, `operatingSystem`, `patch`, `requirement`, `specification`, `test`, `other`. For AI BOMs, expect `model`, `application`, `framework`, or `library`.",
           "output_guidance": "Return exactly one enum value. If the artifact is a HuggingFace model checkpoint, choose `model`. If it is a runnable demo or end-user app, choose `application`. If it bundles training/inference utilities for others to build on, choose `library` or `framework`. Return `other` only if no enum fits. Return 'noAssertion' when the source neither states purpose nor exposes a pipeline tag."
-        },
-        "post_process": null,
-        "priority": [
-          "huggingface",
-          "arxiv",
-          "github"
-        ]
+        }
       },
       "safetyRiskAssessment": {
-        "field": "safetyRiskAssessment",
-        "bom_type": "ai",
-        "aikaboom_internal": false,
-        "spdx_property": "ai_safetyRiskAssessment",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/safetyRiskAssessment/",
-        "question": "Records the results of general safety risk assessment of the AI system.",
-        "keywords": "safety risk assessment compliance evaluation",
-        "summary": "Records the results of general safety risk assessment of the AI system.",
-        "description": "Records the results of general safety risk assessment of the AI system.\n\nUsing categorization according to the\n[EU general risk assessment methodology](https://ec.europa.eu/docsroom/documents/17107).\nThe methodology implements Article 20 of Regulation (EC) No 765/2008 and is\nintended to assist authorities when they assess general product safety\ncompliance.\n\nIt is important to note that this categorization differs from the one proposed\nin the EU AI Act's provisional agreement.",
         "retrieval": {
           "hypothetical_passage": "We conducted a safety risk assessment following the EU general product safety methodology. The system was classified as low risk for the intended deployment scope. Red-teaming exercises probed for jailbreaks, prompt injection, and harmful content generation; residual risks include hallucination on medical and legal queries. The model is not approved for high-risk use cases under the EU AI Act, and downstream operators should perform their own conformity assessment.",
           "bm25_terms": [
@@ -699,24 +456,9 @@
           "instruction": "Extract the safety risk classification and any documented assessment results for this AI system, including the methodology applied and the residual risks identified.",
           "field_spec": "SPDX property `ai_safetyRiskAssessment`. Enum value (SafetyRiskAssessmentType) per EU general risk methodology: one of `serious`, `high`, `medium`, `low`. Record the chosen level plus any prose justification.",
           "output_guidance": "Return one of `serious | high | medium | low` when a level is stated, optionally followed by a short justification. If the source describes risks but never assigns an EU-methodology level, capture the descriptive text and prefix with 'unclassified:'. Return 'noAssertion' when safety is acknowledged but no assessment performed. Return 'Not found.' when the topic is absent. Do not conflate EU AI Act risk tiers with the SPDX EU general-product-safety levels."
-        },
-        "post_process": null,
-        "priority": [
-          "huggingface",
-          "arxiv",
-          "github"
-        ]
+        }
       },
       "standardCompliance": {
-        "field": "standardCompliance",
-        "bom_type": "ai",
-        "aikaboom_internal": false,
-        "spdx_property": "ai_standardCompliance",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/standardCompliance/",
-        "question": "Captures a standard that is being complied with.",
-        "keywords": "standards compliance ISO IEEE ETSI regulations",
-        "summary": "Captures a standard that is being complied with.",
-        "description": "A free-form text that captures a standard that the AI software complies with.\n\nThis includes both published and unpublished standards, such as those developed\nby ISO, IEEE, and ETSI.\n\nThe standard may, but is not necessarily required to, satisfy a legal or\nregulatory requirement.",
         "retrieval": {
           "hypothetical_passage": "This release is aligned with ISO/IEC 23053:2022 framework for AI systems and follows the data quality guidance in ISO/IEC 5259. The development process is audited against IEEE 7000-2021 for ethically aligned design. We also map our documentation to the NIST AI RMF 1.0 and the EU AI Act's transparency obligations. No formal certification has been obtained; compliance claims reflect internal self-assessment.",
           "bm25_terms": [
@@ -744,24 +486,9 @@
           "instruction": "Extract the standards, regulations, or frameworks that the AI software complies with, naming each by its identifier (e.g. ISO/IEC 23053, IEEE 7000, NIST AI RMF, GDPR).",
           "field_spec": "SPDX property `ai_standardCompliance`. Free-form text (xsd:string), typically a comma-separated list of standard identifiers. Includes published (ISO, IEEE, ETSI, NIST) and unpublished standards; legal/regulatory frameworks may be included if treated as compliance targets.",
           "output_guidance": "List each standard as cited (with version/year if given), comma-separated. Distinguish certified compliance from self-asserted alignment when the source does. If the source mentions a regulation only as context (not as a compliance target), exclude it. Return 'noAssertion' when standards are referenced but no compliance claim is made. Return 'Not found.' when none are mentioned."
-        },
-        "post_process": null,
-        "priority": [
-          "arxiv",
-          "github",
-          "huggingface"
-        ]
+        }
       },
       "testedOnDatasets": {
-        "field": "testedOnDatasets",
-        "bom_type": "ai",
-        "aikaboom_internal": true,
-        "spdx_property": null,
-        "spec_url": null,
-        "question": "What specific named datasets or benchmarks were used to evaluate or test this AI model?",
-        "keywords": "evaluation benchmark test dataset tested evaluated assessment validation",
-        "summary": "",
-        "description": "Per SPDX 3.0.1 testedOn relationship: identifies the specific datasets or benchmarks used to evaluate the AI model. Examples include GLUE, SuperGLUE, MMLU, HellaSwag, etc. Maps to SPDX testedOn relationship and CycloneDX modelCard.datasets with type=evaluation.",
         "retrieval": {
           "hypothetical_passage": "## Evaluation\n\nWe evaluate on the GLUE and SuperGLUE benchmarks, MMLU (5-shot), HellaSwag, ARC-Challenge, and TruthfulQA. For multilingual capability we report XNLI and FLORES-200. Code generation is measured on HumanEval and MBPP. Results are reported as accuracy or pass@1 against the held-out test split of each benchmark; we did not tune hyperparameters on the evaluation sets.",
           "bm25_terms": [
@@ -791,24 +518,9 @@
           "instruction": "Extract the named datasets or benchmarks used to evaluate this AI model. Return only the canonical dataset names, comma-separated.",
           "field_spec": "AIkaBoOM-internal. Value space: a list of dataset/benchmark names (canonical short forms preferred, e.g. `GLUE`, `MMLU`, `HumanEval`). Maps to SPDX `testedOn` relationship and CycloneDX `modelCard.datasets` with `type=evaluation`.",
           "output_guidance": "Return concrete dataset names only; exclude generic phrases like 'an internal test set' unless that is the only signal. Preserve official capitalization (e.g. `SQuAD`, `HellaSwag`). De-duplicate across sections. If evaluation is mentioned but no dataset is named, return 'noAssertion'. If evaluation is not discussed at all, return 'Not found.'. Do not include training datasets here."
-        },
-        "post_process": null,
-        "priority": [
-          "arxiv",
-          "huggingface",
-          "github"
-        ]
+        }
       },
       "trainedOnDatasets": {
-        "field": "trainedOnDatasets",
-        "bom_type": "ai",
-        "aikaboom_internal": true,
-        "spdx_property": null,
-        "spec_url": null,
-        "question": "What specific named datasets were used to train this AI model? List only the dataset names.",
-        "keywords": "training data dataset corpus fine-tuned trained on pre-trained pre-training data source",
-        "summary": "",
-        "description": "Per SPDX 3.0.1 trainedOn relationship: identifies the specific datasets used to train the AI model. The answer should list concrete dataset names (e.g. \"SQuAD\", \"Common Crawl\", \"The Pile\") rather than generic descriptions. Maps to SPDX trainedOn relationship and CycloneDX modelCard.datasets with type=training.",
         "retrieval": {
           "hypothetical_passage": "The model was pre-trained on a 1.5T-token mixture of Common Crawl (filtered with CCNet), C4, The Pile, Wikipedia, GitHub, ArXiv, and StackExchange. We then fine-tuned on the SQuAD v2 question-answering set and a small instruction-tuning corpus derived from FLAN. Dataset card links and per-source token counts are listed in the appendix; license terms for each constituent corpus are documented in DATA_LICENSES.md.",
           "bm25_terms": [
@@ -837,24 +549,9 @@
           "instruction": "Extract the named datasets used to train (pre-train and/or fine-tune) this AI model. Return only the canonical dataset names, comma-separated.",
           "field_spec": "AIkaBoOM-internal. Value space: a list of dataset names (canonical short forms preferred, e.g. `Common Crawl`, `C4`, `The Pile`, `SQuAD`). Maps to SPDX `trainedOn` relationship and CycloneDX `modelCard.datasets` with `type=training`.",
           "output_guidance": "List concrete dataset names only; exclude generic phrases such as 'a large web corpus' unless that is the only signal. Include both pre-training and fine-tuning corpora when both are reported, and preserve official names. De-duplicate. If training data is acknowledged but no dataset is named (e.g. 'proprietary internal data'), return 'noAssertion'. If training data is not discussed, return 'Not found.'. Do not include evaluation-only datasets."
-        },
-        "post_process": null,
-        "priority": [
-          "huggingface",
-          "arxiv",
-          "github"
-        ]
+        }
       },
       "typeOfModel": {
-        "field": "typeOfModel",
-        "bom_type": "ai",
-        "aikaboom_internal": false,
-        "spdx_property": "ai_typeOfModel",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/typeOfModel/",
-        "question": "Records the type of the model used in the AI software.",
-        "keywords": "model type supervised unsupervised reinforcement learning",
-        "summary": "Records the type of the model used in the AI software.",
-        "description": "A free-form text that records the type of the AI model(s) used in the software.\n\nFor instance, if it is a supervised model, unsupervised model, reinforcement\nlearning model or a combination of those.",
         "retrieval": {
           "hypothetical_passage": "The system is a decoder-only transformer language model with 7 billion parameters, trained via self-supervised next-token prediction (an unsupervised objective) and then aligned with RLHF (reinforcement learning from human feedback). The vision tower is a supervised CNN classifier fine-tuned on labeled data. Together they form a multi-modal architecture combining supervised, unsupervised, and reinforcement-learning components.",
           "bm25_terms": [
@@ -882,24 +579,9 @@
           "instruction": "Extract the type of AI model used, including learning paradigm (supervised, unsupervised, self-supervised, reinforcement) and architecture family (e.g. transformer, CNN, diffusion).",
           "field_spec": "SPDX property `ai_typeOfModel`. Free-form text (xsd:string). Conventional values cover learning paradigm (supervised | unsupervised | self-supervised | reinforcement | hybrid) and architecture (e.g. transformer decoder-only, CNN, RNN, diffusion, GAN, MoE).",
           "output_guidance": "Return both the learning paradigm and the architecture when both are reported, separated by ' / ' (e.g. `self-supervised / transformer decoder-only`). For hybrid systems list each component. If only the architecture is given, return that alone. Return 'noAssertion' when the source describes the model's behavior but never names a paradigm or architecture. Return 'Not found.' when neither is mentioned."
-        },
-        "post_process": null,
-        "priority": [
-          "arxiv",
-          "huggingface",
-          "github"
-        ]
+        }
       },
       "useSensitivePersonalInformation": {
-        "field": "useSensitivePersonalInformation",
-        "bom_type": "ai",
-        "aikaboom_internal": false,
-        "spdx_property": "ai_useSensitivePersonalInformation",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/useSensitivePersonalInformation/",
-        "question": "Records if sensitive personal information is used during model training or could be used during the inference.",
-        "keywords": "sensitive personal information PII privacy data protection",
-        "summary": "Records if sensitive personal information is used during model training or\ncould be used during the inference.",
-        "description": "Notes if sensitive personal information is used in the training or inference of\nthe AI models.\n\nThis might include biometric data, addresses or other data that can be used to\ninfer a person's identity.\n\nRelated: `hasSensitivePersonalInformation` in `/Dataset/DatasetPackage`",
         "retrieval": {
           "hypothetical_passage": "**Privacy considerations:** The training corpus was filtered to remove personally identifiable information using regex and named-entity redaction, but residual leakage of names, addresses, or phone numbers cannot be ruled out. The model was not trained on biometric data, health records, or other special-category data under GDPR Article 9. At inference time, prompts may contain PII; operators are responsible for downstream data-protection compliance.",
           "bm25_terms": [
@@ -927,26 +609,11 @@
           "instruction": "Extract whether sensitive personal information (PII, biometrics, addresses, health data, etc.) is used during training or could be processed at inference, and identify the categories involved.",
           "field_spec": "SPDX property `ai_useSensitivePersonalInformation`. Enum value (PresenceType): one of `yes`, `no`, `noAssertion`. Optionally accompanied by prose listing the categories of sensitive data (biometric, GDPR Article 9 special-category, etc.).",
           "output_guidance": "Return one of `yes | no | noAssertion`, optionally followed by ': <categories>' when the source enumerates them (e.g. 'yes: biometric data, addresses'). Use `yes` when the card confirms PII was used or could be inferred; use `no` when the card explicitly states sensitive data was excluded or filtered. Use `noAssertion` when privacy is discussed but the answer is ambiguous, and 'Not found.' when the topic is absent."
-        },
-        "post_process": null,
-        "priority": [
-          "huggingface",
-          "arxiv",
-          "github"
-        ]
+        }
       }
     },
     "data": {
       "anonymizationMethodUsed": {
-        "field": "anonymizationMethodUsed",
-        "bom_type": "data",
-        "aikaboom_internal": false,
-        "spdx_property": "dataset_anonymizationMethodUsed",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Properties/anonymizationMethodUsed/",
-        "question": "What is the anonymization methods used in this dataset?",
-        "keywords": "anonymization anonymous anonymized privacy protection de-identification pseudonymization masking",
-        "summary": "Describes the anonymization methods used.",
-        "description": "A free-form text that describes the methods used to anonymize the dataset\nor fields in the dataset.",
         "retrieval": {
           "hypothetical_passage": "All personally identifiable information was removed prior to release. Names, email addresses, phone numbers, and IP addresses were detected with a Presidio-based PII pipeline and replaced with placeholder tokens such as <PERSON> and <EMAIL>. Free-text fields were further pseudonymized using SHA-256 hashes with a per-record salt, and rare quasi-identifiers were generalized via k-anonymity (k=5). A manual audit of 1,000 sampled rows confirmed no residual PII before the dataset was published on the Hub.",
           "bm25_terms": [
@@ -973,24 +640,9 @@
           "instruction": "Extract every anonymization or de-identification technique the source reports applying to the dataset, including the fields or entity types each technique targets.",
           "field_spec": "SPDX property `dataset_anonymizationMethodUsed`. Free-form text (xsd:string), 0..* values; each value names a technique (e.g., 'PII redaction with Presidio', 'k-anonymity k=5', 'SHA-256 pseudonymization of user_id').",
           "output_guidance": "List each method on its own line or comma-separated. If the source asserts the dataset contains no personal data so no anonymization was needed, record that statement verbatim. If the dataset card is silent on anonymization but does discuss PII presence, return 'Not found.' rather than inferring. If sources conflict (e.g., README says 'anonymized' but paper says raw), report both with their provenance."
-        },
-        "post_process": null,
-        "priority": [
-          "arxiv",
-          "huggingface",
-          "github"
-        ]
+        }
       },
       "confidentialityLevel": {
-        "field": "confidentialityLevel",
-        "bom_type": "data",
-        "aikaboom_internal": false,
-        "spdx_property": "dataset_confidentialityLevel",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Properties/confidentialityLevel/",
-        "question": "What is the confidentiality level of the data points contained in the dataset?",
-        "keywords": "confidential confidentiality sensitive privacy classification level public private restricted",
-        "summary": "Describes the confidentiality level of the data points contained in the dataset.",
-        "description": "Describes the levels of confidentiality of the data points contained in the dataset.",
         "retrieval": {
           "hypothetical_passage": "The dataset is classified internally at the AMBER traffic-light level: it may be shared with named partners under NDA but must not be redistributed publicly. Records derived from clinical notes are tagged RED and remain on-prem. Aggregated statistics released alongside the paper are CLEAR and freely redistributable. Access requests for the AMBER tier go through a Data Use Agreement reviewed by the IRB; downloads are logged and credentials expire after 90 days.",
           "bm25_terms": [
@@ -1017,24 +669,9 @@
           "instruction": "Extract the confidentiality classification the dataset assigns to its data points, mapping it to the SPDX ConfidentialityLevelType vocabulary when possible.",
           "field_spec": "SPDX property `dataset_confidentialityLevel`. Enum ConfidentialityLevelType with members: `amber`, `clear`, `green`, `red`. Format: a single enum token, optionally with a parenthetical quote of the source phrasing.",
           "output_guidance": "Map common phrasings: 'public'/'open' -> clear; 'shareable with limits' -> green; 'partner/NDA' -> amber; 'highly restricted'/'PHI' -> red. If multiple tiers apply to different splits, list each tier with the split it covers. If no confidentiality statement appears, return 'noAssertion'. Do not infer from license alone unless the license explicitly speaks to confidentiality."
-        },
-        "post_process": null,
-        "priority": [
-          "arxiv",
-          "huggingface",
-          "github"
-        ]
+        }
       },
       "dataCollectionProcess": {
-        "field": "dataCollectionProcess",
-        "bom_type": "data",
-        "aikaboom_internal": false,
-        "spdx_property": "dataset_dataCollectionProcess",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Properties/dataCollectionProcess/",
-        "question": "How the dataset was collected?",
-        "keywords": "collected collection gathering scraping crawling sources method methodology acquisition obtained compiled",
-        "summary": "Describes how the dataset was collected.",
-        "description": "A free-form text that describes how a dataset was collected.\n\nExamples include the sources from which a dataset was scrapped and\nthe interview protocol that was used for data collection.",
         "retrieval": {
           "hypothetical_passage": "We collected the corpus by scraping Common Crawl dumps from 2019-2023 and filtering to English news domains using a fastText language identifier. An additional 50k passages were sourced from licensed Wikipedia snapshots. Annotations were gathered through Amazon Mechanical Turk: three workers labeled each example following a 12-page guideline, and we kept only items with majority agreement. Edge cases were adjudicated by two in-house linguists. Collection ran from March to August 2022.",
           "bm25_terms": [
@@ -1061,24 +698,9 @@
           "instruction": "Extract how the dataset was collected, including data sources, collection methods, time period, and any annotation or interview protocols.",
           "field_spec": "SPDX property `dataset_dataCollectionProcess`. Free-form text (xsd:string), single value. Should read as a brief narrative covering source(s), method (scraping / crowdsourcing / interviews / API), and timeframe when stated.",
           "output_guidance": "Quote source URLs, dataset names, and crowdsourcing platforms verbatim. If the source covers multiple stages (raw collection vs. annotation), capture both. If only the upstream dataset is cited without describing how it was collected, note that the process is inherited from the upstream source and name it. Return 'Not found.' if the card omits collection details entirely."
-        },
-        "post_process": null,
-        "priority": [
-          "huggingface",
-          "arxiv",
-          "github"
-        ]
+        }
       },
       "dataPreprocessing": {
-        "field": "dataPreprocessing",
-        "bom_type": "data",
-        "aikaboom_internal": false,
-        "spdx_property": "dataset_dataPreprocessing",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Properties/dataPreprocessing/",
-        "question": "What is the preprocessing steps that were applied to the raw data to create the given dataset.",
-        "keywords": "preprocessing cleaning normalization standardization tokenization filtering transformation deduplication removal",
-        "summary": "Describes the preprocessing steps that were applied to the raw data to create the given dataset.",
-        "description": "A free-form text that describes the various preprocessing steps\nthat were applied to the raw data to create the dataset.\n\nExamples include standardization, normalization, deduplication, tokenization, and removal of tokens.",
         "retrieval": {
           "hypothetical_passage": "Raw HTML pages were stripped with trafilatura, lower-cased, and split into sentences with spaCy. We deduplicated near-duplicates using MinHash LSH at a Jaccard threshold of 0.8, removing roughly 18% of the corpus. Documents shorter than 50 tokens or with a perplexity above 1500 under a KenLM 5-gram model were discarded. Text was tokenized with the GPT-2 BPE tokenizer; sequences longer than 1024 tokens were chunked with 128-token overlap before training.",
           "bm25_terms": [
@@ -1106,24 +728,9 @@
           "instruction": "Extract every preprocessing step applied to the raw data to produce the released dataset, in the order they were applied when stated.",
           "field_spec": "SPDX property `dataset_dataPreprocessing`. Free-form text (xsd:string), single value listing steps. Typical steps: standardization, normalization, deduplication, tokenization, filtering, chunking, language ID, PII scrubbing.",
           "output_guidance": "Preserve numeric thresholds (e.g., 'min length 50 tokens', 'Jaccard 0.8') and tool names verbatim. If preprocessing is split between an upstream corpus and this release, mark which steps belong to each. Return 'Not found.' if the card only describes raw collection without any cleaning or transformation step."
-        },
-        "post_process": null,
-        "priority": [
-          "github",
-          "huggingface",
-          "arxiv"
-        ]
+        }
       },
       "datasetAvailability": {
-        "field": "datasetAvailability",
-        "bom_type": "data",
-        "aikaboom_internal": false,
-        "spdx_property": "dataset_datasetAvailability",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Properties/datasetAvailability/",
-        "question": "How is the dataset accessible — direct download, behind a clickthrough, by query, after a registration form, or via a scraping script?",
-        "keywords": "available availability download access public private clickthrough registration scraping query restricted gated",
-        "summary": "The field describes the availability of a dataset.",
-        "description": "Some datasets are publicly available and can be downloaded directly. Others are only accessible behind a clickthrough, or after filling a registration form. This field will describe the dataset availability from that perspective.",
         "retrieval": {
           "hypothetical_passage": "The dataset is hosted on the Hugging Face Hub and can be downloaded directly with `datasets.load_dataset('org/name')` after accepting a click-through Terms of Use. Bulk tarballs are mirrored on Zenodo (DOI 10.5281/zenodo.1234567). A subset containing sensitive medical records is gated: researchers must complete a Google Form with institutional affiliation, and access is granted within five business days. Raw scraping scripts are provided for users who wish to reproduce collection from source URLs.",
           "bm25_terms": [
@@ -1150,24 +757,9 @@
           "instruction": "Extract how the dataset can be obtained, mapping the access mechanism to the SPDX DatasetAvailabilityType vocabulary.",
           "field_spec": "SPDX property `dataset_datasetAvailability`. Enum DatasetAvailabilityType with members: `clickthrough`, `direct-download`, `query`, `registration`, `scraping-script`. Format: enum token plus a short URL or location string when given.",
           "output_guidance": "Map phrasings: 'pip/load_dataset/wget' without forms -> direct-download; 'click I agree' -> clickthrough; 'fill this form / request access' -> registration; 'use our SQL/REST endpoint' -> query; 'run this crawler/spider' -> scraping-script. If multiple access paths exist, list each. Return 'noAssertion' if availability is not described."
-        },
-        "post_process": null,
-        "priority": [
-          "huggingface",
-          "github",
-          "arxiv"
-        ]
+        }
       },
       "datasetNoise": {
-        "field": "datasetNoise",
-        "bom_type": "data",
-        "aikaboom_internal": false,
-        "spdx_property": "dataset_datasetNoise",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Properties/datasetNoise/",
-        "question": "What is the potentially noisy elements of the dataset?",
-        "keywords": "noise noisy quality errors artifacts outliers inaccuracies inconsistencies corrupted",
-        "summary": "Describes potentially noisy elements of the dataset.",
-        "description": "Describes what kinds of noises a dataset might encompass.\n\nThe free-form text specifies fields or samples that might be noisy.\n\nAlternatively, it can also be used to describe various noises that could impact the whole dataset.",
         "retrieval": {
           "hypothetical_passage": "Users should be aware of several known noise sources. OCR errors are present in roughly 4% of documents scanned from pre-1990 archives, particularly affecting numerals and ligatures. Crowdworker labels in the `sentiment` column have an estimated 7% disagreement rate; gold labels are only available for the dev split. Audio recordings include background traffic noise in the field-collected subset, and timestamps occasionally drift by up to 200 ms. Duplicate near-identical posts from bot accounts were not fully filtered.",
           "bm25_terms": [
@@ -1194,24 +786,9 @@
           "instruction": "Extract the noise, errors, or quality issues the source acknowledges in the dataset, including which fields, splits, or sample percentages they affect.",
           "field_spec": "SPDX property `dataset_datasetNoise`. Free-form text (xsd:string), 0..* values; each value names a noise source and the affected scope when stated.",
           "output_guidance": "Capture quantitative estimates (error rates, percentages) verbatim. Distinguish per-field noise from dataset-wide noise. If the card explicitly states 'no known noise issues', record that. If noise is not discussed at all, return 'Not found.' rather than 'noAssertion' for free-form fields."
-        },
-        "post_process": null,
-        "priority": [
-          "huggingface",
-          "arxiv",
-          "github"
-        ]
+        }
       },
       "datasetSize": {
-        "field": "datasetSize",
-        "bom_type": "data",
-        "aikaboom_internal": false,
-        "spdx_property": "dataset_datasetSize",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Properties/datasetSize/",
-        "question": "What is the size of the dataset.",
-        "keywords": "size samples examples instances records entries GB MB TB bytes volume count number",
-        "summary": "Captures the size of the dataset.",
-        "description": "Captures how large a dataset is.\n\nThe size is to be measured in bytes.",
         "retrieval": {
           "hypothetical_passage": "The release totals 12.4 GB on disk (approximately 13,316,938,000 bytes) split across train/validation/test as 11.1 GB / 0.7 GB / 0.6 GB. It contains 4.8M training examples, 250k validation, and 250k test examples drawn from 2.1M unique documents. Compressed Parquet shards are roughly 256 MB each. The raw uncompressed JSONL is about 38 GB; users with limited disk should stream with `datasets.load_dataset(..., streaming=True)`.",
           "bm25_terms": [
@@ -1238,24 +815,9 @@
           "instruction": "Extract the size of the dataset in bytes, plus any auxiliary size metrics the source reports (example counts, token counts, hours of audio).",
           "field_spec": "SPDX property `dataset_datasetSize`. Non-negative integer (xsd:nonNegativeInteger) measured in bytes. Format: integer bytes; if source gives GB/MB, convert (1 GB = 1_000_000_000 bytes) and note the original phrasing.",
           "output_guidance": "Prefer the on-disk byte count of the released artifact. If only example/row counts are reported, capture them verbatim and mark byte size as 'Not found.'. If both compressed and uncompressed sizes are given, return both with labels. If splits are reported separately, sum to a total and also list per-split sizes."
-        },
-        "post_process": null,
-        "priority": [
-          "huggingface",
-          "github",
-          "arxiv"
-        ]
+        }
       },
       "datasetType": {
-        "field": "datasetType",
-        "bom_type": "data",
-        "aikaboom_internal": false,
-        "spdx_property": "dataset_datasetType",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Properties/datasetType/",
-        "question": "What is the type of the given dataset.",
-        "keywords": "type format datatype image text audio video multimodal tabular structured unstructured",
-        "summary": "Describes the type of the given dataset.",
-        "description": "Describes the datatype contained in the dataset.\n\nFor example, a dataset can be an image dataset for computer vision applications, a text dataset such as the contents of a book or Wikipedia article, or sometimes a multimodal dataset that contains multiple types of data.",
         "retrieval": {
           "hypothetical_passage": "This is a multimodal vision-language dataset pairing 1.2M images with English captions. Images are RGB JPEGs at 224x224, and captions are stored as UTF-8 text averaging 14 tokens. A small auxiliary split contains 50k audio clips with aligned transcripts for ASR experiments. Tabular metadata (timestamp, geolocation, license) accompanies each row. The dataset complements text-only corpora such as C4 and is suited to image-text retrieval and captioning benchmarks.",
           "bm25_terms": [
@@ -1284,24 +846,9 @@
           "instruction": "Extract the data modality (or modalities) of the dataset, mapping each to the SPDX DatasetType vocabulary.",
           "field_spec": "SPDX property `dataset_datasetType`. Enum DatasetType, 1..* values; members: `audio`, `categorical`, `graph`, `image`, `no-assertion`, `numeric`, `other`, `sensor`, `structured`, `syntactic`, `text`, `timeseries`, `timestamp`, `video`. Format: comma-separated enum tokens.",
           "output_guidance": "Use multiple enum tokens for multimodal datasets (e.g., 'image, text'). Map vocabulary: 'corpus/captions/transcripts' -> text; 'photos/frames' -> image; 'tables/CSV/Parquet' -> structured; 'numeric features' -> numeric; 'class labels' -> categorical. If the modality is unclear, return `no-assertion`. Do not invent modalities not evidenced in the source."
-        },
-        "post_process": null,
-        "priority": [
-          "huggingface",
-          "github",
-          "arxiv"
-        ]
+        }
       },
       "datasetUpdateMechanism": {
-        "field": "datasetUpdateMechanism",
-        "bom_type": "data",
-        "aikaboom_internal": false,
-        "spdx_property": "dataset_datasetUpdateMechanism",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Properties/datasetUpdateMechanism/",
-        "question": "What is the mechanism to update the dataset.",
-        "keywords": "update updated updating version maintenance versioning refresh dynamic static mechanism",
-        "summary": "Describes a mechanism to update the dataset.",
-        "description": "A free-form text that describes a mechanism to update the dataset.",
         "retrieval": {
           "hypothetical_passage": "The dataset is refreshed quarterly via a GitHub Actions workflow that re-runs the scraping pipeline on the first day of each calendar quarter and pushes a new tagged release (v2024.Q1, v2024.Q2, ...) to the Hub. Older snapshots remain pinned and downloadable for reproducibility. Bug fixes between scheduled releases are published as patch versions. Users can subscribe to release notifications on the GitHub repository or pin a specific revision via `datasets.load_dataset(..., revision='v2024.Q1')`.",
           "bm25_terms": [
@@ -1328,24 +875,9 @@
           "instruction": "Extract the mechanism and cadence by which the dataset is updated or maintained, including who runs it and how users obtain new versions.",
           "field_spec": "SPDX property `dataset_datasetUpdateMechanism`. Free-form text (xsd:string), single value. Typical content: cadence (daily/quarterly/static), automation (cron, CI, GitHub Actions), versioning scheme, distribution channel.",
           "output_guidance": "Capture the cadence verbatim ('quarterly', 'one-time release', 'on demand'). If the dataset is explicitly frozen with no planned updates, record that. If the source mentions a versioning scheme (semver, date-based tags), include it. Return 'Not found.' if neither update cadence nor maintenance status is stated."
-        },
-        "post_process": null,
-        "priority": [
-          "github",
-          "huggingface",
-          "arxiv"
-        ]
+        }
       },
       "description": {
-        "field": "description",
-        "bom_type": "data",
-        "aikaboom_internal": false,
-        "spdx_property": "description",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Core/Properties/description/",
-        "question": "In one or two sentences, what is this dataset?",
-        "keywords": "dataset description abstract summary overview",
-        "summary": "Provides a detailed description of the Element.",
-        "description": "This field is a detailed description of the Element. It may also be extracted\nfrom the Element itself.\n\nThe intent is to provide recipients of the SPDX file with a detailed technical\nexplanation of the functionality, anticipated use, and anticipated\nimplementation of the Element.\n\nThis field may also include a description of improvements over prior versions\nof the Element.",
         "retrieval": {
           "hypothetical_passage": "# Dataset Card for SQuAD v2\n\nSQuAD 2.0 combines the 100,000 questions in SQuAD 1.1 with over 50,000 unanswerable questions written adversarially by crowdworkers to look similar to answerable ones. Each example contains a Wikipedia paragraph, a natural-language question, and span-level answer annotations. The dataset is widely used as a reading-comprehension benchmark for transformer-based QA models. Released alongside the EMNLP 2018 paper by Rajpurkar et al.",
           "bm25_terms": [
@@ -1371,24 +903,9 @@
           "instruction": "Extract a one-to-two-sentence factual description of the dataset, summarising what it contains, how it was built, and its intended task.",
           "field_spec": "SPDX property `description` (Core profile). Free-form xsd:string, plain text. Format: one or two complete sentences, no markdown, no headings, no trailing newline.",
           "output_guidance": "Prefer the first paragraph of the dataset card's summary or the paper abstract's opening sentence. If multiple sources conflict, prefer the canonical HuggingFace dataset card over a third-party README. Strip markdown, citations, and badge syntax. If no descriptive text appears in the sources, return 'Not found.' rather than synthesising a description from the dataset name."
-        },
-        "post_process": "collapse_whitespace",
-        "priority": [
-          "arxiv",
-          "huggingface",
-          "github"
-        ]
+        }
       },
       "hasSensitivePersonalInformation": {
-        "field": "hasSensitivePersonalInformation",
-        "bom_type": "data",
-        "aikaboom_internal": false,
-        "spdx_property": "dataset_hasSensitivePersonalInformation",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Properties/hasSensitivePersonalInformation/",
-        "question": "Does any sensitive personal information is present in the dataset?",
-        "keywords": "sensitive personal information PII privacy identifying identity protected health financial",
-        "summary": "Describes if any sensitive personal information is present in the dataset.",
-        "description": "Indicates the presence of sensitive personal data\nor information that allows drawing conclusions about a person's identity.\n\nRelated: `useSensitivePersonalInformation` in `/AI/AIPackage`",
         "retrieval": {
           "hypothetical_passage": "## Personal and Sensitive Information\n\nThe dataset contains user-generated Reddit comments scraped between 2015 and 2019. Although usernames and explicit email addresses were stripped via regex, residual PII may remain: phone numbers, home addresses, and quasi-identifiers such as employer or location mentioned in free text. No biometric, medical, or financial records are included. Researchers should treat the corpus as containing potentially identifiable content and apply additional anonymisation before public release or downstream use.",
           "bm25_terms": [
@@ -1417,24 +934,9 @@
           "instruction": "Determine whether the dataset contains sensitive personal information (PII, biometric, health, financial, or other identity-revealing data) and report yes, no, or noAssertion with a brief justification quoted from the source.",
           "field_spec": "SPDX property `dataset_hasSensitivePersonalInformation`. Enum: `yes` | `no` | `noAssertion`. Optional accompanying free-text rationale citing what kind of data is present.",
           "output_guidance": "Return `yes` if the source explicitly mentions names, faces, voice recordings, addresses, medical/financial records, or 'contains PII'. Return `no` only if the source explicitly states the data is anonymised, synthetic, or contains no PII. Return `noAssertion` when sources are silent or ambiguous. If anonymisation is mentioned but residual PII is acknowledged, return `yes` with the caveat. Do not infer presence of PII from dataset domain alone."
-        },
-        "post_process": null,
-        "priority": [
-          "huggingface",
-          "arxiv",
-          "github"
-        ]
+        }
       },
       "intendedUse": {
-        "field": "intendedUse",
-        "bom_type": "data",
-        "aikaboom_internal": false,
-        "spdx_property": "dataset_intendedUse",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Properties/intendedUse/",
-        "question": "For what the given dataset should be used for?",
-        "keywords": "intended use purpose application task designed goal objective research training evaluation",
-        "summary": "Describes what the given dataset should be used for.",
-        "description": "A free-form text that describes what the given dataset should be used for.\n\nSome datasets are collected to be used only for particular purposes.\n\nFor example, medical data collected from a specific demography might only be applicable\nfor training machine learning models to make predictions for that demography.\nIn such a case, the intendedUse field would capture this information.\nSimilarly, if a dataset is collected for building a facial recognition model,\nthe intendedUse field would specify that.",
         "retrieval": {
           "hypothetical_passage": "## Intended Uses\n\nThis dataset is intended for training and evaluating extractive question-answering systems on English Wikipedia text. Suitable downstream tasks include reading comprehension, span prediction, and retrieval-augmented generation benchmarks. The corpus is **not** suitable for open-domain dialog, factual claim verification on non-Wikipedia sources, or deployment in production medical/legal QA without further fine-tuning. Researchers should also avoid using the dataset to train commercial chatbots without verifying license terms.",
           "bm25_terms": [
@@ -1461,24 +963,9 @@
           "instruction": "Extract the dataset's intended uses and any explicitly out-of-scope or discouraged uses described in the source.",
           "field_spec": "SPDX property `dataset_intendedUse`. Free-form xsd:string. Format: one short paragraph or a comma-separated list of use cases. Include out-of-scope uses verbatim if the source distinguishes them.",
           "output_guidance": "Prefer wording from a section literally titled 'Intended Uses', 'Use Cases', 'Direct Use', or 'Out-of-Scope Use'. If only a paper abstract is available, paraphrase the stated motivation. If sources distinguish recommended vs out-of-scope uses, include both with explicit labels. Return 'Not found.' if no usage guidance appears; do not infer use cases from dataset name or modality alone."
-        },
-        "post_process": null,
-        "priority": [
-          "arxiv",
-          "huggingface",
-          "github"
-        ]
+        }
       },
       "knownBias": {
-        "field": "knownBias",
-        "bom_type": "data",
-        "aikaboom_internal": false,
-        "spdx_property": "dataset_knownBias",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Properties/knownBias/",
-        "question": "What is the biases that the dataset is known to encompass?",
-        "keywords": "bias biased fairness demographic representation imbalance skewed prejudice limitation",
-        "summary": "Records the biases that the dataset is known to encompass.",
-        "description": "A free-form text that describes the different biases that the dataset encompasses.",
         "retrieval": {
           "hypothetical_passage": "## Bias, Risks, and Limitations\n\nThe corpus is heavily skewed toward English-language Wikipedia articles authored predominantly by editors from North America and Western Europe, leading to under-representation of Global South perspectives and non-Western entities. Gender imbalance is documented: male-coded pronouns outnumber female-coded ones roughly 3:1 across biographical articles. Topic distribution over-indexes on STEM, sports, and pop culture. Models trained on this data may amplify these representational biases, particularly for low-resource demographics.",
           "bm25_terms": [
@@ -1506,24 +993,9 @@
           "instruction": "Extract the documented biases of the dataset, including demographic skew, language coverage, sampling bias, label bias, or any other limitation explicitly framed as a bias.",
           "field_spec": "SPDX property `dataset_knownBias`. Free-form xsd:string. Format: short paragraph or semicolon-separated list of named biases (e.g. 'gender skew 3:1 male; English-only; Western-centric topics').",
           "output_guidance": "Prefer text under a section titled 'Bias', 'Biases', 'Discussion of Biases', or 'Bias, Risks, and Limitations'. Quote concrete numbers when present. If multiple biases are listed, combine them. Return 'Not found.' if the sources contain no bias discussion; do not extrapolate bias from dataset domain. If the source explicitly states 'no known biases', record that verbatim rather than 'Not found.'."
-        },
-        "post_process": null,
-        "priority": [
-          "arxiv",
-          "huggingface",
-          "github"
-        ]
+        }
       },
       "license": {
-        "field": "license",
-        "bom_type": "data",
-        "aikaboom_internal": false,
-        "spdx_property": "simplelicensing_LicenseExpression",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/SimpleLicensing/Classes/LicenseExpression/",
-        "question": "Under what license is this dataset distributed? Quote the SPDX identifier if any source states it.",
-        "keywords": "license licensed under released under cc-by cc0 odc-by mit apache gpl creative commons",
-        "summary": "An SPDX Element containing an SPDX license expression string.",
-        "description": "A LicenseExpression enables the representation, in a single string, of a\ncombination of one or more licenses, together with additions such as license\nexceptions.\n\nThe syntax for a licenseExpression string is set forth in the corresponding\nAnnex of this specification\n([\"SPDX license expressions\"](../../../annexes/spdx-license-expressions.md)).\nA licenseExpression string is not valid if it does not conform to the grammar\nset forth in that Annex.\n\nThe ExpandedLicensing profile can be used to represent the complete parsed\nlicense expression as a combination of license objects.",
         "retrieval": {
           "hypothetical_passage": "## Licensing Information\n\nThe dataset is released under the **Creative Commons Attribution 4.0 International (CC-BY-4.0)** license. Users must provide attribution to the original authors, link to the license, and indicate if changes were made. The accompanying code in this repository is dual-licensed under Apache-2.0. Some derivative subsets that include third-party Wikipedia text inherit CC-BY-SA-3.0 and must be redistributed under share-alike terms.",
           "bm25_terms": [
@@ -1553,24 +1025,9 @@
           "instruction": "Extract the SPDX license identifier under which the dataset is distributed; if multiple licenses apply, return them combined as an SPDX expression.",
           "field_spec": "SPDX property `simplelicensing_LicenseExpression`. Value MUST conform to the SPDX license-expression grammar (e.g. `MIT`, `Apache-2.0`, `CC-BY-4.0`, `CC-BY-SA-3.0 OR MIT`, `GPL-3.0-or-later WITH Classpath-exception-2.0`). Use `NOASSERTION` when sources are silent and `LicenseRef-...` for non-listed licenses.",
           "output_guidance": "Prefer an explicit SPDX identifier from the source over license name prose ('MIT License' -> `MIT`). If the source gives only a free-text license name, map it to the closest SPDX listed identifier; if no match exists, emit `LicenseRef-<slug>`. For dual-licensing use ` OR `; for combined obligations use ` AND `. Return `NOASSERTION` (not 'Not found.') when no license info appears in any source. If dataset and code carry different licenses, return only the dataset license."
-        },
-        "post_process": "normalize_license",
-        "priority": [
-          "huggingface",
-          "github",
-          "arxiv"
-        ]
+        }
       },
       "primaryPurpose": {
-        "field": "primaryPurpose",
-        "bom_type": "data",
-        "aikaboom_internal": false,
-        "spdx_property": "software_primaryPurpose",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Software/Properties/primaryPurpose/",
-        "question": "What is the primary purpose of this dataset (one of: data, model, application, …)?",
-        "keywords": "task category benchmark training evaluation purpose role",
-        "summary": "Provides information about the primary purpose of the software artifact.",
-        "description": "primaryPurpose provides information about the primary purpose of the software\nartifact.",
         "retrieval": {
           "hypothetical_passage": "# Dataset Card for GLUE\n\nGLUE is a collection of nine English-language natural language understanding tasks bundled as a benchmark and evaluation suite for general-purpose language models. The artefact is distributed primarily as a labelled dataset (with leaderboard and evaluation scripts) rather than as a model or application. Researchers download the data via the `datasets` library and submit predictions to the public leaderboard. It is intended to be used as training and evaluation data, not as runnable software.",
           "bm25_terms": [
@@ -1595,24 +1052,9 @@
           "instruction": "Determine the SPDX primaryPurpose enum value that best classifies this artifact (it is a dataset, so usually `data`).",
           "field_spec": "SPDX property `software_primaryPurpose`. Enum: `application` | `archive` | `bom` | `configuration` | `container` | `data` | `device` | `deviceDriver` | `diskImage` | `documentation` | `evidence` | `executable` | `file` | `firmware` | `framework` | `install` | `library` | `manifest` | `model` | `module` | `operatingSystem` | `other` | `patch` | `platform` | `requirement` | `source` | `specification` | `test`.",
           "output_guidance": "For dataset artifacts, return `data` unless the source explicitly frames the release as a model checkpoint (`model`), runnable benchmark harness (`application`), or evaluation suite (`test`). When the artefact bundles labelled corpus + evaluation scripts, prefer `data`. Return `other` only when no enum member fits. Never return `noAssertion`; this field does not allow it."
-        },
-        "post_process": null,
-        "priority": [
-          "huggingface",
-          "arxiv",
-          "github"
-        ]
+        }
       },
       "sensorUsed": {
-        "field": "sensorUsed",
-        "bom_type": "data",
-        "aikaboom_internal": false,
-        "spdx_property": "dataset_sensor",
-        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Properties/sensor/",
-        "question": "What is the sensor used for collecting the data?",
-        "keywords": "sensor device instrument equipment camera microphone accelerometer calibration hardware",
-        "summary": "Describes a sensor used for collecting the data.",
-        "description": "Describes a sensor that was used for collecting the data\nand its calibration value as a key-value pair.",
         "retrieval": {
           "hypothetical_passage": "## Data Collection\n\nDriving footage was captured using a forward-facing **FLIR Blackfly S** RGB camera (1920x1200 at 30 fps) and a **Velodyne VLP-16** 3D LiDAR rotating at 10 Hz, both mounted on a roof rack and calibrated extrinsically against a Novatel SPAN-CPT IMU/GNSS unit. Audio was recorded via a Sennheiser MKH-416 shotgun microphone sampled at 48 kHz. Cameras were intrinsically calibrated using a Zhang checkerboard pattern; LiDAR-camera extrinsics were refined via ICP.",
           "bm25_terms": [
@@ -1642,24 +1084,9 @@
           "instruction": "Extract every sensor used to capture the data, together with any reported calibration values, sampling rates, model numbers, or mounting configuration.",
           "field_spec": "SPDX property `dataset_sensor`. List of key-value pairs (`sensorName: calibrationOrSpec`). Format: 'Velodyne VLP-16: 10 Hz; FLIR Blackfly S: 30 fps 1920x1200; Novatel SPAN-CPT IMU: 100 Hz'.",
           "output_guidance": "Capture sensor make/model where stated, then any calibration value (rate, resolution, intrinsic/extrinsic notes). Separate multiple sensors with semicolons. If only the sensor type is named with no calibration, include the type with value `unspecified`. Return 'Not found.' if no sensors are mentioned; do not infer sensors from dataset modality (e.g. an image dataset is not necessarily camera-sourced if it is synthetic or scraped)."
-        },
-        "post_process": null,
-        "priority": [
-          "arxiv",
-          "github",
-          "huggingface"
-        ]
+        }
       },
       "sourceInfo": {
-        "field": "sourceInfo",
-        "bom_type": "data",
-        "aikaboom_internal": true,
-        "spdx_property": null,
-        "spec_url": null,
-        "question": "Which upstream datasets, papers, or models contributed to this dataset? List the named sources only.",
-        "keywords": "source upstream derived from based on aggregated combined merged contains uses parent dataset",
-        "summary": "",
-        "description": "Free-form list of upstream sources that contributed to this dataset (other datasets, papers, models). Combined from HuggingFace cardData.source_datasets and the model-tree, README mentions, and arXiv paper references.",
         "retrieval": {
           "hypothetical_passage": "## Source Data\n\nThis corpus is built by aggregating filtered subsets of **Common Crawl** (snapshots 2019-2022), **OpenWebText2**, **Books3** from The Pile, English Wikipedia (2023-01 dump), and the **C4** cleaned-web corpus from Raffel et al. (2020). A small portion (~3%) of curated StackExchange dumps was added to boost technical coverage. We deduplicate against The Pile and apply the filtering recipe of the RefinedWeb paper (Penedo et al., 2023, arXiv:2306.01116).",
           "bm25_terms": [
@@ -1689,13 +1116,7 @@
           "instruction": "List every named upstream dataset, model, or paper from which this dataset is derived, aggregated, filtered, or which it cites as a primary source.",
           "field_spec": "AIkaBoOM-internal. Comma-separated list of named entities (dataset names, HuggingFace dataset paths, arXiv IDs, model checkpoints). Format example: 'Common Crawl, c4, the_pile, arXiv:2306.01116, gpt2'.",
           "output_guidance": "Capture only named, identifiable sources -- skip generic phrases like 'web data' or 'public corpora'. Prefer canonical names over paraphrases (`c4` over 'the C4 corpus'). Deduplicate case-insensitively. Include arXiv IDs verbatim when cited. If the dataset is described as fully original with no upstream sources, return 'None.'. If sources are silent on provenance, return 'Not found.'. Do not invent a parent dataset from naming similarity alone."
-        },
-        "post_process": "dedupe_named_entities",
-        "priority": [
-          "arxiv",
-          "huggingface",
-          "github"
-        ]
+        }
       }
     }
   }

@@ -5,5 +5,34 @@
   "keywords": "data preprocessing cleaning normalization transformation",
   "summary": "Describes all the preprocessing steps applied to the training data before the\nmodel training.",
   "description": "A free-form text that describes the preprocessing steps applied to the training\ndata before training of the model(s) contained in the AI software.",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "Before training, the raw text was deduplicated using MinHash LSH, lowercased, and tokenized with a 32k SentencePiece BPE vocabulary. Documents shorter than 50 tokens were dropped, HTML boilerplate stripped, and PII redacted via regex. Image inputs were resized to 224x224, center-cropped, and normalized with ImageNet mean and std. Audio clips were resampled to 16 kHz mono and converted to log-Mel spectrograms with 80 bins.",
+    "bm25_terms": [
+      "preprocessing",
+      "tokenization",
+      "BPE",
+      "SentencePiece",
+      "deduplication",
+      "MinHash",
+      "normalization",
+      "data cleaning",
+      "PII redaction",
+      "filtering",
+      "resampling",
+      "log-Mel spectrogram",
+      "lowercasing",
+      "stop words",
+      "stemming",
+      "data augmentation",
+      "image resize",
+      "center crop",
+      "ImageNet mean"
+    ]
+  },
+  "extraction": {
+    "instruction": "Extract the preprocessing steps applied to the training data before model training, listing each step (e.g. tokenization, deduplication, normalization, filtering) with any reported parameters.",
+    "field_spec": "SPDX property `ai_modelDataPreprocessing`. Free-form text (xsd:string) describing preprocessing pipeline. Format: ordered list or prose covering cleaning, tokenization, normalization, augmentation, and filtering steps.",
+    "output_guidance": "If multiple preprocessing steps are reported, list them in pipeline order, separated by semicolons. If only modality-specific preprocessing is described (text vs. image vs. audio), capture each modality. Return 'noAssertion' if the source mentions training data but says nothing about preprocessing. Return 'Not found.' if neither training data nor preprocessing is mentioned. Do not invent steps from the model architecture alone."
+  }
 }

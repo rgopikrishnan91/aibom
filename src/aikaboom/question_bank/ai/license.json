@@ -5,5 +5,14 @@
   "keywords": "license licensed under released under apache mit gpl bsd cc-by openrail llama gemma proprietary",
   "summary": "An SPDX Element containing an SPDX license expression string.",
   "description": "A LicenseExpression enables the representation, in a single string, of a\ncombination of one or more licenses, together with additions such as license\nexceptions.\n\nThe syntax for a licenseExpression string is set forth in the corresponding\nAnnex of this specification\n([\"SPDX license expressions\"](../../../annexes/spdx-license-expressions.md)).\nA licenseExpression string is not valid if it does not conform to the grammar\nset forth in that Annex.\n\nThe ExpandedLicensing profile can be used to represent the complete parsed\nlicense expression as a combination of license objects.",
-  "post_process": "normalize_license"
+  "post_process": "normalize_license",
+  "retrieval": {
+    "hypothetical_passage": "---\nlicense: apache-2.0\n---\n\n# License\n\nThis repository is released under the **Apache License 2.0**; see the `LICENSE` file for the full text. Model weights are distributed under the same terms. The training corpus contains components under CC-BY-SA-4.0, which apply only to derivative datasets. Commercial use is permitted with attribution. The Llama 2 base weights, where used, remain subject to the Meta Llama 2 Community License Agreement.",
+    "bm25_terms": ["Apache-2.0", "MIT", "BSD-3-Clause", "GPL-3.0", "LGPL", "CC-BY-4.0", "CC-BY-SA-4.0", "CC0-1.0", "OpenRAIL", "OpenRAIL-M", "Llama-2", "Llama-3", "Gemma", "proprietary", "license", "licensed under", "released under", "SPDX-License-Identifier", "LICENSE file", "noAssertion"]
+  },
+  "extraction": {
+    "instruction": "Extract the license under which the model and its code are released, as an SPDX license identifier or expression.",
+    "field_spec": "SPDX class `simplelicensing_LicenseExpression`. Value MUST be a valid SPDX license expression string per the SPDX License List (e.g. `Apache-2.0`, `MIT`, `Apache-2.0 AND CC-BY-4.0`, `LicenseRef-Llama-2`). Use `LicenseRef-<id>` for licenses not on the SPDX List. Use `NOASSERTION` only when truly unstated.",
+    "output_guidance": "Prefer the canonical SPDX identifier even if the source uses prose ('Apache 2.0' -> `Apache-2.0`, 'MIT licensed' -> `MIT`). When weights and code differ, return both joined with `AND` (e.g. `Apache-2.0 AND CC-BY-NC-4.0`). For non-SPDX-List licenses (Llama 2 Community License, Gemma Terms), emit `LicenseRef-Llama-2` style. If no license text or YAML field is found anywhere in card / README / paper, return `NOASSERTION`."
+  }
 }
