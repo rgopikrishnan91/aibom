@@ -456,7 +456,8 @@
         }
         
         .json-object.collapsed .json-content,
-        .json-array.collapsed .json-content {
+        .json-array.collapsed .json-content,
+        .json-line.collapsed .json-content {
             display: none;
         }
         
@@ -1307,16 +1308,25 @@
                     if (conflicts.length > 0) {
                         let html = `<div style="margin-bottom:12px;"><strong>⚠️ ${conflicts.length} conflict(s) detected</strong></div>`;
                         html += '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
-                        html += '<tr style="background:#f0f0f0;"><th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Field</th><th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Chosen</th><th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Conflicting</th><th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Type</th></tr>';
+                        html += '<tr style="background:#f0f0f0;"><th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Field</th><th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Chosen</th><th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Conflicting</th><th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Type</th><th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">All claims</th></tr>';
                         conflicts.forEach(c => {
                             const typeLabel = c.conflict_type === 'intra'
                                 ? '<span style="color:#e67e22;">intra-source</span>'
                                 : '<span style="color:#e74c3c;">inter-source</span>';
+                            // Render every source's claim (skip silent sources).
+                            const claims = c.claims || {};
+                            const claimItems = Object.entries(claims)
+                                .filter(([, v]) => v != null && v !== '')
+                                .map(([src, claim]) =>
+                                    `<div><strong>${escapeHtml(src)}:</strong> ${escapeHtml(String(claim))}</div>`)
+                                .join('');
+                            const claimsCell = claimItems || '<small style="color:#888;">—</small>';
                             html += `<tr style="border-bottom:1px solid #eee;">`;
-                            html += `<td style="padding:8px;"><strong>${c.field}</strong><br><small style="color:#888;">${c.section}</small></td>`;
-                            html += `<td style="padding:8px;">${c.chosen_value || '—'}<br><small style="color:#888;">from ${c.chosen_source || '?'}</small></td>`;
-                            html += `<td style="padding:8px;color:#c0392b;">${c.conflict_value || '—'}<br><small style="color:#888;">from ${c.conflict_source || '?'}</small></td>`;
-                            html += `<td style="padding:8px;">${typeLabel}</td>`;
+                            html += `<td style="padding:8px;vertical-align:top;"><strong>${c.field}</strong><br><small style="color:#888;">${c.section}</small></td>`;
+                            html += `<td style="padding:8px;vertical-align:top;">${c.chosen_value || '—'}<br><small style="color:#888;">from ${c.chosen_source || '?'}</small></td>`;
+                            html += `<td style="padding:8px;vertical-align:top;color:#c0392b;">${c.conflict_value || '—'}<br><small style="color:#888;">from ${c.conflict_source || '?'}</small></td>`;
+                            html += `<td style="padding:8px;vertical-align:top;">${typeLabel}</td>`;
+                            html += `<td style="padding:8px;vertical-align:top;font-size:12px;">${claimsCell}</td>`;
                             html += `</tr>`;
                         });
                         html += '</table>';
@@ -1436,26 +1446,42 @@
                     return '<span class="json-object">{</span>';
                 }
                 
-                // For field triplets {value, source, conflict, ...} always put "value" first, then "source", then "conflict"
+                // For field triplets {value, source, conflict, trace?} order: value → source → conflict → trace → ...
                 const isFieldTriplet = keys.includes('value') && keys.includes('conflict');
                 // For conflict sub-objects {value, source, type} order as value → source → type
                 const isConflictObj = keys.includes('value') && keys.includes('type') && !keys.includes('conflict');
                 let orderedKeys;
                 if (isFieldTriplet) {
-                    orderedKeys = ['value', 'source', 'conflict', ...keys.filter(k => k !== 'value' && k !== 'source' && k !== 'conflict')];
+                    const fixed = ['value', 'source', 'conflict', 'trace'];
+                    orderedKeys = [
+                        ...fixed.filter(k => keys.includes(k)),
+                        ...keys.filter(k => !fixed.includes(k))
+                    ];
                 } else if (isConflictObj) {
                     orderedKeys = ['value', 'source', 'type', ...keys.filter(k => k !== 'value' && k !== 'source' && k !== 'type')];
                 } else {
                     orderedKeys = keys;
                 }
-                
+
                 let html = `<span class="json-toggle" onclick="toggleCollapse(this)">▼</span><span class="json-object">{</span>`;
                 html += '<div class="json-content">';
-                
+
                 orderedKeys.forEach((key, index) => {
-                    html += '<div class="json-line">';
+                    // Provenance trace renders default-collapsed under the
+                    // existing toggle mechanism (CSS .json-line.collapsed).
+                    const collapseByDefault = isFieldTriplet && key === 'trace';
+                    const lineClass = collapseByDefault ? 'json-line collapsed' : 'json-line';
+                    html += `<div class="${lineClass}">`;
                     html += `<span class="json-key">"${escapeHtml(key)}"</span>: `;
-                    html += formatJSON(obj[key], depth + 1);
+                    if (collapseByDefault) {
+                        // Pre-flip the toggle marker so it shows ▶ to match the collapsed state.
+                        const inner = formatJSON(obj[key], depth + 1)
+                            .replace('<span class="json-toggle" onclick="toggleCollapse(this)">▼</span>',
+                                     '<span class="json-toggle" onclick="toggleCollapse(this)">▶</span>');
+                        html += inner;
+                    } else {
+                        html += formatJSON(obj[key], depth + 1);
+                    }
                     if (index < orderedKeys.length - 1) html += ',';
                     html += '</div>';
                 });

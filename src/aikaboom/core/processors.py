@@ -70,8 +70,44 @@ def _parse_conflict_string(raw_conflict):
     return None
 
 
+_TRACE_SUFFIXES = (
+    '_claims',
+    '_internal_conflicts',
+    '_external_conflicts',
+    '_selected_sources',
+)
+
+
+def _build_trace_block(mapping, key):
+    """Assemble the per-field provenance ``trace`` block, or None if absent.
+
+    The trace block stores every per-source claim (agreeing AND
+    conflicting), each conflict's narrative description, and the list
+    of sources that survived consensus routing. Auditors get a full
+    record of who said what for every field.
+    """
+    claims = mapping.get(f"{key}_claims")
+    if claims is None:
+        return None
+    internal = mapping.get(f"{key}_internal_conflicts") or {}
+    external = mapping.get(f"{key}_external_conflicts") or []
+    selected = mapping.get(f"{key}_selected_sources") or []
+    # Round-trip pair tuples through lists for clean JSON serialisation.
+    external_list = [
+        {"sources": list(c.get("sources", [])),
+         "description": c.get("description", "")}
+        for c in external
+    ]
+    return {
+        "claims": dict(claims),
+        "selected_sources": list(selected),
+        "internal_conflicts": dict(internal),
+        "external_conflicts": external_list,
+    }
+
+
 def _build_triplet_payload(mapping, conflict_suffix='_conflict', source_suffix=None, skip_keys=None):
-    """Build the ``{field: {value, source, conflict}}`` output payload.
+    """Build the ``{field: {value, source, conflict, trace?}}`` output payload.
 
     Args:
         mapping: Flat dict of raw field values and their metadata keys.
@@ -79,6 +115,10 @@ def _build_triplet_payload(mapping, conflict_suffix='_conflict', source_suffix=N
         source_suffix: Optional suffix for source keys – these are read and included
             as the "source" field in each triplet.
         skip_keys: Set of keys to ignore entirely (e.g. {'model_id'}).
+
+    A ``trace`` block is attached when the mapping carries the per-field
+    Phase-4 trace keys (``<field>_claims`` etc.). Direct-API fields with
+    no trace data produce triplets without a ``trace`` key.
     """
     payload = {}
     skip_keys = set(skip_keys or [])
@@ -89,17 +129,25 @@ def _build_triplet_payload(mapping, conflict_suffix='_conflict', source_suffix=N
             continue
         if source_suffix and key.endswith(source_suffix):
             continue
+        # Trace propagation keys are stored alongside the field but
+        # are not themselves promoted to triplets.
+        if any(key.endswith(suf) for suf in _TRACE_SUFFIXES):
+            continue
         # Carry-over debug fields (e.g. '<field>_raw_answer') are not
         # promoted to triplets.
         if key.endswith("_raw_answer"):
             continue
         raw_conflict = _clean_value(mapping.get(f"{key}{conflict_suffix}")) if conflict_suffix else None
         source_value = _clean_value(mapping.get(f"{key}{source_suffix}")) if source_suffix else None
-        payload[key] = {
+        triplet = {
             "value": _clean_value(value),
             "source": source_value,
-            "conflict": _parse_conflict_string(raw_conflict)
+            "conflict": _parse_conflict_string(raw_conflict),
         }
+        trace = _build_trace_block(mapping, key)
+        if trace is not None:
+            triplet["trace"] = trace
+        payload[key] = triplet
     return payload
 
 
@@ -221,6 +269,12 @@ class AIBOMProcessor:
                 wide_result[question_type] = answer
             wide_result[f"{question_type}_source"] = ', '.join(result.get('sources_used', []))
             wide_result[f"{question_type}_conflict"] = result.get('conflict')
+            # Phase 4 — per-source trace; consumed by _build_triplet_payload.
+            if 'claims' in result:
+                wide_result[f"{question_type}_claims"] = result.get('claims', {})
+                wide_result[f"{question_type}_internal_conflicts"] = result.get('internal_conflicts', {})
+                wide_result[f"{question_type}_external_conflicts"] = result.get('external_conflicts', [])
+                wide_result[f"{question_type}_selected_sources"] = result.get('selected_sources', [])
 
         return wide_result
     

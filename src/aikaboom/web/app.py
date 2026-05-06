@@ -178,6 +178,7 @@ def _extract_conflicts(metadata: dict) -> list:
                 continue
             c = triplet.get('conflict')
             if c and isinstance(c, dict):
+                trace = triplet.get('trace') or {}
                 conflicts.append({
                     'field': field,
                     'section': section.replace('_fields', ''),
@@ -186,6 +187,10 @@ def _extract_conflicts(metadata: dict) -> list:
                     'conflict_value': c.get('value'),
                     'conflict_source': c.get('source'),
                     'conflict_type': c.get('type'),
+                    # Phase 4: full per-source claim trace; renderer uses
+                    # this to show every source's claim alongside the
+                    # legacy single-conflict summary.
+                    'claims': trace.get('claims') or {},
                 })
     return conflicts
 
