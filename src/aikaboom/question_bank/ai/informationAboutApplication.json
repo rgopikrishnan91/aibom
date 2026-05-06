@@ -5,5 +5,14 @@
   "keywords": "application functionality pre-processing APIs dependencies",
   "summary": "Provides relevant information about the AI software, not including the model\ndescription.",
   "description": "A free-form text description of how the AI model is used within the software.\n\nIt should include any relevant information, such as pre-processing steps,\nthird-party APIs, and other pertinent details.\n\nIt can also include:\n\n- Functionality provided by the AI model within the software application,\n  including: any specific tasks or decisions it is designed to perform;\n  any pre-processing steps that are applied to the input data before it is\n  fed into the AI model for inference, such as data cleaning, normalization,\n  or feature extraction;\n  and any third-party APIs or services that are used in conjunction with\n  the AI model, such as data sources, cloud services, or other AI models.\n- Description of any dependencies or requirements needed to run the AI model\n  within the software application, including: specific hardware,\n  software libraries, and operating systems.",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "## How to use\n\nThe model is served behind a FastAPI endpoint. Incoming text is normalised (NFC, lowercased, stripped of HTML), tokenised with the bundled SentencePiece model, and truncated to 1024 tokens before inference. The pipeline calls the OpenAI Embeddings API for query expansion and then ranks candidates with this model. Requires Python 3.10+, PyTorch 2.1, CUDA 12.1, transformers>=4.40, and at least 16 GB of GPU memory. A Dockerfile is provided; CPU-only inference is supported but ~30x slower.",
+    "bm25_terms": ["how to use", "pipeline", "preprocessing", "tokenizer", "FastAPI", "REST API", "third-party API", "dependencies", "requirements.txt", "PyTorch", "CUDA", "Docker", "inference server", "feature extraction", "normalization", "GPU memory", "deployment", "Python", "transformers"]
+  },
+  "extraction": {
+    "instruction": "Extract how the AI model is integrated into the surrounding software: pre/post-processing, third-party APIs or services it depends on, and runtime requirements (hardware, libraries, OS).",
+    "field_spec": "SPDX property `ai_informationAboutApplication`. Free-form text. Suggested structure: a short paragraph or bullet list covering (a) functionality, (b) preprocessing pipeline, (c) external services/APIs, (d) hardware/software dependencies.",
+    "output_guidance": "Capture concrete pipeline details verbatim where possible (library versions, API names, GPU requirements). Exclude pure model architecture description (that belongs in `typeOfModel`) and exclude training details (that belongs in `informationAboutTraining`). If the source describes only the model and gives no integration or deployment info, return `noAssertion`. Merge multi-section content into one coherent paragraph; do not invent dependencies."
+  }
 }

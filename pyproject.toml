@@ -49,12 +49,16 @@ dependencies = [
     "httpx>=0.25.0",
     "pyshacl>=0.30.0",
     "jsonschema>=4.0.0",
+    "rank_bm25>=0.2.2",
 ]
 
 [project.optional-dependencies]
 link_fallback = [
     "google-genai>=0.3.0",
     "httpx>=0.25.0",
+]
+codegen = [
+    "anthropic>=0.40.0",
 ]
 dev = [
     "pytest>=7.0.0",

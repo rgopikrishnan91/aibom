@@ -5,5 +5,14 @@
   "keywords": "domain application area field sector industry vertical computer vision natural language processing NLP machine learning classification regression detection segmentation speech recognition image processing text analysis audio processing video analysis time series forecasting recommendation systems robotics healthcare finance automotive agriculture education retail manufacturing cybersecurity gaming entertainment",
   "summary": "Captures the domain in which the AI package can be used.",
   "description": "A free-form text that describes the domain where the AI model contained in the\nAI software can be expected to operate successfully.\n\nExamples include computer vision, natural language processing, etc.",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "# Model Card for clinical-bert-ner\n\nThis model targets the **biomedical natural language processing** domain, specifically named-entity recognition over electronic health records and PubMed abstracts. It has been validated on English-language clinical text and is not expected to generalise to general-purpose web text, code, or non-English corpora. Downstream tasks include de-identification, ICD-10 code suggestion, and adverse-event extraction. Out-of-domain inputs (e.g. legal contracts, social media) will degrade sharply.",
+    "bm25_terms": ["domain", "computer vision", "natural language processing", "NLP", "speech recognition", "tabular data", "time series", "biomedical", "clinical text", "code generation", "image classification", "object detection", "recommendation", "robotics", "intended domain", "out-of-domain", "task", "use case"]
+  },
+  "extraction": {
+    "instruction": "Extract the domain or application area in which the AI model is intended to operate, as stated by the source.",
+    "field_spec": "SPDX property `ai_domain`. Free-form short text (typically 1-5 words per domain). Multiple domains MAY be returned as a comma-separated list. No fixed enum.",
+    "output_guidance": "Prefer the wording the source uses (e.g. 'computer vision', 'natural language processing', 'speech recognition', 'tabular regression'). If multiple complementary domains are mentioned, list them comma-separated in source order. If only a downstream task is stated (e.g. 'sentiment analysis'), infer the umbrella domain only when unambiguous; otherwise return the task verbatim. If no domain is stated anywhere, return `noAssertion`."
+  }
 }

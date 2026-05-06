@@ -5,5 +5,32 @@
   "keywords": "anonymization anonymous anonymized privacy protection de-identification pseudonymization masking",
   "summary": "Describes the anonymization methods used.",
   "description": "A free-form text that describes the methods used to anonymize the dataset\nor fields in the dataset.",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "All personally identifiable information was removed prior to release. Names, email addresses, phone numbers, and IP addresses were detected with a Presidio-based PII pipeline and replaced with placeholder tokens such as <PERSON> and <EMAIL>. Free-text fields were further pseudonymized using SHA-256 hashes with a per-record salt, and rare quasi-identifiers were generalized via k-anonymity (k=5). A manual audit of 1,000 sampled rows confirmed no residual PII before the dataset was published on the Hub.",
+    "bm25_terms": [
+      "anonymization",
+      "de-identification",
+      "pseudonymization",
+      "PII removed",
+      "personally identifiable information",
+      "Presidio",
+      "k-anonymity",
+      "differential privacy",
+      "redaction",
+      "hashing",
+      "SHA-256",
+      "masking",
+      "tokenization of PII",
+      "<PERSON>",
+      "GDPR",
+      "HIPAA Safe Harbor",
+      "scrubbing"
+    ]
+  },
+  "extraction": {
+    "instruction": "Extract every anonymization or de-identification technique the source reports applying to the dataset, including the fields or entity types each technique targets.",
+    "field_spec": "SPDX property `dataset_anonymizationMethodUsed`. Free-form text (xsd:string), 0..* values; each value names a technique (e.g., 'PII redaction with Presidio', 'k-anonymity k=5', 'SHA-256 pseudonymization of user_id').",
+    "output_guidance": "List each method on its own line or comma-separated. If the source asserts the dataset contains no personal data so no anonymization was needed, record that statement verbatim. If the dataset card is silent on anonymization but does discuss PII presence, return 'Not found.' rather than inferring. If sources conflict (e.g., README says 'anonymized' but paper says raw), report both with their provenance."
+  }
 }

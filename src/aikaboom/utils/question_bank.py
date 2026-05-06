@@ -84,6 +84,8 @@ def load_question_bank(bom_type: str) -> Dict[str, Dict[str, Any]]:
             "keywords": data.get("keywords", ""),
             "summary": data.get("summary", ""),
             "description": data.get("description", ""),
+            "retrieval": data.get("retrieval", {}),
+            "extraction": data.get("extraction", {}),
             "post_process": data.get("post_process"),
             "priority": [],  # filled by overlay step
         }
@@ -92,15 +94,45 @@ def load_question_bank(bom_type: str) -> Dict[str, Dict[str, Any]]:
 
 def composite_description(entry: Dict[str, Any]) -> str:
     """Return the SPDX Summary and Description blocks concatenated for
-    runtime use. JSON files store them as separate fields (one per
-    SPDX block, verbatim); LLM prompts and the FAISS retrieval query
-    want them combined.
+    runtime use. Kept for any caller that still wants the merged
+    spec text (e.g. legacy LLM prompts, audit dumps). The HyDE-driven
+    pipeline uses ``dense_query`` and ``sparse_query`` instead.
     """
     summary = (entry.get("summary") or "").strip()
     description = (entry.get("description") or "").strip()
     if summary and description:
         return f"{summary}\n\n{description}"
     return summary or description
+
+
+def dense_query(entry: Dict[str, Any]) -> str:
+    """Return the HyDE hypothetical passage for FAISS retrieval.
+    Falls back to composite_description if the optimized block is
+    missing (e.g. a field added before re-running the codegen)."""
+    passage = ((entry.get("retrieval") or {}).get("hypothetical_passage") or "").strip()
+    return passage or composite_description(entry)
+
+
+def sparse_query(entry: Dict[str, Any]) -> str:
+    """Return the BM25 query as a whitespace-joined string. Falls back
+    to the legacy keywords field if the optimized block is missing."""
+    terms = (entry.get("retrieval") or {}).get("bm25_terms") or []
+    if isinstance(terms, list) and terms:
+        return " ".join(str(t) for t in terms)
+    return entry.get("keywords", "")
+
+
+def extraction_prompt_parts(entry: Dict[str, Any]) -> Dict[str, str]:
+    """Return the three-part extraction prompt slots
+    ``{instruction, field_spec, output_guidance}``. Falls back to the
+    composite description as ``field_spec`` and the existing ``question``
+    as ``instruction`` if the optimized block is missing."""
+    extraction = entry.get("extraction") or {}
+    return {
+        "instruction":     (extraction.get("instruction") or entry.get("question", "")).strip(),
+        "field_spec":      (extraction.get("field_spec") or composite_description(entry)).strip(),
+        "output_guidance": (extraction.get("output_guidance") or "").strip(),
+    }
 
 
 def overlay_priorities(bank: Dict[str, Dict[str, Any]], bom_type: str) -> None:

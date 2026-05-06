@@ -120,8 +120,11 @@ ssl_context = ssl.create_default_context(cafile=certifi.where())
 # from ``aikaboom/config/source_priority.json``.
 from aikaboom.utils.question_bank import (
     load_with_priorities as _load_qb,
-    composite_description as _composite_description,
+    dense_query as _dense_query,
+    sparse_query as _sparse_query,
+    extraction_prompt_parts as _extraction_parts,
 )
+from rank_bm25 import BM25Okapi
 
 FIXED_QUESTIONS_AI = _load_qb("ai")
 FIXED_QUESTIONS_DATA = _load_qb("data")
@@ -399,8 +402,7 @@ class AgenticRAG:
         question_type = state.get("question_type", "unknown")
         question_config = self.questions.get(question_type, FIXED_QUESTIONS.get(question_type, {}))
         field_name = question_type
-        question_summary = question_config.get('question', state["question"])
-        field_description = _composite_description(question_config)
+        parts = _extraction_parts(question_config)
 
         # Build context: all chunks with their source label
         context_parts = []
@@ -409,7 +411,9 @@ class AgenticRAG:
             context_parts.append(f"--- Chunk {i} (Source: {source}) ---\n{doc.page_content.strip()}\n")
         context = "\n".join(context_parts)
 
-        prompt = prompt_detect_conflicts(field_name, question_summary, field_description, context)
+        prompt = prompt_detect_conflicts(
+            field_name, parts["instruction"], parts["field_spec"], parts["output_guidance"], context
+        )
         try:
             response = _invoke_with_retry(self.llm.invoke, prompt)
             response_text = response.content
@@ -439,11 +443,10 @@ class AgenticRAG:
         question_type = state.get("question_type", "unknown")
         question_config = self.questions.get(question_type, FIXED_QUESTIONS.get(question_type, {}))
         field_name = question_type
-        question_summary = question_config.get('question', state["question"])
-        field_description = _composite_description(question_config)
+        parts = _extraction_parts(question_config)
 
         if not documents:
-            prompt = prompt_no_documents(state["question"])
+            prompt = prompt_no_documents(field_name, parts["instruction"])
             response = _invoke_with_retry(self.llm.invoke, prompt)
             answer = self._extract_field(response.content, "ANSWER") or response.content.strip()
             return {**state, "answer": answer}
@@ -467,7 +470,9 @@ class AgenticRAG:
             context_parts.append(f"--- Chunk {i} (Source: {source}) ---\n{doc.page_content.strip()}\n")
         context = "\n".join(context_parts)
 
-        prompt = prompt_generate_answer(field_name, question_summary, field_description, context)
+        prompt = prompt_generate_answer(
+            field_name, parts["instruction"], parts["field_spec"], parts["output_guidance"], context
+        )
         try:
             response = _invoke_with_retry(self.llm.invoke, prompt)
             answer = self._extract_field(response.content, "ANSWER") or response.content.strip()
@@ -482,7 +487,9 @@ class AgenticRAG:
                 print(f"  ⚠️  Answer prompt too large, retrying with fewer chunks...")
                 truncated_parts = context_parts[:6]
                 truncated_context = "\n".join(truncated_parts)
-                prompt = prompt_generate_answer(field_name, question_summary, field_description, truncated_context)
+                prompt = prompt_generate_answer(
+                    field_name, parts["instruction"], parts["field_spec"], parts["output_guidance"], truncated_context
+                )
                 try:
                     response = _invoke_with_retry(self.llm.invoke, prompt)
                     answer = self._extract_field(response.content, "ANSWER") or response.content.strip()
@@ -801,12 +808,19 @@ class AgenticRAG:
                     docs.append(doc)
                 
                 vectorstore = FAISS.from_documents(docs, self.embeddings)
-                retrievers[source] = vectorstore.as_retriever(
-                    search_type="similarity",
-                    search_kwargs={"k": 3}
-                )
-                print(f"    Created retriever for {source}: {len(docs)} header-aware chunks")
-        
+                tokenised = [d.page_content.lower().split() for d in docs]
+                bm25 = BM25Okapi(tokenised) if tokenised else None
+                retrievers[source] = {
+                    "retriever":   vectorstore.as_retriever(
+                        search_type="similarity",
+                        search_kwargs={"k": 3},
+                    ),
+                    "vectorstore": vectorstore,
+                    "bm25":        bm25,
+                    "docs":        docs,
+                }
+                print(f"    Created retrievers for {source}: {len(docs)} chunks (FAISS + BM25)")
+
         return retrievers
     
     def _extract_header_info(self, chunk: str) -> List[str]:
@@ -832,81 +846,97 @@ class AgenticRAG:
     
     def _global_retrieve_top_k(self, state: AgentState) -> AgentState:
         """
-        Retrieve top K chunks GLOBALLY across all sources based on similarity scores.
-        Uses question + description + keywords for comprehensive retrieval.
-        Retrieves 20 candidates from each source, then selects top 12 globally.
-        Returns the top 12 most similar chunks regardless of source.
+        Hybrid retrieval: HyDE-driven dense (FAISS) + sparse (BM25) per source,
+        fused per-source with Reciprocal Rank Fusion (Cormack et al. 2009),
+        then ranked globally to pick the top K chunks.
+
+        - Dense query: ``retrieval.hypothetical_passage`` from the per-field
+          question-bank entry (HyDE, Gao et al. ACL 2023).
+        - Sparse query: whitespace join of ``retrieval.bm25_terms``.
+        - Per-source RRF fusion (k=60) of the two ranked lists.
+        - Global rank by RRF score → top FINAL_TOP_K chunks.
         """
         question = state["question"]
-        TOP_K_PER_SOURCE = 20  # Number of candidates to retrieve from each source
-        FINAL_TOP_K = 10  # Final number of chunks to select globally
-        MIN_CHUNK_LENGTH = 100  # Minimum characters for a chunk to be valid
-        
-        # Get retrievers for current row
+        TOP_K_PER_SOURCE = 20
+        FINAL_TOP_K = 10
+        MIN_CHUNK_LENGTH = 100
+        RRF_K = 60
+
         row_retrievers = state.get("row_retrievers", {})
         available_sources = list(row_retrievers.keys())
-        
+
         print(f"\n  📊 Available sources: {available_sources}")
-        
-        # Get the question type, enhanced keywords, and description
-        question_type, _, enhanced_keywords = self.get_question_priority(question)
+
+        question_type, _, _ = self.get_question_priority(question)
         question_config = self.questions.get(question_type, FIXED_QUESTIONS.get(question_type, {}))
-        description = _composite_description(question_config)
-        
+        dense_q = _dense_query(question_config)
+        sparse_q = _sparse_query(question_config)
+
         print(f"  🎯 Question type: {question_type}")
         print(f"  📝 Original question: {question[:80]}...")
-        print(f"  📋 Description: {description[:80]}...")
-        print(f"  🔑 Enhanced keywords: {enhanced_keywords[:80]}...")
-        
-        # IMPROVED: Combine question, description, and keywords for comprehensive retrieval
-        # This gives: semantic understanding + context + keyword coverage
-        combined_query = f"{question} {description} {enhanced_keywords}"
-        print(f"  🔍 Combined query length: {len(combined_query)} characters")
-        
-        # Collect ALL chunks from ALL sources with their similarity scores
+        print(f"  🧬 HyDE passage ({len(dense_q)} chars): {dense_q[:80]}...")
+        print(f"  🔑 BM25 query ({len(sparse_q.split())} terms): {sparse_q[:80]}...")
+
         all_chunks_with_scores = []
-        
-        print(f"\n  🔎 Retrieving {TOP_K_PER_SOURCE} candidates from each source using combined query...")
-        
+
         for source in available_sources:
             try:
-                print(f"  📖 Retrieving from {source}...")
-                
-                # Get the underlying vectorstore from the retriever
-                vectorstore = row_retrievers[source].vectorstore
-                
-                # Retrieve top 20 candidates from this source
-                docs_with_scores = vectorstore.similarity_search_with_score(
-                    combined_query,
-                    k=TOP_K_PER_SOURCE  # Get 20 candidates from each source
+                print(f"  📖 Retrieving from {source} (hybrid)...")
+                bundle = row_retrievers[source]
+                vectorstore = bundle["vectorstore"]
+                bm25 = bundle.get("bm25")
+                docs = bundle.get("docs", [])
+
+                # Dense top-N (FAISS)
+                dense_hits = vectorstore.similarity_search_with_score(
+                    dense_q, k=TOP_K_PER_SOURCE
                 )
-                
-                if not docs_with_scores:
-                    print(f"    ⚠️ No documents retrieved from {source}")
-                    continue
-                
-                # Convert FAISS distances to similarity scores (0-1 scale, higher=better)
-                # FAISS returns L2 distance, so smaller distance = more similar
-                for doc, distance in docs_with_scores:
-                    similarity = 1 / (1 + distance)
+                dense_ranked = [doc for doc, _ in dense_hits]
+
+                # Sparse top-N (BM25)
+                sparse_ranked = []
+                if bm25 is not None and sparse_q.strip() and docs:
+                    bm25_scores = bm25.get_scores(sparse_q.lower().split())
+                    sparse_indices = sorted(
+                        range(len(docs)),
+                        key=lambda i: -bm25_scores[i],
+                    )[:TOP_K_PER_SOURCE]
+                    sparse_ranked = [docs[i] for i in sparse_indices]
+
+                # Per-source RRF fusion: score(doc) = Σ 1 / (k + rank)
+                rrf_scores: Dict[int, float] = {}
+                doc_lookup: Dict[int, Any] = {}
+                for ranked in (dense_ranked, sparse_ranked):
+                    for rank, doc in enumerate(ranked):
+                        # Use chunk_index from metadata as stable doc id
+                        # (falls back to id() if absent)
+                        doc_id = doc.metadata.get("chunk_index", id(doc))
+                        rrf_scores[doc_id] = rrf_scores.get(doc_id, 0.0) + 1.0 / (RRF_K + rank + 1)
+                        doc_lookup[doc_id] = doc
+
+                fused = sorted(rrf_scores.items(), key=lambda x: -x[1])
+
+                kept = 0
+                for doc_id, rrf_score in fused:
+                    doc = doc_lookup[doc_id]
                     chunk_length = len(doc.page_content.strip())
-                    
-                    # Only include chunks that meet minimum length requirement
-                    if chunk_length >= MIN_CHUNK_LENGTH:
-                        all_chunks_with_scores.append({
-                            'document': doc,
-                            'similarity': similarity,
-                            'source': source,
-                            'length': chunk_length
-                        })
-                
-                print(f"    ✓ Retrieved {len([c for c in all_chunks_with_scores if c['source'] == source])} valid chunks")
-                
+                    if chunk_length < MIN_CHUNK_LENGTH:
+                        continue
+                    all_chunks_with_scores.append({
+                        "document":   doc,
+                        "similarity": rrf_score,  # name preserved for downstream code
+                        "source":     source,
+                        "length":     chunk_length,
+                    })
+                    kept += 1
+
+                print(f"    ✓ {len(dense_ranked)} dense + {len(sparse_ranked)} sparse → {kept} fused")
+
             except Exception as e:
                 print(f"    ✗ Error retrieving from {source}: {e}")
-        
-        # Sort all chunks by similarity score (highest first)
-        all_chunks_with_scores.sort(key=lambda x: x['similarity'], reverse=True)
+
+        # Global rank across sources by RRF score (highest first)
+        all_chunks_with_scores.sort(key=lambda x: x["similarity"], reverse=True)
         
         print(f"\n  📦 Total chunks collected across all sources: {len(all_chunks_with_scores)}")
         
@@ -1285,10 +1315,11 @@ class DirectLLM:
         
         question_config = self.questions.get(question_type, FIXED_QUESTIONS.get(question_type, {}))
         field_name = question_type
-        question_summary = question_config.get('question', question)
-        field_description = _composite_description(question_config)
-        
-        prompt = prompt_direct_llm(field_name, question_summary, field_description, context)
+        parts = _extraction_parts(question_config)
+
+        prompt = prompt_direct_llm(
+            field_name, parts["instruction"], parts["field_spec"], parts["output_guidance"], context
+        )
         
         print(f"\n  📝 Full context length: {len(context):,} characters (Direct mode - no chunking)")
         print(f"  📚 Sources in context: {sources_used}")

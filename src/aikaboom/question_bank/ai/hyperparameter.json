@@ -5,5 +5,14 @@
   "keywords": "hyperparameter learning rate batch size layers tuning settings",
   "summary": "Records a hyperparameter used to build the AI model contained in the AI\npackage.",
   "description": "Records a hyperparameter value.\n\nHyperparameters are settings defined before the training process that control\nthe learning algorithm's behavior. They differ from model parameters,\nwhich are learned from the data during training. Developers typically set\nhyperparameters manually or through a process of hyperparameter tuning\n(also known as trial and error).\n\nExamples of hyperparameters include learning rate, batch size, and the number\nof layers in a neural network.",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "### Training hyperparameters\n\nThe model was trained with the AdamW optimizer (beta1=0.9, beta2=0.999, weight_decay=0.01), a peak learning_rate of 2e-5 with linear warmup over the first 500 steps and cosine decay, batch_size=32 per GPU (effective batch 256), max_seq_length=512, dropout=0.1, and 3 epochs. Mixed-precision (bf16) was enabled. Gradient clipping at 1.0. Random seed 42. These settings follow the recipe of Devlin et al. (2019) with minor adjustments for the longer context.",
+    "bm25_terms": ["learning_rate", "batch_size", "epochs", "AdamW", "weight_decay", "warmup_steps", "dropout", "max_seq_length", "gradient_clipping", "lr_scheduler", "cosine decay", "beta1", "beta2", "seed", "bf16", "fp16", "optimizer", "num_layers", "hidden_size", "training hyperparameters"]
+  },
+  "extraction": {
+    "instruction": "Extract every training hyperparameter and its value reported by the source (optimizer, learning rate, batch size, epochs, schedule, regularization, seed, precision, etc.).",
+    "field_spec": "SPDX property `ai_hyperparameter`. Set of DictionaryEntry pairs each with `key` (string) and `value` (string). Suggested serialization: 'key=value' pairs, semicolon-separated, e.g. 'learning_rate=2e-5; batch_size=32; epochs=3; optimizer=AdamW'.",
+    "output_guidance": "List each named hyperparameter once with its value verbatim from the source (preserve scientific notation like `2e-5`). If a value differs between sources (e.g. README vs paper), keep the model-card value and note the discrepancy. Skip qualitative phrases like 'standard settings' that lack numbers. If the source reports no hyperparameters at all, return `noAssertion`."
+  }
 }

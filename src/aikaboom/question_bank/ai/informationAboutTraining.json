@@ -5,5 +5,14 @@
   "keywords": "training process data algorithms techniques evaluation metrics",
   "summary": "Describes relevant information about different steps of the training process.",
   "description": "A detailed explanation of the training process,\nincluding the specific techniques, algorithms, and methods employed.\n\nExamples include:\n\n- training data used to train the AI model, along with any relevant details\n  about its source, quality, and pre-processing steps;\n- specific training algorithms employed, including stochastic gradient descent,\n  backpropagation, and reinforcement learning;\n- specific training techniques used to improve the performance or accuracy\n  of the AI model, such as transfer learning, fine-tuning, or active learning;\n  and\n- any evaluation metrics used to assess the performance of the AI model\n  during the training process, including accuracy, precision, recall, and F1\n  score.",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "## Training procedure\n\nWe initialise from `roberta-base` and continue pretraining with masked-language-modelling on a 40 GB cleaned subset of CommonCrawl plus the OpenWebText corpus. Training proceeds for 100k steps of AdamW with linear warmup over 5k steps. We then fine-tune on the downstream classification dataset for 5 epochs with early stopping on validation F1. Curriculum learning is applied for the first epoch. All experiments use distributed data parallel across 16 A100 GPUs. Validation accuracy is logged every 500 steps.",
+    "bm25_terms": ["training procedure", "pretraining", "fine-tuning", "masked language modeling", "MLM", "transfer learning", "curriculum learning", "data augmentation", "AdamW", "early stopping", "distributed training", "DDP", "RLHF", "DPO", "epochs", "checkpoints", "validation loss", "training corpus", "stochastic gradient descent", "backpropagation"]
+  },
+  "extraction": {
+    "instruction": "Extract a description of the training process: starting checkpoint, training data and preprocessing, algorithms and techniques used (pretraining, fine-tuning, RLHF, distillation), and any in-training evaluation.",
+    "field_spec": "SPDX property `ai_informationAboutTraining`. Free-form text, typically a short paragraph. Should cover (a) data, (b) algorithm/objective, (c) techniques (transfer learning, fine-tuning, etc.), (d) evaluation during training.",
+    "output_guidance": "Quote concrete techniques and dataset names from the source. Hyperparameters belong in `hyperparameter` and final benchmark numbers belong in `metric`; only mention them here if they describe the training procedure itself (e.g. 'early stopping on val F1'). Skip pure inference / deployment notes. If no training process is described (e.g. third-party redistribution with no detail), return `noAssertion`."
+  }
 }

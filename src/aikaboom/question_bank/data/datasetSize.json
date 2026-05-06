@@ -5,5 +5,32 @@
   "keywords": "size samples examples instances records entries GB MB TB bytes volume count number",
   "summary": "Captures the size of the dataset.",
   "description": "Captures how large a dataset is.\n\nThe size is to be measured in bytes.",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "The release totals 12.4 GB on disk (approximately 13,316,938,000 bytes) split across train/validation/test as 11.1 GB / 0.7 GB / 0.6 GB. It contains 4.8M training examples, 250k validation, and 250k test examples drawn from 2.1M unique documents. Compressed Parquet shards are roughly 256 MB each. The raw uncompressed JSONL is about 38 GB; users with limited disk should stream with `datasets.load_dataset(..., streaming=True)`.",
+    "bm25_terms": [
+      "dataset size",
+      "GB",
+      "MB",
+      "TB",
+      "bytes",
+      "number of examples",
+      "rows",
+      "samples",
+      "training examples",
+      "disk usage",
+      "compressed size",
+      "uncompressed",
+      "shards",
+      "Parquet",
+      "JSONL",
+      "tokens",
+      "hours of audio"
+    ]
+  },
+  "extraction": {
+    "instruction": "Extract the size of the dataset in bytes, plus any auxiliary size metrics the source reports (example counts, token counts, hours of audio).",
+    "field_spec": "SPDX property `dataset_datasetSize`. Non-negative integer (xsd:nonNegativeInteger) measured in bytes. Format: integer bytes; if source gives GB/MB, convert (1 GB = 1_000_000_000 bytes) and note the original phrasing.",
+    "output_guidance": "Prefer the on-disk byte count of the released artifact. If only example/row counts are reported, capture them verbatim and mark byte size as 'Not found.'. If both compressed and uncompressed sizes are given, return both with labels. If splits are reported separately, sum to a total and also list per-split sizes."
+  }
 }

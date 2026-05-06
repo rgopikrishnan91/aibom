@@ -5,5 +5,33 @@
   "keywords": "standards compliance ISO IEEE ETSI regulations",
   "summary": "Captures a standard that is being complied with.",
   "description": "A free-form text that captures a standard that the AI software complies with.\n\nThis includes both published and unpublished standards, such as those developed\nby ISO, IEEE, and ETSI.\n\nThe standard may, but is not necessarily required to, satisfy a legal or\nregulatory requirement.",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "This release is aligned with ISO/IEC 23053:2022 framework for AI systems and follows the data quality guidance in ISO/IEC 5259. The development process is audited against IEEE 7000-2021 for ethically aligned design. We also map our documentation to the NIST AI RMF 1.0 and the EU AI Act's transparency obligations. No formal certification has been obtained; compliance claims reflect internal self-assessment.",
+    "bm25_terms": [
+      "ISO/IEC 23053",
+      "ISO/IEC 42001",
+      "ISO/IEC 5259",
+      "IEEE 7000",
+      "NIST AI RMF",
+      "EU AI Act",
+      "GDPR",
+      "HIPAA",
+      "SOC 2",
+      "ETSI",
+      "compliance",
+      "certification",
+      "audit",
+      "conformity",
+      "standard",
+      "regulation",
+      "self-assessment",
+      "model governance"
+    ]
+  },
+  "extraction": {
+    "instruction": "Extract the standards, regulations, or frameworks that the AI software complies with, naming each by its identifier (e.g. ISO/IEC 23053, IEEE 7000, NIST AI RMF, GDPR).",
+    "field_spec": "SPDX property `ai_standardCompliance`. Free-form text (xsd:string), typically a comma-separated list of standard identifiers. Includes published (ISO, IEEE, ETSI, NIST) and unpublished standards; legal/regulatory frameworks may be included if treated as compliance targets.",
+    "output_guidance": "List each standard as cited (with version/year if given), comma-separated. Distinguish certified compliance from self-asserted alignment when the source does. If the source mentions a regulation only as context (not as a compliance target), exclude it. Return 'noAssertion' when standards are referenced but no compliance claim is made. Return 'Not found.' when none are mentioned."
+  }
 }

@@ -5,5 +5,14 @@
   "keywords": "task category benchmark training evaluation purpose role",
   "summary": "Provides information about the primary purpose of the software artifact.",
   "description": "primaryPurpose provides information about the primary purpose of the software\nartifact.",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "# Dataset Card for GLUE\n\nGLUE is a collection of nine English-language natural language understanding tasks bundled as a benchmark and evaluation suite for general-purpose language models. The artefact is distributed primarily as a labelled dataset (with leaderboard and evaluation scripts) rather than as a model or application. Researchers download the data via the `datasets` library and submit predictions to the public leaderboard. It is intended to be used as training and evaluation data, not as runnable software.",
+    "bm25_terms": ["primary purpose", "dataset", "training data", "evaluation data", "benchmark", "corpus", "data collection", "test set", "validation set", "labelled data", "annotated data", "## Dataset Summary", "release artefact", "task suite", "ground truth"]
+  },
+  "extraction": {
+    "instruction": "Determine the SPDX primaryPurpose enum value that best classifies this artifact (it is a dataset, so usually `data`).",
+    "field_spec": "SPDX property `software_primaryPurpose`. Enum: `application` | `archive` | `bom` | `configuration` | `container` | `data` | `device` | `deviceDriver` | `diskImage` | `documentation` | `evidence` | `executable` | `file` | `firmware` | `framework` | `install` | `library` | `manifest` | `model` | `module` | `operatingSystem` | `other` | `patch` | `platform` | `requirement` | `source` | `specification` | `test`.",
+    "output_guidance": "For dataset artifacts, return `data` unless the source explicitly frames the release as a model checkpoint (`model`), runnable benchmark harness (`application`), or evaluation suite (`test`). When the artefact bundles labelled corpus + evaluation scripts, prefer `data`. Return `other` only when no enum member fits. Never return `noAssertion`; this field does not allow it."
+  }
 }

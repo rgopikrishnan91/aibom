@@ -5,5 +5,14 @@
   "keywords": "intended use purpose application task designed goal objective research training evaluation",
   "summary": "Describes what the given dataset should be used for.",
   "description": "A free-form text that describes what the given dataset should be used for.\n\nSome datasets are collected to be used only for particular purposes.\n\nFor example, medical data collected from a specific demography might only be applicable\nfor training machine learning models to make predictions for that demography.\nIn such a case, the intendedUse field would capture this information.\nSimilarly, if a dataset is collected for building a facial recognition model,\nthe intendedUse field would specify that.",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "## Intended Uses\n\nThis dataset is intended for training and evaluating extractive question-answering systems on English Wikipedia text. Suitable downstream tasks include reading comprehension, span prediction, and retrieval-augmented generation benchmarks. The corpus is **not** suitable for open-domain dialog, factual claim verification on non-Wikipedia sources, or deployment in production medical/legal QA without further fine-tuning. Researchers should also avoid using the dataset to train commercial chatbots without verifying license terms.",
+    "bm25_terms": ["intended use", "intended for", "## Intended Uses", "## Use Cases", "should be used for", "primary use", "research purposes", "benchmark", "evaluation", "fine-tuning", "training data", "out-of-scope", "not suitable for", "downstream tasks", "designed for", "## Direct Use", "## Out-of-Scope Use"]
+  },
+  "extraction": {
+    "instruction": "Extract the dataset's intended uses and any explicitly out-of-scope or discouraged uses described in the source.",
+    "field_spec": "SPDX property `dataset_intendedUse`. Free-form xsd:string. Format: one short paragraph or a comma-separated list of use cases. Include out-of-scope uses verbatim if the source distinguishes them.",
+    "output_guidance": "Prefer wording from a section literally titled 'Intended Uses', 'Use Cases', 'Direct Use', or 'Out-of-Scope Use'. If only a paper abstract is available, paraphrase the stated motivation. If sources distinguish recommended vs out-of-scope uses, include both with explicit labels. Return 'Not found.' if no usage guidance appears; do not infer use cases from dataset name or modality alone."
+  }
 }

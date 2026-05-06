@@ -5,5 +5,34 @@
   "keywords": "type format datatype image text audio video multimodal tabular structured unstructured",
   "summary": "Describes the type of the given dataset.",
   "description": "Describes the datatype contained in the dataset.\n\nFor example, a dataset can be an image dataset for computer vision applications, a text dataset such as the contents of a book or Wikipedia article, or sometimes a multimodal dataset that contains multiple types of data.",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "This is a multimodal vision-language dataset pairing 1.2M images with English captions. Images are RGB JPEGs at 224x224, and captions are stored as UTF-8 text averaging 14 tokens. A small auxiliary split contains 50k audio clips with aligned transcripts for ASR experiments. Tabular metadata (timestamp, geolocation, license) accompanies each row. The dataset complements text-only corpora such as C4 and is suited to image-text retrieval and captioning benchmarks.",
+    "bm25_terms": [
+      "image dataset",
+      "text dataset",
+      "audio dataset",
+      "video dataset",
+      "multimodal",
+      "tabular",
+      "time series",
+      "graph dataset",
+      "sensor data",
+      "categorical",
+      "numeric",
+      "structured",
+      "unstructured",
+      "JPEG",
+      "WAV",
+      "captions",
+      "modality",
+      "computer vision",
+      "NLP corpus"
+    ]
+  },
+  "extraction": {
+    "instruction": "Extract the data modality (or modalities) of the dataset, mapping each to the SPDX DatasetType vocabulary.",
+    "field_spec": "SPDX property `dataset_datasetType`. Enum DatasetType, 1..* values; members: `audio`, `categorical`, `graph`, `image`, `no-assertion`, `numeric`, `other`, `sensor`, `structured`, `syntactic`, `text`, `timeseries`, `timestamp`, `video`. Format: comma-separated enum tokens.",
+    "output_guidance": "Use multiple enum tokens for multimodal datasets (e.g., 'image, text'). Map vocabulary: 'corpus/captions/transcripts' -> text; 'photos/frames' -> image; 'tables/CSV/Parquet' -> structured; 'numeric features' -> numeric; 'class labels' -> categorical. If the modality is unclear, return `no-assertion`. Do not invent modalities not evidenced in the source."
+  }
 }

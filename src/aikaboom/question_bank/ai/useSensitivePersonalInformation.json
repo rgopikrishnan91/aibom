@@ -5,5 +5,33 @@
   "keywords": "sensitive personal information PII privacy data protection",
   "summary": "Records if sensitive personal information is used during model training or\ncould be used during the inference.",
   "description": "Notes if sensitive personal information is used in the training or inference of\nthe AI models.\n\nThis might include biometric data, addresses or other data that can be used to\ninfer a person's identity.\n\nRelated: `hasSensitivePersonalInformation` in `/Dataset/DatasetPackage`",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "**Privacy considerations:** The training corpus was filtered to remove personally identifiable information using regex and named-entity redaction, but residual leakage of names, addresses, or phone numbers cannot be ruled out. The model was not trained on biometric data, health records, or other special-category data under GDPR Article 9. At inference time, prompts may contain PII; operators are responsible for downstream data-protection compliance.",
+    "bm25_terms": [
+      "PII",
+      "personally identifiable information",
+      "sensitive personal data",
+      "biometric",
+      "GDPR",
+      "Article 9",
+      "special category",
+      "health data",
+      "PHI",
+      "HIPAA",
+      "addresses",
+      "names",
+      "phone numbers",
+      "data protection",
+      "anonymization",
+      "redaction",
+      "privacy",
+      "de-identification"
+    ]
+  },
+  "extraction": {
+    "instruction": "Extract whether sensitive personal information (PII, biometrics, addresses, health data, etc.) is used during training or could be processed at inference, and identify the categories involved.",
+    "field_spec": "SPDX property `ai_useSensitivePersonalInformation`. Enum value (PresenceType): one of `yes`, `no`, `noAssertion`. Optionally accompanied by prose listing the categories of sensitive data (biometric, GDPR Article 9 special-category, etc.).",
+    "output_guidance": "Return one of `yes | no | noAssertion`, optionally followed by ': <categories>' when the source enumerates them (e.g. 'yes: biometric data, addresses'). Use `yes` when the card confirms PII was used or could be inferred; use `no` when the card explicitly states sensitive data was excluded or filtered. Use `noAssertion` when privacy is discussed but the answer is ambiguous, and 'Not found.' when the topic is absent."
+  }
 }

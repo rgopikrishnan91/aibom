@@ -5,5 +5,33 @@
   "keywords": "preprocessing cleaning normalization standardization tokenization filtering transformation deduplication removal",
   "summary": "Describes the preprocessing steps that were applied to the raw data to create the given dataset.",
   "description": "A free-form text that describes the various preprocessing steps\nthat were applied to the raw data to create the dataset.\n\nExamples include standardization, normalization, deduplication, tokenization, and removal of tokens.",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "Raw HTML pages were stripped with trafilatura, lower-cased, and split into sentences with spaCy. We deduplicated near-duplicates using MinHash LSH at a Jaccard threshold of 0.8, removing roughly 18% of the corpus. Documents shorter than 50 tokens or with a perplexity above 1500 under a KenLM 5-gram model were discarded. Text was tokenized with the GPT-2 BPE tokenizer; sequences longer than 1024 tokens were chunked with 128-token overlap before training.",
+    "bm25_terms": [
+      "preprocessing",
+      "deduplication",
+      "MinHash",
+      "tokenization",
+      "BPE",
+      "SentencePiece",
+      "normalization",
+      "lower-cased",
+      "language detection",
+      "fastText",
+      "perplexity filter",
+      "KenLM",
+      "removed duplicates",
+      "cleaned",
+      "trafilatura",
+      "spaCy",
+      "filtered out",
+      "chunking"
+    ]
+  },
+  "extraction": {
+    "instruction": "Extract every preprocessing step applied to the raw data to produce the released dataset, in the order they were applied when stated.",
+    "field_spec": "SPDX property `dataset_dataPreprocessing`. Free-form text (xsd:string), single value listing steps. Typical steps: standardization, normalization, deduplication, tokenization, filtering, chunking, language ID, PII scrubbing.",
+    "output_guidance": "Preserve numeric thresholds (e.g., 'min length 50 tokens', 'Jaccard 0.8') and tool names verbatim. If preprocessing is split between an upstream corpus and this release, mark which steps belong to each. Return 'Not found.' if the card only describes raw collection without any cleaning or transformation step."
+  }
 }

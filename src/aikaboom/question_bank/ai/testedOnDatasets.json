@@ -5,5 +5,35 @@
   "keywords": "evaluation benchmark test dataset tested evaluated assessment validation",
   "description": "Per SPDX 3.0.1 testedOn relationship: identifies the specific datasets or benchmarks used to evaluate the AI model. Examples include GLUE, SuperGLUE, MMLU, HellaSwag, etc. Maps to SPDX testedOn relationship and CycloneDX modelCard.datasets with type=evaluation.",
   "post_process": null,
-  "aikaboom_internal": true
+  "aikaboom_internal": true,
+  "retrieval": {
+    "hypothetical_passage": "## Evaluation\n\nWe evaluate on the GLUE and SuperGLUE benchmarks, MMLU (5-shot), HellaSwag, ARC-Challenge, and TruthfulQA. For multilingual capability we report XNLI and FLORES-200. Code generation is measured on HumanEval and MBPP. Results are reported as accuracy or pass@1 against the held-out test split of each benchmark; we did not tune hyperparameters on the evaluation sets.",
+    "bm25_terms": [
+      "GLUE",
+      "SuperGLUE",
+      "MMLU",
+      "HellaSwag",
+      "ARC-Challenge",
+      "TruthfulQA",
+      "HumanEval",
+      "MBPP",
+      "SQuAD",
+      "XNLI",
+      "FLORES-200",
+      "BIG-bench",
+      "evaluated on",
+      "tested on",
+      "benchmark",
+      "test set",
+      "held-out",
+      "pass@1",
+      "zero-shot",
+      "few-shot"
+    ]
+  },
+  "extraction": {
+    "instruction": "Extract the named datasets or benchmarks used to evaluate this AI model. Return only the canonical dataset names, comma-separated.",
+    "field_spec": "AIkaBoOM-internal. Value space: a list of dataset/benchmark names (canonical short forms preferred, e.g. `GLUE`, `MMLU`, `HumanEval`). Maps to SPDX `testedOn` relationship and CycloneDX `modelCard.datasets` with `type=evaluation`.",
+    "output_guidance": "Return concrete dataset names only; exclude generic phrases like 'an internal test set' unless that is the only signal. Preserve official capitalization (e.g. `SQuAD`, `HellaSwag`). De-duplicate across sections. If evaluation is mentioned but no dataset is named, return 'noAssertion'. If evaluation is not discussed at all, return 'Not found.'. Do not include training datasets here."
+  }
 }

@@ -5,5 +5,14 @@
   "keywords": "decision threshold metric computation evaluation",
   "summary": "Captures the threshold that was used for computation of a metric described in\nthe metric field.",
   "description": "Each metric might be computed based on a decision threshold.\n\nFor instance, precision or recall is typically computed by checking if the\nprobability of the outcome is larger than 0.5.\n\nEach decision threshold should match with a metric field defined in the AI\npackage.",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "### Decision threshold\n\nClassification metrics in the table above use a probability cut-off of **0.5** on the sigmoid output. We additionally swept thresholds from 0.1 to 0.9 in 0.05 increments and selected 0.42 on the validation set to maximise F1 under the operating point used in production. Precision-recall curves are shown in Figure 3. For the toxicity classifier, recall is reported at a stricter threshold of 0.7 to reduce false positives.",
+    "bm25_terms": ["decision threshold", "probability threshold", "cutoff", "operating point", "0.5", "argmax", "softmax threshold", "sigmoid threshold", "score threshold", "precision-recall curve", "ROC threshold", "Youden index", "tuned on validation", "F1-optimal threshold", "classification threshold", "binary threshold"]
+  },
+  "extraction": {
+    "instruction": "Extract the decision threshold(s) used to convert model scores into class predictions when computing the reported metrics, and pair each threshold with its metric.",
+    "field_spec": "SPDX property `ai_metricDecisionThreshold`. Set of DictionaryEntry pairs with `key` (metric name, matching a key in `ai_metric`) and `value` (numeric threshold as string, typically in [0,1]). Suggested form: 'metric=threshold', e.g. 'F1=0.42; recall=0.7'.",
+    "output_guidance": "Only record thresholds that are explicitly tied to a metric computation. Default thresholds (e.g. 0.5 / argmax) should be captured only when the source states them; do not assume 0.5 by default. If multiple thresholds are reported (sweep, per-class), return each pairing. If metrics are present but no threshold is mentioned, return `noAssertion` for this field rather than guessing."
+  }
 }

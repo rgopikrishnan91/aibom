@@ -5,5 +5,32 @@
   "keywords": "available availability download access public private clickthrough registration scraping query restricted gated",
   "summary": "The field describes the availability of a dataset.",
   "description": "Some datasets are publicly available and can be downloaded directly. Others are only accessible behind a clickthrough, or after filling a registration form. This field will describe the dataset availability from that perspective.",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "The dataset is hosted on the Hugging Face Hub and can be downloaded directly with `datasets.load_dataset('org/name')` after accepting a click-through Terms of Use. Bulk tarballs are mirrored on Zenodo (DOI 10.5281/zenodo.1234567). A subset containing sensitive medical records is gated: researchers must complete a Google Form with institutional affiliation, and access is granted within five business days. Raw scraping scripts are provided for users who wish to reproduce collection from source URLs.",
+    "bm25_terms": [
+      "publicly available",
+      "direct download",
+      "click-through",
+      "registration form",
+      "gated dataset",
+      "request access",
+      "load_dataset",
+      "huggingface.co/datasets",
+      "Zenodo DOI",
+      "scraping script",
+      "API access",
+      "behind login",
+      "Terms of Use",
+      "Data Use Agreement",
+      "private",
+      "open access",
+      "query interface"
+    ]
+  },
+  "extraction": {
+    "instruction": "Extract how the dataset can be obtained, mapping the access mechanism to the SPDX DatasetAvailabilityType vocabulary.",
+    "field_spec": "SPDX property `dataset_datasetAvailability`. Enum DatasetAvailabilityType with members: `clickthrough`, `direct-download`, `query`, `registration`, `scraping-script`. Format: enum token plus a short URL or location string when given.",
+    "output_guidance": "Map phrasings: 'pip/load_dataset/wget' without forms -> direct-download; 'click I agree' -> clickthrough; 'fill this form / request access' -> registration; 'use our SQL/REST endpoint' -> query; 'run this crawler/spider' -> scraping-script. If multiple access paths exist, list each. Return 'noAssertion' if availability is not described."
+  }
 }

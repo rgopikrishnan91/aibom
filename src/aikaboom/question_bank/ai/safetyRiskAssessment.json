@@ -5,5 +5,34 @@
   "keywords": "safety risk assessment compliance evaluation",
   "summary": "Records the results of general safety risk assessment of the AI system.",
   "description": "Records the results of general safety risk assessment of the AI system.\n\nUsing categorization according to the\n[EU general risk assessment methodology](https://ec.europa.eu/docsroom/documents/17107).\nThe methodology implements Article 20 of Regulation (EC) No 765/2008 and is\nintended to assist authorities when they assess general product safety\ncompliance.\n\nIt is important to note that this categorization differs from the one proposed\nin the EU AI Act's provisional agreement.",
-  "post_process": null
+  "post_process": null,
+  "retrieval": {
+    "hypothetical_passage": "We conducted a safety risk assessment following the EU general product safety methodology. The system was classified as low risk for the intended deployment scope. Red-teaming exercises probed for jailbreaks, prompt injection, and harmful content generation; residual risks include hallucination on medical and legal queries. The model is not approved for high-risk use cases under the EU AI Act, and downstream operators should perform their own conformity assessment.",
+    "bm25_terms": [
+      "safety risk assessment",
+      "EU AI Act",
+      "high-risk",
+      "serious",
+      "medium",
+      "low risk",
+      "red teaming",
+      "jailbreak",
+      "prompt injection",
+      "harm categories",
+      "Article 20",
+      "Regulation 765/2008",
+      "general product safety",
+      "conformity assessment",
+      "hazard",
+      "mitigation",
+      "responsible release",
+      "RAI",
+      "model risk"
+    ]
+  },
+  "extraction": {
+    "instruction": "Extract the safety risk classification and any documented assessment results for this AI system, including the methodology applied and the residual risks identified.",
+    "field_spec": "SPDX property `ai_safetyRiskAssessment`. Enum value (SafetyRiskAssessmentType) per EU general risk methodology: one of `serious`, `high`, `medium`, `low`. Record the chosen level plus any prose justification.",
+    "output_guidance": "Return one of `serious | high | medium | low` when a level is stated, optionally followed by a short justification. If the source describes risks but never assigns an EU-methodology level, capture the descriptive text and prefix with 'unclassified:'. Return 'noAssertion' when safety is acknowledged but no assessment performed. Return 'Not found.' when the topic is absent. Do not conflate EU AI Act risk tiers with the SPDX EU general-product-safety levels."
+  }
 }
