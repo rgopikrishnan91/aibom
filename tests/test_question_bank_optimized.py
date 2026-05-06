@@ -11,8 +11,13 @@ Re-run ``python tools/optimize_question_bank.py`` (with
 """
 import json
 import os
+import sys
 
 import pytest
+
+# Make the source package importable when run from a checkout without install.
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+from aikaboom.utils.token_count import count_tokens, chosen_tokenizer  # noqa: E402
 
 
 _REPO_ROOT = os.path.join(os.path.dirname(__file__), "..")
@@ -29,16 +34,6 @@ def _entries():
             path = os.path.join(folder, name)
             with open(path, encoding="utf-8") as f:
                 yield bom_type, name[:-5], json.load(f)
-
-
-def _est_tokens(text: str) -> float:
-    """Conservative WordPiece estimate: ~3.5 chars per token. The real
-    ratio for English with technical identifiers is closer to 4.5, so
-    this overcounts by ~30%. We accept the overcount because we're far
-    enough below the embedder's 512-token window that an exact figure
-    isn't needed — the test only flags egregiously long passages.
-    """
-    return len(text) / 3.5
 
 
 class TestRetrievalBlockShape:
@@ -58,22 +53,24 @@ class TestRetrievalBlockShape:
         assert not failures, "\n".join(failures)
 
     def test_hypothetical_passage_non_empty_and_within_token_budget(self):
-        """HyDE passage must be non-empty. Conservative-estimate cap is
-        200 tokens (real BPE for English-with-technical-terms is ~30%
-        lower, so 200 estimated ≈ 140 real). The embedder window is
-        512 tokens; we leave 300+ tokens of headroom for the question
-        and any prefix."""
+        """HyDE passage must be non-empty and ≤200 tokens. Counted with
+        the most accurate tokenizer available (BGE WordPiece via
+        transformers > tiktoken cl100k_base > conservative ``len/3.5``).
+
+        The embedder window is 512 tokens; we leave 300+ tokens of
+        headroom for the question text and any prefix."""
         TOKEN_CAP = 200
+        print(f"\n[token-count] using {chosen_tokenizer()}", file=sys.stderr)
         failures = []
         for bom_type, field, entry in _entries():
             passage = (entry.get("retrieval") or {}).get("hypothetical_passage")
             if not isinstance(passage, str) or not passage.strip():
                 failures.append(f"{bom_type}/{field}: hypothetical_passage empty/non-string")
                 continue
-            est = _est_tokens(passage)
-            if est > TOKEN_CAP:
+            n = count_tokens(passage)
+            if n > TOKEN_CAP:
                 failures.append(
-                    f"{bom_type}/{field}: hypothetical_passage ~{est:.0f} tokens (>{TOKEN_CAP} cap)"
+                    f"{bom_type}/{field}: hypothetical_passage {n} tokens (>{TOKEN_CAP} cap)"
                 )
         assert not failures, "\n".join(failures)
 

@@ -103,11 +103,15 @@ def _validate(payload: dict, field: str, bom_type: str) -> List[str]:
         if not isinstance(passage, str) or not passage.strip():
             errors.append(f"{bom_type}/{field}: retrieval.hypothetical_passage missing/empty")
         else:
-            # ~3.5 chars per token rough estimate (BERT WordPiece for English)
-            est_tokens = len(passage) / 3.5
-            if est_tokens > 200:
+            # Real-tokenizer (BGE WordPiece) → tiktoken → conservative fallback
+            try:
+                from aikaboom.utils.token_count import count_tokens
+                n_tokens = count_tokens(passage)
+            except Exception:
+                n_tokens = int(len(passage) / 3.5)
+            if n_tokens > 200:
                 errors.append(
-                    f"{bom_type}/{field}: hypothetical_passage ~{int(est_tokens)} tokens (>200 cap)"
+                    f"{bom_type}/{field}: hypothetical_passage {n_tokens} tokens (>200 cap)"
                 )
         terms = retrieval.get("bm25_terms")
         if not isinstance(terms, list) or len(terms) < 5:

@@ -54,7 +54,11 @@ def _wrap(text: str, indent: str = "    ", width: int = 78) -> str:
 
 
 def _est_tokens(text: str) -> int:
-    return int(len(text) / 3.5)
+    try:
+        from aikaboom.utils.token_count import count_tokens
+        return count_tokens(text)
+    except Exception:
+        return int(len(text) / 3.5)
 
 
 def _print_field(bom_type: str, field: str, entry: dict) -> None:
