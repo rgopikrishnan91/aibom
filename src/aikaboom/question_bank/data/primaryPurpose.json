@@ -3,6 +3,7 @@
   "bom_type": "data",
   "question": "What is the primary purpose of this dataset (one of: data, model, application, …)?",
   "keywords": "task category benchmark training evaluation purpose role",
-  "description": "Per SPDX 3.0.1 software_primaryPurpose: a single value identifying what the dataset is for. HF task_categories and the arXiv abstract are the strongest signals. The Provenance BOM keeps the raw human-readable answer; the SPDX emitter coerces it to the SPDX enum at export time.",
+  "summary": "Provides information about the primary purpose of the software artifact.",
+  "description": "primaryPurpose provides information about the primary purpose of the software\nartifact.",
   "post_process": null
 }

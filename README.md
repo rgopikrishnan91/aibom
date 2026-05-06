@@ -6,7 +6,7 @@
   <p><em>Builds AI Bills of Materials by aggregating, aligning, and resolving conflicting metadata across the AI supply chain.</em></p>
 
   <p>
-    <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.8+-blue.svg" alt="Python 3.8+"></a>
+    <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.9+-blue.svg" alt="Python 3.9+"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT"></a>
     <a href="https://spdx.github.io/spdx-spec/v3.0.1/"><img src="https://img.shields.io/badge/SPDX-3.0.1-blue.svg" alt="SPDX 3.0.1"></a>
   </p>
@@ -208,19 +208,21 @@ next module-load. Source priority is **not** in these files — it lives
 in [`src/aikaboom/config/source_priority.json`](src/aikaboom/config/source_priority.json)
 so prompt edits and ranking edits don't collide in PR review.
 
-> **TODO — question-bank enhancement.** The recently added entries
-> (`license`, `primaryPurpose`, `datasetAvailability`, `description`,
-> `sourceInfo`) cite the SPDX 3.0.1 spec verbatim in their `description`
-> slot. The older 13 inferred entries (`autonomyType`, `domain`,
-> `hyperparameter`, `informationAboutTraining`, `metric`, …) pre-date
-> the spec lock and use shorter freeform descriptions; aligning them
-> with the official SPDX 3.0.1
-> [`AIPackage`](https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Classes/AIPackage/)
-> and
-> [`DatasetPackage`](https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Classes/DatasetPackage/)
-> class text — and harmonising prompt phrasing and keyword density — is
-> an open work item. Edits land in
-> `src/aikaboom/question_bank/<bom_type>/<field>.json`. PRs welcome.
+Question-bank descriptions are sourced **verbatim** from the official
+[`spdx/spdx-3-model`](https://github.com/spdx/spdx-3-model) at tag
+`3.0.1`, harvested into
+[`docs/SPDX_3.0.1_FIELD_REFERENCE.md`](docs/SPDX_3.0.1_FIELD_REFERENCE.md).
+Each mapped field's `description` slot carries the spec's full Summary
+and Description blocks; AIkaBoOM-internal fields
+(`trainedOnDatasets`, `testedOnDatasets`, `modelLineage`, `sourceInfo`)
+are flagged `"aikaboom_internal": true` and exempted. The regression
+test [`tests/test_question_bank_descriptions.py`](tests/test_question_bank_descriptions.py)
+fails CI if any entry drifts. To refresh after a SPDX rev:
+
+```bash
+python tools/harvest_spdx_3_0_1.py --version 3.1.0
+python tools/sync_question_bank_descriptions.py --apply
+```
 
 AIkaBoOM detects two kinds of conflicts and surfaces both in the `conflict` field of every triplet.
 
@@ -232,19 +234,17 @@ AIkaBoOM detects two kinds of conflicts and surfaces both in the `conflict` fiel
 
 Even when a conflict is flagged, AIkaBoOM still has to pick one value to put in the `value` slot of the triplet (and into the SPDX/CycloneDX exports). The resolution rules differ by field type:
 
-**Direct fields** (license, suppliedBy, downloadLocation, packageVersion, releaseTime, primaryPurpose, originatedBy, datasetAvailability, …). Resolved by `SourceHandler.get_field_conflict` in [`src/aikaboom/core/source_handler.py`](src/aikaboom/core/source_handler.py):
+**Direct fields.** AI BOM: `releaseTime`, `suppliedBy`, `downloadLocation`, `packageVersion`. Dataset BOM: `builtTime`, `originatedBy`, `releaseTime`, `downloadLocation`, `contentIdentifier`. Resolved by `SourceHandler.get_field_conflict_with_priority` in [`src/aikaboom/core/source_handler.py`](src/aikaboom/core/source_handler.py):
 
 1. If only one source has a non-null value, use it.
-2. If two of three sources agree on a normalised (lowercased, stripped) value, take the majority — priority is ignored.
-3. Otherwise fall back to **priority by argument order** at the call site in `processors.py` (currently `huggingface_metadata, github_metadata`, i.e. HF wins ties).
-4. Tag-like fields (`primaryPurpose`) use Jaccard similarity on tokenised values with a threshold of 0.5 instead of exact-match grouping.
+2. If two of three sources agree on a normalised value, take the majority — priority is ignored.
+3. Otherwise fall back to the configured **priority list** for that field (looked up from [`src/aikaboom/config/source_priority.json`](src/aikaboom/config/source_priority.json) via `get_direct_priority`).
+4. Field-specific normalisers run before comparison: URL (`downloadLocation`), version (`packageVersion`), org-alias (`suppliedBy` / `originatedBy`), `parse_date` + 7-day window (`releaseTime`, `builtTime`).
 5. The conflict string preserves every non-chosen source as `"src: value, src: value"` so nothing is lost.
 
-**RAG-extracted fields** (intended_use, model_type, hyperparameters, trainedOnDatasets, testedOnDatasets, modelLineage, …). Each question in `FIXED_QUESTIONS_AI` / `FIXED_QUESTIONS_DATA` (see [`src/aikaboom/core/agentic_rag.py`](src/aikaboom/core/agentic_rag.py)) carries its own `'priority': ['arxiv', 'huggingface', 'github']` ordering, hand-tuned per field — for example `trainedOnDatasets` prefers HuggingFace, while `limitations` prefers arXiv. The RAG pipeline detects internal/external conflicts in the LLM responses and uses that per-question priority to pick which chunk's answer surfaces in `value`.
+**RAG-extracted fields.** Everything else, including `license`, `primaryPurpose`, `datasetAvailability`, `description`, `sourceInfo`, plus the AI-package fields (`typeOfModel`, `domain`, `limitation`, `metric`, …) and the relationship targets `trainedOnDatasets` / `testedOnDatasets` / `modelLineage`. Each question's prompt, keywords, description, and post-processor live as one JSON file under [`src/aikaboom/question_bank/<bom_type>/<field>.json`](src/aikaboom/question_bank/); the per-field priority lives in `source_priority.json` and is overlaid at module load. The RAG pipeline (LangGraph `retrieve → detect_conflicts → generate`) flags internal/external conflicts in the LLM responses and, on external conflict, regenerates the answer from the highest-priority available source's chunks alone. The Provenance BOM keeps the raw human-readable answer; the SPDX / CycloneDX emitters apply enum / list / DictionaryEntry coercion at export time.
 
-**Intra-source resolution.** Similarity scoring (difflib) between structured metadata and extracted free text. Flagged when similarity drops below 80%.
-
-Discovered links are also LLM-validated against the target model: if the link agent returns an arXiv paper for the wrong model version, AIkaBoOM rejects it before fetching.
+Discovered links are LLM-validated against the target model: if the link agent returns an arXiv paper for the wrong model version, AIkaBoOM rejects it before fetching.
 
 ### Customising the source ranking
 
@@ -263,12 +263,14 @@ aikaboom generate --type ai --repo org/model --output result.json
 
 A user config does **not** need to be exhaustive — every section merges
 field-by-field over the bundled defaults, so listing just the entries you
-want to change is enough. Example: prefer GitHub over HuggingFace for
-licenses while leaving everything else alone:
+want to change is enough. Example: prefer GitHub over HuggingFace for the
+direct `suppliedBy` field, and put arXiv ahead of HuggingFace for the
+RAG `license` answer:
 
 ```json
 {
-  "direct_fields": { "license": ["github", "huggingface"] }
+  "direct_fields": { "suppliedBy": ["github", "huggingface"] },
+  "rag_fields_ai": { "license": ["arxiv", "huggingface", "github"] }
 }
 ```
 
@@ -284,7 +286,8 @@ from aikaboom import (
 )
 
 set_source_priority_path("/path/to/my-source-priority.json")  # or None to clear
-print(get_direct_priority("license"))         # -> ["github", "huggingface"]
+print(get_direct_priority("suppliedBy"))      # -> ["github", "huggingface"]
+print(get_rag_priority("license", "ai"))      # -> ["arxiv", "huggingface", "github"]
 print(get_rag_priority("trainedOnDatasets"))  # -> ["huggingface", "arxiv", "github"]
 ```
 
@@ -424,7 +427,7 @@ conda create -n aikaboom python=3.11 -y && conda activate aikaboom
 pip install -e .
 ```
 
-Requires Python 3.8+. Tested on Linux, macOS, and Windows.
+Requires Python 3.9+ (uses `importlib.resources.files()`). Tested on Linux, macOS, and Windows.
 
 ## Deploy to HuggingFace Spaces
 
@@ -444,8 +447,8 @@ done.
 ## Testing
 
 ```bash
-pytest                                    # 234+ tests
-pytest --cov=aikaboom --cov-report=html
+PYTHONPATH=src pytest                     # 280+ tests
+PYTHONPATH=src pytest --cov=aikaboom --cov-report=html
 ```
 
 ## Troubleshooting

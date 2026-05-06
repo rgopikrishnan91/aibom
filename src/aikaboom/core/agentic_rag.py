@@ -118,7 +118,10 @@ ssl_context = ssl.create_default_context(cafile=certifi.where())
 # tune any field's prompt, keywords, or description without touching
 # Python; the loader reads them at module load and overlays the priority
 # from ``aikaboom/config/source_priority.json``.
-from aikaboom.utils.question_bank import load_with_priorities as _load_qb
+from aikaboom.utils.question_bank import (
+    load_with_priorities as _load_qb,
+    composite_description as _composite_description,
+)
 
 FIXED_QUESTIONS_AI = _load_qb("ai")
 FIXED_QUESTIONS_DATA = _load_qb("data")
@@ -397,7 +400,7 @@ class AgenticRAG:
         question_config = self.questions.get(question_type, FIXED_QUESTIONS.get(question_type, {}))
         field_name = question_type
         question_summary = question_config.get('question', state["question"])
-        field_description = question_config.get('description', '')
+        field_description = _composite_description(question_config)
 
         # Build context: all chunks with their source label
         context_parts = []
@@ -437,7 +440,7 @@ class AgenticRAG:
         question_config = self.questions.get(question_type, FIXED_QUESTIONS.get(question_type, {}))
         field_name = question_type
         question_summary = question_config.get('question', state["question"])
-        field_description = question_config.get('description', '')
+        field_description = _composite_description(question_config)
 
         if not documents:
             prompt = prompt_no_documents(state["question"])
@@ -848,7 +851,7 @@ class AgenticRAG:
         # Get the question type, enhanced keywords, and description
         question_type, _, enhanced_keywords = self.get_question_priority(question)
         question_config = self.questions.get(question_type, FIXED_QUESTIONS.get(question_type, {}))
-        description = question_config.get('description', '')
+        description = _composite_description(question_config)
         
         print(f"  🎯 Question type: {question_type}")
         print(f"  📝 Original question: {question[:80]}...")
@@ -1283,7 +1286,7 @@ class DirectLLM:
         question_config = self.questions.get(question_type, FIXED_QUESTIONS.get(question_type, {}))
         field_name = question_type
         question_summary = question_config.get('question', question)
-        field_description = question_config.get('description', '')
+        field_description = _composite_description(question_config)
         
         prompt = prompt_direct_llm(field_name, question_summary, field_description, context)
         

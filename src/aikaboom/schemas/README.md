@@ -16,8 +16,11 @@ Official validation artifacts for SPDX 3.0.1, used by AIkaBoOM's emitter and val
   - Dataset properties use `dataset_` prefix: `dataset_datasetType`
   Full context: `https://spdx.org/rdf/3.0.1/spdx-context.jsonld`
 
-- **spdx-property-map.json** - AIkaBoOM-specific mapping from our internal field names
-  to the official SPDX 3.0.1 JSON-LD property names. Used by the emitter.
+- **spdx-property-map.json** - Reference document only. Lists the AIkaBoOM-internal
+  field names alongside the corresponding SPDX 3.0.1 JSON-LD property names. The same
+  mappings are encoded as `AI_FIELD_MAPPING` and `DATASET_FIELD_MAPPING` constants in
+  `aikaboom/utils/spdx_validator.py`; the emitter reads those Python tables, not this
+  JSON file.
 
 ## Key type names (from the official schema)
 

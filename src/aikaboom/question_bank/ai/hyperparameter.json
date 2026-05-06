@@ -3,6 +3,7 @@
   "bom_type": "ai",
   "question": "Records a hyperparameter used to build the AI model contained in the AI package.",
   "keywords": "hyperparameter learning rate batch size layers tuning settings",
-  "description": "Records a hyperparameter value. Hyperparameters are settings defined before the training process that control the learning algorithms behavior. They differ from model parameters, which are learned from the data during training. Developers typically set hyperparameters manually or through a process of hyperparameter tuning (also known as trial and error). Examples of hyperparameters include learning rate, batch size, and the number of layers in a neural network.",
+  "summary": "Records a hyperparameter used to build the AI model contained in the AI\npackage.",
+  "description": "Records a hyperparameter value.\n\nHyperparameters are settings defined before the training process that control\nthe learning algorithm's behavior. They differ from model parameters,\nwhich are learned from the data during training. Developers typically set\nhyperparameters manually or through a process of hyperparameter tuning\n(also known as trial and error).\n\nExamples of hyperparameters include learning rate, batch size, and the number\nof layers in a neural network.",
   "post_process": null
 }

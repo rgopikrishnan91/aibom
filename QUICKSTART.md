@@ -1,6 +1,6 @@
 # Quick Start (Lowest Effort)
 
-This guide is the fastest path to run BOM Tools with minimal setup and minimal configuration.
+This guide is the fastest path to run AIkaBoOM with minimal setup and minimal configuration.
 
 ## 1) Open the project
 

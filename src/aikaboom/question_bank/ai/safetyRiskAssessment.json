@@ -3,6 +3,7 @@
   "bom_type": "ai",
   "question": "Records the results of general safety risk assessment of the AI system.",
   "keywords": "safety risk assessment compliance evaluation",
-  "description": "Records the results of general safety risk assessment of the AI system. Using categorization according to the EU general risk assessment methodology. The methodology implements Article 20 of Regulation (EC) No 765/2008 and is intended to assist authorities when they assess general product safety compliance. It is important to note that this categorization differs from the one proposed in the EU AI Acts provisional agreement.",
+  "summary": "Records the results of general safety risk assessment of the AI system.",
+  "description": "Records the results of general safety risk assessment of the AI system.\n\nUsing categorization according to the\n[EU general risk assessment methodology](https://ec.europa.eu/docsroom/documents/17107).\nThe methodology implements Article 20 of Regulation (EC) No 765/2008 and is\nintended to assist authorities when they assess general product safety\ncompliance.\n\nIt is important to note that this categorization differs from the one proposed\nin the EU AI Act's provisional agreement.",
   "post_process": null
 }

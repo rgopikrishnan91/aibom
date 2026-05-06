@@ -82,11 +82,25 @@ def load_question_bank(bom_type: str) -> Dict[str, Dict[str, Any]]:
         bank[field] = {
             "question": data["question"],
             "keywords": data.get("keywords", ""),
+            "summary": data.get("summary", ""),
             "description": data.get("description", ""),
             "post_process": data.get("post_process"),
             "priority": [],  # filled by overlay step
         }
     return bank
+
+
+def composite_description(entry: Dict[str, Any]) -> str:
+    """Return the SPDX Summary and Description blocks concatenated for
+    runtime use. JSON files store them as separate fields (one per
+    SPDX block, verbatim); LLM prompts and the FAISS retrieval query
+    want them combined.
+    """
+    summary = (entry.get("summary") or "").strip()
+    description = (entry.get("description") or "").strip()
+    if summary and description:
+        return f"{summary}\n\n{description}"
+    return summary or description
 
 
 def overlay_priorities(bank: Dict[str, Dict[str, Any]], bom_type: str) -> None:

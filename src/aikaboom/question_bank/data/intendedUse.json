@@ -3,6 +3,7 @@
   "bom_type": "data",
   "question": "For what the given dataset should be used for?",
   "keywords": "intended use purpose application task designed goal objective research training evaluation",
-  "description": "A free-form text that describes what the given dataset should be used for.",
+  "summary": "Describes what the given dataset should be used for.",
+  "description": "A free-form text that describes what the given dataset should be used for.\n\nSome datasets are collected to be used only for particular purposes.\n\nFor example, medical data collected from a specific demography might only be applicable\nfor training machine learning models to make predictions for that demography.\nIn such a case, the intendedUse field would capture this information.\nSimilarly, if a dataset is collected for building a facial recognition model,\nthe intendedUse field would specify that.",
   "post_process": null
 }

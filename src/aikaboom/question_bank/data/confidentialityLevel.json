@@ -3,6 +3,7 @@
   "bom_type": "data",
   "question": "What is the confidentiality level of the data points contained in the dataset?",
   "keywords": "confidential confidentiality sensitive privacy classification level public private restricted",
+  "summary": "Describes the confidentiality level of the data points contained in the dataset.",
   "description": "Describes the levels of confidentiality of the data points contained in the dataset.",
   "post_process": null
 }

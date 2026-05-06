@@ -3,6 +3,7 @@
   "bom_type": "ai",
   "question": "Describes methods that can be used to explain the results from the AI model.",
   "keywords": "explainability interpretability model results explanation",
-  "description": "A free-form text that lists the different explainability mechanisms and how they can be used to explain the results from the AI model.",
+  "summary": "Describes methods that can be used to explain the results from the AI model.",
+  "description": "A free-form text that lists the different explainability mechanisms and how\nthey can be used to explain the results from the AI model.\n\nThe mechanisms can be model-agnostic methods, such as\n[SHapley Additive exPlanations (SHAP)](https://shap.readthedocs.io/) and\n[Local Interpretable Model-agnostic Explanations (LIME)](https://github.com/marcotcr/lime),\nand model-specific methods that applied to a limited category of models.",
   "post_process": null
 }

@@ -3,6 +3,7 @@
   "bom_type": "data",
   "question": "What is the anonymization methods used in this dataset?",
   "keywords": "anonymization anonymous anonymized privacy protection de-identification pseudonymization masking",
-  "description": "A free-form text that describes the methods used to anonymize the dataset or fields in the dataset.",
+  "summary": "Describes the anonymization methods used.",
+  "description": "A free-form text that describes the methods used to anonymize the dataset\nor fields in the dataset.",
   "post_process": null
 }
