@@ -1,0 +1,661 @@
+{
+  "generated_by": "tools/build_master_question_bank.py",
+  "spdx_version": "3.0.1",
+  "field_count": {
+    "ai": 20,
+    "data": 17,
+    "total": 37,
+    "ai_mapped": 17,
+    "ai_internal": 3,
+    "data_mapped": 16,
+    "data_internal": 1
+  },
+  "schema": {
+    "field": "AIkaBoOM field name (filename stem of the per-field JSON)",
+    "bom_type": "'ai' or 'data'",
+    "aikaboom_internal": "true if the field has no SPDX 3.0.1 property page; false if it maps to one",
+    "spdx_property": "full SPDX property name (e.g. 'ai_typeOfModel') or null for internal fields",
+    "spec_url": "SPDX 3.0.1 spec page URL or null for internal fields",
+    "question": "the prompt fed to the LLM and used in the FAISS retrieval embedding",
+    "keywords": "whitespace-separated retrieval-only tokens; LLM never reads this",
+    "summary": "verbatim SPDX 3.0.1 Summary block (mapped fields only; '' for internal)",
+    "description": "verbatim SPDX 3.0.1 Description block (mapped) or hand-written text (internal)",
+    "post_process": "name of a post-processor in aikaboom.utils.post_process or null",
+    "priority": "ordered list of source names used by the agentic RAG router"
+  },
+  "fields": {
+    "ai": {
+      "autonomyType": {
+        "field": "autonomyType",
+        "bom_type": "ai",
+        "aikaboom_internal": false,
+        "spdx_property": "ai_autonomyType",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/autonomyType/",
+        "question": "Does the system can perform a decision or action without human involvement or guidance (yes, no, or noAssertion)?",
+        "keywords": "autonomous automation automated decision-making human involvement guidance manual intervention oversight supervision fully automated system self-governing independent unsupervised human-in-the-loop semi-autonomous user-controlled operator-assisted",
+        "summary": "Indicates whether the system can perform a decision or action without human\ninvolvement or guidance.",
+        "description": "Indicates if the system is fully automated or a human is involved in any of the\ndecisions of the AI system.\n\n- yes: Indicates that the system is fully automated.\n- no: Indicates that a human is involved in any of the decisions of the AI\n  system.\n- noAssertion: Makes no assertion about the autonomy.",
+        "post_process": null,
+        "priority": [
+          "arxiv",
+          "huggingface",
+          "github"
+        ]
+      },
+      "domain": {
+        "field": "domain",
+        "bom_type": "ai",
+        "aikaboom_internal": false,
+        "spdx_property": "ai_domain",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/domain/",
+        "question": "What is the domain in which the AI package can be used?",
+        "keywords": "domain application area field sector industry vertical computer vision natural language processing NLP machine learning classification regression detection segmentation speech recognition image processing text analysis audio processing video analysis time series forecasting recommendation systems robotics healthcare finance automotive agriculture education retail manufacturing cybersecurity gaming entertainment",
+        "summary": "Captures the domain in which the AI package can be used.",
+        "description": "A free-form text that describes the domain where the AI model contained in the\nAI software can be expected to operate successfully.\n\nExamples include computer vision, natural language processing, etc.",
+        "post_process": null,
+        "priority": [
+          "arxiv",
+          "huggingface",
+          "github"
+        ]
+      },
+      "energyConsumption": {
+        "field": "energyConsumption",
+        "bom_type": "ai",
+        "aikaboom_internal": false,
+        "spdx_property": "ai_energyConsumption",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/energyConsumption/",
+        "question": "Indicates the amount of energy consumption incurred by an AI model.",
+        "keywords": "energy consumption power usage electricity computational resources GPU CPU training inference kWh joules watts",
+        "summary": "Indicates the amount of energy consumption incurred by an AI model.",
+        "description": "Captures the energy consumption of an AI model, either known or estimated.\n\nIn the absence of direct measurements, an SPDX data creator may choose to\nestimate the energy consumption based on information about computational\nresources (e.g., number of floating-point operations), training time, and other\nrelevant training details.",
+        "post_process": null,
+        "priority": [
+          "huggingface",
+          "arxiv",
+          "github"
+        ]
+      },
+      "hyperparameter": {
+        "field": "hyperparameter",
+        "bom_type": "ai",
+        "aikaboom_internal": false,
+        "spdx_property": "ai_hyperparameter",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/hyperparameter/",
+        "question": "Records a hyperparameter used to build the AI model contained in the AI package.",
+        "keywords": "hyperparameter learning rate batch size layers tuning settings",
+        "summary": "Records a hyperparameter used to build the AI model contained in the AI\npackage.",
+        "description": "Records a hyperparameter value.\n\nHyperparameters are settings defined before the training process that control\nthe learning algorithm's behavior. They differ from model parameters,\nwhich are learned from the data during training. Developers typically set\nhyperparameters manually or through a process of hyperparameter tuning\n(also known as trial and error).\n\nExamples of hyperparameters include learning rate, batch size, and the number\nof layers in a neural network.",
+        "post_process": null,
+        "priority": [
+          "arxiv",
+          "huggingface",
+          "github"
+        ]
+      },
+      "informationAboutApplication": {
+        "field": "informationAboutApplication",
+        "bom_type": "ai",
+        "aikaboom_internal": false,
+        "spdx_property": "ai_informationAboutApplication",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/informationAboutApplication/",
+        "question": "Provides relevant information about the AI software, not including the model description.",
+        "keywords": "application functionality pre-processing APIs dependencies",
+        "summary": "Provides relevant information about the AI software, not including the model\ndescription.",
+        "description": "A free-form text description of how the AI model is used within the software.\n\nIt should include any relevant information, such as pre-processing steps,\nthird-party APIs, and other pertinent details.\n\nIt can also include:\n\n- Functionality provided by the AI model within the software application,\n  including: any specific tasks or decisions it is designed to perform;\n  any pre-processing steps that are applied to the input data before it is\n  fed into the AI model for inference, such as data cleaning, normalization,\n  or feature extraction;\n  and any third-party APIs or services that are used in conjunction with\n  the AI model, such as data sources, cloud services, or other AI models.\n- Description of any dependencies or requirements needed to run the AI model\n  within the software application, including: specific hardware,\n  software libraries, and operating systems.",
+        "post_process": null,
+        "priority": [
+          "github",
+          "huggingface",
+          "arxiv"
+        ]
+      },
+      "informationAboutTraining": {
+        "field": "informationAboutTraining",
+        "bom_type": "ai",
+        "aikaboom_internal": false,
+        "spdx_property": "ai_informationAboutTraining",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/informationAboutTraining/",
+        "question": "Describes relevant information about different steps of the training process.",
+        "keywords": "training process data algorithms techniques evaluation metrics",
+        "summary": "Describes relevant information about different steps of the training process.",
+        "description": "A detailed explanation of the training process,\nincluding the specific techniques, algorithms, and methods employed.\n\nExamples include:\n\n- training data used to train the AI model, along with any relevant details\n  about its source, quality, and pre-processing steps;\n- specific training algorithms employed, including stochastic gradient descent,\n  backpropagation, and reinforcement learning;\n- specific training techniques used to improve the performance or accuracy\n  of the AI model, such as transfer learning, fine-tuning, or active learning;\n  and\n- any evaluation metrics used to assess the performance of the AI model\n  during the training process, including accuracy, precision, recall, and F1\n  score.",
+        "post_process": null,
+        "priority": [
+          "arxiv",
+          "huggingface",
+          "github"
+        ]
+      },
+      "license": {
+        "field": "license",
+        "bom_type": "ai",
+        "aikaboom_internal": false,
+        "spdx_property": "simplelicensing_LicenseExpression",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/SimpleLicensing/Classes/LicenseExpression/",
+        "question": "Under what license is the AI model and its code released? Quote the SPDX identifier (e.g. \"MIT\", \"Apache-2.0\", \"Llama-2\") if any source states it.",
+        "keywords": "license licensed under released under apache mit gpl bsd cc-by openrail llama gemma proprietary",
+        "summary": "An SPDX Element containing an SPDX license expression string.",
+        "description": "A LicenseExpression enables the representation, in a single string, of a\ncombination of one or more licenses, together with additions such as license\nexceptions.\n\nThe syntax for a licenseExpression string is set forth in the corresponding\nAnnex of this specification\n([\"SPDX license expressions\"](../../../annexes/spdx-license-expressions.md)).\nA licenseExpression string is not valid if it does not conform to the grammar\nset forth in that Annex.\n\nThe ExpandedLicensing profile can be used to represent the complete parsed\nlicense expression as a combination of license objects.",
+        "post_process": "normalize_license",
+        "priority": [
+          "huggingface",
+          "github",
+          "arxiv"
+        ]
+      },
+      "limitation": {
+        "field": "limitation",
+        "bom_type": "ai",
+        "aikaboom_internal": false,
+        "spdx_property": "ai_limitation",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/limitation/",
+        "question": "Captures a limitation of the AI software.",
+        "keywords": "limitations constraints challenges restrictions",
+        "summary": "Captures a limitation of the AI software.",
+        "description": "A free-form text that captures a limitation of the AI package\n(or of the AI models present in the AI package).\n\nNote that this is not guaranteed to be exhaustive.\n\nFor instance, a limitation might be that the AI package cannot be used on\ndatasets from a certain demography.",
+        "post_process": null,
+        "priority": [
+          "arxiv",
+          "huggingface",
+          "github"
+        ]
+      },
+      "metric": {
+        "field": "metric",
+        "bom_type": "ai",
+        "aikaboom_internal": false,
+        "spdx_property": "ai_metric",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/metric/",
+        "question": "Records the measurement of prediction quality of the AI model.",
+        "keywords": "metrics evaluation accuracy precision recall F1-score",
+        "summary": "Records the measurement of prediction quality of the AI model.",
+        "description": "Records the measurement with which the AI model was evaluated.\n\nThis makes statements about the prediction quality including uncertainty,\naccuracy, characteristics of the tested population, quality, fairness,\nexplainability, robustness etc.",
+        "post_process": null,
+        "priority": [
+          "arxiv",
+          "huggingface",
+          "github"
+        ]
+      },
+      "metricDecisionThreshold": {
+        "field": "metricDecisionThreshold",
+        "bom_type": "ai",
+        "aikaboom_internal": false,
+        "spdx_property": "ai_metricDecisionThreshold",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/metricDecisionThreshold/",
+        "question": "Captures the threshold that was used for computation of a metric described in the metric field.",
+        "keywords": "decision threshold metric computation evaluation",
+        "summary": "Captures the threshold that was used for computation of a metric described in\nthe metric field.",
+        "description": "Each metric might be computed based on a decision threshold.\n\nFor instance, precision or recall is typically computed by checking if the\nprobability of the outcome is larger than 0.5.\n\nEach decision threshold should match with a metric field defined in the AI\npackage.",
+        "post_process": null,
+        "priority": [
+          "arxiv",
+          "huggingface",
+          "github"
+        ]
+      },
+      "modelDataPreprocessing": {
+        "field": "modelDataPreprocessing",
+        "bom_type": "ai",
+        "aikaboom_internal": false,
+        "spdx_property": "ai_modelDataPreprocessing",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/modelDataPreprocessing/",
+        "question": "Describes all the preprocessing steps applied to the training data before the model training.",
+        "keywords": "data preprocessing cleaning normalization transformation",
+        "summary": "Describes all the preprocessing steps applied to the training data before the\nmodel training.",
+        "description": "A free-form text that describes the preprocessing steps applied to the training\ndata before training of the model(s) contained in the AI software.",
+        "post_process": null,
+        "priority": [
+          "arxiv",
+          "github",
+          "huggingface"
+        ]
+      },
+      "modelExplainability": {
+        "field": "modelExplainability",
+        "bom_type": "ai",
+        "aikaboom_internal": false,
+        "spdx_property": "ai_modelExplainability",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/modelExplainability/",
+        "question": "Describes methods that can be used to explain the results from the AI model.",
+        "keywords": "explainability interpretability model results explanation",
+        "summary": "Describes methods that can be used to explain the results from the AI model.",
+        "description": "A free-form text that lists the different explainability mechanisms and how\nthey can be used to explain the results from the AI model.\n\nThe mechanisms can be model-agnostic methods, such as\n[SHapley Additive exPlanations (SHAP)](https://shap.readthedocs.io/) and\n[Local Interpretable Model-agnostic Explanations (LIME)](https://github.com/marcotcr/lime),\nand model-specific methods that applied to a limited category of models.",
+        "post_process": null,
+        "priority": [
+          "arxiv",
+          "github",
+          "huggingface"
+        ]
+      },
+      "modelLineage": {
+        "field": "modelLineage",
+        "bom_type": "ai",
+        "aikaboom_internal": true,
+        "spdx_property": null,
+        "spec_url": null,
+        "question": "What is the base model or parent model that this AI model was derived from or fine-tuned on?",
+        "keywords": "base model parent model derived from fine-tuned from pre-trained foundation model ancestor lineage",
+        "summary": "",
+        "description": "Per SPDX 3.0.1 dependsOn relationship: identifies the base or parent model from which this model was derived (e.g. \"meta-llama/Llama-3\" or \"google-bert/bert-base-uncased\"). Maps to SPDX dependsOn relationship and CycloneDX pedigree.ancestors.",
+        "post_process": null,
+        "priority": [
+          "huggingface",
+          "arxiv",
+          "github"
+        ]
+      },
+      "primaryPurpose": {
+        "field": "primaryPurpose",
+        "bom_type": "ai",
+        "aikaboom_internal": false,
+        "spdx_property": "software_primaryPurpose",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Software/Properties/primaryPurpose/",
+        "question": "What is the primary purpose / main task of this AI model (one of: model, application, data, framework, library, other)?",
+        "keywords": "task category pipeline classification generation segmentation translation summarisation embedding retrieval purpose role intent",
+        "summary": "Provides information about the primary purpose of the software artifact.",
+        "description": "primaryPurpose provides information about the primary purpose of the software\nartifact.",
+        "post_process": null,
+        "priority": [
+          "huggingface",
+          "arxiv",
+          "github"
+        ]
+      },
+      "safetyRiskAssessment": {
+        "field": "safetyRiskAssessment",
+        "bom_type": "ai",
+        "aikaboom_internal": false,
+        "spdx_property": "ai_safetyRiskAssessment",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/safetyRiskAssessment/",
+        "question": "Records the results of general safety risk assessment of the AI system.",
+        "keywords": "safety risk assessment compliance evaluation",
+        "summary": "Records the results of general safety risk assessment of the AI system.",
+        "description": "Records the results of general safety risk assessment of the AI system.\n\nUsing categorization according to the\n[EU general risk assessment methodology](https://ec.europa.eu/docsroom/documents/17107).\nThe methodology implements Article 20 of Regulation (EC) No 765/2008 and is\nintended to assist authorities when they assess general product safety\ncompliance.\n\nIt is important to note that this categorization differs from the one proposed\nin the EU AI Act's provisional agreement.",
+        "post_process": null,
+        "priority": [
+          "huggingface",
+          "arxiv",
+          "github"
+        ]
+      },
+      "standardCompliance": {
+        "field": "standardCompliance",
+        "bom_type": "ai",
+        "aikaboom_internal": false,
+        "spdx_property": "ai_standardCompliance",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/standardCompliance/",
+        "question": "Captures a standard that is being complied with.",
+        "keywords": "standards compliance ISO IEEE ETSI regulations",
+        "summary": "Captures a standard that is being complied with.",
+        "description": "A free-form text that captures a standard that the AI software complies with.\n\nThis includes both published and unpublished standards, such as those developed\nby ISO, IEEE, and ETSI.\n\nThe standard may, but is not necessarily required to, satisfy a legal or\nregulatory requirement.",
+        "post_process": null,
+        "priority": [
+          "arxiv",
+          "github",
+          "huggingface"
+        ]
+      },
+      "testedOnDatasets": {
+        "field": "testedOnDatasets",
+        "bom_type": "ai",
+        "aikaboom_internal": true,
+        "spdx_property": null,
+        "spec_url": null,
+        "question": "What specific named datasets or benchmarks were used to evaluate or test this AI model?",
+        "keywords": "evaluation benchmark test dataset tested evaluated assessment validation",
+        "summary": "",
+        "description": "Per SPDX 3.0.1 testedOn relationship: identifies the specific datasets or benchmarks used to evaluate the AI model. Examples include GLUE, SuperGLUE, MMLU, HellaSwag, etc. Maps to SPDX testedOn relationship and CycloneDX modelCard.datasets with type=evaluation.",
+        "post_process": null,
+        "priority": [
+          "arxiv",
+          "huggingface",
+          "github"
+        ]
+      },
+      "trainedOnDatasets": {
+        "field": "trainedOnDatasets",
+        "bom_type": "ai",
+        "aikaboom_internal": true,
+        "spdx_property": null,
+        "spec_url": null,
+        "question": "What specific named datasets were used to train this AI model? List only the dataset names.",
+        "keywords": "training data dataset corpus fine-tuned trained on pre-trained pre-training data source",
+        "summary": "",
+        "description": "Per SPDX 3.0.1 trainedOn relationship: identifies the specific datasets used to train the AI model. The answer should list concrete dataset names (e.g. \"SQuAD\", \"Common Crawl\", \"The Pile\") rather than generic descriptions. Maps to SPDX trainedOn relationship and CycloneDX modelCard.datasets with type=training.",
+        "post_process": null,
+        "priority": [
+          "huggingface",
+          "arxiv",
+          "github"
+        ]
+      },
+      "typeOfModel": {
+        "field": "typeOfModel",
+        "bom_type": "ai",
+        "aikaboom_internal": false,
+        "spdx_property": "ai_typeOfModel",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/typeOfModel/",
+        "question": "Records the type of the model used in the AI software.",
+        "keywords": "model type supervised unsupervised reinforcement learning",
+        "summary": "Records the type of the model used in the AI software.",
+        "description": "A free-form text that records the type of the AI model(s) used in the software.\n\nFor instance, if it is a supervised model, unsupervised model, reinforcement\nlearning model or a combination of those.",
+        "post_process": null,
+        "priority": [
+          "arxiv",
+          "huggingface",
+          "github"
+        ]
+      },
+      "useSensitivePersonalInformation": {
+        "field": "useSensitivePersonalInformation",
+        "bom_type": "ai",
+        "aikaboom_internal": false,
+        "spdx_property": "ai_useSensitivePersonalInformation",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/AI/Properties/useSensitivePersonalInformation/",
+        "question": "Records if sensitive personal information is used during model training or could be used during the inference.",
+        "keywords": "sensitive personal information PII privacy data protection",
+        "summary": "Records if sensitive personal information is used during model training or\ncould be used during the inference.",
+        "description": "Notes if sensitive personal information is used in the training or inference of\nthe AI models.\n\nThis might include biometric data, addresses or other data that can be used to\ninfer a person's identity.\n\nRelated: `hasSensitivePersonalInformation` in `/Dataset/DatasetPackage`",
+        "post_process": null,
+        "priority": [
+          "huggingface",
+          "arxiv",
+          "github"
+        ]
+      }
+    },
+    "data": {
+      "anonymizationMethodUsed": {
+        "field": "anonymizationMethodUsed",
+        "bom_type": "data",
+        "aikaboom_internal": false,
+        "spdx_property": "dataset_anonymizationMethodUsed",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Properties/anonymizationMethodUsed/",
+        "question": "What is the anonymization methods used in this dataset?",
+        "keywords": "anonymization anonymous anonymized privacy protection de-identification pseudonymization masking",
+        "summary": "Describes the anonymization methods used.",
+        "description": "A free-form text that describes the methods used to anonymize the dataset\nor fields in the dataset.",
+        "post_process": null,
+        "priority": [
+          "arxiv",
+          "huggingface",
+          "github"
+        ]
+      },
+      "confidentialityLevel": {
+        "field": "confidentialityLevel",
+        "bom_type": "data",
+        "aikaboom_internal": false,
+        "spdx_property": "dataset_confidentialityLevel",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Properties/confidentialityLevel/",
+        "question": "What is the confidentiality level of the data points contained in the dataset?",
+        "keywords": "confidential confidentiality sensitive privacy classification level public private restricted",
+        "summary": "Describes the confidentiality level of the data points contained in the dataset.",
+        "description": "Describes the levels of confidentiality of the data points contained in the dataset.",
+        "post_process": null,
+        "priority": [
+          "arxiv",
+          "huggingface",
+          "github"
+        ]
+      },
+      "dataCollectionProcess": {
+        "field": "dataCollectionProcess",
+        "bom_type": "data",
+        "aikaboom_internal": false,
+        "spdx_property": "dataset_dataCollectionProcess",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Properties/dataCollectionProcess/",
+        "question": "How the dataset was collected?",
+        "keywords": "collected collection gathering scraping crawling sources method methodology acquisition obtained compiled",
+        "summary": "Describes how the dataset was collected.",
+        "description": "A free-form text that describes how a dataset was collected.\n\nExamples include the sources from which a dataset was scrapped and\nthe interview protocol that was used for data collection.",
+        "post_process": null,
+        "priority": [
+          "huggingface",
+          "arxiv",
+          "github"
+        ]
+      },
+      "dataPreprocessing": {
+        "field": "dataPreprocessing",
+        "bom_type": "data",
+        "aikaboom_internal": false,
+        "spdx_property": "dataset_dataPreprocessing",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Properties/dataPreprocessing/",
+        "question": "What is the preprocessing steps that were applied to the raw data to create the given dataset.",
+        "keywords": "preprocessing cleaning normalization standardization tokenization filtering transformation deduplication removal",
+        "summary": "Describes the preprocessing steps that were applied to the raw data to create the given dataset.",
+        "description": "A free-form text that describes the various preprocessing steps\nthat were applied to the raw data to create the dataset.\n\nExamples include standardization, normalization, deduplication, tokenization, and removal of tokens.",
+        "post_process": null,
+        "priority": [
+          "github",
+          "huggingface",
+          "arxiv"
+        ]
+      },
+      "datasetAvailability": {
+        "field": "datasetAvailability",
+        "bom_type": "data",
+        "aikaboom_internal": false,
+        "spdx_property": "dataset_datasetAvailability",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Properties/datasetAvailability/",
+        "question": "How is the dataset accessible — direct download, behind a clickthrough, by query, after a registration form, or via a scraping script?",
+        "keywords": "available availability download access public private clickthrough registration scraping query restricted gated",
+        "summary": "The field describes the availability of a dataset.",
+        "description": "Some datasets are publicly available and can be downloaded directly. Others are only accessible behind a clickthrough, or after filling a registration form. This field will describe the dataset availability from that perspective.",
+        "post_process": null,
+        "priority": [
+          "huggingface",
+          "github",
+          "arxiv"
+        ]
+      },
+      "datasetNoise": {
+        "field": "datasetNoise",
+        "bom_type": "data",
+        "aikaboom_internal": false,
+        "spdx_property": "dataset_datasetNoise",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Properties/datasetNoise/",
+        "question": "What is the potentially noisy elements of the dataset?",
+        "keywords": "noise noisy quality errors artifacts outliers inaccuracies inconsistencies corrupted",
+        "summary": "Describes potentially noisy elements of the dataset.",
+        "description": "Describes what kinds of noises a dataset might encompass.\n\nThe free-form text specifies fields or samples that might be noisy.\n\nAlternatively, it can also be used to describe various noises that could impact the whole dataset.",
+        "post_process": null,
+        "priority": [
+          "huggingface",
+          "arxiv",
+          "github"
+        ]
+      },
+      "datasetSize": {
+        "field": "datasetSize",
+        "bom_type": "data",
+        "aikaboom_internal": false,
+        "spdx_property": "dataset_datasetSize",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Properties/datasetSize/",
+        "question": "What is the size of the dataset.",
+        "keywords": "size samples examples instances records entries GB MB TB bytes volume count number",
+        "summary": "Captures the size of the dataset.",
+        "description": "Captures how large a dataset is.\n\nThe size is to be measured in bytes.",
+        "post_process": null,
+        "priority": [
+          "huggingface",
+          "github",
+          "arxiv"
+        ]
+      },
+      "datasetType": {
+        "field": "datasetType",
+        "bom_type": "data",
+        "aikaboom_internal": false,
+        "spdx_property": "dataset_datasetType",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Properties/datasetType/",
+        "question": "What is the type of the given dataset.",
+        "keywords": "type format datatype image text audio video multimodal tabular structured unstructured",
+        "summary": "Describes the type of the given dataset.",
+        "description": "Describes the datatype contained in the dataset.\n\nFor example, a dataset can be an image dataset for computer vision applications, a text dataset such as the contents of a book or Wikipedia article, or sometimes a multimodal dataset that contains multiple types of data.",
+        "post_process": null,
+        "priority": [
+          "huggingface",
+          "github",
+          "arxiv"
+        ]
+      },
+      "datasetUpdateMechanism": {
+        "field": "datasetUpdateMechanism",
+        "bom_type": "data",
+        "aikaboom_internal": false,
+        "spdx_property": "dataset_datasetUpdateMechanism",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Properties/datasetUpdateMechanism/",
+        "question": "What is the mechanism to update the dataset.",
+        "keywords": "update updated updating version maintenance versioning refresh dynamic static mechanism",
+        "summary": "Describes a mechanism to update the dataset.",
+        "description": "A free-form text that describes a mechanism to update the dataset.",
+        "post_process": null,
+        "priority": [
+          "github",
+          "huggingface",
+          "arxiv"
+        ]
+      },
+      "description": {
+        "field": "description",
+        "bom_type": "data",
+        "aikaboom_internal": false,
+        "spdx_property": "description",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Core/Properties/description/",
+        "question": "In one or two sentences, what is this dataset?",
+        "keywords": "dataset description abstract summary overview",
+        "summary": "Provides a detailed description of the Element.",
+        "description": "This field is a detailed description of the Element. It may also be extracted\nfrom the Element itself.\n\nThe intent is to provide recipients of the SPDX file with a detailed technical\nexplanation of the functionality, anticipated use, and anticipated\nimplementation of the Element.\n\nThis field may also include a description of improvements over prior versions\nof the Element.",
+        "post_process": "collapse_whitespace",
+        "priority": [
+          "arxiv",
+          "huggingface",
+          "github"
+        ]
+      },
+      "hasSensitivePersonalInformation": {
+        "field": "hasSensitivePersonalInformation",
+        "bom_type": "data",
+        "aikaboom_internal": false,
+        "spdx_property": "dataset_hasSensitivePersonalInformation",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Properties/hasSensitivePersonalInformation/",
+        "question": "Does any sensitive personal information is present in the dataset?",
+        "keywords": "sensitive personal information PII privacy identifying identity protected health financial",
+        "summary": "Describes if any sensitive personal information is present in the dataset.",
+        "description": "Indicates the presence of sensitive personal data\nor information that allows drawing conclusions about a person's identity.\n\nRelated: `useSensitivePersonalInformation` in `/AI/AIPackage`",
+        "post_process": null,
+        "priority": [
+          "huggingface",
+          "arxiv",
+          "github"
+        ]
+      },
+      "intendedUse": {
+        "field": "intendedUse",
+        "bom_type": "data",
+        "aikaboom_internal": false,
+        "spdx_property": "dataset_intendedUse",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Properties/intendedUse/",
+        "question": "For what the given dataset should be used for?",
+        "keywords": "intended use purpose application task designed goal objective research training evaluation",
+        "summary": "Describes what the given dataset should be used for.",
+        "description": "A free-form text that describes what the given dataset should be used for.\n\nSome datasets are collected to be used only for particular purposes.\n\nFor example, medical data collected from a specific demography might only be applicable\nfor training machine learning models to make predictions for that demography.\nIn such a case, the intendedUse field would capture this information.\nSimilarly, if a dataset is collected for building a facial recognition model,\nthe intendedUse field would specify that.",
+        "post_process": null,
+        "priority": [
+          "arxiv",
+          "huggingface",
+          "github"
+        ]
+      },
+      "knownBias": {
+        "field": "knownBias",
+        "bom_type": "data",
+        "aikaboom_internal": false,
+        "spdx_property": "dataset_knownBias",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Properties/knownBias/",
+        "question": "What is the biases that the dataset is known to encompass?",
+        "keywords": "bias biased fairness demographic representation imbalance skewed prejudice limitation",
+        "summary": "Records the biases that the dataset is known to encompass.",
+        "description": "A free-form text that describes the different biases that the dataset encompasses.",
+        "post_process": null,
+        "priority": [
+          "arxiv",
+          "huggingface",
+          "github"
+        ]
+      },
+      "license": {
+        "field": "license",
+        "bom_type": "data",
+        "aikaboom_internal": false,
+        "spdx_property": "simplelicensing_LicenseExpression",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/SimpleLicensing/Classes/LicenseExpression/",
+        "question": "Under what license is this dataset distributed? Quote the SPDX identifier if any source states it.",
+        "keywords": "license licensed under released under cc-by cc0 odc-by mit apache gpl creative commons",
+        "summary": "An SPDX Element containing an SPDX license expression string.",
+        "description": "A LicenseExpression enables the representation, in a single string, of a\ncombination of one or more licenses, together with additions such as license\nexceptions.\n\nThe syntax for a licenseExpression string is set forth in the corresponding\nAnnex of this specification\n([\"SPDX license expressions\"](../../../annexes/spdx-license-expressions.md)).\nA licenseExpression string is not valid if it does not conform to the grammar\nset forth in that Annex.\n\nThe ExpandedLicensing profile can be used to represent the complete parsed\nlicense expression as a combination of license objects.",
+        "post_process": "normalize_license",
+        "priority": [
+          "huggingface",
+          "github",
+          "arxiv"
+        ]
+      },
+      "primaryPurpose": {
+        "field": "primaryPurpose",
+        "bom_type": "data",
+        "aikaboom_internal": false,
+        "spdx_property": "software_primaryPurpose",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Software/Properties/primaryPurpose/",
+        "question": "What is the primary purpose of this dataset (one of: data, model, application, …)?",
+        "keywords": "task category benchmark training evaluation purpose role",
+        "summary": "Provides information about the primary purpose of the software artifact.",
+        "description": "primaryPurpose provides information about the primary purpose of the software\nartifact.",
+        "post_process": null,
+        "priority": [
+          "huggingface",
+          "arxiv",
+          "github"
+        ]
+      },
+      "sensorUsed": {
+        "field": "sensorUsed",
+        "bom_type": "data",
+        "aikaboom_internal": false,
+        "spdx_property": "dataset_sensor",
+        "spec_url": "https://spdx.github.io/spdx-spec/v3.0.1/model/Dataset/Properties/sensor/",
+        "question": "What is the sensor used for collecting the data?",
+        "keywords": "sensor device instrument equipment camera microphone accelerometer calibration hardware",
+        "summary": "Describes a sensor used for collecting the data.",
+        "description": "Describes a sensor that was used for collecting the data\nand its calibration value as a key-value pair.",
+        "post_process": null,
+        "priority": [
+          "arxiv",
+          "github",
+          "huggingface"
+        ]
+      },
+      "sourceInfo": {
+        "field": "sourceInfo",
+        "bom_type": "data",
+        "aikaboom_internal": true,
+        "spdx_property": null,
+        "spec_url": null,
+        "question": "Which upstream datasets, papers, or models contributed to this dataset? List the named sources only.",
+        "keywords": "source upstream derived from based on aggregated combined merged contains uses parent dataset",
+        "summary": "",
+        "description": "Free-form list of upstream sources that contributed to this dataset (other datasets, papers, models). Combined from HuggingFace cardData.source_datasets and the model-tree, README mentions, and arXiv paper references.",
+        "post_process": "dedupe_named_entities",
+        "priority": [
+          "arxiv",
+          "huggingface",
+          "github"
+        ]
+      }
+    }
+  }
+}
