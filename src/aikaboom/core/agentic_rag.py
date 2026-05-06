@@ -124,6 +124,7 @@ from aikaboom.utils.question_bank import (
     sparse_query as _sparse_query,
     extraction_prompt_parts as _extraction_parts,
 )
+from aikaboom.utils.chunk_filter import is_useful_chunk as _is_useful_chunk
 from rank_bm25 import BM25Okapi
 
 FIXED_QUESTIONS_AI = _load_qb("ai")
@@ -859,7 +860,6 @@ class AgenticRAG:
         question = state["question"]
         TOP_K_PER_SOURCE = 20
         FINAL_TOP_K = 10
-        MIN_CHUNK_LENGTH = 100
         RRF_K = 60
 
         row_retrievers = state.get("row_retrievers", {})
@@ -919,14 +919,13 @@ class AgenticRAG:
                 kept = 0
                 for doc_id, rrf_score in fused:
                     doc = doc_lookup[doc_id]
-                    chunk_length = len(doc.page_content.strip())
-                    if chunk_length < MIN_CHUNK_LENGTH:
+                    if not _is_useful_chunk(doc.page_content):
                         continue
                     all_chunks_with_scores.append({
                         "document":   doc,
                         "similarity": rrf_score,  # name preserved for downstream code
                         "source":     source,
-                        "length":     chunk_length,
+                        "length":     len(doc.page_content.strip()),
                     })
                     kept += 1
 
