@@ -81,7 +81,7 @@
         "summary": "Captures the domain in which the AI package can be used.",
         "description": "A free-form text that describes the domain where the AI model contained in the\nAI software can be expected to operate successfully.\n\nExamples include computer vision, natural language processing, etc.",
         "retrieval": {
-          "hypothetical_passage": "# Model Card for clinical-bert-ner\n\nThis model targets the **biomedical natural language processing** domain, specifically named-entity recognition over electronic health records and PubMed abstracts. It has been validated on English-language clinical text and is not expected to generalise to general-purpose web text, code, or non-English corpora. Downstream tasks include de-identification, ICD-10 code suggestion, and adverse-event extraction. Out-of-domain inputs (e.g. legal contracts, social media) will degrade sharply.",
+          "hypothetical_passage": "# Intended use & domain\n\nThis model targets several application domains. Primarily it serves **biomedical NLP** — named-entity recognition over electronic health records, ICD-10 code suggestion, and adverse-event extraction. The same architecture has been fine-tuned for **computer vision** workloads (image classification, object detection on COCO, semantic segmentation) and **speech recognition** on LibriSpeech. Tabular financial-fraud detection is also supported. Performance on legal documents, code generation, social-media text, or time-series forecasting has not been validated; out-of-domain inputs degrade sharply.",
           "bm25_terms": [
             "domain",
             "computer vision",
@@ -332,7 +332,9 @@
             "released under",
             "SPDX-License-Identifier",
             "LICENSE file",
-            "noAssertion"
+            "unlicensed",
+            "no license",
+            "license unknown"
           ]
         },
         "extraction": {
@@ -1614,7 +1616,7 @@
         "summary": "Describes a sensor used for collecting the data.",
         "description": "Describes a sensor that was used for collecting the data\nand its calibration value as a key-value pair.",
         "retrieval": {
-          "hypothetical_passage": "## Data Collection\n\nDriving footage was captured using a forward-facing **FLIR Blackfly S** RGB camera (1920x1200 at 30 fps) and a **Velodyne VLP-16** 3D LiDAR rotating at 10 Hz, both mounted on a roof rack and calibrated extrinsically against a Novatel SPAN-CPT IMU/GNSS unit. Audio was recorded via a Sennheiser MKH-416 shotgun microphone sampled at 48 kHz. Cameras were intrinsically calibrated using a Zhang checkerboard pattern; LiDAR-camera extrinsics were refined via ICP.",
+          "hypothetical_passage": "## Data Collection\n\nDriving footage was captured using a forward-facing **FLIR Blackfly S** RGB camera (1920x1200 at 30 fps) and a **Velodyne VLP-16** 3D LiDAR rotating at 10 Hz, both mounted on a roof rack and calibrated against a Novatel SPAN-CPT IMU/GNSS unit. Medical scans were acquired on a **Siemens Magnetom Skyra 3T MRI** (T1- and T2-weighted sequences, 1mm isotropic voxels) and a **GE Revolution CT** scanner; ultrasound recordings used a Philips EPIQ 7 with a C5-1 curved-array probe at 5 MHz. Audio was recorded via a Sennheiser MKH-416 shotgun microphone sampled at 48 kHz. All sensors were intrinsically calibrated; extrinsics refined via ICP where applicable.",
           "bm25_terms": [
             "sensor",
             "camera",
@@ -1627,6 +1629,11 @@
             "Kinect",
             "Velodyne",
             "FLIR",
+            "MRI scanner",
+            "CT scanner",
+            "ultrasound probe",
+            "Siemens Magnetom",
+            "Philips EPIQ",
             "calibration",
             "intrinsic parameters",
             "extrinsic parameters",

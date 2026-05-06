@@ -8,7 +8,7 @@
   "post_process": "normalize_license",
   "retrieval": {
     "hypothetical_passage": "---\nlicense: apache-2.0\n---\n\n# License\n\nThis repository is released under the **Apache License 2.0**; see the `LICENSE` file for the full text. Model weights are distributed under the same terms. The training corpus contains components under CC-BY-SA-4.0, which apply only to derivative datasets. Commercial use is permitted with attribution. The Llama 2 base weights, where used, remain subject to the Meta Llama 2 Community License Agreement.",
-    "bm25_terms": ["Apache-2.0", "MIT", "BSD-3-Clause", "GPL-3.0", "LGPL", "CC-BY-4.0", "CC-BY-SA-4.0", "CC0-1.0", "OpenRAIL", "OpenRAIL-M", "Llama-2", "Llama-3", "Gemma", "proprietary", "license", "licensed under", "released under", "SPDX-License-Identifier", "LICENSE file", "noAssertion"]
+    "bm25_terms": ["Apache-2.0", "MIT", "BSD-3-Clause", "GPL-3.0", "LGPL", "CC-BY-4.0", "CC-BY-SA-4.0", "CC0-1.0", "OpenRAIL", "OpenRAIL-M", "Llama-2", "Llama-3", "Gemma", "proprietary", "license", "licensed under", "released under", "SPDX-License-Identifier", "LICENSE file", "unlicensed", "no license", "license unknown"]
   },
   "extraction": {
     "instruction": "Extract the license under which the model and its code are released, as an SPDX license identifier or expression.",
