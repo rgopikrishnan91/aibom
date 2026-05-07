@@ -734,6 +734,14 @@
                             Depth
                             <input type="number" id="recursive_depth" min="1" max="5" value="1" style="width:64px;padding:6px 8px;">
                         </label>
+                        <label style="display:flex;align-items:center;gap:6px;font-weight:500;" title="Walk the entire dependency tree until empty or the safety cap is reached.">
+                            <input type="checkbox" id="recursive_exhaust" onclick="document.getElementById('recursive_depth').disabled = this.checked;">
+                            Exhaust
+                        </label>
+                        <label style="display:flex;align-items:center;gap:6px;font-weight:500;">
+                            Safety cap
+                            <input type="number" id="recursive_safety_cap" min="1" max="500" value="50" style="width:72px;padding:6px 8px;">
+                        </label>
                     </div>
                     <div class="url-hint" style="color:#a04500;">
                         <strong>Heads up:</strong> recursive generation walks the
@@ -1052,7 +1060,10 @@
                 validate_spdx: document.getElementById('validate_spdx').checked,
                 strict_spdx_validation: document.getElementById('strict_spdx_validation').checked,
                 recursive_bom: document.getElementById('recursive_bom').checked,
-                recursive_depth: parseInt(document.getElementById('recursive_depth').value || '1', 10),
+                recursive_depth: document.getElementById('recursive_exhaust').checked
+                    ? 'all'
+                    : parseInt(document.getElementById('recursive_depth').value || '1', 10),
+                recursive_safety_cap: parseInt(document.getElementById('recursive_safety_cap').value || '50', 10),
                 format: 'both'
             };
 

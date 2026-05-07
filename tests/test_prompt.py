@@ -185,7 +185,10 @@ class TestPromptNoDocuments:
         result = prompt_no_documents("license", "Extract the SPDX license expression.")
         assert "license" in result
         assert "Extract the SPDX license expression." in result
-        assert "Not found" in result
+        # The legacy "Not found." sentinel was retired in Phase 6 in favour of
+        # noAssertion to match the question-bank standardization.
+        assert "Not found" not in result
+        assert "noAssertion" in result
 
 
 class TestPromptDirectLLM:

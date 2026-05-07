@@ -567,7 +567,7 @@ class AgenticRAG:
                     answer = self._extract_field(response.content, "ANSWER") or response.content.strip()
                 except Exception as e2:
                     print(f"  ❌ Retry with fewer chunks also failed: {e2}")
-                    answer = "Not found"
+                    answer = "noAssertion"
             else:
                 raise
 

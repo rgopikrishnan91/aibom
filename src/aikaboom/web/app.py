@@ -442,10 +442,17 @@ def process():
         validate_spdx = data.get('validate_spdx', True) is not False
         strict_spdx_validation = bool(data.get('strict_spdx_validation', False))
         recursive_bom = bool(data.get('recursive_bom', False))
-        try:
-            recursive_depth = max(0, min(int(data.get('recursive_depth', 1)), 5))
-        except (TypeError, ValueError):
-            recursive_depth = 1
+        recursive_safety_cap = max(1, int(data.get('recursive_safety_cap', 50)))
+        raw_depth = data.get('recursive_depth', 1)
+        if isinstance(raw_depth, str) and raw_depth.strip().lower() in ('all', 'exhaust'):
+            from aikaboom.utils.recursive_bom import EXHAUST_DEPTH
+            recursive_depth = EXHAUST_DEPTH
+        else:
+            try:
+                # Integer mode keeps the existing 5-level UI cap.
+                recursive_depth = max(0, min(int(raw_depth), 5))
+            except (TypeError, ValueError):
+                recursive_depth = 1
         
         # Validate mode and provider
         if mode not in ['rag', 'direct']:
@@ -748,6 +755,10 @@ def process():
             response_data['cyclonedx_data'] = cdx_output
             response_data['cyclonedx_beta'] = True
             response_data.setdefault('beta_fields', []).append('cyclonedx')
+
+            # Authoritative validation via sbom-utility if available
+            from aikaboom.utils.cyclonedx_validator import validate_cyclonedx
+            response_data['cyclonedx_validation'] = validate_cyclonedx(cdx_path)
         except Exception as cdx_exc:
             import traceback
             print(f"⚠️ CycloneDX conversion failed: {cdx_exc}")
@@ -762,13 +773,22 @@ def process():
                     generate_recursive_boms,
                     linked_bundle_summary,
                 )
+                from aikaboom.utils.recursive_enrich import build_enrich_fn
 
+                enrich_fn = build_enrich_fn(
+                    use_case=use_case,
+                    mode=mode,
+                    llm_provider=llm_provider,
+                    model=model,
+                )
                 recursive_output = generate_recursive_boms(
                     metadata,
                     bom_type=bom_type,
                     max_depth=recursive_depth,
+                    safety_cap=recursive_safety_cap,
                     validate_spdx=validate_spdx,
                     strict_spdx=strict_spdx_validation,
+                    enrich_fn=enrich_fn,
                 )
                 recursive_filename = filename.replace('.json', '.recursive.json')
                 recursive_path = os.path.join(app.config['UPLOAD_FOLDER'], recursive_filename)

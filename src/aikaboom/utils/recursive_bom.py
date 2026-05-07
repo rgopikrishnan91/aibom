@@ -27,6 +27,7 @@ level.
 from __future__ import annotations
 
 import re
+import sys
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple
 
 
@@ -230,10 +231,14 @@ def _build_node(
     return item
 
 
+EXHAUST_DEPTH = sys.maxsize  # sentinel for "walk until the frontier empties"
+
+
 def generate_recursive_boms(
     metadata: Dict[str, Any],
     bom_type: str = "ai",
     max_depth: int = 1,
+    safety_cap: int = 50,
     validate_spdx: bool = True,
     strict_spdx: bool = False,
     enrich_fn: Optional[EnrichFn] = None,
@@ -244,8 +249,13 @@ def generate_recursive_boms(
         metadata: Parent BOM metadata dict (with ``rag_fields``).
         bom_type: Parent BOM type. Recursion only descends through AI BOMs;
             ``data`` parents are leaves.
-        max_depth: Maximum tree depth (1 = direct children only). Recursion
-            also stops naturally when the unique-target set is exhausted.
+        max_depth: Maximum tree depth (1 = direct children only). Pass
+            :data:`EXHAUST_DEPTH` to walk until the frontier empties or the
+            ``safety_cap`` is reached. Recursion also stops naturally when
+            the unique-target set is exhausted.
+        safety_cap: Maximum number of child nodes to materialize before
+            stopping. Prevents runaway walks under :data:`EXHAUST_DEPTH`.
+            Default 50.
         validate_spdx: Validate each generated child SPDX export.
         strict_spdx: Use the SHACL strict pass (beta).
         enrich_fn: Optional callable ``(target_dict) -> metadata_dict`` that
@@ -254,6 +264,7 @@ def generate_recursive_boms(
             after one level.
     """
     max_depth = max(0, int(max_depth or 0))
+    safety_cap = max(0, int(safety_cap or 0))
     parent_id = metadata.get("model_id") or metadata.get("repo_id") or "parent-bom"
     visited: Set[Tuple[str, str]] = {_visit_key(bom_type, parent_id)}
 
@@ -284,6 +295,20 @@ def generate_recursive_boms(
             skipped.append({**skip, "parent": parent_label, "depth": depth + 1})
 
         for t in targets:
+            if len(generated) >= safety_cap:
+                # Exhaustion ran past the safety cap — record and stop
+                # descending. Without this, the walker could blow up on a
+                # densely connected dependency graph under EXHAUST_DEPTH.
+                tree_exhausted = False
+                skipped.append({
+                    "target": t["target"],
+                    "bom_type": t["bom_type"],
+                    "relationship_type": t["relationship_type"],
+                    "reason": "safety-cap-reached",
+                    "parent": parent_label,
+                    "depth": depth + 1,
+                })
+                continue
             key = _visit_key(t["bom_type"], t["target"])
             if key in visited:
                 duplicates.append({

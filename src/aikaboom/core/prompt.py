@@ -174,7 +174,7 @@ INSTRUCTION: {instruction}
 
 YOUR RESPONSE MUST BE IN THIS EXACT FORMAT:
 
-ANSWER: Not found.
+ANSWER: noAssertion
 
 RESPONSE:"""
 
