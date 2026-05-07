@@ -200,4 +200,11 @@ def _route_chunks(documents, source_claims, internal_conflicts,
         selected = set(top)
 
     filtered = [d for d in documents if d.metadata.get('source') in selected]
+
+    # Safety net: a too-thin context starves the answer LLM. If the consensus
+    # winner contributed fewer than 3 chunks, fall back to all documents and
+    # let the answerer cope — better than handing it 1-2 chunks.
+    if len(filtered) < 3:
+        return documents, sorted(speaking)
+
     return filtered, sorted(selected)

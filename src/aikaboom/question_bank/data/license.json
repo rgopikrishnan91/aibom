@@ -13,6 +13,6 @@
   "extraction": {
     "instruction": "Extract the SPDX license identifier under which the dataset is distributed; if multiple licenses apply, return them combined as an SPDX expression.",
     "field_spec": "SPDX property `simplelicensing_LicenseExpression`. Value MUST conform to the SPDX license-expression grammar (e.g. `MIT`, `Apache-2.0`, `CC-BY-4.0`, `CC-BY-SA-3.0 OR MIT`, `GPL-3.0-or-later WITH Classpath-exception-2.0`). Use `NOASSERTION` when sources are silent and `LicenseRef-...` for non-listed licenses.",
-    "output_guidance": "Prefer an explicit SPDX identifier from the source over license name prose ('MIT License' -> `MIT`). If the source gives only a free-text license name, map it to the closest SPDX listed identifier; if no match exists, emit `LicenseRef-<slug>`. For dual-licensing use ` OR `; for combined obligations use ` AND `. Return `NOASSERTION` (not 'Not found.') when no license info appears in any source. If dataset and code carry different licenses, return only the dataset license."
+    "output_guidance": "Prefer an explicit SPDX identifier from the source over license name prose ('MIT License' -> `MIT`). If the source gives only a free-text license name, map it to the closest SPDX listed identifier; if no match exists, emit `LicenseRef-<slug>`. For dual-licensing use ` OR `; for combined obligations use ` AND `. Return `NOASSERTION` when no license info appears in any source. If dataset and code carry different licenses, return only the dataset license."
   }
 }

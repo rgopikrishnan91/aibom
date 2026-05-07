@@ -31,6 +31,6 @@
   "extraction": {
     "instruction": "Extract the noise, errors, or quality issues the source acknowledges in the dataset, including which fields, splits, or sample percentages they affect.",
     "field_spec": "SPDX property `dataset_datasetNoise`. Free-form text (xsd:string), 0..* values; each value names a noise source and the affected scope when stated.",
-    "output_guidance": "Capture quantitative estimates (error rates, percentages) verbatim. Distinguish per-field noise from dataset-wide noise. If the card explicitly states 'no known noise issues', record that. If noise is not discussed at all, return 'Not found.' rather than 'noAssertion' for free-form fields."
+    "output_guidance": "Capture quantitative estimates (error rates, percentages) verbatim. Distinguish per-field noise from dataset-wide noise. If the card explicitly states 'no known noise issues', record that. If noise is not discussed at all, return noAssertion."
   }
 }

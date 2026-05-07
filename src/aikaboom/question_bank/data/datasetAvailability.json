@@ -30,7 +30,7 @@
   },
   "extraction": {
     "instruction": "Extract how the dataset can be obtained, mapping the access mechanism to the SPDX DatasetAvailabilityType vocabulary.",
-    "field_spec": "SPDX property `dataset_datasetAvailability`. Enum DatasetAvailabilityType with members: `clickthrough`, `direct-download`, `query`, `registration`, `scraping-script`. Format: enum token plus a short URL or location string when given.",
-    "output_guidance": "Map phrasings: 'pip/load_dataset/wget' without forms -> direct-download; 'click I agree' -> clickthrough; 'fill this form / request access' -> registration; 'use our SQL/REST endpoint' -> query; 'run this crawler/spider' -> scraping-script. If multiple access paths exist, list each. Return 'noAssertion' if availability is not described."
+    "field_spec": "SPDX property `dataset_datasetAvailability`. Enum DatasetAvailabilityType with members: `clickthrough`, `direct-download`, `query`, `registration`, `scraping-script`. Format: a single enum token.",
+    "output_guidance": "Map phrasings: 'pip/load_dataset/wget' without forms -> direct-download; 'click I agree' -> clickthrough; 'fill this form / request access' -> registration; 'use our SQL/REST endpoint' -> query; 'run this crawler/spider' -> scraping-script. If multiple access paths exist, choose the most permissive single mechanism. Return noAssertion if availability is not described. Return only the bare enum value with no explanatory prose."
   }
 }

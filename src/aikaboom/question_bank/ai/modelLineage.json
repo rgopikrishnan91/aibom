@@ -31,6 +31,6 @@
   "extraction": {
     "instruction": "Extract the base model or parent checkpoint this model was derived from, fine-tuned on, or distilled from. Report the canonical repo identifier (e.g. `org/model-name`).",
     "field_spec": "AIkaBoOM-internal. Value space: a single base-model identifier string, typically a HuggingFace repo (`<org>/<model>`) or canonical name. Maps to SPDX `dependsOn` relationship and CycloneDX `pedigree.ancestors`.",
-    "output_guidance": "Prefer the HuggingFace repo identifier over a free-form name. If multiple ancestors form a chain, list them oldest-to-newest separated by ' -> '. If the model is trained from scratch with no parent, return 'from scratch'. Return 'noAssertion' when fine-tuning is implied but no specific base model is named. Return 'Not found.' when the source is silent on lineage."
+    "output_guidance": "Prefer the HuggingFace repo identifier over a free-form name. If multiple ancestors form a chain, list them oldest-to-newest separated by ' -> '. If the model is trained from scratch with no parent, return 'from scratch'. Return noAssertion when fine-tuning is implied but no specific base model is named, or when the source is silent on lineage."
   }
 }

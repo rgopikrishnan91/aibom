@@ -31,6 +31,6 @@
   "extraction": {
     "instruction": "Extract every anonymization or de-identification technique the source reports applying to the dataset, including the fields or entity types each technique targets.",
     "field_spec": "SPDX property `dataset_anonymizationMethodUsed`. Free-form text (xsd:string), 0..* values; each value names a technique (e.g., 'PII redaction with Presidio', 'k-anonymity k=5', 'SHA-256 pseudonymization of user_id').",
-    "output_guidance": "List each method on its own line or comma-separated. If the source asserts the dataset contains no personal data so no anonymization was needed, record that statement verbatim. If the dataset card is silent on anonymization but does discuss PII presence, return 'Not found.' rather than inferring. If sources conflict (e.g., README says 'anonymized' but paper says raw), report both with their provenance."
+    "output_guidance": "List each method on its own line or comma-separated. If the source asserts the dataset contains no personal data so no anonymization was needed, record that statement verbatim. If the dataset card is silent on anonymization but does discuss PII presence, return noAssertion rather than inferring. If sources conflict (e.g., README says 'anonymized' but paper says raw), report both with their provenance."
   }
 }

@@ -16,6 +16,7 @@ from .prompt import (
     prompt_generate_answer,
     prompt_no_documents,
     prompt_direct_llm,
+    format_chunks_for_answer,
 )
 
 # Create LLM instance based on provider
@@ -537,15 +538,13 @@ class AgenticRAG:
                 f"({len(chunks_for_answer)}/{len(documents)} chunks)"
             )
 
-        # Build context from (possibly filtered) chunks
-        context_parts = []
-        for i, doc in enumerate(chunks_for_answer, 1):
-            source = doc.metadata.get('source', 'unknown')
-            context_parts.append(f"--- Chunk {i} (Source: {source}) ---\n{doc.page_content.strip()}\n")
-        context = "\n".join(context_parts)
+        # Build source-agnostic context from (possibly filtered) chunks. By
+        # this stage all surviving chunks agree by construction, so source
+        # labels would just add noise to the format-conversion task.
+        context = format_chunks_for_answer(chunks_for_answer)
 
         prompt = prompt_generate_answer(
-            field_name, parts["instruction"], parts["field_spec"], parts["output_guidance"], context
+            parts["instruction"], parts["field_spec"], parts["output_guidance"], context
         )
         try:
             response = _invoke_with_retry(self.llm.invoke, prompt)
@@ -559,10 +558,9 @@ class AgenticRAG:
             if is_context_limit:
                 # Retry with only the first 6 chunks
                 print(f"  ⚠️  Answer prompt too large, retrying with fewer chunks...")
-                truncated_parts = context_parts[:6]
-                truncated_context = "\n".join(truncated_parts)
+                truncated_context = format_chunks_for_answer(chunks_for_answer[:6])
                 prompt = prompt_generate_answer(
-                    field_name, parts["instruction"], parts["field_spec"], parts["output_guidance"], truncated_context
+                    parts["instruction"], parts["field_spec"], parts["output_guidance"], truncated_context
                 )
                 try:
                     response = _invoke_with_retry(self.llm.invoke, prompt)

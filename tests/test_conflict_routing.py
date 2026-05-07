@@ -21,9 +21,18 @@ class _Doc:
 
 PRIORITY = ["huggingface", "arxiv", "github"]
 
+# How many chunks to synthesize per source argument. Bumped from 1 to 4 so the
+# routing safety net (``< 3`` filtered → fall back to all docs) does not fire on
+# the existing tests, which assert source membership rather than chunk counts.
+_CHUNKS_PER_SOURCE = 4
+
 
 def _docs(*sources):
-    return [_Doc(s) for s in sources]
+    out = []
+    for s in sources:
+        for i in range(_CHUNKS_PER_SOURCE):
+            out.append(_Doc(s, content=f"chunk {i} from {s}"))
+    return out
 
 
 def _ext(a, b, desc="x vs y"):
@@ -121,6 +130,31 @@ def test_silent_source_does_not_score():
     # github has no claim so it should never appear in selection
     assert "github" not in selected
     assert selected == ["huggingface"]
+
+
+def test_filter_too_thin_falls_back_to_all_docs():
+    """If consensus filtering would leave fewer than 3 chunks, the safety net
+    returns the full document list instead. Locks the cherry-picked behaviour
+    from the user's plan: a thin context starves the answer LLM, so we'd
+    rather hand it everything than 1-2 chunks."""
+    # Single doc per source on purpose — filtering to {huggingface} leaves 1.
+    docs = [
+        _Doc("huggingface", "hf"),
+        _Doc("arxiv", "arxiv"),
+        _Doc("github", "gh"),
+    ]
+    claims = {"huggingface": "X", "arxiv": "Y", "github": "Z"}
+    external = [
+        _ext("huggingface", "arxiv"),
+        _ext("huggingface", "github"),
+        _ext("arxiv", "github"),
+    ]
+    out, selected = _route_chunks(docs, claims, {}, external, PRIORITY)
+    # Without the safety net the router would pick only HF (top of priority);
+    # with it, all 3 docs come back and `selected` reflects every speaking
+    # source so downstream code does not see a stale single-source label.
+    assert out == docs
+    assert set(selected) == {"huggingface", "arxiv", "github"}
 
 
 def test_zero_speaking_sources_keeps_all():

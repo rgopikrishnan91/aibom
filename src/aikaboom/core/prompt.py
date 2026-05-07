@@ -119,33 +119,50 @@ If contradiction, write "Yes" with each group's conflicting claim.
 """
 
 
-def prompt_generate_answer(field_name, instruction, field_spec, output_guidance, context):
-    """Step 2: Generate answer from the provided chunks (may already be filtered)."""
-    return f"""You are an AI model and dataset documentation expert.
+def format_chunks_for_answer(documents):
+    """Render documents as plain ``---``-separated blocks for the answer prompt.
 
-Your task is to extract specific information from the provided source chunks.
+    No source labels, no chunk numbers. By the time chunks reach the answer
+    prompt they have already been routed through consensus filtering — by
+    construction they agree, so source attribution adds noise to the
+    format-conversion task.
+    """
+    parts = ["---"]
+    for doc in documents:
+        parts.append(doc.page_content.strip())
+        parts.append("---")
+    return "\n".join(parts)
 
-FIELD NAME: {field_name}
-INSTRUCTION: {instruction}
-FIELD SPEC: {field_spec}
-OUTPUT GUIDANCE: {output_guidance}
 
-CHUNKS:
+def prompt_generate_answer(instruction, field_spec, output_guidance, context):
+    """Step 2: generate the field value from pre-filtered, source-agnostic chunks.
+
+    The chunks reaching this prompt have already been consensus-filtered, so
+    the answerer's job is format conversion + edge-case handling per
+    ``field_spec`` / ``output_guidance``, not multi-source synthesis. The
+    template follows the CTF (Context, Task, Format) shape with three
+    universal rules; per-field behaviour comes from the question-bank
+    extraction block, not the template.
+    """
+    return f"""FIELD:
+{field_spec}
+
+TASK:
+{instruction}
+
+RULES:
+1. Use ONLY information from the context below. Do not add facts from your
+   own knowledge.
+2. Preserve exact names, numbers, and formatting from the source.
+3. If the context contains no relevant information, return noAssertion.
+
+FIELD-SPECIFIC GUIDANCE:
+{output_guidance or "(No additional guidance.)"}
+
+CONTEXT:
 {context}
 
-INSTRUCTIONS:
-1. Read all provided chunks carefully.
-2. Follow the INSTRUCTION: above precisely.
-3. Honour the FIELD SPEC: legal values, format, and units.
-4. Apply the OUTPUT GUIDANCE: for edge cases (missing info, conflicts, multi-value).
-5. If multiple chunks provide information, synthesize them into a complete answer.
-6. If no relevant information is found, respond with "Not found." — do NOT fabricate.
-
-YOUR RESPONSE MUST USE THIS EXACT FORMAT:
-
-ANSWER: [Your detailed answer synthesizing all provided chunks]
-
-RESPONSE:"""
+ANSWER:"""
 
 
 def prompt_no_documents(field_name, instruction):

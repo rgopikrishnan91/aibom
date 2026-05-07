@@ -31,6 +31,6 @@
   "extraction": {
     "instruction": "Extract the mechanism and cadence by which the dataset is updated or maintained, including who runs it and how users obtain new versions.",
     "field_spec": "SPDX property `dataset_datasetUpdateMechanism`. Free-form text (xsd:string), single value. Typical content: cadence (daily/quarterly/static), automation (cron, CI, GitHub Actions), versioning scheme, distribution channel.",
-    "output_guidance": "Capture the cadence verbatim ('quarterly', 'one-time release', 'on demand'). If the dataset is explicitly frozen with no planned updates, record that. If the source mentions a versioning scheme (semver, date-based tags), include it. Return 'Not found.' if neither update cadence nor maintenance status is stated."
+    "output_guidance": "Capture the cadence verbatim ('quarterly', 'one-time release', 'on demand'). If the dataset is explicitly frozen with no planned updates, record that. If the source mentions a versioning scheme (semver, date-based tags), include it. Return noAssertion if neither update cadence nor maintenance status is stated."
   }
 }

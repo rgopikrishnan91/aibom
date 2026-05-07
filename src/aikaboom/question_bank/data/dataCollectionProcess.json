@@ -31,6 +31,6 @@
   "extraction": {
     "instruction": "Extract how the dataset was collected, including data sources, collection methods, time period, and any annotation or interview protocols.",
     "field_spec": "SPDX property `dataset_dataCollectionProcess`. Free-form text (xsd:string), single value. Should read as a brief narrative covering source(s), method (scraping / crowdsourcing / interviews / API), and timeframe when stated.",
-    "output_guidance": "Quote source URLs, dataset names, and crowdsourcing platforms verbatim. If the source covers multiple stages (raw collection vs. annotation), capture both. If only the upstream dataset is cited without describing how it was collected, note that the process is inherited from the upstream source and name it. Return 'Not found.' if the card omits collection details entirely."
+    "output_guidance": "Quote source URLs, dataset names, and crowdsourcing platforms verbatim. If the source covers multiple stages (raw collection vs. annotation), capture both. If only the upstream dataset is cited without describing how it was collected, note that the process is inherited from the upstream source and name it. Return noAssertion if the card omits collection details entirely."
   }
 }

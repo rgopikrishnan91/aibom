@@ -13,6 +13,6 @@
   "extraction": {
     "instruction": "Extract a one-to-two-sentence factual description of the dataset, summarising what it contains, how it was built, and its intended task.",
     "field_spec": "SPDX property `description` (Core profile). Free-form xsd:string, plain text. Format: one or two complete sentences, no markdown, no headings, no trailing newline.",
-    "output_guidance": "Prefer the first paragraph of the dataset card's summary or the paper abstract's opening sentence. If multiple sources conflict, prefer the canonical HuggingFace dataset card over a third-party README. Strip markdown, citations, and badge syntax. If no descriptive text appears in the sources, return 'Not found.' rather than synthesising a description from the dataset name."
+    "output_guidance": "Prefer the first paragraph of the dataset card's summary or the paper abstract's opening sentence. If multiple sources conflict, prefer the canonical HuggingFace dataset card over a third-party README. Strip markdown, citations, and badge syntax. If no descriptive text appears in the sources, return noAssertion rather than synthesising a description from the dataset name."
   }
 }

@@ -33,6 +33,6 @@
   "extraction": {
     "instruction": "Extract the data modality (or modalities) of the dataset, mapping each to the SPDX DatasetType vocabulary.",
     "field_spec": "SPDX property `dataset_datasetType`. Enum DatasetType, 1..* values; members: `audio`, `categorical`, `graph`, `image`, `no-assertion`, `numeric`, `other`, `sensor`, `structured`, `syntactic`, `text`, `timeseries`, `timestamp`, `video`. Format: comma-separated enum tokens.",
-    "output_guidance": "Use multiple enum tokens for multimodal datasets (e.g., 'image, text'). Map vocabulary: 'corpus/captions/transcripts' -> text; 'photos/frames' -> image; 'tables/CSV/Parquet' -> structured; 'numeric features' -> numeric; 'class labels' -> categorical. If the modality is unclear, return `no-assertion`. Do not invent modalities not evidenced in the source."
+    "output_guidance": "Use multiple enum tokens for multimodal datasets (e.g., 'image, text'). Map vocabulary: 'corpus/captions/transcripts' -> text; 'photos/frames' -> image; 'tables/CSV/Parquet' -> structured; 'numeric features' -> numeric; 'class labels' -> categorical. If the modality is unclear, return `no-assertion`. Do not invent modalities not evidenced in the source. Return only the bare enum tokens with no explanatory prose."
   }
 }

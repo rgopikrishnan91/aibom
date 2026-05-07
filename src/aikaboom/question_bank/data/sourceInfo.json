@@ -13,6 +13,6 @@
   "extraction": {
     "instruction": "List every named upstream dataset, model, or paper from which this dataset is derived, aggregated, filtered, or which it cites as a primary source.",
     "field_spec": "AIkaBoOM-internal. Comma-separated list of named entities (dataset names, HuggingFace dataset paths, arXiv IDs, model checkpoints). Format example: 'Common Crawl, c4, the_pile, arXiv:2306.01116, gpt2'.",
-    "output_guidance": "Capture only named, identifiable sources -- skip generic phrases like 'web data' or 'public corpora'. Prefer canonical names over paraphrases (`c4` over 'the C4 corpus'). Deduplicate case-insensitively. Include arXiv IDs verbatim when cited. If the dataset is described as fully original with no upstream sources, return 'None.'. If sources are silent on provenance, return 'Not found.'. Do not invent a parent dataset from naming similarity alone."
+    "output_guidance": "Capture only named, identifiable sources -- skip generic phrases like 'web data' or 'public corpora'. Prefer canonical names over paraphrases (`c4` over 'the C4 corpus'). Deduplicate case-insensitively. Include arXiv IDs verbatim when cited. If the dataset is described as fully original with no upstream sources, return 'None.'. If sources are silent on provenance, return noAssertion. Do not invent a parent dataset from naming similarity alone."
   }
 }

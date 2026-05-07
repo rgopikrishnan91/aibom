@@ -31,6 +31,6 @@
   "extraction": {
     "instruction": "Extract the size of the dataset in bytes, plus any auxiliary size metrics the source reports (example counts, token counts, hours of audio).",
     "field_spec": "SPDX property `dataset_datasetSize`. Non-negative integer (xsd:nonNegativeInteger) measured in bytes. Format: integer bytes; if source gives GB/MB, convert (1 GB = 1_000_000_000 bytes) and note the original phrasing.",
-    "output_guidance": "Prefer the on-disk byte count of the released artifact. If only example/row counts are reported, capture them verbatim and mark byte size as 'Not found.'. If both compressed and uncompressed sizes are given, return both with labels. If splits are reported separately, sum to a total and also list per-split sizes."
+    "output_guidance": "Prefer the on-disk byte count of the released artifact. If only example/row counts are reported, capture them verbatim and mark byte size as 'not reported'. If both compressed and uncompressed sizes are given, return both with labels. If splits are reported separately, sum to a total and also list per-split sizes."
   }
 }

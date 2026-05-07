@@ -30,8 +30,8 @@
     ]
   },
   "extraction": {
-    "instruction": "Extract whether sensitive personal information (PII, biometrics, addresses, health data, etc.) is used during training or could be processed at inference, and identify the categories involved.",
-    "field_spec": "SPDX property `ai_useSensitivePersonalInformation`. Enum value (PresenceType): one of `yes`, `no`, `noAssertion`. Optionally accompanied by prose listing the categories of sensitive data (biometric, GDPR Article 9 special-category, etc.).",
-    "output_guidance": "Return one of `yes | no | noAssertion`, optionally followed by ': <categories>' when the source enumerates them (e.g. 'yes: biometric data, addresses'). Use `yes` when the card confirms PII was used or could be inferred; use `no` when the card explicitly states sensitive data was excluded or filtered. Use `noAssertion` when privacy is discussed but the answer is ambiguous, and 'Not found.' when the topic is absent."
+    "instruction": "Extract whether sensitive personal information (PII, biometrics, addresses, health data, etc.) is used during training or could be processed at inference.",
+    "field_spec": "SPDX property `ai_useSensitivePersonalInformation`. Enum value (PresenceType): one of `yes`, `no`, `noAssertion`.",
+    "output_guidance": "Return one of `yes | no | noAssertion`. Use `yes` when the card confirms PII was used or could be inferred; use `no` when the card explicitly states sensitive data was excluded or filtered. Use `noAssertion` when privacy is discussed but the answer is ambiguous, or when the topic is absent. Return only the bare enum value with no explanatory prose."
   }
 }

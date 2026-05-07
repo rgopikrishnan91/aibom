@@ -26,7 +26,7 @@
           ]
         },
         "extraction": {
-          "instruction": "Determine whether the AI system makes decisions or takes actions without any human involvement, and return one of the three allowed enum values.",
+          "instruction": "Determine whether the AI system makes decisions or takes actions without any human involvement.",
           "field_spec": "SPDX property `ai_autonomyType`. Enum of exactly one of: `yes` (fully automated, no human in the loop), `no` (a human is involved in at least some decisions), or `noAssertion` (insufficient evidence). Lowercase camelCase string, no surrounding quotes or punctuation.",
           "output_guidance": "Return `yes` only if the source explicitly states the system runs without human review (e.g. 'fully autonomous', 'no human intervention'). Return `no` if any human-in-the-loop, reviewer, operator approval, or oversight step is mentioned. If the source is silent or contradictory across sections, return `noAssertion`. Do not include explanatory prose; return only the bare enum value."
         }
@@ -338,7 +338,7 @@
         "extraction": {
           "instruction": "Extract the preprocessing steps applied to the training data before model training, listing each step (e.g. tokenization, deduplication, normalization, filtering) with any reported parameters.",
           "field_spec": "SPDX property `ai_modelDataPreprocessing`. Free-form text (xsd:string) describing preprocessing pipeline. Format: ordered list or prose covering cleaning, tokenization, normalization, augmentation, and filtering steps.",
-          "output_guidance": "If multiple preprocessing steps are reported, list them in pipeline order, separated by semicolons. If only modality-specific preprocessing is described (text vs. image vs. audio), capture each modality. Return 'noAssertion' if the source mentions training data but says nothing about preprocessing. Return 'Not found.' if neither training data nor preprocessing is mentioned. Do not invent steps from the model architecture alone."
+          "output_guidance": "If multiple preprocessing steps are reported, list them in pipeline order, separated by semicolons. If only modality-specific preprocessing is described (text vs. image vs. audio), capture each modality. Return noAssertion if the source mentions training data but says nothing about preprocessing, or if neither training data nor preprocessing is mentioned. Do not invent steps from the model architecture alone."
         }
       },
       "modelExplainability": {
@@ -367,7 +367,7 @@
         "extraction": {
           "instruction": "Extract the explainability or interpretability methods applied to this AI model, naming each technique (e.g. SHAP, LIME, attention, Grad-CAM) and how it is used to explain outputs.",
           "field_spec": "SPDX property `ai_modelExplainability`. Free-form text (xsd:string) listing explainability mechanisms. Format: comma-separated method names with one-line description of how each interprets predictions.",
-          "output_guidance": "If multiple methods are listed, separate with semicolons. Distinguish model-agnostic methods (SHAP, LIME) from model-specific ones (attention rollout, Grad-CAM). If the source explicitly says the model is a black box with no explainability, record that verbatim. Return 'noAssertion' if the model card discusses outputs but never addresses interpretability. Return 'Not found.' when the topic is absent."
+          "output_guidance": "If multiple methods are listed, separate with semicolons. Distinguish model-agnostic methods (SHAP, LIME) from model-specific ones (attention rollout, Grad-CAM). If the source explicitly says the model is a black box with no explainability, record that verbatim. Return noAssertion if the model card discusses outputs but never addresses interpretability, or when the topic is absent."
         }
       },
       "modelLineage": {
@@ -396,7 +396,7 @@
         "extraction": {
           "instruction": "Extract the base model or parent checkpoint this model was derived from, fine-tuned on, or distilled from. Report the canonical repo identifier (e.g. `org/model-name`).",
           "field_spec": "AIkaBoOM-internal. Value space: a single base-model identifier string, typically a HuggingFace repo (`<org>/<model>`) or canonical name. Maps to SPDX `dependsOn` relationship and CycloneDX `pedigree.ancestors`.",
-          "output_guidance": "Prefer the HuggingFace repo identifier over a free-form name. If multiple ancestors form a chain, list them oldest-to-newest separated by ' -> '. If the model is trained from scratch with no parent, return 'from scratch'. Return 'noAssertion' when fine-tuning is implied but no specific base model is named. Return 'Not found.' when the source is silent on lineage."
+          "output_guidance": "Prefer the HuggingFace repo identifier over a free-form name. If multiple ancestors form a chain, list them oldest-to-newest separated by ' -> '. If the model is trained from scratch with no parent, return 'from scratch'. Return noAssertion when fine-tuning is implied but no specific base model is named, or when the source is silent on lineage."
         }
       },
       "primaryPurpose": {
@@ -455,9 +455,9 @@
           ]
         },
         "extraction": {
-          "instruction": "Extract the safety risk classification and any documented assessment results for this AI system, including the methodology applied and the residual risks identified.",
-          "field_spec": "SPDX property `ai_safetyRiskAssessment`. Enum value (SafetyRiskAssessmentType) per EU general risk methodology: one of `serious`, `high`, `medium`, `low`. Record the chosen level plus any prose justification.",
-          "output_guidance": "Return one of `serious | high | medium | low` when a level is stated, optionally followed by a short justification. If the source describes risks but never assigns an EU-methodology level, capture the descriptive text and prefix with 'unclassified:'. Return 'noAssertion' when safety is acknowledged but no assessment performed. Return 'Not found.' when the topic is absent. Do not conflate EU AI Act risk tiers with the SPDX EU general-product-safety levels."
+          "instruction": "Extract the safety risk classification for this AI system based on the methodology applied and the residual risks identified.",
+          "field_spec": "SPDX property `ai_safetyRiskAssessment`. Enum value (SafetyRiskAssessmentType) per EU general risk methodology: one of `serious`, `high`, `medium`, `low`.",
+          "output_guidance": "Return one of `serious | high | medium | low` when a level is stated. If the source describes risks but never assigns a level from the enum, return noAssertion. Return noAssertion when safety is acknowledged but no assessment performed, or when the topic is absent. Do not conflate EU AI Act risk tiers with the SPDX EU general-product-safety levels. Return only the bare enum value with no explanatory prose."
         }
       },
       "standardCompliance": {
@@ -487,7 +487,7 @@
         "extraction": {
           "instruction": "Extract the standards, regulations, or frameworks that the AI software complies with, naming each by its identifier (e.g. ISO/IEC 23053, IEEE 7000, NIST AI RMF, GDPR).",
           "field_spec": "SPDX property `ai_standardCompliance`. Free-form text (xsd:string), typically a comma-separated list of standard identifiers. Includes published (ISO, IEEE, ETSI, NIST) and unpublished standards; legal/regulatory frameworks may be included if treated as compliance targets.",
-          "output_guidance": "List each standard as cited (with version/year if given), comma-separated. Distinguish certified compliance from self-asserted alignment when the source does. If the source mentions a regulation only as context (not as a compliance target), exclude it. Return 'noAssertion' when standards are referenced but no compliance claim is made. Return 'Not found.' when none are mentioned."
+          "output_guidance": "List each standard as cited (with version/year if given), comma-separated. Distinguish certified compliance from self-asserted alignment when the source does. If the source mentions a regulation only as context (not as a compliance target), exclude it. Return noAssertion when standards are referenced but no compliance claim is made, or when none are mentioned."
         }
       },
       "testedOnDatasets": {
@@ -519,7 +519,7 @@
         "extraction": {
           "instruction": "Extract the named datasets or benchmarks used to evaluate this AI model. Return only the canonical dataset names, comma-separated.",
           "field_spec": "AIkaBoOM-internal. Value space: a list of dataset/benchmark names (canonical short forms preferred, e.g. `GLUE`, `MMLU`, `HumanEval`). Maps to SPDX `testedOn` relationship and CycloneDX `modelCard.datasets` with `type=evaluation`.",
-          "output_guidance": "Return concrete dataset names only; exclude generic phrases like 'an internal test set' unless that is the only signal. Preserve official capitalization (e.g. `SQuAD`, `HellaSwag`). De-duplicate across sections. If evaluation is mentioned but no dataset is named, return 'noAssertion'. If evaluation is not discussed at all, return 'Not found.'. Do not include training datasets here."
+          "output_guidance": "Return concrete dataset names only; exclude generic phrases like 'an internal test set' unless that is the only signal. Preserve official capitalization (e.g. `SQuAD`, `HellaSwag`). De-duplicate across sections. If evaluation is mentioned but no dataset is named, or if evaluation is not discussed at all, return noAssertion. Do not include training datasets here."
         }
       },
       "trainedOnDatasets": {
@@ -550,7 +550,7 @@
         "extraction": {
           "instruction": "Extract the named datasets used to train (pre-train and/or fine-tune) this AI model. Return only the canonical dataset names, comma-separated.",
           "field_spec": "AIkaBoOM-internal. Value space: a list of dataset names (canonical short forms preferred, e.g. `Common Crawl`, `C4`, `The Pile`, `SQuAD`). Maps to SPDX `trainedOn` relationship and CycloneDX `modelCard.datasets` with `type=training`.",
-          "output_guidance": "List concrete dataset names only; exclude generic phrases such as 'a large web corpus' unless that is the only signal. Include both pre-training and fine-tuning corpora when both are reported, and preserve official names. De-duplicate. If training data is acknowledged but no dataset is named (e.g. 'proprietary internal data'), return 'noAssertion'. If training data is not discussed, return 'Not found.'. Do not include evaluation-only datasets."
+          "output_guidance": "List concrete dataset names only; exclude generic phrases such as 'a large web corpus' unless that is the only signal. Include both pre-training and fine-tuning corpora when both are reported, and preserve official names. De-duplicate. If training data is acknowledged but no dataset is named (e.g. 'proprietary internal data'), or if training data is not discussed, return noAssertion. Do not include evaluation-only datasets."
         }
       },
       "typeOfModel": {
@@ -580,7 +580,7 @@
         "extraction": {
           "instruction": "Extract the type of AI model used, including learning paradigm (supervised, unsupervised, self-supervised, reinforcement) and architecture family (e.g. transformer, CNN, diffusion).",
           "field_spec": "SPDX property `ai_typeOfModel`. Free-form text (xsd:string). Conventional values cover learning paradigm (supervised | unsupervised | self-supervised | reinforcement | hybrid) and architecture (e.g. transformer decoder-only, CNN, RNN, diffusion, GAN, MoE).",
-          "output_guidance": "Return both the learning paradigm and the architecture when both are reported, separated by ' / ' (e.g. `self-supervised / transformer decoder-only`). For hybrid systems list each component. If only the architecture is given, return that alone. Return 'noAssertion' when the source describes the model's behavior but never names a paradigm or architecture. Return 'Not found.' when neither is mentioned."
+          "output_guidance": "Return both the learning paradigm and the architecture when both are reported, separated by ' / ' (e.g. `self-supervised / transformer decoder-only`). For hybrid systems list each component. If only the architecture is given, return that alone. Return noAssertion when the source describes the model's behavior but never names a paradigm or architecture, or when neither is mentioned."
         }
       },
       "useSensitivePersonalInformation": {
@@ -608,9 +608,9 @@
           ]
         },
         "extraction": {
-          "instruction": "Extract whether sensitive personal information (PII, biometrics, addresses, health data, etc.) is used during training or could be processed at inference, and identify the categories involved.",
-          "field_spec": "SPDX property `ai_useSensitivePersonalInformation`. Enum value (PresenceType): one of `yes`, `no`, `noAssertion`. Optionally accompanied by prose listing the categories of sensitive data (biometric, GDPR Article 9 special-category, etc.).",
-          "output_guidance": "Return one of `yes | no | noAssertion`, optionally followed by ': <categories>' when the source enumerates them (e.g. 'yes: biometric data, addresses'). Use `yes` when the card confirms PII was used or could be inferred; use `no` when the card explicitly states sensitive data was excluded or filtered. Use `noAssertion` when privacy is discussed but the answer is ambiguous, and 'Not found.' when the topic is absent."
+          "instruction": "Extract whether sensitive personal information (PII, biometrics, addresses, health data, etc.) is used during training or could be processed at inference.",
+          "field_spec": "SPDX property `ai_useSensitivePersonalInformation`. Enum value (PresenceType): one of `yes`, `no`, `noAssertion`.",
+          "output_guidance": "Return one of `yes | no | noAssertion`. Use `yes` when the card confirms PII was used or could be inferred; use `no` when the card explicitly states sensitive data was excluded or filtered. Use `noAssertion` when privacy is discussed but the answer is ambiguous, or when the topic is absent. Return only the bare enum value with no explanatory prose."
         }
       }
     },
@@ -641,7 +641,7 @@
         "extraction": {
           "instruction": "Extract every anonymization or de-identification technique the source reports applying to the dataset, including the fields or entity types each technique targets.",
           "field_spec": "SPDX property `dataset_anonymizationMethodUsed`. Free-form text (xsd:string), 0..* values; each value names a technique (e.g., 'PII redaction with Presidio', 'k-anonymity k=5', 'SHA-256 pseudonymization of user_id').",
-          "output_guidance": "List each method on its own line or comma-separated. If the source asserts the dataset contains no personal data so no anonymization was needed, record that statement verbatim. If the dataset card is silent on anonymization but does discuss PII presence, return 'Not found.' rather than inferring. If sources conflict (e.g., README says 'anonymized' but paper says raw), report both with their provenance."
+          "output_guidance": "List each method on its own line or comma-separated. If the source asserts the dataset contains no personal data so no anonymization was needed, record that statement verbatim. If the dataset card is silent on anonymization but does discuss PII presence, return noAssertion rather than inferring. If sources conflict (e.g., README says 'anonymized' but paper says raw), report both with their provenance."
         }
       },
       "confidentialityLevel": {
@@ -669,8 +669,8 @@
         },
         "extraction": {
           "instruction": "Extract the confidentiality classification the dataset assigns to its data points, mapping it to the SPDX ConfidentialityLevelType vocabulary when possible.",
-          "field_spec": "SPDX property `dataset_confidentialityLevel`. Enum ConfidentialityLevelType with members: `amber`, `clear`, `green`, `red`. Format: a single enum token, optionally with a parenthetical quote of the source phrasing.",
-          "output_guidance": "Map common phrasings: 'public'/'open' -> clear; 'shareable with limits' -> green; 'partner/NDA' -> amber; 'highly restricted'/'PHI' -> red. If multiple tiers apply to different splits, list each tier with the split it covers. If no confidentiality statement appears, return 'noAssertion'. Do not infer from license alone unless the license explicitly speaks to confidentiality."
+          "field_spec": "SPDX property `dataset_confidentialityLevel`. Enum ConfidentialityLevelType with members: `amber`, `clear`, `green`, `red`. Format: a single enum token.",
+          "output_guidance": "Map common phrasings: 'public'/'open' -> clear; 'shareable with limits' -> green; 'partner/NDA' -> amber; 'highly restricted'/'PHI' -> red. If multiple tiers apply to different splits, list each tier with the split it covers. If no confidentiality statement appears, return noAssertion. Do not infer from license alone unless the license explicitly speaks to confidentiality. Return only the bare enum value with no explanatory prose."
         }
       },
       "dataCollectionProcess": {
@@ -699,7 +699,7 @@
         "extraction": {
           "instruction": "Extract how the dataset was collected, including data sources, collection methods, time period, and any annotation or interview protocols.",
           "field_spec": "SPDX property `dataset_dataCollectionProcess`. Free-form text (xsd:string), single value. Should read as a brief narrative covering source(s), method (scraping / crowdsourcing / interviews / API), and timeframe when stated.",
-          "output_guidance": "Quote source URLs, dataset names, and crowdsourcing platforms verbatim. If the source covers multiple stages (raw collection vs. annotation), capture both. If only the upstream dataset is cited without describing how it was collected, note that the process is inherited from the upstream source and name it. Return 'Not found.' if the card omits collection details entirely."
+          "output_guidance": "Quote source URLs, dataset names, and crowdsourcing platforms verbatim. If the source covers multiple stages (raw collection vs. annotation), capture both. If only the upstream dataset is cited without describing how it was collected, note that the process is inherited from the upstream source and name it. Return noAssertion if the card omits collection details entirely."
         }
       },
       "dataPreprocessing": {
@@ -729,7 +729,7 @@
         "extraction": {
           "instruction": "Extract every preprocessing step applied to the raw data to produce the released dataset, in the order they were applied when stated.",
           "field_spec": "SPDX property `dataset_dataPreprocessing`. Free-form text (xsd:string), single value listing steps. Typical steps: standardization, normalization, deduplication, tokenization, filtering, chunking, language ID, PII scrubbing.",
-          "output_guidance": "Preserve numeric thresholds (e.g., 'min length 50 tokens', 'Jaccard 0.8') and tool names verbatim. If preprocessing is split between an upstream corpus and this release, mark which steps belong to each. Return 'Not found.' if the card only describes raw collection without any cleaning or transformation step."
+          "output_guidance": "Preserve numeric thresholds (e.g., 'min length 50 tokens', 'Jaccard 0.8') and tool names verbatim. If preprocessing is split between an upstream corpus and this release, mark which steps belong to each. Return noAssertion if the card only describes raw collection without any cleaning or transformation step."
         }
       },
       "datasetAvailability": {
@@ -757,8 +757,8 @@
         },
         "extraction": {
           "instruction": "Extract how the dataset can be obtained, mapping the access mechanism to the SPDX DatasetAvailabilityType vocabulary.",
-          "field_spec": "SPDX property `dataset_datasetAvailability`. Enum DatasetAvailabilityType with members: `clickthrough`, `direct-download`, `query`, `registration`, `scraping-script`. Format: enum token plus a short URL or location string when given.",
-          "output_guidance": "Map phrasings: 'pip/load_dataset/wget' without forms -> direct-download; 'click I agree' -> clickthrough; 'fill this form / request access' -> registration; 'use our SQL/REST endpoint' -> query; 'run this crawler/spider' -> scraping-script. If multiple access paths exist, list each. Return 'noAssertion' if availability is not described."
+          "field_spec": "SPDX property `dataset_datasetAvailability`. Enum DatasetAvailabilityType with members: `clickthrough`, `direct-download`, `query`, `registration`, `scraping-script`. Format: a single enum token.",
+          "output_guidance": "Map phrasings: 'pip/load_dataset/wget' without forms -> direct-download; 'click I agree' -> clickthrough; 'fill this form / request access' -> registration; 'use our SQL/REST endpoint' -> query; 'run this crawler/spider' -> scraping-script. If multiple access paths exist, choose the most permissive single mechanism. Return noAssertion if availability is not described. Return only the bare enum value with no explanatory prose."
         }
       },
       "datasetNoise": {
@@ -787,7 +787,7 @@
         "extraction": {
           "instruction": "Extract the noise, errors, or quality issues the source acknowledges in the dataset, including which fields, splits, or sample percentages they affect.",
           "field_spec": "SPDX property `dataset_datasetNoise`. Free-form text (xsd:string), 0..* values; each value names a noise source and the affected scope when stated.",
-          "output_guidance": "Capture quantitative estimates (error rates, percentages) verbatim. Distinguish per-field noise from dataset-wide noise. If the card explicitly states 'no known noise issues', record that. If noise is not discussed at all, return 'Not found.' rather than 'noAssertion' for free-form fields."
+          "output_guidance": "Capture quantitative estimates (error rates, percentages) verbatim. Distinguish per-field noise from dataset-wide noise. If the card explicitly states 'no known noise issues', record that. If noise is not discussed at all, return noAssertion."
         }
       },
       "datasetSize": {
@@ -816,7 +816,7 @@
         "extraction": {
           "instruction": "Extract the size of the dataset in bytes, plus any auxiliary size metrics the source reports (example counts, token counts, hours of audio).",
           "field_spec": "SPDX property `dataset_datasetSize`. Non-negative integer (xsd:nonNegativeInteger) measured in bytes. Format: integer bytes; if source gives GB/MB, convert (1 GB = 1_000_000_000 bytes) and note the original phrasing.",
-          "output_guidance": "Prefer the on-disk byte count of the released artifact. If only example/row counts are reported, capture them verbatim and mark byte size as 'Not found.'. If both compressed and uncompressed sizes are given, return both with labels. If splits are reported separately, sum to a total and also list per-split sizes."
+          "output_guidance": "Prefer the on-disk byte count of the released artifact. If only example/row counts are reported, capture them verbatim and mark byte size as 'not reported'. If both compressed and uncompressed sizes are given, return both with labels. If splits are reported separately, sum to a total and also list per-split sizes."
         }
       },
       "datasetType": {
@@ -847,7 +847,7 @@
         "extraction": {
           "instruction": "Extract the data modality (or modalities) of the dataset, mapping each to the SPDX DatasetType vocabulary.",
           "field_spec": "SPDX property `dataset_datasetType`. Enum DatasetType, 1..* values; members: `audio`, `categorical`, `graph`, `image`, `no-assertion`, `numeric`, `other`, `sensor`, `structured`, `syntactic`, `text`, `timeseries`, `timestamp`, `video`. Format: comma-separated enum tokens.",
-          "output_guidance": "Use multiple enum tokens for multimodal datasets (e.g., 'image, text'). Map vocabulary: 'corpus/captions/transcripts' -> text; 'photos/frames' -> image; 'tables/CSV/Parquet' -> structured; 'numeric features' -> numeric; 'class labels' -> categorical. If the modality is unclear, return `no-assertion`. Do not invent modalities not evidenced in the source."
+          "output_guidance": "Use multiple enum tokens for multimodal datasets (e.g., 'image, text'). Map vocabulary: 'corpus/captions/transcripts' -> text; 'photos/frames' -> image; 'tables/CSV/Parquet' -> structured; 'numeric features' -> numeric; 'class labels' -> categorical. If the modality is unclear, return `no-assertion`. Do not invent modalities not evidenced in the source. Return only the bare enum tokens with no explanatory prose."
         }
       },
       "datasetUpdateMechanism": {
@@ -876,7 +876,7 @@
         "extraction": {
           "instruction": "Extract the mechanism and cadence by which the dataset is updated or maintained, including who runs it and how users obtain new versions.",
           "field_spec": "SPDX property `dataset_datasetUpdateMechanism`. Free-form text (xsd:string), single value. Typical content: cadence (daily/quarterly/static), automation (cron, CI, GitHub Actions), versioning scheme, distribution channel.",
-          "output_guidance": "Capture the cadence verbatim ('quarterly', 'one-time release', 'on demand'). If the dataset is explicitly frozen with no planned updates, record that. If the source mentions a versioning scheme (semver, date-based tags), include it. Return 'Not found.' if neither update cadence nor maintenance status is stated."
+          "output_guidance": "Capture the cadence verbatim ('quarterly', 'one-time release', 'on demand'). If the dataset is explicitly frozen with no planned updates, record that. If the source mentions a versioning scheme (semver, date-based tags), include it. Return noAssertion if neither update cadence nor maintenance status is stated."
         }
       },
       "description": {
@@ -904,7 +904,7 @@
         "extraction": {
           "instruction": "Extract a one-to-two-sentence factual description of the dataset, summarising what it contains, how it was built, and its intended task.",
           "field_spec": "SPDX property `description` (Core profile). Free-form xsd:string, plain text. Format: one or two complete sentences, no markdown, no headings, no trailing newline.",
-          "output_guidance": "Prefer the first paragraph of the dataset card's summary or the paper abstract's opening sentence. If multiple sources conflict, prefer the canonical HuggingFace dataset card over a third-party README. Strip markdown, citations, and badge syntax. If no descriptive text appears in the sources, return 'Not found.' rather than synthesising a description from the dataset name."
+          "output_guidance": "Prefer the first paragraph of the dataset card's summary or the paper abstract's opening sentence. If multiple sources conflict, prefer the canonical HuggingFace dataset card over a third-party README. Strip markdown, citations, and badge syntax. If no descriptive text appears in the sources, return noAssertion rather than synthesising a description from the dataset name."
         }
       },
       "hasSensitivePersonalInformation": {
@@ -933,9 +933,9 @@
           ]
         },
         "extraction": {
-          "instruction": "Determine whether the dataset contains sensitive personal information (PII, biometric, health, financial, or other identity-revealing data) and report yes, no, or noAssertion with a brief justification quoted from the source.",
-          "field_spec": "SPDX property `dataset_hasSensitivePersonalInformation`. Enum: `yes` | `no` | `noAssertion`. Optional accompanying free-text rationale citing what kind of data is present.",
-          "output_guidance": "Return `yes` if the source explicitly mentions names, faces, voice recordings, addresses, medical/financial records, or 'contains PII'. Return `no` only if the source explicitly states the data is anonymised, synthetic, or contains no PII. Return `noAssertion` when sources are silent or ambiguous. If anonymisation is mentioned but residual PII is acknowledged, return `yes` with the caveat. Do not infer presence of PII from dataset domain alone."
+          "instruction": "Determine whether the dataset contains sensitive personal information (PII, biometric, health, financial, or other identity-revealing data) and report yes, no, or noAssertion.",
+          "field_spec": "SPDX property `dataset_hasSensitivePersonalInformation`. Enum: `yes` | `no` | `noAssertion`.",
+          "output_guidance": "Return `yes` if the source explicitly mentions names, faces, voice recordings, addresses, medical/financial records, or 'contains PII'. Return `no` only if the source explicitly states the data is anonymised, synthetic, or contains no PII. Return `noAssertion` when sources are silent or ambiguous. If anonymisation is mentioned but residual PII is acknowledged, return `yes`. Do not infer presence of PII from dataset domain alone. Return only the bare enum value with no explanatory prose."
         }
       },
       "intendedUse": {
@@ -964,7 +964,7 @@
         "extraction": {
           "instruction": "Extract the dataset's intended uses and any explicitly out-of-scope or discouraged uses described in the source.",
           "field_spec": "SPDX property `dataset_intendedUse`. Free-form xsd:string. Format: one short paragraph or a comma-separated list of use cases. Include out-of-scope uses verbatim if the source distinguishes them.",
-          "output_guidance": "Prefer wording from a section literally titled 'Intended Uses', 'Use Cases', 'Direct Use', or 'Out-of-Scope Use'. If only a paper abstract is available, paraphrase the stated motivation. If sources distinguish recommended vs out-of-scope uses, include both with explicit labels. Return 'Not found.' if no usage guidance appears; do not infer use cases from dataset name or modality alone."
+          "output_guidance": "Prefer wording from a section literally titled 'Intended Uses', 'Use Cases', 'Direct Use', or 'Out-of-Scope Use'. If only a paper abstract is available, paraphrase the stated motivation. If sources distinguish recommended vs out-of-scope uses, include both with explicit labels. Return noAssertion if no usage guidance appears; do not infer use cases from dataset name or modality alone."
         }
       },
       "knownBias": {
@@ -994,7 +994,7 @@
         "extraction": {
           "instruction": "Extract the documented biases of the dataset, including demographic skew, language coverage, sampling bias, label bias, or any other limitation explicitly framed as a bias.",
           "field_spec": "SPDX property `dataset_knownBias`. Free-form xsd:string. Format: short paragraph or semicolon-separated list of named biases (e.g. 'gender skew 3:1 male; English-only; Western-centric topics').",
-          "output_guidance": "Prefer text under a section titled 'Bias', 'Biases', 'Discussion of Biases', or 'Bias, Risks, and Limitations'. Quote concrete numbers when present. If multiple biases are listed, combine them. Return 'Not found.' if the sources contain no bias discussion; do not extrapolate bias from dataset domain. If the source explicitly states 'no known biases', record that verbatim rather than 'Not found.'."
+          "output_guidance": "Prefer text under a section titled 'Bias', 'Biases', 'Discussion of Biases', or 'Bias, Risks, and Limitations'. Quote concrete numbers when present. If multiple biases are listed, combine them. Return noAssertion if the sources contain no bias discussion; do not extrapolate bias from dataset domain. If the source explicitly states 'no known biases', record that verbatim rather than noAssertion."
         }
       },
       "license": {
@@ -1026,7 +1026,7 @@
         "extraction": {
           "instruction": "Extract the SPDX license identifier under which the dataset is distributed; if multiple licenses apply, return them combined as an SPDX expression.",
           "field_spec": "SPDX property `simplelicensing_LicenseExpression`. Value MUST conform to the SPDX license-expression grammar (e.g. `MIT`, `Apache-2.0`, `CC-BY-4.0`, `CC-BY-SA-3.0 OR MIT`, `GPL-3.0-or-later WITH Classpath-exception-2.0`). Use `NOASSERTION` when sources are silent and `LicenseRef-...` for non-listed licenses.",
-          "output_guidance": "Prefer an explicit SPDX identifier from the source over license name prose ('MIT License' -> `MIT`). If the source gives only a free-text license name, map it to the closest SPDX listed identifier; if no match exists, emit `LicenseRef-<slug>`. For dual-licensing use ` OR `; for combined obligations use ` AND `. Return `NOASSERTION` (not 'Not found.') when no license info appears in any source. If dataset and code carry different licenses, return only the dataset license."
+          "output_guidance": "Prefer an explicit SPDX identifier from the source over license name prose ('MIT License' -> `MIT`). If the source gives only a free-text license name, map it to the closest SPDX listed identifier; if no match exists, emit `LicenseRef-<slug>`. For dual-licensing use ` OR `; for combined obligations use ` AND `. Return `NOASSERTION` when no license info appears in any source. If dataset and code carry different licenses, return only the dataset license."
         }
       },
       "primaryPurpose": {
@@ -1053,7 +1053,7 @@
         "extraction": {
           "instruction": "Determine the SPDX primaryPurpose enum value that best classifies this artifact (it is a dataset, so usually `data`).",
           "field_spec": "SPDX property `software_primaryPurpose`. Enum: `application` | `archive` | `bom` | `configuration` | `container` | `data` | `device` | `deviceDriver` | `diskImage` | `documentation` | `evidence` | `executable` | `file` | `firmware` | `framework` | `install` | `library` | `manifest` | `model` | `module` | `operatingSystem` | `other` | `patch` | `platform` | `requirement` | `source` | `specification` | `test`.",
-          "output_guidance": "For dataset artifacts, return `data` unless the source explicitly frames the release as a model checkpoint (`model`), runnable benchmark harness (`application`), or evaluation suite (`test`). When the artefact bundles labelled corpus + evaluation scripts, prefer `data`. Return `other` only when no enum member fits. Never return `noAssertion`; this field does not allow it."
+          "output_guidance": "For dataset artifacts, return `data` unless the source explicitly frames the release as a model checkpoint (`model`), runnable benchmark harness (`application`), or evaluation suite (`test`). When the artefact bundles labelled corpus + evaluation scripts, prefer `data`. Return `other` only when no enum member fits. Never return `noAssertion`; this field does not allow it. Return only the bare enum value with no explanatory prose."
         }
       },
       "sensorUsed": {
@@ -1090,7 +1090,7 @@
         "extraction": {
           "instruction": "Extract every sensor used to capture the data, together with any reported calibration values, sampling rates, model numbers, or mounting configuration.",
           "field_spec": "SPDX property `dataset_sensor`. List of key-value pairs (`sensorName: calibrationOrSpec`). Format: 'Velodyne VLP-16: 10 Hz; FLIR Blackfly S: 30 fps 1920x1200; Novatel SPAN-CPT IMU: 100 Hz'.",
-          "output_guidance": "Capture sensor make/model where stated, then any calibration value (rate, resolution, intrinsic/extrinsic notes). Separate multiple sensors with semicolons. If only the sensor type is named with no calibration, include the type with value `unspecified`. Return 'Not found.' if no sensors are mentioned; do not infer sensors from dataset modality (e.g. an image dataset is not necessarily camera-sourced if it is synthetic or scraped)."
+          "output_guidance": "Capture sensor make/model where stated, then any calibration value (rate, resolution, intrinsic/extrinsic notes). Separate multiple sensors with semicolons. If only the sensor type is named with no calibration, include the type with value `unspecified`. Return noAssertion if no sensors are mentioned; do not infer sensors from dataset modality (e.g. an image dataset is not necessarily camera-sourced if it is synthetic or scraped)."
         }
       },
       "sourceInfo": {
@@ -1122,7 +1122,7 @@
         "extraction": {
           "instruction": "List every named upstream dataset, model, or paper from which this dataset is derived, aggregated, filtered, or which it cites as a primary source.",
           "field_spec": "AIkaBoOM-internal. Comma-separated list of named entities (dataset names, HuggingFace dataset paths, arXiv IDs, model checkpoints). Format example: 'Common Crawl, c4, the_pile, arXiv:2306.01116, gpt2'.",
-          "output_guidance": "Capture only named, identifiable sources -- skip generic phrases like 'web data' or 'public corpora'. Prefer canonical names over paraphrases (`c4` over 'the C4 corpus'). Deduplicate case-insensitively. Include arXiv IDs verbatim when cited. If the dataset is described as fully original with no upstream sources, return 'None.'. If sources are silent on provenance, return 'Not found.'. Do not invent a parent dataset from naming similarity alone."
+          "output_guidance": "Capture only named, identifiable sources -- skip generic phrases like 'web data' or 'public corpora'. Prefer canonical names over paraphrases (`c4` over 'the C4 corpus'). Deduplicate case-insensitively. Include arXiv IDs verbatim when cited. If the dataset is described as fully original with no upstream sources, return 'None.'. If sources are silent on provenance, return noAssertion. Do not invent a parent dataset from naming similarity alone."
         }
       }
     }

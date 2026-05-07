@@ -1,11 +1,17 @@
 """Regression tests for the LLM prompt templates.
 
-``prompt_generate_answer`` and ``prompt_direct_llm`` take the five-arg
-signature ``(field_name, instruction, field_spec, output_guidance,
-context)``. ``prompt_no_documents`` takes ``(field_name, instruction)``.
+After Phase 5, ``prompt_generate_answer`` takes the four-arg CTF
+signature ``(instruction, field_spec, output_guidance, context)`` —
+``field_name`` was dropped because the answerer doesn't need it once
+``field_spec`` is in scope. The companion helper
+``format_chunks_for_answer`` renders a list of documents as plain
+``---``-separated blocks (no source labels).
 
-After Phase 4, ``prompt_detect_conflicts`` is a group-anonymized
-auditor prompt with signature ``(field_spec, group_chunks)`` where
+``prompt_direct_llm`` retains the five-arg signature.
+``prompt_no_documents`` takes ``(field_name, instruction)``.
+
+``prompt_detect_conflicts`` (Phase 4) is a group-anonymized auditor
+prompt with signature ``(field_spec, group_chunks)`` where
 ``group_chunks`` is an ``OrderedDict[letter -> list[chunk_text]]``.
 """
 from collections import OrderedDict
@@ -15,7 +21,16 @@ from aikaboom.core.prompt import (
     prompt_generate_answer,
     prompt_no_documents,
     prompt_direct_llm,
+    format_chunks_for_answer,
 )
+
+
+class _Doc:
+    """Minimal stand-in for langchain Documents."""
+
+    def __init__(self, source, content):
+        self.metadata = {"source": source}
+        self.page_content = content
 
 
 def _groups(*pairs):
@@ -105,27 +120,64 @@ class TestPromptDetectConflicts:
 
 
 class TestPromptGenerateAnswer:
-    def test_contains_field_and_context(self):
+    def test_contains_ctf_section_markers(self):
         result = prompt_generate_answer(
-            "model_type",
             "Extract the model architecture.",
             "Free-form text",
             "Return the value verbatim.",
             "transformer info",
         )
-        assert "model_type" in result
+        # New CTF section headers
+        for marker in ("FIELD:", "TASK:", "RULES:",
+                       "FIELD-SPECIFIC GUIDANCE:", "CONTEXT:", "ANSWER:"):
+            assert marker in result, f"missing marker: {marker!r}"
         assert "transformer info" in result
-        assert "ANSWER:" in result
 
-    def test_contains_three_part_extraction_slots(self):
-        result = prompt_generate_answer("f", "I", "FS", "OG", "c")
-        assert "INSTRUCTION: I" in result
-        assert "FIELD SPEC: FS" in result
-        assert "OUTPUT GUIDANCE: OG" in result
+    def test_each_slot_substituted(self):
+        result = prompt_generate_answer("INSTR_X", "SPEC_Y", "GUIDE_Z", "CTX_W")
+        assert "INSTR_X" in result
+        assert "SPEC_Y" in result
+        assert "GUIDE_Z" in result
+        assert "CTX_W" in result
 
-    def test_contains_not_found_fallback(self):
-        result = prompt_generate_answer("f", "i", "fs", "og", "c")
-        assert "Not found" in result
+    def test_legacy_markers_absent(self):
+        result = prompt_generate_answer("i", "fs", "og", "c")
+        # Old labels and the numbered INSTRUCTIONS list are gone
+        assert "FIELD NAME:" not in result
+        assert "INSTRUCTION:" not in result
+        assert "FIELD SPEC:" not in result
+        assert "OUTPUT GUIDANCE:" not in result
+        # The "Not found." sentinel was retired in favour of noAssertion
+        assert "Not found" not in result
+        # The new template uses noAssertion in Rule 3
+        assert "noAssertion" in result
+
+    def test_empty_guidance_falls_back_gracefully(self):
+        result = prompt_generate_answer("i", "fs", "", "c")
+        assert "(No additional guidance.)" in result
+
+
+class TestFormatChunksForAnswer:
+    def test_strips_source_labels(self):
+        docs = [
+            _Doc("huggingface", "model is a transformer"),
+            _Doc("github", "license: apache-2.0"),
+        ]
+        result = format_chunks_for_answer(docs)
+        # Plain --- separators only, no source attribution
+        assert "(Source:" not in result
+        assert "huggingface" not in result
+        assert "github" not in result
+        # Chunk content preserved verbatim
+        assert "model is a transformer" in result
+        assert "license: apache-2.0" in result
+        # Separator structure
+        assert result.startswith("---")
+        assert result.endswith("---")
+
+    def test_empty_chunk_list_yields_just_separators(self):
+        result = format_chunks_for_answer([])
+        assert result == "---"
 
 
 class TestPromptNoDocuments:

@@ -13,6 +13,6 @@
   "extraction": {
     "instruction": "Extract every sensor used to capture the data, together with any reported calibration values, sampling rates, model numbers, or mounting configuration.",
     "field_spec": "SPDX property `dataset_sensor`. List of key-value pairs (`sensorName: calibrationOrSpec`). Format: 'Velodyne VLP-16: 10 Hz; FLIR Blackfly S: 30 fps 1920x1200; Novatel SPAN-CPT IMU: 100 Hz'.",
-    "output_guidance": "Capture sensor make/model where stated, then any calibration value (rate, resolution, intrinsic/extrinsic notes). Separate multiple sensors with semicolons. If only the sensor type is named with no calibration, include the type with value `unspecified`. Return 'Not found.' if no sensors are mentioned; do not infer sensors from dataset modality (e.g. an image dataset is not necessarily camera-sourced if it is synthetic or scraped)."
+    "output_guidance": "Capture sensor make/model where stated, then any calibration value (rate, resolution, intrinsic/extrinsic notes). Separate multiple sensors with semicolons. If only the sensor type is named with no calibration, include the type with value `unspecified`. Return noAssertion if no sensors are mentioned; do not infer sensors from dataset modality (e.g. an image dataset is not necessarily camera-sourced if it is synthetic or scraped)."
   }
 }
