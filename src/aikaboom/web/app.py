@@ -314,6 +314,11 @@ def get_config():
             'has_fields': preset['fields'] is not None and len(preset['fields']) > 0
         }
     
+    # Auto-detect the configured provider so the UI defaults to the one the
+    # user actually has credentials for, instead of always offering OpenAI.
+    from aikaboom.utils.provider_resolver import detect_default_provider
+    detected_provider, detected_model = detect_default_provider()
+
     config = {
         'bom_types': ['ai', 'data'],
         'modes': ['rag', 'direct'],
@@ -322,8 +327,8 @@ def get_config():
         'default_ollama_models': ['llama3:70b', 'llama3:8b', 'mixtral:8x7b', 'codellama:34b'],
         'default_openrouter_models': ['qwen/qwen-2.5-72b-instruct', 'meta-llama/llama-3.3-70b-instruct', 'mistralai/mistral-medium-3.1', 'openai/gpt-oss-120b', 'qwen/qwen3-coder'],
         'default_mode': 'rag',
-        'default_provider': 'openai',
-        'default_model': 'gpt-4o',
+        'default_provider': detected_provider or 'openai',
+        'default_model': detected_model or 'gpt-4o',
         'use_cases': use_cases_info,
         'default_use_case': 'complete'
     }
@@ -678,7 +683,9 @@ def process():
                 'errors': [str(spdx_exc)],
             }
 
-        # Always generate CycloneDX 1.7 beta output
+        # Always generate CycloneDX 1.6 beta output (1.6 is the latest spec
+        # version sbom-utility v0.18.x can validate; revisit when sbom-utility
+        # ships 1.7 schemas).
         try:
             from aikaboom.utils.cyclonedx_exporter import CycloneDXExporter
             cdx_exporter = CycloneDXExporter(bom_type=bom_type)

@@ -192,6 +192,64 @@ Every field is a **triplet** - the value, where it came from, and whether source
 
 A complete sample lives at [`examples/sample-output.json`](examples/sample-output.json).
 
+#### `conflict` field — two shapes
+
+The `conflict` slot has **different shapes** depending on whether a
+field came from direct API metadata or from the RAG pipeline:
+
+- **Direct fields** (`releaseTime`, `suppliedBy`, `downloadLocation`,
+  `packageVersion`, `license`, …): `{value, source, type}` or `null`.
+  The summary table above describes this shape.
+- **RAG fields** (everything else — `domain`, `intendedUse`,
+  `safetyRiskAssessment`, `metric`, …): a richer object with both a
+  legacy summary and the Phase 4 trace block:
+
+  ```json
+  "domain": {
+    "value": "Natural Language Processing",
+    "source": "arxiv, huggingface",
+    "conflict": {
+      "internal": "No",
+      "external": "No",
+      "trace": {
+        "claims": { "huggingface": "...", "arxiv": "...", "github": "silent" },
+        "selected_sources": ["huggingface", "arxiv"],
+        "internal_conflicts": {},
+        "external_conflicts": []
+      }
+    }
+  }
+  ```
+
+  `internal` / `external` are the legacy strings (`"No"` or
+  `"Yes: ..."`) for backwards compatibility; `trace` carries the
+  per-source claim audit (which sources were inspected, who agreed,
+  who was dropped by consensus routing).
+
+Downstream consumers should be prepared to see either shape on
+`conflict`. Unifying the two is on the future-work list; until then
+the difference is intentional and documented here.
+
+### Known limitations
+
+- **LLM-extracted numeric metrics** (benchmark scores, parameter
+  counts, training token counts) may be hallucinated. The pipeline
+  passes the LLM's answer through unchanged; we do not currently
+  cross-validate numeric claims against the cited chunk text. Verify
+  any benchmark figure against the source paper before relying on
+  it. A future phase may add cross-source agreement / re-prompt
+  verification for numeric fields; today the answer is best-effort.
+- **Free-tier OpenRouter models** (rate-limited at 8 RPM) work but
+  are slow and occasionally drop fields under sustained load; the
+  pipeline retries with backoff but a heavy run may still leave a
+  few fields as `noAssertion`. For production extraction, prefer a
+  paid OpenRouter model or self-hosted Ollama.
+- **CycloneDX 1.6 emission, not 1.7.** The validator we adopted
+  (`sbom-utility`) ships embedded JSON schemas for 1.2-1.6 only as
+  of v0.18.x; we emit 1.6 so our own outputs can actually be
+  validated end-to-end. None of CycloneDX 1.7's additions are used
+  by AIkaBoOM today.
+
 ## Conflict Detection and Value Selection
 
 A field-by-field reference of how each AI and Dataset BOM property is resolved (sources, priority, normalisation, conflict criterion, SPDX/CycloneDX export shape) lives in [docs/FIELD_STRATEGIES.md](docs/FIELD_STRATEGIES.md).

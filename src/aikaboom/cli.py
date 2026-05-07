@@ -7,6 +7,25 @@ Usage:
 
 """
 
+# Suppress the langgraph deprecation chatter that fires on every import. The
+# filter is module-scoped so genuine warnings from elsewhere still print.
+# Phase 9 / Finding #13.
+import warnings as _warnings  # noqa: I001 — must run BEFORE the langgraph import chain
+_warnings.filterwarnings(
+    "ignore",
+    category=DeprecationWarning,
+    module=r"langgraph\.cache\.base",
+)
+_warnings.filterwarnings(
+    "ignore",
+    category=PendingDeprecationWarning,
+    module=r"langgraph\.cache\.base",
+)
+_warnings.filterwarnings(
+    "ignore",
+    message=r".*allowed_objects.*",
+)
+
 import argparse
 import json
 import os
@@ -281,7 +300,7 @@ def cmd_generate(args):
         from aikaboom.utils.cyclonedx_exporter import bom_to_cyclonedx
         from aikaboom.utils.cyclonedx_validator import validate_cyclonedx
         bom_to_cyclonedx(result, bom_type=bom_type, output_path=args.cyclonedx)
-        print(f"CycloneDX 1.7 BOM saved to {args.cyclonedx} (beta)")
+        print(f"CycloneDX 1.6 BOM saved to {args.cyclonedx} (beta)")
         result.setdefault("beta_fields", []).append("cyclonedx")
 
         # Authoritative validation via sbom-utility if available
@@ -484,7 +503,7 @@ def main():
         help="Run slower SHACL validation after the default SPDX JSON Schema validation (beta).",
     )
     gen.set_defaults(validate_spdx=True)
-    gen.add_argument("--cyclonedx", help="Also generate CycloneDX 1.7 output at this path (beta)")
+    gen.add_argument("--cyclonedx", help="Also generate CycloneDX 1.6 output at this path (beta)")
     gen.add_argument(
         "--recursive-bom",
         action="store_true",
