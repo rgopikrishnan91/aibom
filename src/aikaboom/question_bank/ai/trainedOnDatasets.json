@@ -33,6 +33,6 @@
   "extraction": {
     "instruction": "Extract the named datasets used to train (pre-train and/or fine-tune) this AI model. Return only the canonical dataset names, comma-separated.",
     "field_spec": "AIkaBoOM-internal. Value space: a list of dataset names (canonical short forms preferred, e.g. `Common Crawl`, `C4`, `The Pile`, `SQuAD`). Maps to SPDX `trainedOn` relationship and CycloneDX `modelCard.datasets` with `type=training`.",
-    "output_guidance": "List concrete dataset names only; exclude generic phrases such as 'a large web corpus' unless that is the only signal. Include both pre-training and fine-tuning corpora when both are reported, and preserve official names. De-duplicate. If training data is acknowledged but no dataset is named (e.g. 'proprietary internal data'), return 'noAssertion'. If training data is not discussed, return 'Not found.'. Do not include evaluation-only datasets."
+    "output_guidance": "List concrete dataset names only; exclude generic phrases such as 'a large web corpus' unless that is the only signal. Include both pre-training and fine-tuning corpora when both are reported, and preserve official names. De-duplicate. If training data is acknowledged but no dataset is named (e.g. 'proprietary internal data'), or if training data is not discussed, return noAssertion. Do not include evaluation-only datasets."
   }
 }

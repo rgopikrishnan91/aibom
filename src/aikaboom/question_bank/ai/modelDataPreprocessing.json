@@ -33,6 +33,6 @@
   "extraction": {
     "instruction": "Extract the preprocessing steps applied to the training data before model training, listing each step (e.g. tokenization, deduplication, normalization, filtering) with any reported parameters.",
     "field_spec": "SPDX property `ai_modelDataPreprocessing`. Free-form text (xsd:string) describing preprocessing pipeline. Format: ordered list or prose covering cleaning, tokenization, normalization, augmentation, and filtering steps.",
-    "output_guidance": "If multiple preprocessing steps are reported, list them in pipeline order, separated by semicolons. If only modality-specific preprocessing is described (text vs. image vs. audio), capture each modality. Return 'noAssertion' if the source mentions training data but says nothing about preprocessing. Return 'Not found.' if neither training data nor preprocessing is mentioned. Do not invent steps from the model architecture alone."
+    "output_guidance": "If multiple preprocessing steps are reported, list them in pipeline order, separated by semicolons. If only modality-specific preprocessing is described (text vs. image vs. audio), capture each modality. Return noAssertion if the source mentions training data but says nothing about preprocessing, or if neither training data nor preprocessing is mentioned. Do not invent steps from the model architecture alone."
   }
 }

@@ -16,6 +16,7 @@ from .prompt import (
     prompt_generate_answer,
     prompt_no_documents,
     prompt_direct_llm,
+    format_chunks_for_answer,
 )
 
 # Create LLM instance based on provider
@@ -124,6 +125,7 @@ from aikaboom.utils.question_bank import (
     sparse_query as _sparse_query,
     extraction_prompt_parts as _extraction_parts,
 )
+from aikaboom.utils.chunk_filter import is_useful_chunk as _is_useful_chunk
 from rank_bm25 import BM25Okapi
 
 FIXED_QUESTIONS_AI = _load_qb("ai")
@@ -159,7 +161,7 @@ QUESTIONS_LIST = [config['question'] for config in FIXED_QUESTIONS.values()]
 QUESTION_TO_KEY = {config['question']: key for key, config in FIXED_QUESTIONS.items()}
 
 
-class AgentState(TypedDict):
+class AgentState(TypedDict, total=False):
     """State management for the RAG workflow"""
     question: str
     documents: List[Document]
@@ -171,8 +173,15 @@ class AgentState(TypedDict):
     all_results: List[Dict]
     row_retrievers: Dict
     chunks_per_source: Dict
+    # Legacy single-string conflict fields (kept for backwards compat with
+    # processors.py:_parse_conflict_string).
     internal_conflict: str            # "No" or "Yes: ..."
     external_conflict: str            # "No" or "Yes: ..."
+    # Phase 4 — structured per-source trace produced by the auditor prompt.
+    source_claims: Dict[str, Optional[str]]      # {source: claim or None if silent}
+    internal_conflicts: Dict[str, str]           # {source: narrative}
+    external_conflicts: List[Dict]               # [{"sources": [a, b], "description": str}]
+    selected_sources: List[str]                  # sources that survived routing
 
 
 class HeaderAwareTextSplitter:
@@ -318,6 +327,18 @@ class HeaderAwareTextSplitter:
         
         return min(overlap_lines, len(remaining_lines) // 2)
 
+
+# Phase 4 — group-anonymized auditor + consensus-based chunk routing
+# live in ``conflict_routing`` so they can be unit-tested without the
+# heavy LLM/framework dependencies.
+from .conflict_routing import (  # noqa: E402
+    _build_groups,
+    _parse_detector_output,
+    _route_chunks,
+    _in_conflict,
+)
+
+
 class AgenticRAG:
     """Main RAG class that handles document processing and question answering"""
     
@@ -387,33 +408,51 @@ class AgenticRAG:
 
     def _detect_conflicts(self, state: AgentState) -> AgentState:
         """
-        Step 1: Conflict detection only — no answer generation.
-        Compares chunks pairwise; same-source contradictions → internal,
-        cross-source contradictions → external.
+        Step 1: Group-anonymized consistency audit.
+
+        Buckets retrieved chunks by source into groups A/B/C/..., asks the
+        LLM to extract per-group claims and flag both within-group and
+        between-group contradictions, then maps groups → sources.
+
+        Populates structured fields on state: ``source_claims``,
+        ``internal_conflicts``, ``external_conflicts``. Also derives the
+        legacy ``internal_conflict`` / ``external_conflict`` strings for
+        backwards compat with ``processors.py:_parse_conflict_string``.
         """
         documents = state.get("documents", [])
+        empty_trace = {
+            "source_claims": {},
+            "internal_conflicts": {},
+            "external_conflicts": [],
+            "internal_conflict": "No",
+            "external_conflict": "No",
+        }
         if not documents:
-            return {**state, "internal_conflict": "No", "external_conflict": "No"}
-
-        # If only one chunk exists there is nothing to compare — skip the LLM call.
-        if len(documents) == 1:
-            return {**state, "internal_conflict": "No", "external_conflict": "No"}
+            return {**state, **empty_trace}
 
         question_type = state.get("question_type", "unknown")
         question_config = self.questions.get(question_type, FIXED_QUESTIONS.get(question_type, {}))
-        field_name = question_type
         parts = _extraction_parts(question_config)
+        source_order = question_config.get('priority', ['huggingface', 'arxiv', 'github'])
 
-        # Build context: all chunks with their source label
-        context_parts = []
-        for i, doc in enumerate(documents, 1):
-            source = doc.metadata.get('source', 'unknown')
-            context_parts.append(f"--- Chunk {i} (Source: {source}) ---\n{doc.page_content.strip()}\n")
-        context = "\n".join(context_parts)
+        group_chunks, group_to_source = _build_groups(documents, source_order)
 
-        prompt = prompt_detect_conflicts(
-            field_name, parts["instruction"], parts["field_spec"], parts["output_guidance"], context
-        )
+        # 0 or 1 group → no consensus to compute, skip LLM call.
+        # We still record the lone source's content as "speaking" so the
+        # BOM trace shows we checked it; the claim text comes from the
+        # answer-generation pass downstream.
+        if len(group_to_source) <= 1:
+            source_claims = {src: None for src in group_to_source.values()}
+            return {
+                **state,
+                "source_claims": source_claims,
+                "internal_conflicts": {},
+                "external_conflicts": [],
+                "internal_conflict": "No",
+                "external_conflict": "No",
+            }
+
+        prompt = prompt_detect_conflicts(parts["field_spec"], group_chunks)
         try:
             response = _invoke_with_retry(self.llm.invoke, prompt)
             response_text = response.content
@@ -421,16 +460,47 @@ class AgenticRAG:
             err_str = str(e)
             if '400' in err_str or 'context' in err_str.lower() or 'too long' in err_str.lower():
                 print(f"  ⚠️  Conflict detection skipped (prompt too large): {err_str[:120]}")
-                return {**state, "internal_conflict": "No", "external_conflict": "No"}
+                source_claims = {src: None for src in group_to_source.values()}
+                return {
+                    **state,
+                    "source_claims": source_claims,
+                    "internal_conflicts": {},
+                    "external_conflicts": [],
+                    "internal_conflict": "No",
+                    "external_conflict": "No",
+                }
             raise
 
-        internal_conflict = self._extract_field(response_text, "INTERNAL_CONFLICT") or "No"
-        external_conflict = self._extract_field(response_text, "EXTERNAL_CONFLICT") or "No"
+        source_claims, internal_conflicts, external_conflicts = _parse_detector_output(
+            response_text, group_to_source
+        )
 
-        print(f"  ⚠️  Internal conflict: {internal_conflict[:120]}")
-        print(f"  ⚠️  External conflict: {external_conflict[:120]}")
+        # Derive legacy single-string fields for downstream backwards compat.
+        if internal_conflicts:
+            internal_str = "Yes: " + "; ".join(
+                f"{src} — {narr}" for src, narr in internal_conflicts.items()
+            )
+        else:
+            internal_str = "No"
+        if external_conflicts:
+            external_str = "Yes: " + "; ".join(
+                c["description"] for c in external_conflicts
+            )
+        else:
+            external_str = "No"
 
-        return {**state, "internal_conflict": internal_conflict, "external_conflict": external_conflict}
+        print(f"  ⚠️  Internal conflicts: {list(internal_conflicts.keys()) or 'No'}")
+        print(f"  ⚠️  External conflicts: "
+              f"{[c['sources'] for c in external_conflicts] or 'No'}")
+
+        return {
+            **state,
+            "source_claims": source_claims,
+            "internal_conflicts": internal_conflicts,
+            "external_conflicts": external_conflicts,
+            "internal_conflict": internal_str,
+            "external_conflict": external_str,
+        }
 
     def _generate_answer_node(self, state: AgentState) -> AgentState:
         """
@@ -449,29 +519,32 @@ class AgenticRAG:
             prompt = prompt_no_documents(field_name, parts["instruction"])
             response = _invoke_with_retry(self.llm.invoke, prompt)
             answer = self._extract_field(response.content, "ANSWER") or response.content.strip()
-            return {**state, "answer": answer}
+            return {**state, "answer": answer, "selected_sources": []}
 
-        # If external conflict → filter to highest-priority source
-        external_conflict = state.get("external_conflict", "No")
-        chunks_for_answer = documents
-        if external_conflict.lower().startswith("yes"):
-            priority = question_config.get('priority', ['huggingface', 'arxiv', 'github'])
-            available_sources = {doc.metadata.get('source', 'unknown') for doc in documents}
-            for preferred in priority:
-                if preferred in available_sources:
-                    chunks_for_answer = [d for d in documents if d.metadata.get('source') == preferred]
-                    print(f"  🏅 External conflict resolved: using '{preferred}' ({len(chunks_for_answer)} chunks)")
-                    break
+        # Consensus-based routing: drop self-contradicting sources, keep
+        # the highest-scoring source(s); static priority breaks ties only
+        # when there is an unresolved external conflict.
+        priority = question_config.get('priority', ['huggingface', 'arxiv', 'github'])
+        chunks_for_answer, selected_sources = _route_chunks(
+            documents,
+            state.get("source_claims", {}),
+            state.get("internal_conflicts", {}),
+            state.get("external_conflicts", []),
+            priority,
+        )
+        if len(chunks_for_answer) != len(documents):
+            print(
+                f"  🏅 Routing kept {sorted(selected_sources)} "
+                f"({len(chunks_for_answer)}/{len(documents)} chunks)"
+            )
 
-        # Build context from (possibly filtered) chunks
-        context_parts = []
-        for i, doc in enumerate(chunks_for_answer, 1):
-            source = doc.metadata.get('source', 'unknown')
-            context_parts.append(f"--- Chunk {i} (Source: {source}) ---\n{doc.page_content.strip()}\n")
-        context = "\n".join(context_parts)
+        # Build source-agnostic context from (possibly filtered) chunks. By
+        # this stage all surviving chunks agree by construction, so source
+        # labels would just add noise to the format-conversion task.
+        context = format_chunks_for_answer(chunks_for_answer)
 
         prompt = prompt_generate_answer(
-            field_name, parts["instruction"], parts["field_spec"], parts["output_guidance"], context
+            parts["instruction"], parts["field_spec"], parts["output_guidance"], context
         )
         try:
             response = _invoke_with_retry(self.llm.invoke, prompt)
@@ -485,22 +558,21 @@ class AgenticRAG:
             if is_context_limit:
                 # Retry with only the first 6 chunks
                 print(f"  ⚠️  Answer prompt too large, retrying with fewer chunks...")
-                truncated_parts = context_parts[:6]
-                truncated_context = "\n".join(truncated_parts)
+                truncated_context = format_chunks_for_answer(chunks_for_answer[:6])
                 prompt = prompt_generate_answer(
-                    field_name, parts["instruction"], parts["field_spec"], parts["output_guidance"], truncated_context
+                    parts["instruction"], parts["field_spec"], parts["output_guidance"], truncated_context
                 )
                 try:
                     response = _invoke_with_retry(self.llm.invoke, prompt)
                     answer = self._extract_field(response.content, "ANSWER") or response.content.strip()
                 except Exception as e2:
                     print(f"  ❌ Retry with fewer chunks also failed: {e2}")
-                    answer = "Not found"
+                    answer = "noAssertion"
             else:
                 raise
 
         print(f"  💡 Answer: {answer[:150]}...")
-        return {**state, "answer": answer}
+        return {**state, "answer": answer, "selected_sources": selected_sources}
 
     def _normalize_markdown(self, content: str, source: str) -> str:
         """Ensure all source content is normalized as markdown"""
@@ -859,7 +931,6 @@ class AgenticRAG:
         question = state["question"]
         TOP_K_PER_SOURCE = 20
         FINAL_TOP_K = 10
-        MIN_CHUNK_LENGTH = 100
         RRF_K = 60
 
         row_retrievers = state.get("row_retrievers", {})
@@ -919,14 +990,13 @@ class AgenticRAG:
                 kept = 0
                 for doc_id, rrf_score in fused:
                     doc = doc_lookup[doc_id]
-                    chunk_length = len(doc.page_content.strip())
-                    if chunk_length < MIN_CHUNK_LENGTH:
+                    if not _is_useful_chunk(doc.page_content):
                         continue
                     all_chunks_with_scores.append({
                         "document":   doc,
                         "similarity": rrf_score,  # name preserved for downstream code
                         "source":     source,
-                        "length":     chunk_length,
+                        "length":     len(doc.page_content.strip()),
                     })
                     kept += 1
 
@@ -1129,6 +1199,11 @@ class AgenticRAG:
                             'internal': result.get('internal_conflict', 'No'),
                             'external': result.get('external_conflict', 'No')
                         },
+                        # Phase 4 structured per-source trace.
+                        'claims': result.get('source_claims', {}),
+                        'internal_conflicts': result.get('internal_conflicts', {}),
+                        'external_conflicts': result.get('external_conflicts', []),
+                        'selected_sources': result.get('selected_sources', []),
                         'question_type': result.get('question_type', 'general'),
                         'num_documents': len(result['documents'])
                     }

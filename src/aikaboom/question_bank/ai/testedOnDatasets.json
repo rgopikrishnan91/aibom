@@ -34,6 +34,6 @@
   "extraction": {
     "instruction": "Extract the named datasets or benchmarks used to evaluate this AI model. Return only the canonical dataset names, comma-separated.",
     "field_spec": "AIkaBoOM-internal. Value space: a list of dataset/benchmark names (canonical short forms preferred, e.g. `GLUE`, `MMLU`, `HumanEval`). Maps to SPDX `testedOn` relationship and CycloneDX `modelCard.datasets` with `type=evaluation`.",
-    "output_guidance": "Return concrete dataset names only; exclude generic phrases like 'an internal test set' unless that is the only signal. Preserve official capitalization (e.g. `SQuAD`, `HellaSwag`). De-duplicate across sections. If evaluation is mentioned but no dataset is named, return 'noAssertion'. If evaluation is not discussed at all, return 'Not found.'. Do not include training datasets here."
+    "output_guidance": "Return concrete dataset names only; exclude generic phrases like 'an internal test set' unless that is the only signal. Preserve official capitalization (e.g. `SQuAD`, `HellaSwag`). De-duplicate across sections. If evaluation is mentioned but no dataset is named, or if evaluation is not discussed at all, return noAssertion. Do not include training datasets here."
   }
 }

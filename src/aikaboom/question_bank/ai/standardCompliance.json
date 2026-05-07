@@ -32,6 +32,6 @@
   "extraction": {
     "instruction": "Extract the standards, regulations, or frameworks that the AI software complies with, naming each by its identifier (e.g. ISO/IEC 23053, IEEE 7000, NIST AI RMF, GDPR).",
     "field_spec": "SPDX property `ai_standardCompliance`. Free-form text (xsd:string), typically a comma-separated list of standard identifiers. Includes published (ISO, IEEE, ETSI, NIST) and unpublished standards; legal/regulatory frameworks may be included if treated as compliance targets.",
-    "output_guidance": "List each standard as cited (with version/year if given), comma-separated. Distinguish certified compliance from self-asserted alignment when the source does. If the source mentions a regulation only as context (not as a compliance target), exclude it. Return 'noAssertion' when standards are referenced but no compliance claim is made. Return 'Not found.' when none are mentioned."
+    "output_guidance": "List each standard as cited (with version/year if given), comma-separated. Distinguish certified compliance from self-asserted alignment when the source does. If the source mentions a regulation only as context (not as a compliance target), exclude it. Return noAssertion when standards are referenced but no compliance claim is made, or when none are mentioned."
   }
 }

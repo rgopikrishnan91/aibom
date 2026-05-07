@@ -2,81 +2,167 @@
 Prompt templates for AgenticRAG LLM calls.
 
 Two-step workflow:
-  1. prompt_detect_conflicts  — conflict detection only (no answer)
+  1. prompt_detect_conflicts  — group-anonymized consistency audit
   2. prompt_generate_answer   — answer generation from (possibly filtered) chunks
 
-Each prompt receives a three-part extraction spec
+The conflict-detection prompt buckets chunks by source into groups
+labelled A/B/C/... and asks the LLM to compare groups without telling
+it which is which. This eliminates source-name bias and gives a
+deterministic line-based output (``CLAIM_A``, ``CONFLICT_WITHIN_A``,
+``CONFLICT_A_VS_B``, ...) that parses cleanly. The caller maps groups
+back to source names after parsing.
+
+The answer-generation prompt receives a three-part extraction spec
 (``instruction`` / ``field_spec`` / ``output_guidance``) sourced from
-the per-field question-bank ``extraction`` block. The structure
-separates "what to extract" from "the SPDX/internal contract" from
-"edge-case decision rules" so the LLM gets each piece in its own role.
+the per-field question-bank ``extraction`` block.
+"""
+
+from collections import OrderedDict
+
+
+def prompt_detect_conflicts(field_spec, group_chunks):
+    """Group-anonymized consistency auditor prompt.
+
+    Args:
+        field_spec: The SPDX/field-spec text the auditor compares
+            against. Drawn from the question-bank ``extraction.field_spec``.
+        group_chunks: ``OrderedDict[str, list[str]]`` mapping group letter
+            (``"A"``, ``"B"``, ...) to a list of chunk text strings already
+            bucketed by source. Group letters DO NOT carry source identity
+            into the prompt — the caller maps groups → sources after parse.
+
+    Output format the LLM follows:
+        CLAIM_<L>: <one sentence or "No relevant information">
+        CONFLICT_WITHIN_<L>: No | Yes: "<stmt 1>" vs "<stmt 2>"
+        CONFLICT_<A>_VS_<B>: No | Yes: A says "..." vs B says "..."
+    """
+    group_letters = list(group_chunks.keys())
+
+    group_blocks = []
+    for letter, chunks in group_chunks.items():
+        if chunks:
+            body = "\n".join(f"---\n{c}\n---" for c in chunks)
+        else:
+            body = "---\n(no chunks)\n---"
+        group_blocks.append(f"GROUP {letter}:\n{body}")
+    groups_section = "\n\n".join(group_blocks)
+
+    step1_lines = "\n".join(
+        f'CLAIM_{L}: <one sentence or "No relevant information">'
+        for L in group_letters
+    ) or "(no groups)"
+
+    step2_lines = "\n".join(
+        f'CONFLICT_WITHIN_{L}: No | Yes: "<statement 1>" vs "<statement 2>"'
+        for L in group_letters
+    ) or "(no groups)"
+
+    pairs = [
+        (a, b)
+        for i, a in enumerate(group_letters)
+        for b in group_letters[i + 1 :]
+    ]
+    step3_lines = "\n".join(
+        f'CONFLICT_{a}_VS_{b}: No | Yes: {a} says "<claim>" vs {b} says "<claim>"'
+        for a, b in pairs
+    ) or "(only one group present — no pairwise comparison)"
+
+    return f"""You are a consistency auditor. You compare independent documentation
+sources about the same AI artifact and identify where they agree
+or contradict each other. You do not judge whether claims are true
+or false — only whether sources are consistent with each other.
+
+FIELD BEING AUDITED:
+{field_spec}
+
+{groups_section}
+
+EXAMPLE OUTPUT (for a different field, showing the expected format):
+
+CLAIM_A: The model uses a decoder-only transformer with 7B parameters
+CLAIM_B: The architecture is an encoder-decoder transformer with 6.7B parameters
+CLAIM_C: No relevant information
+
+CONFLICT_WITHIN_A: No
+CONFLICT_WITHIN_B: No
+CONFLICT_WITHIN_C: No
+
+CONFLICT_A_VS_B: Yes: A says "decoder-only transformer" vs B says "encoder-decoder transformer"
+CONFLICT_A_VS_C: No
+CONFLICT_B_VS_C: No
+
+NOW AUDIT THE FIELD ABOVE. Follow the three steps below.
+
+STEP 1 — Extract each group's claim about this field in one sentence.
+If a group contains no information about this field, write
+"No relevant information."
+
+{step1_lines}
+
+STEP 2 — Check for contradictions WITHIN each group.
+Two statements contradict if they cannot both be true about the same
+aspect. Different details about different aspects are consistent,
+not contradictory.
+If no contradiction, write "No".
+If contradiction, write "Yes" with the two conflicting statements.
+
+{step2_lines}
+
+STEP 3 — Check for contradictions BETWEEN each pair of groups.
+Two groups contradict if they assert incompatible facts about the
+same aspect of this field. One group having more detail than another
+is not a contradiction.
+If no contradiction, write "No".
+If contradiction, write "Yes" with each group's conflicting claim.
+
+{step3_lines}
 """
 
 
-def prompt_detect_conflicts(field_name, instruction, field_spec, output_guidance, context):
-    """Step 1: Detect conflicts between chunks. No answer generation."""
-    return f"""You are a strict fact-checker.
+def format_chunks_for_answer(documents):
+    """Render documents as plain ``---``-separated blocks for the answer prompt.
 
-Your ONLY job is to detect CONTRADICTIONS between text chunks about a specific field.
-Do NOT generate an answer — only report conflicts.
+    No source labels, no chunk numbers. By the time chunks reach the answer
+    prompt they have already been routed through consensus filtering — by
+    construction they agree, so source attribution adds noise to the
+    format-conversion task.
+    """
+    parts = ["---"]
+    for doc in documents:
+        parts.append(doc.page_content.strip())
+        parts.append("---")
+    return "\n".join(parts)
 
-FIELD NAME: {field_name}
-INSTRUCTION: {instruction}
-FIELD SPEC: {field_spec}
-OUTPUT GUIDANCE: {output_guidance}
 
-CHUNKS (each chunk is labelled with its source):
-{context}
+def prompt_generate_answer(instruction, field_spec, output_guidance, context):
+    """Step 2: generate the field value from pre-filtered, source-agnostic chunks.
 
-INSTRUCTIONS:
-1. Read every chunk and identify statements directly relevant to "{field_name}".
-2. Compare each pair of chunks that both mention "{field_name}".
-3. For each contradictory pair, note the chunk numbers and their source labels.
-4. Classify each contradiction:
-   - INTERNAL CONFLICT: The two conflicting chunks come from the SAME source label.
-   - EXTERNAL CONFLICT: The two conflicting chunks come from DIFFERENT source labels.
+    The chunks reaching this prompt have already been consensus-filtered, so
+    the answerer's job is format conversion + edge-case handling per
+    ``field_spec`` / ``output_guidance``, not multi-source synthesis. The
+    template follows the CTF (Context, Task, Format) shape with three
+    universal rules; per-field behaviour comes from the question-bank
+    extraction block, not the template.
+    """
+    return f"""FIELD:
+{field_spec}
+
+TASK:
+{instruction}
 
 RULES:
-- Only flag a conflict if BOTH statements are directly about "{field_name}".
-- Complementary information (different aspects of the same field) is NOT a conflict.
-- Minor wording differences that describe the same fact are NOT a conflict.
-- If no chunks mention the field at all → both conflicts are "No".
+1. Use ONLY information from the context below. Do not add facts from your
+   own knowledge.
+2. Preserve exact names, numbers, and formatting from the source.
+3. If the context contains no relevant information, return noAssertion.
 
-YOUR RESPONSE MUST USE THIS EXACT FORMAT:
+FIELD-SPECIFIC GUIDANCE:
+{output_guidance or "(No additional guidance.)"}
 
-INTERNAL_CONFLICT: [No  |  Yes: <source> — Chunk <X> says "..." vs Chunk <Y> says "..."]
-EXTERNAL_CONFLICT: [No  |  Yes: <source A> (Chunk <X>) says "..." while <source B> (Chunk <Y>) says "..."]
-
-RESPONSE:"""
-
-
-def prompt_generate_answer(field_name, instruction, field_spec, output_guidance, context):
-    """Step 2: Generate answer from the provided chunks (may already be filtered)."""
-    return f"""You are an AI model and dataset documentation expert.
-
-Your task is to extract specific information from the provided source chunks.
-
-FIELD NAME: {field_name}
-INSTRUCTION: {instruction}
-FIELD SPEC: {field_spec}
-OUTPUT GUIDANCE: {output_guidance}
-
-CHUNKS:
+CONTEXT:
 {context}
 
-INSTRUCTIONS:
-1. Read all provided chunks carefully.
-2. Follow the INSTRUCTION: above precisely.
-3. Honour the FIELD SPEC: legal values, format, and units.
-4. Apply the OUTPUT GUIDANCE: for edge cases (missing info, conflicts, multi-value).
-5. If multiple chunks provide information, synthesize them into a complete answer.
-6. If no relevant information is found, respond with "Not found." — do NOT fabricate.
-
-YOUR RESPONSE MUST USE THIS EXACT FORMAT:
-
-ANSWER: [Your detailed answer synthesizing all provided chunks]
-
-RESPONSE:"""
+ANSWER:"""
 
 
 def prompt_no_documents(field_name, instruction):
@@ -88,7 +174,7 @@ INSTRUCTION: {instruction}
 
 YOUR RESPONSE MUST BE IN THIS EXACT FORMAT:
 
-ANSWER: Not found.
+ANSWER: noAssertion
 
 RESPONSE:"""
 

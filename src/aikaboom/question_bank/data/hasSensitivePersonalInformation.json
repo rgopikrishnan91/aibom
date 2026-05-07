@@ -11,8 +11,8 @@
     "bm25_terms": ["personal information", "sensitive information", "PII", "personally identifiable", "GDPR", "HIPAA", "anonymized", "de-identified", "pseudonymized", "biometric", "health records", "PHI", "scrubbed", "redacted", "identifiable individuals", "## Personal and Sensitive Information", "privacy", "names removed", "faces blurred"]
   },
   "extraction": {
-    "instruction": "Determine whether the dataset contains sensitive personal information (PII, biometric, health, financial, or other identity-revealing data) and report yes, no, or noAssertion with a brief justification quoted from the source.",
-    "field_spec": "SPDX property `dataset_hasSensitivePersonalInformation`. Enum: `yes` | `no` | `noAssertion`. Optional accompanying free-text rationale citing what kind of data is present.",
-    "output_guidance": "Return `yes` if the source explicitly mentions names, faces, voice recordings, addresses, medical/financial records, or 'contains PII'. Return `no` only if the source explicitly states the data is anonymised, synthetic, or contains no PII. Return `noAssertion` when sources are silent or ambiguous. If anonymisation is mentioned but residual PII is acknowledged, return `yes` with the caveat. Do not infer presence of PII from dataset domain alone."
+    "instruction": "Determine whether the dataset contains sensitive personal information (PII, biometric, health, financial, or other identity-revealing data) and report yes, no, or noAssertion.",
+    "field_spec": "SPDX property `dataset_hasSensitivePersonalInformation`. Enum: `yes` | `no` | `noAssertion`.",
+    "output_guidance": "Return `yes` if the source explicitly mentions names, faces, voice recordings, addresses, medical/financial records, or 'contains PII'. Return `no` only if the source explicitly states the data is anonymised, synthetic, or contains no PII. Return `noAssertion` when sources are silent or ambiguous. If anonymisation is mentioned but residual PII is acknowledged, return `yes`. Do not infer presence of PII from dataset domain alone. Return only the bare enum value with no explanatory prose."
   }
 }

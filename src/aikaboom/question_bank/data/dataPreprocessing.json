@@ -32,6 +32,6 @@
   "extraction": {
     "instruction": "Extract every preprocessing step applied to the raw data to produce the released dataset, in the order they were applied when stated.",
     "field_spec": "SPDX property `dataset_dataPreprocessing`. Free-form text (xsd:string), single value listing steps. Typical steps: standardization, normalization, deduplication, tokenization, filtering, chunking, language ID, PII scrubbing.",
-    "output_guidance": "Preserve numeric thresholds (e.g., 'min length 50 tokens', 'Jaccard 0.8') and tool names verbatim. If preprocessing is split between an upstream corpus and this release, mark which steps belong to each. Return 'Not found.' if the card only describes raw collection without any cleaning or transformation step."
+    "output_guidance": "Preserve numeric thresholds (e.g., 'min length 50 tokens', 'Jaccard 0.8') and tool names verbatim. If preprocessing is split between an upstream corpus and this release, mark which steps belong to each. Return noAssertion if the card only describes raw collection without any cleaning or transformation step."
   }
 }

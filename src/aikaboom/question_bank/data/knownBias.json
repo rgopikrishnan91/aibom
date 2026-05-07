@@ -13,6 +13,6 @@
   "extraction": {
     "instruction": "Extract the documented biases of the dataset, including demographic skew, language coverage, sampling bias, label bias, or any other limitation explicitly framed as a bias.",
     "field_spec": "SPDX property `dataset_knownBias`. Free-form xsd:string. Format: short paragraph or semicolon-separated list of named biases (e.g. 'gender skew 3:1 male; English-only; Western-centric topics').",
-    "output_guidance": "Prefer text under a section titled 'Bias', 'Biases', 'Discussion of Biases', or 'Bias, Risks, and Limitations'. Quote concrete numbers when present. If multiple biases are listed, combine them. Return 'Not found.' if the sources contain no bias discussion; do not extrapolate bias from dataset domain. If the source explicitly states 'no known biases', record that verbatim rather than 'Not found.'."
+    "output_guidance": "Prefer text under a section titled 'Bias', 'Biases', 'Discussion of Biases', or 'Bias, Risks, and Limitations'. Quote concrete numbers when present. If multiple biases are listed, combine them. Return noAssertion if the sources contain no bias discussion; do not extrapolate bias from dataset domain. If the source explicitly states 'no known biases', record that verbatim rather than noAssertion."
   }
 }

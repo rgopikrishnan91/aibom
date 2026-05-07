@@ -8,7 +8,6 @@ from aikaboom.core.processors import (
     _clean_value,
     _parse_conflict_string,
     _build_triplet_payload,
-    _merge_license_intra_conflict,
 )
 
 
@@ -114,43 +113,61 @@ class TestBuildTripletPayload:
         assert result["license"]["source"] == "hf"
         assert "license_source" not in result
 
-
-class TestMergeLicenseIntraConflict:
-    """Tests for _merge_license_intra_conflict."""
-
-    def test_no_conflict(self):
-        direct = {"license": {"value": "MIT", "source": "hf", "conflict": None}}
-        result = _merge_license_intra_conflict(direct, None)
-        assert result["license"]["conflict"] is None
-
-    def test_no_has_conflict_flag(self):
-        direct = {"license": {"value": "MIT", "source": "hf", "conflict": None}}
-        result = _merge_license_intra_conflict(direct, {"has_conflict": False})
-        assert result["license"]["conflict"] is None
-
-    def test_with_conflict(self):
-        direct = {"license": {"value": "MIT", "source": "hf", "conflict": None}}
-        conflict_info = {
-            "has_conflict": True,
-            "conflict_description": "License mismatch",
-            "per_source": {
-                "github_readme": {"has_conflict": True, "conflict_description": "MIT vs Apache"},
+    def test_trace_block_attached_when_claims_present(self):
+        """Phase 4 — when the wide row carries the per-source trace keys,
+        the triplet gets a ``trace`` block alongside value/source/conflict."""
+        mapping = {
+            "license": "Apache-2.0",
+            "license_conflict": None,
+            "license_source": "huggingface, arxiv",
+            "license_claims": {
+                "huggingface": "Apache-2.0",
+                "arxiv": "Apache-2.0",
+                "github": "MIT",
             },
+            "license_internal_conflicts": {},
+            "license_external_conflicts": [
+                {"sources": ["huggingface", "github"],
+                 "description": "huggingface says Apache-2.0 vs github says MIT"},
+                {"sources": ["arxiv", "github"],
+                 "description": "arxiv says Apache-2.0 vs github says MIT"},
+            ],
+            "license_selected_sources": ["huggingface", "arxiv"],
         }
-        result = _merge_license_intra_conflict(direct, conflict_info)
-        assert result["license"]["conflict"] is not None
-        assert result["license"]["conflict"]["type"] == "intra"
-        assert "License mismatch" in result["license"]["conflict"]["value"]
+        result = _build_triplet_payload(mapping, source_suffix="_source")
+        # Legacy slots untouched
+        assert result["license"]["value"] == "Apache-2.0"
+        assert result["license"]["source"] == "huggingface, arxiv"
+        assert result["license"]["conflict"] is None
+        # Trace block present and well-shaped
+        trace = result["license"]["trace"]
+        assert trace["claims"] == {
+            "huggingface": "Apache-2.0",
+            "arxiv": "Apache-2.0",
+            "github": "MIT",
+        }
+        assert trace["selected_sources"] == ["huggingface", "arxiv"]
+        assert trace["internal_conflicts"] == {}
+        assert len(trace["external_conflicts"]) == 2
+        assert trace["external_conflicts"][0]["sources"] == ["huggingface", "github"]
+        # Trace propagation keys themselves are not promoted to triplets
+        for k in ("license_claims", "license_internal_conflicts",
+                  "license_external_conflicts", "license_selected_sources"):
+            assert k not in result
 
-    def test_conflict_without_description_builds_from_per_source(self):
-        direct = {"license": {"value": "MIT", "source": "hf", "conflict": None}}
-        conflict_info = {
-            "has_conflict": True,
-            "conflict_description": None,
-            "per_source": {
-                "readme": {"has_conflict": True, "conflict_description": "MIT vs GPL"},
-            },
+    def test_no_trace_block_when_claims_absent(self):
+        """Direct-API fields with no Phase-4 trace data have no trace key."""
+        mapping = {
+            "license": "MIT",
+            "license_conflict": None,
         }
-        result = _merge_license_intra_conflict(direct, conflict_info)
-        assert result["license"]["conflict"] is not None
-        assert "MIT vs GPL" in result["license"]["conflict"]["value"]
+        result = _build_triplet_payload(mapping)
+        assert "trace" not in result["license"]
+        assert set(result["license"].keys()) == {"value", "source", "conflict"}
+
+
+# NOTE: TestMergeLicenseIntraConflict was removed because the
+# _merge_license_intra_conflict function it referenced does not exist
+# in processors.py — the test was collection-failing before this
+# refactor touched anything. If/when that helper is added, restore
+# the test class.

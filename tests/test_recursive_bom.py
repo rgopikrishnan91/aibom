@@ -1,4 +1,5 @@
 from aikaboom.utils.recursive_bom import (
+    EXHAUST_DEPTH,
     build_linked_spdx_bundle,
     discover_recursive_targets,
     generate_recursive_boms,
@@ -462,3 +463,67 @@ def test_linked_spdx_bundle_validates_after_multi_level_walk():
     summary = linked_bundle_summary(bundle, rec)
     assert summary["deepest_level_reached"] == 3
     assert summary["recursive_edge_count"] >= 5
+
+
+def test_exhaust_mode_hits_safety_cap():
+    """Under EXHAUST_DEPTH, an ever-fanning enrich callback must terminate at
+    ``safety_cap`` rather than running forever. The walker records the
+    cut-off in ``skipped_due_to_conflict`` with reason ``safety-cap-reached``
+    and flips ``tree_exhausted`` to False so the auditor can see the walk
+    was bounded, not natural."""
+    counter = {"n": 0}
+
+    def enrich(target):
+        # Each enriched node names a fresh child via modelLineage so the
+        # frontier never empties on its own.
+        counter["n"] += 1
+        return {
+            "model_id": target["target"],
+            "rag_fields": {
+                "modelLineage": _clean_triplet(f"org/child-{counter['n']:04d}"),
+            },
+        }
+
+    parent = {
+        "model_id": "root",
+        "rag_fields": {"modelLineage": _clean_triplet("org/seed-1")},
+    }
+
+    out = generate_recursive_boms(
+        parent,
+        bom_type="ai",
+        max_depth=EXHAUST_DEPTH,
+        safety_cap=5,
+        enrich_fn=enrich,
+        validate_spdx=False,
+    )
+    assert out["generated_count"] == 5, (
+        f"expected exactly safety_cap nodes, got {out['generated_count']}"
+    )
+    assert out["tree_exhausted"] is False
+    capped = [s for s in out["skipped_due_to_conflict"]
+              if s.get("reason") == "safety-cap-reached"]
+    assert capped, "safety-cap-reached entries must be recorded in skipped"
+
+
+def test_conflict_gating_under_phase4_structured_shape():
+    """Phase 4's conflict trace can land in the triplet under a richer
+    ``{type: "intra"|"inter", ...}`` shape (no legacy ``internal`` /
+    ``external`` strings). ``_conflict_of`` must still flag it so the
+    walker skips the field instead of recursing into a contradiction."""
+    metadata = {
+        "rag_fields": {
+            "trainedOnDatasets": {
+                "value": "squad",
+                "source": "huggingface",
+                "conflict": {
+                    "type": "intra",
+                    "value": "squad vs SQuAD-1.1",
+                    "source": "huggingface",
+                },
+            },
+        },
+    }
+    targets, audit = discover_recursive_targets(metadata, bom_type="ai")
+    assert targets == []
+    assert audit["skipped_due_to_conflict"][0]["field"] == "trainedOnDatasets"

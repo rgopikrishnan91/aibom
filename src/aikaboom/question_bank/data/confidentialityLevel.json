@@ -30,7 +30,7 @@
   },
   "extraction": {
     "instruction": "Extract the confidentiality classification the dataset assigns to its data points, mapping it to the SPDX ConfidentialityLevelType vocabulary when possible.",
-    "field_spec": "SPDX property `dataset_confidentialityLevel`. Enum ConfidentialityLevelType with members: `amber`, `clear`, `green`, `red`. Format: a single enum token, optionally with a parenthetical quote of the source phrasing.",
-    "output_guidance": "Map common phrasings: 'public'/'open' -> clear; 'shareable with limits' -> green; 'partner/NDA' -> amber; 'highly restricted'/'PHI' -> red. If multiple tiers apply to different splits, list each tier with the split it covers. If no confidentiality statement appears, return 'noAssertion'. Do not infer from license alone unless the license explicitly speaks to confidentiality."
+    "field_spec": "SPDX property `dataset_confidentialityLevel`. Enum ConfidentialityLevelType with members: `amber`, `clear`, `green`, `red`. Format: a single enum token.",
+    "output_guidance": "Map common phrasings: 'public'/'open' -> clear; 'shareable with limits' -> green; 'partner/NDA' -> amber; 'highly restricted'/'PHI' -> red. If multiple tiers apply to different splits, list each tier with the split it covers. If no confidentiality statement appears, return noAssertion. Do not infer from license alone unless the license explicitly speaks to confidentiality. Return only the bare enum value with no explanatory prose."
   }
 }

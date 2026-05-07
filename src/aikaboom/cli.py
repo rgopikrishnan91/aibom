@@ -223,42 +223,87 @@ def cmd_generate(args):
     # Optionally convert to CycloneDX
     if args.cyclonedx:
         from aikaboom.utils.cyclonedx_exporter import bom_to_cyclonedx
+        from aikaboom.utils.cyclonedx_validator import validate_cyclonedx
         bom_to_cyclonedx(result, bom_type=bom_type, output_path=args.cyclonedx)
         print(f"CycloneDX 1.7 BOM saved to {args.cyclonedx} (beta)")
         result.setdefault("beta_fields", []).append("cyclonedx")
 
+        # Authoritative validation via sbom-utility if available
+        cdx_validation = validate_cyclonedx(args.cyclonedx)
+        if cdx_validation["valid"] is True:
+            print(f"CycloneDX validation passed ({cdx_validation['validator']})")
+        elif cdx_validation["valid"] is False:
+            print(
+                f"CycloneDX validation failed ({cdx_validation['validator']}) "
+                f"with {len(cdx_validation['errors'])} error(s)"
+            )
+            for err in cdx_validation["errors"][:10]:
+                print(f"  - {err}")
+        else:
+            print(f"CycloneDX validation skipped: {cdx_validation['reason']}")
+
     if args.recursive_bom:
         from aikaboom.utils.recursive_bom import (
+            EXHAUST_DEPTH,
             build_linked_spdx_bundle,
             generate_recursive_boms,
             linked_bundle_summary,
         )
+        from aikaboom.utils.recursive_enrich import build_enrich_fn
         from aikaboom.utils.spdx_validator import validate_spdx_export
+
+        depth_arg = (args.recursive_depth or "1").strip().lower()
+        if depth_arg in ("all", "exhaust"):
+            recursive_max_depth = EXHAUST_DEPTH
+            depth_label = f"all (capped at {args.recursive_safety_cap} nodes)"
+        else:
+            try:
+                recursive_max_depth = max(0, int(depth_arg))
+            except ValueError:
+                print(
+                    f"Error: --recursive-depth must be an integer or 'all', "
+                    f"got {args.recursive_depth!r}",
+                    file=sys.stderr,
+                )
+                sys.exit(1)
+            depth_label = str(recursive_max_depth)
 
         print(
             "[recursive-bom beta] Walking the dependency tree. Each discovered "
-            "trainedOn / testedOn / dependsOn target produces another BOM, which "
-            "may itself reference more dependencies. Targets are deduplicated and "
-            "the walk stops at --recursive-depth or when the unique-target set is "
-            "exhausted."
+            "trainedOn / testedOn / dependsOn target produces a fully-enriched "
+            "child BOM via the same RAG pipeline. Targets are deduplicated and "
+            "the walk stops at --recursive-depth or when the unique-target set "
+            "is exhausted."
+        )
+        enrich_fn = build_enrich_fn(
+            use_case=args.use_case,
+            mode=args.mode,
+            llm_provider=provider,
+            model=model,
         )
         recursive_result = generate_recursive_boms(
             result,
             bom_type=bom_type,
-            max_depth=args.recursive_depth,
+            max_depth=recursive_max_depth,
+            safety_cap=args.recursive_safety_cap,
             validate_spdx=args.validate_spdx,
             strict_spdx=args.strict_spdx_validation,
+            enrich_fn=enrich_fn,
         )
         result.setdefault("beta_fields", []).append("recursive_bom")
         if args.recursive_output:
             with open(args.recursive_output, "w", encoding="utf-8") as f:
                 json.dump(recursive_result, f, indent=2, ensure_ascii=False)
             print(f"Recursive BOM bundle saved to {args.recursive_output} (beta)")
+        enriched_count = sum(
+            1 for n in recursive_result["generated"] if n.get("enriched")
+        )
         print(
-            f"Recursive BOM beta walked {recursive_result['deepest_level_reached']} "
-            f"level(s) and emitted {recursive_result['generated_count']} child BOM "
-            f"seed export(s); skipped {len(recursive_result['skipped_due_to_conflict'])} "
-            f"field(s) due to conflicts."
+            f"Recursive BOM beta (depth={depth_label}) walked "
+            f"{recursive_result['deepest_level_reached']} level(s) and emitted "
+            f"{recursive_result['generated_count']} child BOM(s) "
+            f"({enriched_count} enriched); skipped "
+            f"{len(recursive_result['skipped_due_to_conflict'])} field(s)."
         )
 
         if args.linked_bom_output:
@@ -391,13 +436,24 @@ def main():
     )
     gen.add_argument(
         "--recursive-depth",
-        type=int,
-        default=1,
+        type=str,
+        default="1",
         help=(
             "Maximum dependency-tree depth for --recursive-bom (default: 1, beta). "
-            "Walking deeper extracts BOMs for the dependencies of each dependency, "
-            "which can be expensive — recursion stops naturally when the unique-"
-            "target set is exhausted."
+            "Pass an integer or 'all' / 'exhaust' to walk until the unique-target "
+            "set empties or --recursive-safety-cap is reached. Walking deeper "
+            "extracts BOMs for the dependencies of each dependency, which can be "
+            "expensive."
+        ),
+    )
+    gen.add_argument(
+        "--recursive-safety-cap",
+        type=int,
+        default=50,
+        help=(
+            "Maximum number of child BOMs to generate under --recursive-depth=all "
+            "before stopping. Default: 50. Bounds runaway walks on densely "
+            "connected dependency graphs."
         ),
     )
     gen.add_argument(

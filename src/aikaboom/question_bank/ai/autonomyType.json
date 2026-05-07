@@ -11,7 +11,7 @@
     "bm25_terms": ["human-in-the-loop", "fully automated", "human oversight", "autonomous", "decision support", "human review", "manual intervention", "without human involvement", "supervised", "unsupervised operation", "operator review", "HITL", "semi-autonomous", "intended use", "decision loop", "reviewer required"]
   },
   "extraction": {
-    "instruction": "Determine whether the AI system makes decisions or takes actions without any human involvement, and return one of the three allowed enum values.",
+    "instruction": "Determine whether the AI system makes decisions or takes actions without any human involvement.",
     "field_spec": "SPDX property `ai_autonomyType`. Enum of exactly one of: `yes` (fully automated, no human in the loop), `no` (a human is involved in at least some decisions), or `noAssertion` (insufficient evidence). Lowercase camelCase string, no surrounding quotes or punctuation.",
     "output_guidance": "Return `yes` only if the source explicitly states the system runs without human review (e.g. 'fully autonomous', 'no human intervention'). Return `no` if any human-in-the-loop, reviewer, operator approval, or oversight step is mentioned. If the source is silent or contradictory across sections, return `noAssertion`. Do not include explanatory prose; return only the bare enum value."
   }

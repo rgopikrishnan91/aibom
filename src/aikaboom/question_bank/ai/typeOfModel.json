@@ -32,6 +32,6 @@
   "extraction": {
     "instruction": "Extract the type of AI model used, including learning paradigm (supervised, unsupervised, self-supervised, reinforcement) and architecture family (e.g. transformer, CNN, diffusion).",
     "field_spec": "SPDX property `ai_typeOfModel`. Free-form text (xsd:string). Conventional values cover learning paradigm (supervised | unsupervised | self-supervised | reinforcement | hybrid) and architecture (e.g. transformer decoder-only, CNN, RNN, diffusion, GAN, MoE).",
-    "output_guidance": "Return both the learning paradigm and the architecture when both are reported, separated by ' / ' (e.g. `self-supervised / transformer decoder-only`). For hybrid systems list each component. If only the architecture is given, return that alone. Return 'noAssertion' when the source describes the model's behavior but never names a paradigm or architecture. Return 'Not found.' when neither is mentioned."
+    "output_guidance": "Return both the learning paradigm and the architecture when both are reported, separated by ' / ' (e.g. `self-supervised / transformer decoder-only`). For hybrid systems list each component. If only the architecture is given, return that alone. Return noAssertion when the source describes the model's behavior but never names a paradigm or architecture, or when neither is mentioned."
   }
 }

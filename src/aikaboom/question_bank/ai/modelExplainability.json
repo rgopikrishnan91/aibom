@@ -31,6 +31,6 @@
   "extraction": {
     "instruction": "Extract the explainability or interpretability methods applied to this AI model, naming each technique (e.g. SHAP, LIME, attention, Grad-CAM) and how it is used to explain outputs.",
     "field_spec": "SPDX property `ai_modelExplainability`. Free-form text (xsd:string) listing explainability mechanisms. Format: comma-separated method names with one-line description of how each interprets predictions.",
-    "output_guidance": "If multiple methods are listed, separate with semicolons. Distinguish model-agnostic methods (SHAP, LIME) from model-specific ones (attention rollout, Grad-CAM). If the source explicitly says the model is a black box with no explainability, record that verbatim. Return 'noAssertion' if the model card discusses outputs but never addresses interpretability. Return 'Not found.' when the topic is absent."
+    "output_guidance": "If multiple methods are listed, separate with semicolons. Distinguish model-agnostic methods (SHAP, LIME) from model-specific ones (attention rollout, Grad-CAM). If the source explicitly says the model is a black box with no explainability, record that verbatim. Return noAssertion if the model card discusses outputs but never addresses interpretability, or when the topic is absent."
   }
 }
