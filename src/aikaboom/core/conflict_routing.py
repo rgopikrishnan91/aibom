@@ -145,8 +145,13 @@ def _route_chunks(documents, source_claims, internal_conflicts,
       +1 per other speaking-and-clean source whose claim does not
          contradict this source's claim
 
-    Tie-break under an external conflict uses ``static_priority``;
-    tie without external conflict keeps all top-scoring sources.
+    Tie-break: when multiple sources tie at the highest score AND the
+    tied sources are themselves in mutual external conflict, fall back
+    to ``static_priority`` to pick one. If the tied sources agree with
+    each other (e.g. arxiv + github both overriding a contradicting
+    huggingface), all are kept — that's the whole point of consensus
+    routing. The presence of *other* external conflicts elsewhere does
+    not trigger the tie-break.
     """
     speaking = [s for s, c in source_claims.items() if c is not None]
 
