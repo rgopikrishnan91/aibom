@@ -46,9 +46,11 @@ done
 uname_s="$(uname -s)"
 uname_m="$(uname -m)"
 
+# sbom-utility's release asset filenames use lowercase OS names and keep the
+# leading 'v' on the version (e.g. sbom-utility-v0.18.1-linux-amd64.tar.gz).
 case "$uname_s" in
-    Linux)  os="Linux" ;;
-    Darwin) os="Darwin" ;;
+    Linux)  os="linux" ;;
+    Darwin) os="darwin" ;;
     *)
         echo "Unsupported OS: $uname_s. Install manually from https://github.com/CycloneDX/sbom-utility/releases." >&2
         exit 3
@@ -64,22 +66,23 @@ case "$uname_m" in
         ;;
 esac
 
-# Resolve the latest tag if not pinned
+# Resolve the latest tag if not pinned. The /releases/latest API endpoint
+# rate-limits unauthenticated callers (HTTP 403); the HTML redirect at
+# /releases/latest does not, so use that — curl follows the redirect and we
+# read the final URL.
 if [[ "$VERSION" == "latest" ]]; then
-    VERSION=$(curl -fsSL https://api.github.com/repos/CycloneDX/sbom-utility/releases/latest \
-        | grep -oE '"tag_name"\s*:\s*"[^"]+"' \
-        | head -n1 \
-        | sed -E 's/.*"([^"]+)"$/\1/')
-    if [[ -z "$VERSION" ]]; then
+    final_url=$(curl -fsSL -o /dev/null -w '%{url_effective}' \
+        "https://github.com/CycloneDX/sbom-utility/releases/latest" || true)
+    VERSION="${final_url##*/}"
+    if [[ -z "$VERSION" || "$VERSION" == "latest" ]]; then
         echo "Could not resolve latest version. Pass --version explicitly." >&2
         exit 4
     fi
 fi
 
-# Tarball name pattern: sbom-utility-<version>-<os>-<arch>.tar.gz
-# (Release tags are like v0.18.0; the asset name strips the leading 'v'.)
-asset_version="${VERSION#v}"
-asset="sbom-utility-${asset_version}-${os}-${arch}.tar.gz"
+# Asset name pattern: sbom-utility-<version>-<os>-<arch>.tar.gz where
+# <version> keeps the leading 'v' (matches the release tag exactly).
+asset="sbom-utility-${VERSION}-${os}-${arch}.tar.gz"
 url="https://github.com/CycloneDX/sbom-utility/releases/download/${VERSION}/${asset}"
 
 mkdir -p "$INSTALL_DIR"
@@ -101,7 +104,8 @@ fi
 install -m 0755 "$binary_src" "$INSTALL_DIR/sbom-utility"
 
 echo "Installed: $INSTALL_DIR/sbom-utility"
-"$INSTALL_DIR/sbom-utility" --version || true
+# sbom-utility uses 'version' as a subcommand, not '--version' as a flag.
+"$INSTALL_DIR/sbom-utility" version 2>/dev/null | grep -E '^sbom-utility version' || true
 
 # Hint if the install dir isn't on PATH
 case ":$PATH:" in
