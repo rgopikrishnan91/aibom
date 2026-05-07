@@ -22,76 +22,15 @@ if os.path.exists(_env_path):
 else:
     load_dotenv()
 
-# Use case presets for AI
-USE_CASE_PRESETS_AI = {
-    'complete': {
-        'label': 'Complete AI BOM',
-        'description': 'Process every inference-backed field plus direct metadata.',
-        'fields': None
-    },
-    'safety': {
-        'label': 'Safety & Compliance',
-        'description': 'Focus on safety risks, standards, limitations, and lifecycle transparency.',
-        'fields': ['standardCompliance', 'limitation', 'modelExplainability', 'informationAboutApplication', 'informationAboutTraining', 'modelDataPreprocessing', 'domain']
-    },
-    'security': {
-        'label': 'Security & Risk',
-        'description': 'Highlight security posture, sensitive data usage, and operational context.',
-        'fields': ['safetyRiskAssessment', 'informationAboutApplication', 'domain', 'useSensitivePersonalInformation', 'autonomyType']
-    },
-    'lineage': {
-        'label': 'Model Lineage',
-        'description': 'Capture training provenance, preprocessing, and supporting context.',
-        'fields': ['informationAboutTraining', 'modelDataPreprocessing', 'hyperparameter', 'metric', 'metricDecisionThreshold']
-    },
-    'license': {
-        'label': 'License Compliance',
-        'description': 'Surface licensing and compliance-adjacent information.',
-        'fields': ['standardCompliance', 'license']
-    }
-}
-
-# Use case presets for Data
-USE_CASE_PRESETS_DATA = {
-    'complete': {
-        'label': 'Complete Data BOM',
-        'description': 'Process every inference-backed field plus direct metadata.',
-        'fields': None
-    },
-    'safety': {
-        'label': 'Safety & Bias',
-        'description': 'Focus on bias, noise, and data quality aspects.',
-        'fields': ['knownBias', 'datasetNoise', 'datasetUpdateMechanism', 'dataPreprocessing', 'dataCollectionProcess', 'intendedUse']
-    },
-    'security': {
-        'label': 'Security & Privacy',
-        'description': 'Focus on intended use, purpose, and anonymization.',
-        'fields': ['intendedUse', 'primaryPurpose', 'anonymizationMethodUsed']
-    },
-    'lineage': {
-        'label': 'Data Lineage',
-        'description': 'Capture data origin, collection, and preprocessing information.',
-        'fields': ['datasetAvailability', 'dataPreprocessing', 'dataCollectionProcess', 'releaseTime', 'originatedBy']
-    },
-    'license': {
-        'label': 'License & Rights',
-        'description': 'Focus on licensing and usage rights information.',
-        'fields': ['license']
-    }
-}
-
-
-def normalize_use_case(use_case: str, bom_type: str = 'ai') -> str:
-    """Normalize use case string to a valid preset key"""
-    key = (use_case or 'complete').strip().lower()
-    presets = USE_CASE_PRESETS_AI if bom_type == 'ai' else USE_CASE_PRESETS_DATA
-    return key if key in presets else 'complete'
-
-
-def get_use_case_label(use_case: str, bom_type: str = 'ai') -> str:
-    """Get the display label for a use case"""
-    presets = USE_CASE_PRESETS_AI if bom_type == 'ai' else USE_CASE_PRESETS_DATA
-    return presets.get(use_case, presets['complete'])['label']
+# Use-case presets + question filtering live in a shared helper so the CLI
+# and the web UI use the same source of truth.
+from aikaboom.utils.use_case import (  # noqa: E402
+    USE_CASE_PRESETS_AI,
+    USE_CASE_PRESETS_DATA,
+    filter_questions_by_use_case,
+    get_use_case_label,
+    normalize_use_case,
+)
 
 
 def count_fields(metadata_dict: dict) -> int:
@@ -245,15 +184,12 @@ def get_processor(bom_type: str, mode: str = "rag", llm_provider: str = "openai"
     cache_key = f"{bom_type}_{llm_provider}_{normalized_mode}_{model_to_use}_{normalized_use_case}"
     
     if cache_key not in processors_cache:
-        # Get questions for use case
-        questions = get_fixed_questions(bom_type)
-        if normalized_use_case != 'complete':
-            presets = USE_CASE_PRESETS_AI if bom_type == 'ai' else USE_CASE_PRESETS_DATA
-            preset_config = presets.get(normalized_use_case, {})
-            requested_fields = preset_config.get('fields', [])
-            if requested_fields:
-                questions = {k: v for k, v in questions.items() if k in requested_fields}
-        
+        # Filter the question set per the use-case preset (shared helper —
+        # CLI uses the same one).
+        questions = filter_questions_by_use_case(
+            normalized_use_case, bom_type, get_fixed_questions(bom_type),
+        )
+
         if bom_type == 'ai':
             processors_cache[cache_key] = AIBOMProcessor(
                 model=model_to_use,

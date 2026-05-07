@@ -119,6 +119,32 @@ def _resolve_provider_and_model(args):
     return chosen, explicit_model or default_model
 
 
+_MISSING_VALUE_MARKERS = {"", "noassertion", "not found", "not found.", "n/a", "none"}
+
+
+def _summarise_rag_fields(result):
+    """Return (populated_keys, missing_keys) for the RAG section of a BOM.
+
+    A field is "populated" iff its value is non-empty and not one of the
+    no-information sentinels (``noAssertion``, ``Not found.`` etc.). Used to
+    print a per-run summary so a partially-failed run isn't silent — the
+    BOM file looks fine but X of N fields had no extractable answer.
+    """
+    rag = (result or {}).get("rag_fields") or {}
+    populated, missing = [], []
+    for key, triplet in rag.items():
+        value = triplet.get("value") if isinstance(triplet, dict) else triplet
+        if value is None:
+            missing.append(key)
+            continue
+        text = str(value).strip().lower()
+        if text in _MISSING_VALUE_MARKERS:
+            missing.append(key)
+        else:
+            populated.append(key)
+    return populated, missing
+
+
 def cmd_generate(args):
     """Generate a BOM for an AI model or dataset."""
     if getattr(args, "pick_free_model", False):
@@ -146,7 +172,22 @@ def cmd_generate(args):
     provider, model = _resolve_provider_and_model(args)
     print(f"Provider: {provider} | Model: {model} | Mode: {args.mode}")
 
+    from aikaboom.core.agentic_rag import get_fixed_questions
     from aikaboom.core.processors import AIBOMProcessor, DATABOMProcessor
+    from aikaboom.utils.use_case import (
+        filter_questions_by_use_case,
+        normalize_use_case,
+    )
+
+    normalized_use_case = normalize_use_case(args.use_case, args.type)
+    questions_config = filter_questions_by_use_case(
+        normalized_use_case, args.type, get_fixed_questions(args.type),
+    )
+    if normalized_use_case != "complete":
+        print(
+            f"Use case: {normalized_use_case} ({len(questions_config)} of "
+            f"{len(get_fixed_questions(args.type))} fields)"
+        )
 
     if args.type == "ai":
         if not any([args.repo, args.arxiv, args.github]):
@@ -157,7 +198,8 @@ def cmd_generate(args):
             model=model,
             mode=args.mode,
             llm_provider=provider,
-            use_case=args.use_case,
+            use_case=normalized_use_case,
+            questions_config=questions_config,
         )
         result = processor.process_ai_model(
             repo_id=args.repo,
@@ -173,7 +215,8 @@ def cmd_generate(args):
             model=model,
             mode=args.mode,
             llm_provider=provider,
-            use_case=args.use_case,
+            use_case=normalized_use_case,
+            questions_config=questions_config,
         )
         result = processor.process_dataset(
             arxiv_url=args.arxiv,
@@ -189,6 +232,19 @@ def cmd_generate(args):
         print(f"BOM saved to {args.output}")
     else:
         print(output_json)
+
+    # Per-field RAG summary so a partially-failed run isn't silent.
+    populated, missing = _summarise_rag_fields(result)
+    total = len(populated) + len(missing)
+    if total:
+        msg = f"RAG fields: {len(populated)} of {total} populated"
+        if missing:
+            preview = ", ".join(missing[:5])
+            suffix = f"; missing: {preview}"
+            if len(missing) > 5:
+                suffix += f" (+{len(missing) - 5} more)"
+            msg += suffix
+        print(msg)
 
     bom_type = "ai" if args.type == "ai" else "data"
 

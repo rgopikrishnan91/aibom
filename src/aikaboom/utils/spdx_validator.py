@@ -11,7 +11,7 @@ import json
 import os
 import re
 import tempfile
-from datetime import datetime
+from datetime import datetime, timezone
 from functools import lru_cache
 from importlib import resources
 from typing import Dict, Any, Optional, Iterable, List
@@ -277,16 +277,30 @@ class SPDXValidator:
         return [value]
 
     def _normalize_timestamp(self, value: Any, default: Optional[str] = None) -> str:
-        """Return an SPDX timestamp with second precision and a Z suffix."""
+        """Return an SPDX timestamp with second precision and a Z suffix.
+
+        Accepts every ISO 8601 form ``datetime.fromisoformat`` understands —
+        ``+HH:MM`` offsets, ``Z`` suffix, microseconds, bare ``YYYY-MM-DD``.
+        Anything that doesn't parse falls through to ``default`` /
+        ``_get_current_timestamp()``. Earlier versions accepted only the
+        narrow ``Z``-suffixed form, which silently overwrote real
+        ``+00:00`` timestamps from HuggingFace with the wall-clock now
+        (Finding #7 in real-user testing).
+        """
         value = self._extract_value(value)
         if not value:
             return default or self._get_current_timestamp()
-        if isinstance(value, str):
-            if re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$", value):
-                return value
-            if re.match(r"^\d{4}-\d{2}-\d{2}$", value):
-                return f"{value}T00:00:00Z"
-        return default or self._get_current_timestamp()
+        if not isinstance(value, str):
+            return default or self._get_current_timestamp()
+        try:
+            dt = datetime.fromisoformat(value.strip())
+        except (TypeError, ValueError):
+            return default or self._get_current_timestamp()
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        else:
+            dt = dt.astimezone(timezone.utc)
+        return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
     def _normalize_enum(self, value: Any, allowed: Iterable[str], default: str) -> str:
         value = self._extract_value(value)

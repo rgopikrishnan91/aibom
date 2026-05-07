@@ -195,27 +195,26 @@ class AIBOMProcessor:
         
         # Initialize API clients
         gh_token = os.getenv("GITHUB_TOKEN")
-        if gh_token:
-            try:
-                self.github_client = Github(gh_token)
-            except Exception as exc:
-                print(f"Warning: Github client unavailable ({exc})")
-                self.github_client = None
-        else:
-            print("  Note: GITHUB_TOKEN not set. GitHub API calls will be rate-limited (60 req/hr).")
-            print("        Set it in .env or export GITHUB_TOKEN=ghp_...")
+        # Anonymous access works for public repos; both libs only need a token
+        # for higher rate limits or private repos. Always instantiate so the
+        # downstream `_fetch_source_objects` path works without env vars.
+        try:
+            self.github_client = Github(gh_token) if gh_token else Github()
+            if not gh_token:
+                print("  Note: GITHUB_TOKEN not set. GitHub API calls limited to 60 req/hr (anonymous).")
+                print("        Set it in .env or export GITHUB_TOKEN=ghp_... to raise the cap.")
+        except Exception as exc:
+            print(f"Warning: Github client unavailable ({exc})")
             self.github_client = None
 
         hf_token = os.getenv("HUGGINGFACE_TOKEN")
-        if hf_token:
-            try:
-                self.hf_api = HfApi(token=hf_token)
-            except Exception as exc:
-                print(f"Warning: Hugging Face client unavailable ({exc})")
-                self.hf_api = None
-        else:
-            print("  Note: HUGGINGFACE_TOKEN not set. HuggingFace API calls may be rate-limited.")
-            print("        Set it in .env or export HUGGINGFACE_TOKEN=hf_...")
+        try:
+            self.hf_api = HfApi(token=hf_token) if hf_token else HfApi()
+            if not hf_token:
+                print("  Note: HUGGINGFACE_TOKEN not set. Anonymous access; rate limits may apply.")
+                print("        Set it in .env or export HUGGINGFACE_TOKEN=hf_... to raise the cap.")
+        except Exception as exc:
+            print(f"Warning: Hugging Face client unavailable ({exc})")
             self.hf_api = None
 
     def generate_model_id(self, repo_id: str, github_url: str) -> str:
@@ -307,8 +306,11 @@ class AIBOMProcessor:
             priority=get_direct_priority("suppliedBy"),
             normaliser=normalize_org,
         )
+        # The AI metadata inspectors emit this key as ``downloadLocation``
+        # (metadata_fetcher.py:120, 213); the data inspector uses
+        # ``software_downloadLocation``. Match the AI emission key here.
         direct_metadata["downloadLocation"], direct_metadata["downloadLocation_source"], direct_metadata["downloadLocation_conflicts"] = SourceHandler.get_field_conflict_with_priority(
-            "software_downloadLocation", named_sources,
+            "downloadLocation", named_sources,
             priority=get_direct_priority("downloadLocation"),
             normaliser=normalize_url,
         )
@@ -500,27 +502,24 @@ class DATABOMProcessor:
             )
             print(f"✓ Initialized DATABOMProcessor in DIRECT mode with model: {model}")
         
-        # Initialize API clients
+        # Initialize API clients. Anonymous access works for public repos;
+        # tokens only raise the rate limit / unlock private repos.
         gh_token = os.getenv("GITHUB_TOKEN")
-        if gh_token:
-            try:
-                self.github_client = Github(gh_token)
-            except Exception as exc:
-                print(f"Warning: Github client unavailable ({exc})")
-                self.github_client = None
-        else:
-            print("  Note: GITHUB_TOKEN not set. GitHub API calls will be rate-limited (60 req/hr).")
+        try:
+            self.github_client = Github(gh_token) if gh_token else Github()
+            if not gh_token:
+                print("  Note: GITHUB_TOKEN not set. GitHub API calls limited to 60 req/hr (anonymous).")
+        except Exception as exc:
+            print(f"Warning: Github client unavailable ({exc})")
             self.github_client = None
 
         hf_token = os.getenv("HUGGINGFACE_TOKEN")
-        if hf_token:
-            try:
-                self.hf_api = HfApi(token=hf_token)
-            except Exception as exc:
-                print(f"Warning: Hugging Face client unavailable ({exc})")
-                self.hf_api = None
-        else:
-            print("  Note: HUGGINGFACE_TOKEN not set. HuggingFace API calls may be rate-limited.")
+        try:
+            self.hf_api = HfApi(token=hf_token) if hf_token else HfApi()
+            if not hf_token:
+                print("  Note: HUGGINGFACE_TOKEN not set. Anonymous access; rate limits may apply.")
+        except Exception as exc:
+            print(f"Warning: Hugging Face client unavailable ({exc})")
             self.hf_api = None
 
     def generate_dataset_id(self, arxiv_url: str, github_url: str, hf_url: str) -> str:
