@@ -263,9 +263,12 @@ SPDX_ALIASES: Dict[str, str] = {
     "cc-by-4.0": "CC-BY-4.0",
     "cc by 4.0": "CC-BY-4.0",
     "creative commons attribution 4.0": "CC-BY-4.0",
+    "cc-by-3.0": "CC-BY-3.0",
     "cc-by-sa-4.0": "CC-BY-SA-4.0",
+    "cc-by-sa-3.0": "CC-BY-SA-3.0",
     "cc-by-nc-4.0": "CC-BY-NC-4.0",
     "cc-by-nc-sa-4.0": "CC-BY-NC-SA-4.0",
+    "cc-by-nc-sa-3.0": "CC-BY-NC-SA-3.0",
     "cc0-1.0": "CC0-1.0",
     "cc0": "CC0-1.0",
     "public domain": "CC0-1.0",
@@ -359,6 +362,50 @@ def license_similarity(a: Any, b: Any) -> float:
     if norm_a == norm_b:
         return 1.0
     return difflib.SequenceMatcher(None, norm_a.lower(), norm_b.lower()).ratio()
+
+
+# Canonical SPDX-list ids from the alias-table values, minus the catch-all
+# / custom-ML-license entries that aren't on the SPDX license list. Used
+# by the CycloneDX exporter to decide whether a license string is
+# emittable as ``license.id`` (CDX 1.6 enforces an SPDX-list enum here)
+# or has to fall back to ``license.name``.
+_NON_SPDX_LIST_VALUES = {"other", "proprietary", "OpenRAIL", "OpenRAIL++", "Llama-2", "Gemma"}
+SPDX_LICENSE_IDS = frozenset(SPDX_ALIASES.values()) - _NON_SPDX_LIST_VALUES
+
+
+_ALIAS_HIT_VALUES = frozenset(SPDX_ALIASES.values())
+
+
+def cdx_license_block(value: Any) -> Optional[Dict[str, Dict[str, str]]]:
+    """Build a CycloneDX 1.6 ``licenses[]`` entry for a license string.
+
+    Returns ``{"license": {"id": <canonical>}}`` when the value
+    canonicalises to a known SPDX id (CDX 1.6 ``license.id`` is
+    schema-validated against the SPDX list). Returns
+    ``{"license": {"name": <value>}}`` for non-empty strings that
+    aren't on the SPDX list (e.g. ``"OpenRAIL"``, ``"Llama-2"``,
+    ``"proprietary"``) so the exporter still records the claim
+    without breaking schema validation. Returns ``None`` for nil /
+    empty / ``"NOASSERTION"`` so the caller can omit the block.
+    """
+    if value in (None, ""):
+        return None
+    if isinstance(value, str) and value.strip().lower() in {"noassertion", "not found.", "not found", "none"}:
+        return None
+    canonical = normalize_license(value)
+    if canonical in SPDX_LICENSE_IDS:
+        return {"license": {"id": canonical}}
+    # Fall back to license.name. Prefer the alias-canonical form when an
+    # alias hit happened (e.g. "llama 2" → "Llama-2"); otherwise preserve
+    # the caller's original casing (don't downcase "Llama-2" to "llama-2").
+    if canonical in _ALIAS_HIT_VALUES and canonical not in SPDX_LICENSE_IDS:
+        text = canonical
+    else:
+        text = value if isinstance(value, str) else str(value)
+    text = text.strip()
+    if not text:
+        return None
+    return {"license": {"name": text}}
 
 
 _POST_PROCESSORS = {

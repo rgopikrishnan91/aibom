@@ -5,6 +5,37 @@ from urllib.parse import urlparse
 from huggingface_hub import HfApi
 import fitz  # PyMuPDF
 
+from aikaboom.utils.normalise import normalize_license
+
+
+def _clean_hf_license(raw):
+    """Normalise an HF ``cardData.license`` value to a clean SPDX-style string.
+
+    HuggingFace stores license either as a string ("apache-2.0"), a
+    single-element list (["mit"]), or a multi-element list
+    (["mit", "apache-2.0"]). Each element is canonicalised through
+    ``normalize_license``; multi-element lists become an SPDX
+    ``OR``-joined expression. Empty / ``None`` returns ``None`` so the
+    resolver still treats license as missing.
+    """
+    if raw in (None, ""):
+        return None
+    if isinstance(raw, list):
+        cleaned = []
+        for item in raw:
+            if item in (None, ""):
+                continue
+            n = normalize_license(item)
+            if n:
+                cleaned.append(n)
+        if not cleaned:
+            return None
+        if len(cleaned) == 1:
+            return cleaned[0]
+        return " OR ".join(cleaned)
+    return normalize_license(raw) or None
+
+
 def _get_github_headers():
     """Build GitHub API headers with token from environment (if available)."""
     headers = {"Accept": "application/vnd.github.v3.raw"}
@@ -273,7 +304,7 @@ class MetadataFetcher:
                     hf_metadata["primaryPurpose"] = "; ".join(purpose_indicators) if purpose_indicators else None
                 
                 # License
-                hf_metadata["license"] = repo_info.cardData.get("license") if repo_info.cardData else None
+                hf_metadata["license"] = _clean_hf_license(repo_info.cardData.get("license")) if repo_info.cardData else None
 
                 # Model-tree relationship hints: structured signal extracted
                 # from HF metadata that mirrors the SPDX trainedOn / testedOn /
@@ -296,7 +327,7 @@ class MetadataFetcher:
                 hf_metadata["name"] = repo_info.id if repo_info.id else None
                 hf_metadata["datasetAvailability"] = "public" if repo_info.private is False else "private"
                 hf_metadata["primaryPurpose"] = repo_info.cardData.get("task_categories") if repo_info.cardData else None
-                hf_metadata["license"] = repo_info.cardData.get("license") if repo_info.cardData else None
+                hf_metadata["license"] = _clean_hf_license(repo_info.cardData.get("license")) if repo_info.cardData else None
                 hf_metadata["sourceInfo"] = repo_info.cardData.get("source_datasets") if repo_info.cardData else None
                 # contentIdentifier: HF dataset commit SHA
                 hf_metadata["contentIdentifier"] = (getattr(repo_info, "sha", "") or "").lower() or None

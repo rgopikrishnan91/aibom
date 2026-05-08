@@ -446,8 +446,14 @@ class SPDXValidator:
         # Extract organization info
         supplied_by = self._extract_value(direct_fields.get("suppliedBy", "Unknown"))
         
-        # Extract license
-        license_expr = self._extract_value(direct_fields.get("license", "NOASSERTION"))
+        # Extract license. Triplet dicts are always truthy so the dict-default
+        # in .get() never kicks in; explicitly check the unwrapped value for
+        # nil and fall back to NOASSERTION (SPDX-canonical missing sentinel).
+        license_raw = self._extract_value(direct_fields.get("license"))
+        if license_raw in (None, "") or _is_nil_value(license_raw):
+            license_expr = "NOASSERTION"
+        else:
+            license_expr = license_raw
         
         # Build SPDX document
         spdx_doc = {
@@ -776,17 +782,34 @@ class SPDXValidator:
             _SOFTWARE_PURPOSES,
             "data",
         )
-        license_expr = self._extract_value(direct.get('license') or rag.get('license') or "NOASSERTION")
+        # Triplet dicts are always truthy so the original `or`-chain default
+        # never fired; explicitly check the unwrapped value for nil and fall
+        # back to NOASSERTION. With Phase 11.6A canonicalising at the HF
+        # inspector, lists are no longer a concern at this layer.
+        license_raw = self._extract_value(direct.get('license'))
+        if license_raw in (None, "") or _is_nil_value(license_raw):
+            license_raw = self._extract_value(rag.get('license'))
+        # Belt-and-suspenders: if a list-form license slipped past the HF
+        # inspector (e.g. a hand-crafted BOM dict fed to the validator
+        # directly), join it as an SPDX OR-expression so the SPDX schema
+        # never sees a list as a license expression.
+        if isinstance(license_raw, list):
+            cleaned = [str(x).strip() for x in license_raw if x]
+            license_raw = " OR ".join(cleaned) if cleaned else None
+        if license_raw in (None, "") or _is_nil_value(license_raw):
+            license_expr = "NOASSERTION"
+        else:
+            license_expr = license_raw
         dataset_availability = self._normalize_enum(
             direct.get('datasetAvailability') or rag.get('datasetAvailability') or "directDownload",
             _DATASET_AVAILABILITY_VALUES,
             "directDownload",
         )
-        
-        # RAG-specific fields with type conversion
-        data_preprocessing = self._extract_value(rag.get('dataPreprocessing', []))
-        if isinstance(data_preprocessing, str):
-            data_preprocessing = [data_preprocessing] if data_preprocessing else []
+
+        # RAG-specific fields with type conversion. ``_as_list`` normalises
+        # scalar/list shapes and drops nil sentinels so a silent
+        # ``"noAssertion"`` answer doesn't become ``["noAssertion"]``.
+        data_preprocessing = self._as_list(rag.get('dataPreprocessing'))
         
         data_collection = self._extract_value(rag.get('dataCollectionProcess') or "")
         
@@ -809,9 +832,7 @@ class SPDXValidator:
         )
         intended_use = self._extract_value(rag.get('intendedUse') or "")
         
-        known_bias = self._extract_value(rag.get('knownBias', []))
-        if isinstance(known_bias, str):
-            known_bias = [known_bias] if known_bias else []
+        known_bias = self._as_list(rag.get('knownBias'))
 
         # Build the DatasetPackage element first so we can conditionally
         # omit dataset_datasetSize when the LLM answer didn't yield a
