@@ -1,8 +1,16 @@
 """
-Beta CycloneDX 1.7 exporter for AIkaBoOM.
+Beta CycloneDX 1.6 ML-BOM exporter for AIkaBoOM.
 
 Converts AIkaBoOM provenance BOM data (with triplet fields) into
-CycloneDX 1.7 JSON, using the modelCard extension for AI/ML metadata.
+CycloneDX 1.6 JSON, using the modelCard extension for AI/ML metadata.
+
+Why 1.6 and not 1.7: the validator we adopted in Phase 6
+(``sbom-utility``, https://github.com/CycloneDX/sbom-utility) ships
+embedded JSON schemas for CycloneDX 1.2-1.6 only as of v0.18.x.
+Emitting 1.7 means our own outputs can't be validated end-to-end
+(Phase 8 / Finding #9). 1.6 covers every component shape we emit
+(machine-learning-model, modelCard, pedigree, properties); revisit
+when sbom-utility ships 1.7 schemas.
 
 Public API:
     CycloneDXExporter(bom_type='ai').validate_and_convert(bom_data) -> dict
@@ -16,8 +24,11 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 
+CDX_SPEC_VERSION = "1.6"
+
+
 class CycloneDXExporter:
-    """Converts AIkaBoOM provenance BOMs to CycloneDX 1.7 JSON."""
+    """Converts AIkaBoOM provenance BOMs to CycloneDX 1.6 JSON."""
 
     def __init__(self, bom_type: str = "ai"):
         self.bom_type = bom_type.lower()
@@ -44,7 +55,7 @@ class CycloneDXExporter:
 
         return {
             "bomFormat": "CycloneDX",
-            "specVersion": "1.7",
+            "specVersion": CDX_SPEC_VERSION,
             "version": 1,
             "serialNumber": f"urn:uuid:{uuid.uuid4()}",
             "metadata": {
@@ -64,7 +75,7 @@ class CycloneDXExporter:
 
         return {
             "bomFormat": "CycloneDX",
-            "specVersion": "1.7",
+            "specVersion": CDX_SPEC_VERSION,
             "version": 1,
             "serialNumber": f"urn:uuid:{uuid.uuid4()}",
             "metadata": {
@@ -242,8 +253,11 @@ class CycloneDXExporter:
 
         if cdx_bom.get("bomFormat") != "CycloneDX":
             errors.append("bomFormat must be 'CycloneDX'")
-        if cdx_bom.get("specVersion") != "1.7":
-            errors.append(f"specVersion must be '1.7', got '{cdx_bom.get('specVersion')}'")
+        if cdx_bom.get("specVersion") != CDX_SPEC_VERSION:
+            errors.append(
+                f"specVersion must be '{CDX_SPEC_VERSION}', got "
+                f"'{cdx_bom.get('specVersion')}'"
+            )
         if not cdx_bom.get("serialNumber"):
             errors.append("Missing serialNumber")
         if not isinstance(cdx_bom.get("components"), list):
@@ -253,9 +267,9 @@ class CycloneDXExporter:
 
         is_valid = len(errors) == 0
         if is_valid:
-            print("CycloneDX 1.7 validation passed")
+            print("CycloneDX 1.6 validation passed")
         else:
-            print(f"CycloneDX 1.7 validation failed with {len(errors)} error(s)")
+            print(f"CycloneDX 1.6 validation failed with {len(errors)} error(s)")
             for e in errors:
                 print(f"  - {e}")
 
@@ -264,7 +278,7 @@ class CycloneDXExporter:
     def save_cyclonedx(self, cdx_data: Dict, output_path: str) -> str:
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(cdx_data, f, indent=2, ensure_ascii=False)
-        print(f"CycloneDX 1.7 BOM saved to: {output_path}")
+        print(f"CycloneDX 1.6 BOM saved to: {output_path}")
         return output_path
 
 
@@ -273,7 +287,7 @@ def bom_to_cyclonedx(
     bom_type: str = "ai",
     output_path: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """Convenience function to convert BOM data to CycloneDX 1.7 format."""
+    """Convenience function to convert BOM data to CycloneDX 1.6 format."""
     exporter = CycloneDXExporter(bom_type=bom_type)
     cdx_data = exporter.validate_and_convert(bom_data)
     if output_path:

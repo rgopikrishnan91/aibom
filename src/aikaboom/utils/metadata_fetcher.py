@@ -45,20 +45,30 @@ class MetadataFetcher:
         # split & drop empty segments
         parts = [p for p in parsed.path.split("/") if p]
 
-        # 1) If it's a datasets URL, e.g.
-        #    /datasets/<namespace>/<repo>/...  
+        # 1) Datasets URL. Two valid forms:
+        #    /datasets/<namespace>/<repo>/...   → "<namespace>/<repo>"
+        #    /datasets/<single-segment>/...     → "<single-segment>"
+        # The short form is the canonical name HF still hosts for many older
+        # datasets (squad, glue, imagenet-1k). Returning "datasets/<name>"
+        # would 404 against the HF API, so unwrap to the bare segment.
         if "datasets" in parts:
             idx = parts.index("datasets")
             if len(parts) > idx + 2:
                 namespace = parts[idx + 1]
                 repo      = parts[idx + 2]
                 return f"{namespace}/{repo}"
+            if len(parts) == idx + 2:
+                return parts[idx + 1]
 
         # 2) Otherwise, maybe it's just https://huggingface.co/<namespace>/<repo>
         if len(parts) >= 2:
             return f"{parts[0]}/{parts[1]}"
 
-        # 3) Give up
+        # 3) Single-segment model URL: https://huggingface.co/<name>
+        if len(parts) == 1:
+            return parts[0]
+
+        # 4) Give up
         return None
 
     @staticmethod

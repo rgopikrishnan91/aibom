@@ -1,5 +1,6 @@
 """
-Tests for CycloneDX 1.7 exporter.
+Tests for CycloneDX 1.6 exporter (downgraded from 1.7 in Phase 9 so
+sbom-utility, our adopted validator, can actually check the output).
 """
 import json
 import os
@@ -53,7 +54,7 @@ class TestAIBOMConversion:
     def test_top_level_shape(self):
         cdx = CycloneDXExporter(bom_type="ai").validate_and_convert(_ai_bom_data())
         assert cdx["bomFormat"] == "CycloneDX"
-        assert cdx["specVersion"] == "1.7"
+        assert cdx["specVersion"] == "1.6"
         assert cdx["serialNumber"].startswith("urn:uuid:")
         assert len(cdx["components"]) == 1
 

@@ -773,7 +773,7 @@
                 <button class="tab active" onclick="switchTab('complete')" title="Source-traced fields with conflict detection">BOM with Provenance</button>
                 <button class="tab" id="conflictsTabBtn" onclick="switchTab('conflicts')" title="Summary of all detected conflicts">Conflicts</button>
                 <button class="tab" onclick="switchTab('spdx')" title="Standards-compliant SPDX 3.0.1 export">SPDX 3.0.1</button>
-                <button class="tab" onclick="switchTab('cyclonedx')" title="CycloneDX 1.7 ML-BOM export">CycloneDX 1.7 Beta</button>
+                <button class="tab" onclick="switchTab('cyclonedx')" title="CycloneDX 1.6 ML-BOM export">CycloneDX 1.6 Beta</button>
                 <button class="tab" onclick="switchTab('recursive')" title="Recursive child BOM seed exports">Recursive Beta</button>
                 <button class="tab" onclick="switchTab('logs')" title="Server processing logs">Logs</button>
             </div>
@@ -781,7 +781,7 @@
             <div class="download-buttons" id="downloadButtons" style="display: none;">
                 <a id="downloadComplete" href="#" class="download-btn" target="_blank" style="display: none;">📥 Download Provenance BOM</a>
                 <a id="downloadSPDX" href="#" class="download-btn spdx" target="_blank" style="display: none;">📄 Download SPDX 3.0.1</a>
-                <a id="downloadCDX" href="#" class="download-btn spdx" target="_blank" style="display: none;">📦 Download CycloneDX 1.7 Beta</a>
+                <a id="downloadCDX" href="#" class="download-btn spdx" target="_blank" style="display: none;">📦 Download CycloneDX 1.6 Beta</a>
                 <a id="downloadRecursive" href="#" class="download-btn spdx" target="_blank" style="display: none;">Download Recursive BOM Beta</a>
                 <a id="downloadLinked" href="#" class="download-btn spdx" target="_blank" style="display: none;">Download Linked SPDX Beta</a>
             </div>
@@ -821,7 +821,7 @@
                 <div class="json-container">
                     <div id="jsonViewerCDX" class="json-viewer">
                         <div class="json-placeholder">
-                            CycloneDX 1.7 beta ML-BOM export will appear here.
+                            CycloneDX 1.6 beta ML-BOM export will appear here.
                         </div>
                     </div>
                 </div>
@@ -1278,7 +1278,7 @@
                         renderSpdxValidation(result.spdx_validation);
                     }
 
-                    // CycloneDX 1.7 beta
+                    // CycloneDX 1.6 beta
                     if (result.cyclonedx_download_url && result.cyclonedx_data) {
                         downloadCDX.href = result.cyclonedx_download_url;
                         downloadCDX.style.display = 'inline-block';
@@ -1529,7 +1529,7 @@
             spdxValidationStatus.style.display = 'none';
             jsonViewerComplete.innerHTML = '<div class="json-placeholder">Process a dataset to view the complete BOM JSON output here</div>';
             jsonViewerSPDX.innerHTML = '<div class="json-placeholder">Process a dataset to view the SPDX-compliant JSON output here</div>';
-            jsonViewerCDX.innerHTML = '<div class="json-placeholder">CycloneDX 1.7 beta ML-BOM export will appear here.</div>';
+            jsonViewerCDX.innerHTML = '<div class="json-placeholder">CycloneDX 1.6 beta ML-BOM export will appear here.</div>';
             jsonViewerRecursive.innerHTML = '<div class="json-placeholder">Recursive BOM beta outputs will appear here when enabled.</div>';
             spdxData = null;
             document.getElementById('validate_spdx').checked = true;

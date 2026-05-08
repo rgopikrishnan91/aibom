@@ -155,5 +155,5 @@ class TestUITemplateContent:
         html = resp.data.decode()
         assert "Download Provenance BOM" in html
         assert "Download SPDX 3.0.1" in html
-        assert "Download CycloneDX 1.7 Beta" in html
+        assert "Download CycloneDX 1.6 Beta" in html
         assert "Download Recursive BOM Beta" in html

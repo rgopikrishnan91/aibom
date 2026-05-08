@@ -58,7 +58,38 @@ def _slim(model: Dict[str, Any]) -> Dict[str, Any]:
         "name": model.get("name") or model.get("id"),
         "context_length": model.get("context_length"),
         "pricing": model.get("pricing", {}),
+        # ``architecture`` carries modality info ({input,output}_modalities or
+        # the older ``modality`` field). Kept in the slim shape so the
+        # free-model picker can filter to text-chat models — Phase 9 /
+        # Finding #12 (the picker was sorting by context length and ended up
+        # selecting music-generation models like ``google/lyria-3-pro-preview``).
+        "architecture": model.get("architecture") or {},
     }
+
+
+_NON_CHAT_NAME_PATTERNS = (
+    "lyria", "owl-alpha", "music", "audio", "tts", "speech",
+    "video", "image-", "vision-", "diffusion",
+)
+
+
+def _is_text_chat_model(model: Dict[str, Any]) -> bool:
+    """True if a model is text-in / text-out (a chat-completion model).
+
+    Falls back to a name blocklist for entries from the curated fallback
+    list (which doesn't carry architecture metadata) or models whose
+    ``architecture`` dict is empty.
+    """
+    arch = model.get("architecture") or {}
+    inp = arch.get("input_modalities") or []
+    out = arch.get("output_modalities") or []
+    if inp or out:
+        return ("text" in inp) and ("text" in out)
+    modality = arch.get("modality") or ""
+    if modality:
+        return "text" in modality.lower()
+    name = (model.get("id") or "").lower()
+    return not any(p in name for p in _NON_CHAT_NAME_PATTERNS)
 
 
 def _is_free(model: Dict[str, Any]) -> bool:
@@ -100,9 +131,16 @@ def list_openrouter_models(force_refresh: bool = False, *, timeout: int = 10) ->
 
 
 def list_free_openrouter_models(force_refresh: bool = False) -> List[Dict[str, Any]]:
-    """Return only free models, sorted by context_length descending."""
+    """Return free chat-completion models, sorted by context_length desc.
+
+    Excludes audio / music / image / video generation models — sorting
+    purely by context length used to surface things like
+    ``google/lyria-3-pro-preview`` (a music model) above any usable chat
+    model. See ``_is_text_chat_model`` for the filter rule (Phase 9 /
+    Finding #12).
+    """
     all_models = list_openrouter_models(force_refresh=force_refresh)
-    free = [m for m in all_models if _is_free(m)]
+    free = [m for m in all_models if _is_free(m) and _is_text_chat_model(m)]
 
     def _ctx_key(m: Dict[str, Any]) -> int:
         ctx = m.get("context_length")

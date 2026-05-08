@@ -87,24 +87,69 @@ import re
 load_dotenv()
 
 
+_TRANSIENT_ERROR_MARKERS = (
+    'connection reset', 'connection aborted', 'connectionreset',
+    'protocol error', 'broken pipe', 'remotedisconnected',
+    'econnreset', 'econnrefused', '104,', 'connection error',
+    'provider returned error',  # transient upstream 400s from OpenRouter etc.
+    # Rate-limit errors are also transient — wait and retry.
+    '429', 'rate limit', 'rate-limit', 'too many requests',
+    'service unavailable', 'gateway timeout', 'bad gateway', '502', '503', '504',
+)
+
+_RATE_LIMIT_MARKERS = ('429', 'rate limit', 'rate-limit', 'too many requests')
+
+
+def _is_rate_limit_error(exc) -> bool:
+    """True if an exception text or attached response indicates a 429."""
+    err_text = str(exc).lower()
+    return any(m in err_text for m in _RATE_LIMIT_MARKERS)
+
+
+def _retry_sleep_seconds(exc, attempt, initial_delay=2.0):
+    """Honour ``X-RateLimit-Reset`` (epoch-ms or seconds-from-now) when the
+    response carries it; otherwise exponential backoff. Capped at 60s so a
+    misformatted header can't park the worker for an hour."""
+    response = getattr(exc, "response", None)
+    headers = getattr(response, "headers", None) or {}
+    reset = headers.get("X-RateLimit-Reset") or headers.get("x-ratelimit-reset")
+    if reset:
+        try:
+            reset_val = float(reset)
+        except (TypeError, ValueError):
+            reset_val = None
+        if reset_val is not None:
+            now = time.time()
+            # OpenRouter returns epoch-ms; some others return seconds-from-now.
+            # Heuristic: anything bigger than ~10x current epoch seconds is ms.
+            wait = (reset_val / 1000.0 - now) if reset_val > now * 10 else (reset_val - now)
+            if wait < 0:
+                wait = reset_val if reset_val < 60 else 1.0
+            return max(0.5, min(60.0, wait))
+    return min(60.0, initial_delay * (2 ** attempt))
+
+
 def _invoke_with_retry(fn, *args, max_retries=3, initial_delay=2.0, **kwargs):
-    """Invoke fn(*args, **kwargs) with exponential backoff for transient connection errors."""
+    """Invoke fn(*args, **kwargs) with backoff for transient + rate-limit errors.
+
+    Rate limit (429) responses honour ``X-RateLimit-Reset`` when set, so we
+    sleep until the server's posted reset time instead of guessing. Other
+    transient errors use exponential backoff.
+    """
     last_error = None
     for attempt in range(max_retries):
         try:
             return fn(*args, **kwargs)
         except Exception as e:
             err_str = str(e).lower()
-            is_transient = any(x in err_str for x in [
-                'connection reset', 'connection aborted', 'connectionreset',
-                'protocol error', 'broken pipe', 'remotedisconnected',
-                'econnreset', 'econnrefused', '104,', 'connection error',
-                'provider returned error',  # transient upstream 400s from OpenRouter etc.
-            ])
+            is_transient = any(x in err_str for x in _TRANSIENT_ERROR_MARKERS)
             if is_transient and attempt < max_retries - 1:
-                delay = initial_delay * (2 ** attempt)
-                print(f"  ⚠️ Transient connection error (attempt {attempt + 1}/{max_retries}): "
-                      f"{type(e).__name__}. Retrying in {delay:.1f}s...")
+                delay = _retry_sleep_seconds(e, attempt, initial_delay=initial_delay)
+                kind = "rate-limited" if _is_rate_limit_error(e) else "transient"
+                print(
+                    f"  ⚠️ {kind} error (attempt {attempt + 1}/{max_retries}): "
+                    f"{type(e).__name__}. Retrying in {delay:.1f}s..."
+                )
                 time.sleep(delay)
                 last_error = e
             else:
@@ -156,9 +201,22 @@ def get_fixed_questions(bom_type='ai'):
 # Default to AI for backward compatibility
 FIXED_QUESTIONS = FIXED_QUESTIONS_AI
 
-# Extract questions and create reverse lookup
+# Extract questions and create reverse lookup. Per-bom-type maps so a data-BOM
+# run can resolve its own question texts back to field keys; the legacy
+# AI-only globals are kept so older callers continue to work, but
+# ``_question_key_map(bom_type)`` is the right call site for new code.
 QUESTIONS_LIST = [config['question'] for config in FIXED_QUESTIONS.values()]
 QUESTION_TO_KEY = {config['question']: key for key, config in FIXED_QUESTIONS.items()}
+
+_QUESTION_TO_KEY_BY_BOM = {
+    'ai': {cfg['question']: key for key, cfg in FIXED_QUESTIONS_AI.items()},
+    'data': {cfg['question']: key for key, cfg in FIXED_QUESTIONS_DATA.items()},
+}
+
+
+def _question_key_map(bom_type: str) -> Dict[str, str]:
+    """Return the question-text-to-field-key map for the given BOM type."""
+    return _QUESTION_TO_KEY_BY_BOM.get(bom_type, _QUESTION_TO_KEY_BY_BOM['ai'])
 
 
 class AgentState(TypedDict, total=False):
@@ -458,8 +516,14 @@ class AgenticRAG:
             response_text = response.content
         except (ValueError, Exception) as e:
             err_str = str(e)
-            if '400' in err_str or 'context' in err_str.lower() or 'too long' in err_str.lower():
-                print(f"  ⚠️  Conflict detection skipped (prompt too large): {err_str[:120]}")
+            err_lower = err_str.lower()
+            is_too_large = '400' in err_str or 'context' in err_lower or 'too long' in err_lower
+            is_rate_limited = _is_rate_limit_error(e)
+            if is_too_large or is_rate_limited:
+                if is_rate_limited:
+                    print(f"  ⚠️  Conflict detection rate-limited: {err_str[:120]}")
+                else:
+                    print(f"  ⚠️  Conflict detection skipped (prompt too large): {err_str[:120]}")
                 source_claims = {src: None for src in group_to_source.values()}
                 return {
                     **state,
@@ -908,10 +972,20 @@ class AgenticRAG:
         return headers
     
     def get_question_priority(self, question: str) -> Tuple[str, List[str], str]:
-        """Get pre-defined priority and keywords for a question"""
-        question_key = QUESTION_TO_KEY.get(question)
+        """Get pre-defined priority and keywords for a question.
+
+        Resolves the question text back to its field key via the per-BOM-type
+        map: a data-BOM run uses the data question texts, an AI-BOM run uses
+        the AI ones. The earlier AI-only ``QUESTION_TO_KEY`` global silently
+        routed every data question to ``'unknown'`` (Finding #15).
+        """
+        bom_type = getattr(self, 'bom_type', 'ai')
+        question_key = _question_key_map(bom_type).get(question)
         if question_key:
-            config = self.questions.get(question_key) or FIXED_QUESTIONS.get(question_key)
+            full_config = (
+                FIXED_QUESTIONS_DATA if bom_type == 'data' else FIXED_QUESTIONS_AI
+            )
+            config = self.questions.get(question_key) or full_config.get(question_key)
             if config:
                 return question_key, config['priority'], config['keywords']
         return 'unknown', ['huggingface', 'arxiv', 'github'], question
@@ -1157,7 +1231,11 @@ class AgenticRAG:
         # Process all questions in parallel — each workflow.invoke is independent
         # (retrievers is read-only; each invocation has its own state dict).
         id_key = 'repo_id' if item_type == 'ai' else 'dataset_id'
-        MAX_PARALLEL_QUESTIONS = 5  # keep within OpenRouter rate limits
+        # OpenRouter free-tier caps at 8 RPM and each question fires ~3 LLM
+        # calls (HyDE, conflict-detect, answer-generate). 5 in parallel ≈ 15
+        # calls/minute → guaranteed 429s. Drop to 2 to stay inside the cap;
+        # the retry helper still backs off on the occasional 429.
+        MAX_PARALLEL_QUESTIONS = 2
 
         def _run_question(question_type, config):
             question = config['question']
@@ -1425,12 +1503,23 @@ class DirectLLM:
             'sources_used': sources_used
         }
     
-    def process_ai_model(self, repo_id: str, arxiv_url: str, github_url: str, huggingface_url: str) -> List[Dict]:
-        """Process a single AI model and answer all questions using Direct LLM (no RAG)"""
+    def process_ai_model(self, repo_id: str, arxiv_url: str, github_url: str, huggingface_url: str,
+                         structured_chunks: Optional[Dict[str, str]] = None, **_kwargs) -> List[Dict]:
+        """Process a single AI model and answer all questions using Direct LLM (no RAG).
+
+        ``structured_chunks`` is accepted for signature parity with ``AgenticRAG``
+        (the orchestrator passes it unconditionally) but ignored here — Direct
+        LLM doesn't chunk; it feeds raw source text to the LLM.
+        """
         return self.process(repo_id, arxiv_url, github_url, huggingface_url, 'ai')
-    
-    def process_dataset(self, dataset_id: str, arxiv_url: str, github_url: str, huggingface_url: str) -> List[Dict]:
-        """Process a single dataset and answer all questions using Direct LLM (no RAG)"""
+
+    def process_dataset(self, dataset_id: str, arxiv_url: str, github_url: str, huggingface_url: str,
+                        structured_chunks: Optional[Dict[str, str]] = None, **_kwargs) -> List[Dict]:
+        """Process a single dataset and answer all questions using Direct LLM (no RAG).
+
+        ``structured_chunks`` accepted for signature parity with ``AgenticRAG``;
+        ignored here.
+        """
         return self.process(dataset_id, arxiv_url, github_url, huggingface_url, 'data')
     
     def process(self, item_id: str, arxiv_url: str, github_url: str, huggingface_url: str, item_type: str = None) -> List[Dict]:

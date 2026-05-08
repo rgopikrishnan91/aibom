@@ -11,7 +11,7 @@ import json
 import os
 import re
 import tempfile
-from datetime import datetime
+from datetime import datetime, timezone
 from functools import lru_cache
 from importlib import resources
 from typing import Dict, Any, Optional, Iterable, List
@@ -32,6 +32,18 @@ _SOFTWARE_PURPOSES = {
     "source", "specification", "test",
 }
 _PRESENCE_VALUES = {"yes", "no", "noAssertion"}
+
+# Sentinels meaning "no information for this field". Used to short-circuit
+# stub-package emission so a silent field doesn't fabricate a child element
+# named "noAssertion" or similar (Phase 9 / Finding #16).
+_NIL_VALUES = {"not found", "not found.", "noassertion", "n/a", "none", ""}
+
+
+def _is_nil_value(value) -> bool:
+    if value is None:
+        return True
+    text = str(value).strip().lower()
+    return text in _NIL_VALUES
 _AI_SAFETY_VALUES = {"low", "medium", "high", "serious"}
 _DATASET_AVAILABILITY_VALUES = {
     "clickthrough", "directDownload", "query", "registration", "scrapingScript",
@@ -277,16 +289,30 @@ class SPDXValidator:
         return [value]
 
     def _normalize_timestamp(self, value: Any, default: Optional[str] = None) -> str:
-        """Return an SPDX timestamp with second precision and a Z suffix."""
+        """Return an SPDX timestamp with second precision and a Z suffix.
+
+        Accepts every ISO 8601 form ``datetime.fromisoformat`` understands —
+        ``+HH:MM`` offsets, ``Z`` suffix, microseconds, bare ``YYYY-MM-DD``.
+        Anything that doesn't parse falls through to ``default`` /
+        ``_get_current_timestamp()``. Earlier versions accepted only the
+        narrow ``Z``-suffixed form, which silently overwrote real
+        ``+00:00`` timestamps from HuggingFace with the wall-clock now
+        (Finding #7 in real-user testing).
+        """
         value = self._extract_value(value)
         if not value:
             return default or self._get_current_timestamp()
-        if isinstance(value, str):
-            if re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$", value):
-                return value
-            if re.match(r"^\d{4}-\d{2}-\d{2}$", value):
-                return f"{value}T00:00:00Z"
-        return default or self._get_current_timestamp()
+        if not isinstance(value, str):
+            return default or self._get_current_timestamp()
+        try:
+            dt = datetime.fromisoformat(value.strip())
+        except (TypeError, ValueError):
+            return default or self._get_current_timestamp()
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        else:
+            dt = dt.astimezone(timezone.utc)
+        return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
     def _normalize_enum(self, value: Any, allowed: Iterable[str], default: str) -> str:
         value = self._extract_value(value)
@@ -498,64 +524,105 @@ class SPDXValidator:
         }
         for field_key, rel_type in relationship_fields.items():
             value = self._extract_value(rag_fields.get(field_key))
-            if value and isinstance(value, str) and value.lower() not in ('not found', 'not found.', ''):
-                stub_elements, rels = self._build_dataset_relationships(
-                    value=value,
-                    rel_type=rel_type,
-                    from_id=f"urn:spdx:AIPackage-{package_uuid}",
-                    creation_uuid=creation_uuid,
-                )
-                spdx_doc['@graph'].extend(stub_elements)
-                spdx_doc['@graph'].extend(rels)
+            if _is_nil_value(value):
+                continue
+            stub_elements, rels = self._build_dataset_relationships(
+                value=value,
+                rel_type=rel_type,
+                from_id=f"urn:spdx:AIPackage-{package_uuid}",
+                creation_uuid=creation_uuid,
+                parent_identifier=repo_id,
+            )
+            spdx_doc['@graph'].extend(stub_elements)
+            spdx_doc['@graph'].extend(rels)
 
         return spdx_doc
 
     def _build_dataset_relationships(self, value: str, rel_type: str,
-                                      from_id: str, creation_uuid: str):
-        """Create stub DatasetPackage elements and Relationship elements.
+                                      from_id: str, creation_uuid: str,
+                                      parent_identifier: Optional[str] = None):
+        """Create stub child packages + Relationship elements for a target list.
 
-        Parses a comma/semicolon separated string of dataset names, creates
-        a minimal DatasetPackage stub for each, and emits a Relationship
-        linking the AIPackage to each dataset.
+        Parses ``value`` as a separator-joined list of relationship targets:
 
-        Returns:
-            (stub_elements: list[dict], relationships: list[dict])
+        - Separators: ``,``, ``;``, newline, ``->``, ``→`` (the last two are
+          common in LLM-extracted lineage strings).
+        - ``rel_type == 'dependsOn'`` (modelLineage) emits ``ai_AIPackage``
+          stubs; ``trainedOn`` / ``testedOn`` emit ``dataset_DatasetPackage``
+          stubs.
+        - Targets equal (case-insensitive) to ``parent_identifier`` are
+          dropped (a base model's modelLineage often points at itself —
+          Finding #19).
+        - Nil sentinels (``noAssertion``, ``Not found.``, …) are dropped at
+          per-segment granularity; ``"X -> noAssertion"`` becomes a single
+          target ``X``.
+
+        Returns: ``(stub_elements: list[dict], relationships: list[dict])``.
         """
-        import re
-        names = [n.strip() for n in re.split(r'[;,\n]+', value) if n.strip()]
-        # Deduplicate while preserving order
+        if _is_nil_value(value) or not isinstance(value, str):
+            return [], []
+
+        # Split on standard separators plus ``->`` / ``→`` arrows. Each
+        # segment is a candidate target; nil sentinels and self-loops are
+        # filtered below.
+        parts = re.split(r'[,;\n]|\s*(?:->|→)\s*', value)
+        names = [n.strip() for n in parts if n and n.strip()]
+
+        parent_lower = (parent_identifier or "").strip().lower()
         seen = set()
         unique_names = []
         for n in names:
             low = n.lower()
-            if low not in seen:
-                seen.add(low)
-                unique_names.append(n)
+            if low in seen or low == parent_lower or _is_nil_value(low):
+                continue
+            seen.add(low)
+            unique_names.append(n)
 
         stubs = []
         rels = []
         for name in unique_names[:10]:
-            ds_uuid = self._generate_uuid()
-            ds_id = f"urn:spdx:DatasetPackage-{ds_uuid}"
-            stubs.append({
-                "type": "dataset_DatasetPackage",
-                "spdxId": ds_id,
-                "creationInfo": f"_:creationinfo-{creation_uuid}",
-                "name": name,
-                "software_downloadLocation": "NOASSERTION",
-                "software_primaryPurpose": "data",
-                "dataset_datasetType": ["noAssertion"],
-            })
+            child_uuid = self._generate_uuid()
+            stub = self._lineage_stub(name, rel_type, child_uuid, creation_uuid)
+            stubs.append(stub)
             rels.append({
                 "type": "Relationship",
-                "spdxId": f"urn:spdx:Relationship-{rel_type}-{ds_uuid}",
+                "spdxId": f"urn:spdx:Relationship-{rel_type}-{child_uuid}",
                 "creationInfo": f"_:creationinfo-{creation_uuid}",
                 "relationshipType": rel_type,
                 "from": from_id,
-                "to": [ds_id],
-                "description": f"{rel_type} relationship to dataset: {name}",
+                "to": [stub["spdxId"]],
+                "description": f"{rel_type} relationship to: {name}",
             })
         return stubs, rels
+
+    def _lineage_stub(self, name: str, rel_type: str, child_uuid: str,
+                       creation_uuid: str) -> Dict[str, Any]:
+        """Build a minimally-valid stub package for a relationship target.
+
+        - ``dependsOn`` (modelLineage) → ``ai_AIPackage`` (the ancestor IS
+          another AI model, not a dataset). Earlier code emitted
+          ``dataset_DatasetPackage`` for every relationship, which produced
+          schema errors for modelLineage edges (Finding #17 part b).
+        - ``trainedOn`` / ``testedOn`` → ``dataset_DatasetPackage``.
+        """
+        if rel_type == "dependsOn":
+            return {
+                "type": "ai_AIPackage",
+                "spdxId": f"urn:spdx:AIPackage-{child_uuid}",
+                "creationInfo": f"_:creationinfo-{creation_uuid}",
+                "name": name,
+                "software_downloadLocation": "NOASSERTION",
+                "software_primaryPurpose": "model",
+            }
+        return {
+            "type": "dataset_DatasetPackage",
+            "spdxId": f"urn:spdx:DatasetPackage-{child_uuid}",
+            "creationInfo": f"_:creationinfo-{creation_uuid}",
+            "name": name,
+            "software_downloadLocation": "NOASSERTION",
+            "software_primaryPurpose": "data",
+            "dataset_datasetType": ["noAssertion"],
+        }
 
     def _build_ai_package(
         self, package_uuid: str, creation_uuid: str, org_uuid: str,
