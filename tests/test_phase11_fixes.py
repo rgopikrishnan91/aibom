@@ -403,3 +403,197 @@ def test_intra_source_data_path_works_too():
     assert "huggingface" in intra
     assert "Apache-2.0" in intra["huggingface"]
     assert "GPL-3.0" in intra["huggingface"]
+
+
+# ---------------------------------------------------------------------------
+# Phase 11.6 — license canonicalisation regressions (#30, #31, #32)
+#              + #28 residual (dataPreprocessing / knownBias)
+# ---------------------------------------------------------------------------
+
+
+def test_cdx_license_id_for_canonical_spdx():
+    """Canonical SPDX id from the alias table → license.id block."""
+    from aikaboom.utils.normalise import cdx_license_block
+
+    assert cdx_license_block("apache-2.0") == {"license": {"id": "Apache-2.0"}}
+    assert cdx_license_block("Apache-2.0") == {"license": {"id": "Apache-2.0"}}
+    assert cdx_license_block("MIT License") == {"license": {"id": "MIT"}}
+    assert cdx_license_block("cc-by-sa-4.0") == {"license": {"id": "CC-BY-SA-4.0"}}
+
+
+def test_cdx_license_name_for_unknown():
+    """Non-SPDX-list strings (custom ML licences, OR-expressions) → license.name."""
+    from aikaboom.utils.normalise import cdx_license_block
+
+    assert cdx_license_block("OpenRAIL") == {"license": {"name": "OpenRAIL"}}
+    assert cdx_license_block("Llama-2") == {"license": {"name": "Llama-2"}}
+    # OR-expressions aren't SPDX ids on their own; emit as a name,
+    # preserving the caller's casing.
+    assert cdx_license_block("MIT OR Apache-2.0") == {
+        "license": {"name": "MIT OR Apache-2.0"}
+    }
+
+
+def test_cdx_license_empty_omits_block():
+    """None / empty / nil sentinels → no licenses[] entry."""
+    from aikaboom.utils.normalise import cdx_license_block
+
+    assert cdx_license_block(None) is None
+    assert cdx_license_block("") is None
+    assert cdx_license_block("NOASSERTION") is None
+    assert cdx_license_block("noAssertion") is None
+    assert cdx_license_block("Not found.") is None
+
+
+def test_hf_inspector_unwraps_single_element_license_list():
+    """HF cardData.license = ['mit'] → 'MIT' (string, canonical SPDX id)."""
+    from aikaboom.utils.metadata_fetcher import _clean_hf_license
+
+    assert _clean_hf_license(["mit"]) == "MIT"
+    assert _clean_hf_license(["apache-2.0"]) == "Apache-2.0"
+    assert _clean_hf_license(["cc-by-sa-3.0"]) == "CC-BY-SA-3.0"
+
+
+def test_hf_inspector_joins_multi_element_license_list():
+    """HF cardData.license = ['mit', 'apache-2.0'] → SPDX OR expression."""
+    from aikaboom.utils.metadata_fetcher import _clean_hf_license
+
+    assert _clean_hf_license(["mit", "apache-2.0"]) == "MIT OR Apache-2.0"
+
+
+def test_hf_inspector_canonicalises_lowercase():
+    """Bare HF lowercase string canonicalises through the alias table."""
+    from aikaboom.utils.metadata_fetcher import _clean_hf_license
+
+    assert _clean_hf_license("apache-2.0") == "Apache-2.0"
+    assert _clean_hf_license("cc-by-sa-4.0") == "CC-BY-SA-4.0"
+    # Empty / None pass through as None.
+    assert _clean_hf_license(None) is None
+    assert _clean_hf_license("") is None
+    assert _clean_hf_license([]) is None
+    assert _clean_hf_license([None, ""]) is None
+
+
+def test_spdx_dataset_license_none_becomes_noassertion():
+    """Linked-bundle children with no cardData.license → license_expr = NOASSERTION,
+    not null. Reproduces #32."""
+    from aikaboom.utils.spdx_validator import SPDXValidator
+
+    v = SPDXValidator(bom_type="data")
+    bom = {
+        "dataset_id": "x/y",
+        "name": "x/y",
+        "direct_fields": {
+            "license": {"value": None, "source": None, "conflict": None},
+        },
+        "rag_fields": {},
+    }
+    spdx = v.validate_and_convert(bom)
+    license_elements = [
+        e for e in spdx["@graph"]
+        if e.get("type") == "simplelicensing_LicenseExpression"
+    ]
+    assert license_elements, "expected a LicenseExpression element"
+    for e in license_elements:
+        assert e["simplelicensing_licenseExpression"] == "NOASSERTION"
+
+
+def test_spdx_dataset_license_list_handled_via_inspector():
+    """If ['mit'] reaches the SPDX builder, it's a regression somewhere
+    upstream — but defensive `_extract_value` plus the cleaning in
+    `_clean_hf_license` should make sure it never does. This guards
+    the boundary."""
+    from aikaboom.utils.metadata_fetcher import _clean_hf_license
+    from aikaboom.utils.spdx_validator import SPDXValidator
+
+    # The inspector must clean lists before they reach the resolver.
+    assert _clean_hf_license(["unknown"]) == "unknown"
+    # Even the multi-element case becomes a single string.
+    assert " OR " in _clean_hf_license(["mit", "apache-2.0"])
+
+    # And if a list still slipped past for any reason, the SPDX builder's
+    # belt-and-suspenders join must collapse it to a string.
+    v = SPDXValidator(bom_type="data")
+    bom = {
+        "dataset_id": "x/y",
+        "name": "x/y",
+        "direct_fields": {
+            "license": {"value": ["mit"], "source": "huggingface", "conflict": None},
+        },
+        "rag_fields": {},
+    }
+    spdx = v.validate_and_convert(bom)
+    for e in spdx["@graph"]:
+        if e.get("type") == "simplelicensing_LicenseExpression":
+            expr = e["simplelicensing_licenseExpression"]
+            assert isinstance(expr, str), "license expression must be a string"
+            assert expr == "mit"
+
+
+def test_spdx_ai_license_none_becomes_noassertion():
+    """AI BOM path mirror: None license → NOASSERTION, not null."""
+    from aikaboom.utils.spdx_validator import SPDXValidator
+
+    v = SPDXValidator(bom_type="ai")
+    bom = {
+        "model_id": "x_y",
+        "repo_id": "x/y",
+        "direct_fields": {
+            "license": {"value": None, "source": None, "conflict": None},
+        },
+        "rag_fields": {},
+    }
+    spdx = v.validate_and_convert(bom)
+    license_elements = [
+        e for e in spdx["@graph"]
+        if e.get("type") == "simplelicensing_LicenseExpression"
+    ]
+    assert license_elements
+    for e in license_elements:
+        assert e["simplelicensing_licenseExpression"] == "NOASSERTION"
+
+
+def test_spdx_dataset_data_preprocessing_drops_nil():
+    """`dataset_dataPreprocessing: ['noAssertion']` regression — the inline
+    `[x] if x else []` block was bypassing the Phase 11D `_is_nil_value`
+    filter in `_as_list`."""
+    from aikaboom.utils.spdx_validator import SPDXValidator
+
+    v = SPDXValidator(bom_type="data")
+    bom = {
+        "dataset_id": "x/y",
+        "name": "x/y",
+        "direct_fields": {},
+        "rag_fields": {
+            "dataPreprocessing": {"value": "noAssertion", "source": None, "conflict": None},
+        },
+    }
+    spdx = v.validate_and_convert(bom)
+    dataset_packages = [
+        e for e in spdx["@graph"] if e.get("type") == "dataset_DatasetPackage"
+    ]
+    assert dataset_packages
+    for ds in dataset_packages:
+        assert ds.get("dataset_dataPreprocessing", []) == [], ds
+
+
+def test_spdx_dataset_known_bias_drops_nil():
+    """Same as above for `knownBias`."""
+    from aikaboom.utils.spdx_validator import SPDXValidator
+
+    v = SPDXValidator(bom_type="data")
+    bom = {
+        "dataset_id": "x/y",
+        "name": "x/y",
+        "direct_fields": {},
+        "rag_fields": {
+            "knownBias": {"value": "noAssertion", "source": None, "conflict": None},
+        },
+    }
+    spdx = v.validate_and_convert(bom)
+    dataset_packages = [
+        e for e in spdx["@graph"] if e.get("type") == "dataset_DatasetPackage"
+    ]
+    assert dataset_packages
+    for ds in dataset_packages:
+        assert ds.get("dataset_knownBias", []) == [], ds

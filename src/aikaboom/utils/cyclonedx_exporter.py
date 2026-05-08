@@ -24,6 +24,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from aikaboom.utils.value_helpers import _is_nil_value
+from aikaboom.utils.normalise import cdx_license_block
 
 
 CDX_SPEC_VERSION = "1.6"
@@ -92,7 +93,7 @@ class CycloneDXExporter:
         name = self._extract_value(rag.get("model_name")) or model_id
         version = self._extract_value(direct.get("packageVersion")) or ""
         supplier = self._extract_value(direct.get("suppliedBy")) or ""
-        license_val = self._extract_value(direct.get("license")) or "NOASSERTION"
+        license_block = cdx_license_block(self._extract_value(direct.get("license")))
         description = self._extract_value(rag.get("intended_use", rag.get("informationAboutApplication"))) or ""
         task = self._extract_value(direct.get("primaryPurpose")) or ""
         model_type = self._extract_value(rag.get("model_type", rag.get("typeOfModel"))) or ""
@@ -224,7 +225,7 @@ class CycloneDXExporter:
             "bom-ref": f"ai-model:{model_id}",
             "name": name,
             "supplier": {"name": supplier} if supplier else None,
-            "licenses": [{"license": {"id": license_val}}] if license_val and license_val != "NOASSERTION" else [],
+            "licenses": [license_block] if license_block else [],
             "description": description,
         }
         if version:
@@ -243,7 +244,7 @@ class CycloneDXExporter:
 
     def _build_dataset_component(self, dataset_id, direct, rag, bom_data):
         name = self._extract_value(direct.get("name")) or dataset_id
-        license_val = self._extract_value(direct.get("license")) or "NOASSERTION"
+        license_block = cdx_license_block(self._extract_value(direct.get("license")))
         # ``description`` is the data-BOM equivalent of the AI BOM's auto-
         # extracted blurb; ``intendedUse`` is rarely populated for datasets.
         # Prefer description; fall back to intendedUse only if description is
@@ -262,7 +263,7 @@ class CycloneDXExporter:
             "name": name,
             "description": description,
             "supplier": {"name": originated_by} if originated_by else None,
-            "licenses": [{"license": {"id": license_val}}] if license_val and license_val != "NOASSERTION" else [],
+            "licenses": [license_block] if license_block else [],
         }
 
         # Dataset-specific properties
