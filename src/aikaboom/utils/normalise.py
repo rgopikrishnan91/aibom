@@ -9,6 +9,7 @@ side-effect-free; they're composed by the resolution code in
 """
 from __future__ import annotations
 
+import difflib
 import re
 from datetime import datetime, timedelta
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
@@ -217,14 +218,145 @@ def collapse_whitespace(answer: Any) -> str:
     return re.sub(r"\s+", " ", str(answer)).strip()
 
 
+# ---------------------------------------------------------------------------
+# License
+# ---------------------------------------------------------------------------
+
+# Lowercased alias → canonical SPDX form.
+SPDX_ALIASES: Dict[str, str] = {
+    "mit": "MIT",
+    "mit license": "MIT",
+    "the mit license": "MIT",
+    "apache-2.0": "Apache-2.0",
+    "apache 2.0": "Apache-2.0",
+    "apache license 2.0": "Apache-2.0",
+    "apache license, version 2.0": "Apache-2.0",
+    "apache2": "Apache-2.0",
+    "apache v2": "Apache-2.0",
+    "gpl-2.0": "GPL-2.0",
+    "gpl-2.0-only": "GPL-2.0",
+    "gpl v2": "GPL-2.0",
+    "gplv2": "GPL-2.0",
+    "gnu general public license v2": "GPL-2.0",
+    "gnu general public license version 2": "GPL-2.0",
+    "gpl-3.0": "GPL-3.0",
+    "gpl-3.0-only": "GPL-3.0",
+    "gpl v3": "GPL-3.0",
+    "gplv3": "GPL-3.0",
+    "gnu general public license v3": "GPL-3.0",
+    "gnu general public license version 3": "GPL-3.0",
+    "agpl-3.0": "AGPL-3.0",
+    "agpl v3": "AGPL-3.0",
+    "agplv3": "AGPL-3.0",
+    "gnu affero general public license v3": "AGPL-3.0",
+    "lgpl-2.1": "LGPL-2.1",
+    "lgpl-3.0": "LGPL-3.0",
+    "lgpl v2.1": "LGPL-2.1",
+    "lgpl v3": "LGPL-3.0",
+    "bsd-2-clause": "BSD-2-Clause",
+    "bsd 2-clause": "BSD-2-Clause",
+    "simplified bsd": "BSD-2-Clause",
+    "bsd-3-clause": "BSD-3-Clause",
+    "bsd 3-clause": "BSD-3-Clause",
+    "new bsd": "BSD-3-Clause",
+    "bsd": "BSD-3-Clause",
+    "cc-by-4.0": "CC-BY-4.0",
+    "cc by 4.0": "CC-BY-4.0",
+    "creative commons attribution 4.0": "CC-BY-4.0",
+    "cc-by-sa-4.0": "CC-BY-SA-4.0",
+    "cc-by-nc-4.0": "CC-BY-NC-4.0",
+    "cc-by-nc-sa-4.0": "CC-BY-NC-SA-4.0",
+    "cc0-1.0": "CC0-1.0",
+    "cc0": "CC0-1.0",
+    "public domain": "CC0-1.0",
+    "unlicense": "Unlicense",
+    "the unlicense": "Unlicense",
+    "isc": "ISC",
+    "isc license": "ISC",
+    "mpl-2.0": "MPL-2.0",
+    "mozilla public license 2.0": "MPL-2.0",
+    "openrail": "OpenRAIL",
+    "openrail++": "OpenRAIL++",
+    "llama 2": "Llama-2",
+    "llama2": "Llama-2",
+    "gemma": "Gemma",
+    "other": "other",
+    "proprietary": "proprietary",
+}
+
+# Patterns ordered from most specific to most general.
+LICENSE_PATTERNS = [
+    re.compile(
+        r'licensed\s+under\s+(?:the\s+)?([A-Za-z0-9][^.\n,;(]{2,60}?)(?:\s+license)?[.\n,;]',
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r'released\s+under\s+(?:the\s+)?([A-Za-z0-9][^.\n,;(]{2,60}?)(?:\s+license)?[.\n,;]',
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r'distributed\s+under\s+(?:the\s+)?([A-Za-z0-9][^.\n,;(]{2,60}?)(?:\s+license)?(?:[.\n,;]|$)',
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r'^[-*\s]*license\s*[:\-]\s*([A-Za-z0-9][^\n,;(]{1,60})',
+        re.IGNORECASE | re.MULTILINE,
+    ),
+    re.compile(
+        r'##\s*license\s*\n+\s*([A-Za-z0-9][^\n]{1,60})',
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r'(?:^|\n)\s*(MIT License|Apache License[\s,]*2\.0'
+        r'|GNU (?:General|Affero|Lesser) Public License[\s\w.]*'
+        r'|BSD[\s\-\w]*License|Creative Commons[^\n,;]{2,50}'
+        r'|Unlicense|ISC License|Mozilla Public License[\s\w]*)',
+        re.IGNORECASE,
+    ),
+]
+
+
 def normalize_license(answer: Any) -> str:
-    """Canonicalise an LLM-extracted license string through the SPDX alias
-    table; falls back to the cleaned input.
+    """Canonicalise a license string through the SPDX alias table; falls
+    back to the cleaned input when no alias matches.
     """
-    from aikaboom.core.internal_conflict import LicenseConflictChecker
-    if answer is None:
+    if not answer:
         return ""
-    return LicenseConflictChecker.normalize_license(str(answer))
+    cleaned = str(answer).strip().lower()
+    if cleaned in SPDX_ALIASES:
+        return SPDX_ALIASES[cleaned]
+    stripped = re.sub(r'\s+license$', '', cleaned).strip()
+    if stripped in SPDX_ALIASES:
+        return SPDX_ALIASES[stripped]
+    return cleaned
+
+
+def extract_license_from_text(text: Any) -> Optional[str]:
+    """Extract the most likely license name from free text (README / LICENSE
+    file). Returns ``None`` when no pattern matches.
+    """
+    if not text:
+        return None
+    for pattern in LICENSE_PATTERNS:
+        match = pattern.search(str(text))
+        if match:
+            candidate = match.group(1).strip()
+            if 3 <= len(candidate) <= 80:
+                return candidate
+    return None
+
+
+def license_similarity(a: Any, b: Any) -> float:
+    """Similarity in ``[0.0, 1.0]`` between two license strings after
+    SPDX normalisation. Returns ``0.0`` when either side is empty.
+    """
+    norm_a = normalize_license(a)
+    norm_b = normalize_license(b)
+    if not norm_a or not norm_b:
+        return 0.0
+    if norm_a == norm_b:
+        return 1.0
+    return difflib.SequenceMatcher(None, norm_a.lower(), norm_b.lower()).ratio()
 
 
 _POST_PROCESSORS = {

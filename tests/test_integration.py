@@ -224,24 +224,6 @@ class TestConflictDetectionIntegration:
         assert parsed["type"] == "inter"
         assert "Apache-2.0" in parsed["value"]
 
-    def test_intra_source_conflict_flows_through_merge(self):
-        """LicenseConflictChecker → _merge_license_intra_conflict → triplet output."""
-        from aikaboom.core.internal_conflict import LicenseConflictChecker
-        from aikaboom.core.processors import _merge_license_intra_conflict
-
-        conflict_result = LicenseConflictChecker.check_all_sources(
-            structured_license="MIT",
-            readme_texts={"github_readme": "This software is released under the Apache License 2.0."},
-        )
-        assert conflict_result["has_conflict"] is True
-
-        direct_fields = {
-            "license": {"value": "MIT", "source": "hf", "conflict": None}
-        }
-        merged = _merge_license_intra_conflict(direct_fields, conflict_result)
-        assert merged["license"]["conflict"] is not None
-        assert merged["license"]["conflict"]["type"] == "intra"
-
     def test_triplet_payload_preserves_conflict_chain(self):
         """_build_triplet_payload correctly wires conflict through."""
         from aikaboom.core.processors import _build_triplet_payload

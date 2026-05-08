@@ -16,9 +16,9 @@ import requests
 from aikaboom.core.agentic_rag import AgenticRAG, DirectLLM, FIXED_QUESTIONS_AI, FIXED_QUESTIONS_DATA
 from aikaboom.utils.metadata_fetcher import MetadataFetcher
 from aikaboom.core.source_handler import SourceHandler
-from aikaboom.core.internal_conflict import LicenseConflictChecker
 from aikaboom.utils.source_priority import get_direct_priority
 from aikaboom.utils.normalise import (
+    normalize_license,
     normalize_org,
     normalize_url,
     normalize_version,
@@ -327,7 +327,7 @@ class AIBOMProcessor:
         direct_metadata["license"], direct_metadata["license_source"], direct_metadata["license_conflicts"] = SourceHandler.get_field_conflict_with_priority(
             "license", named_sources,
             priority=get_direct_priority("license"),
-            normaliser=LicenseConflictChecker.normalize_license,
+            normaliser=normalize_license,
         )
         return direct_metadata
 
@@ -634,7 +634,7 @@ class DATABOMProcessor:
         direct_metadata["license"], direct_metadata["license_source"], direct_metadata["license_conflicts"] = SourceHandler.get_field_conflict_with_priority(
             "license", named_sources,
             priority=get_direct_priority("license"),
-            normaliser=LicenseConflictChecker.normalize_license,
+            normaliser=normalize_license,
         )
 
         return direct_metadata
