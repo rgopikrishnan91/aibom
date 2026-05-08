@@ -27,10 +27,6 @@ class TestImports:
         mod = importlib.import_module("aikaboom.core.source_handler")
         assert hasattr(mod, "SourceHandler")
 
-    def test_import_internal_conflict(self):
-        mod = importlib.import_module("aikaboom.core.internal_conflict")
-        assert hasattr(mod, "LicenseConflictChecker")
-
     def test_import_metadata_fetcher(self):
         mod = importlib.import_module("aikaboom.utils.metadata_fetcher")
         assert hasattr(mod, "MetadataFetcher")

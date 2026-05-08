@@ -1,157 +1,60 @@
+"""License-specific intra-source consistency check.
+
+Compares the structured license string a source emits (e.g. HuggingFace
+``cardData.license``, GitHub repo-license API) against the license
+mention regex-extracted from that same source's free text (README /
+LICENSE file). When the two disagree for a given source, the
+disagreement is recorded as an intra-source conflict.
+
+This is deliberately license-only: license is the one direct field
+where a source reliably carries both a structured value and a
+redundantly-stated unstructured one (the README usually mentions the
+license too). The other direct fields don't have an analogous pair, so
+no general intra-source machinery is needed.
 """
-Internal Conflict Checker for License Fields
 
-Compares structured license metadata (HuggingFace card data, GitHub API)
-with license mentions extracted from unstructured text (README, LICENSE files)
-to detect internal inconsistencies within the same artifact.
-"""
+from __future__ import annotations
 
-import re
-import difflib
-from typing import Optional, Dict
+from typing import Dict, Mapping, Optional
+
+from aikaboom.utils.normalise import (
+    extract_license_from_text,
+    license_similarity,
+    normalize_license,
+)
+
+_SIMILARITY_THRESHOLD = 0.8
 
 
-class LicenseConflictChecker:
+def check_license_intra_source(
+    named_sources: Mapping[str, Optional[Mapping]],
+    named_readmes: Mapping[str, Optional[str]],
+) -> Dict[str, str]:
+    """Per-source check: structured ``source["license"]`` vs the license
+    extracted from ``readmes[source]`` text.
 
-    # Lowercased alias → canonical SPDX form
-    SPDX_ALIASES: Dict[str, str] = {
-        "mit": "MIT",
-        "mit license": "MIT",
-        "the mit license": "MIT",
-        "apache-2.0": "Apache-2.0",
-        "apache 2.0": "Apache-2.0",
-        "apache license 2.0": "Apache-2.0",
-        "apache license, version 2.0": "Apache-2.0",
-        "apache2": "Apache-2.0",
-        "apache v2": "Apache-2.0",
-        "gpl-2.0": "GPL-2.0",
-        "gpl-2.0-only": "GPL-2.0",
-        "gpl v2": "GPL-2.0",
-        "gplv2": "GPL-2.0",
-        "gnu general public license v2": "GPL-2.0",
-        "gnu general public license version 2": "GPL-2.0",
-        "gpl-3.0": "GPL-3.0",
-        "gpl-3.0-only": "GPL-3.0",
-        "gpl v3": "GPL-3.0",
-        "gplv3": "GPL-3.0",
-        "gnu general public license v3": "GPL-3.0",
-        "gnu general public license version 3": "GPL-3.0",
-        "agpl-3.0": "AGPL-3.0",
-        "agpl v3": "AGPL-3.0",
-        "agplv3": "AGPL-3.0",
-        "gnu affero general public license v3": "AGPL-3.0",
-        "lgpl-2.1": "LGPL-2.1",
-        "lgpl-3.0": "LGPL-3.0",
-        "lgpl v2.1": "LGPL-2.1",
-        "lgpl v3": "LGPL-3.0",
-        "bsd-2-clause": "BSD-2-Clause",
-        "bsd 2-clause": "BSD-2-Clause",
-        "simplified bsd": "BSD-2-Clause",
-        "bsd-3-clause": "BSD-3-Clause",
-        "bsd 3-clause": "BSD-3-Clause",
-        "new bsd": "BSD-3-Clause",
-        "bsd": "BSD-3-Clause",
-        "cc-by-4.0": "CC-BY-4.0",
-        "cc by 4.0": "CC-BY-4.0",
-        "creative commons attribution 4.0": "CC-BY-4.0",
-        "cc-by-sa-4.0": "CC-BY-SA-4.0",
-        "cc-by-nc-4.0": "CC-BY-NC-4.0",
-        "cc-by-nc-sa-4.0": "CC-BY-NC-SA-4.0",
-        "cc0-1.0": "CC0-1.0",
-        "cc0": "CC0-1.0",
-        "public domain": "CC0-1.0",
-        "unlicense": "Unlicense",
-        "the unlicense": "Unlicense",
-        "isc": "ISC",
-        "isc license": "ISC",
-        "mpl-2.0": "MPL-2.0",
-        "mozilla public license 2.0": "MPL-2.0",
-        "openrail": "OpenRAIL",
-        "openrail++": "OpenRAIL++",
-        "llama 2": "Llama-2",
-        "llama2": "Llama-2",
-        "gemma": "Gemma",
-        "other": "other",
-        "proprietary": "proprietary",
-    }
-
-    # Patterns ordered from most specific to most general
-    LICENSE_PATTERNS = [
-        re.compile(
-            r'licensed\s+under\s+(?:the\s+)?([A-Za-z0-9][^.\n,;(]{2,60}?)(?:\s+license)?[.\n,;]',
-            re.IGNORECASE,
-        ),
-        re.compile(
-            r'released\s+under\s+(?:the\s+)?([A-Za-z0-9][^.\n,;(]{2,60}?)(?:\s+license)?[.\n,;]',
-            re.IGNORECASE,
-        ),
-        re.compile(
-            r'distributed\s+under\s+(?:the\s+)?([A-Za-z0-9][^.\n,;(]{2,60}?)(?:\s+license)?(?:[.\n,;]|$)',
-            re.IGNORECASE,
-        ),
-        # YAML-style header: "license: MIT" or "- license: Apache-2.0"
-        re.compile(
-            r'^[-*\s]*license\s*[:\-]\s*([A-Za-z0-9][^\n,;(]{1,60})',
-            re.IGNORECASE | re.MULTILINE,
-        ),
-        # Markdown section: "## License\n\nMIT"
-        re.compile(
-            r'##\s*license\s*\n+\s*([A-Za-z0-9][^\n]{1,60})',
-            re.IGNORECASE,
-        ),
-        # Well-known names at line start
-        re.compile(
-            r'(?:^|\n)\s*(MIT License|Apache License[\s,]*2\.0'
-            r'|GNU (?:General|Affero|Lesser) Public License[\s\w.]*'
-            r'|BSD[\s\-\w]*License|Creative Commons[^\n,;]{2,50}'
-            r'|Unlicense|ISC License|Mozilla Public License[\s\w]*)',
-            re.IGNORECASE,
-        ),
-    ]
-
-    @classmethod
-    def normalize_license(cls, license_str: str) -> str:
-        """Map a license string to canonical SPDX form, or return the cleaned input."""
-        if not license_str:
-            return ""
-        cleaned = license_str.strip().lower()
-        if cleaned in cls.SPDX_ALIASES:
-            return cls.SPDX_ALIASES[cleaned]
-        stripped = re.sub(r'\s+license$', '', cleaned).strip()
-        if stripped in cls.SPDX_ALIASES:
-            return cls.SPDX_ALIASES[stripped]
-        return cleaned
-
-    @classmethod
-    def extract_license_from_text(cls, text: str) -> Optional[str]:
-        """Extract the most likely license name from free text (README / LICENSE file)."""
-        if not text:
-            return None
-        for pattern in cls.LICENSE_PATTERNS:
-            match = pattern.search(text)
-            if match:
-                candidate = match.group(1).strip()
-                if 3 <= len(candidate) <= 80:
-                    return candidate
-        return None
-
-    @classmethod
-    def compute_similarity(cls, a: str, b: str) -> float:
-        """Similarity [0.0, 1.0] between two license strings after normalization."""
-        norm_a = cls.normalize_license(a)
-        norm_b = cls.normalize_license(b)
-        if not norm_a or not norm_b:
-            return 0.0
-        if norm_a == norm_b:
-            return 1.0
-        return difflib.SequenceMatcher(None, norm_a.lower(), norm_b.lower()).ratio()
-
-    # ------------------------------------------------------------------
-    # NOTE: The legacy ``check`` / ``check_all_sources`` methods that ran
-    # an intra-source license consistency pass were removed when
-    # ``license`` migrated from the direct pipeline to RAG. The remaining
-    # public surface (``SPDX_ALIASES``, ``LICENSE_PATTERNS``,
-    # ``normalize_license``, ``extract_license_from_text``,
-    # ``compute_similarity``) is what the RAG post-processor uses to
-    # canonicalise an LLM-extracted license string.
-    # ------------------------------------------------------------------
+    Returns a ``{source_name: narrative}`` dict listing only the sources
+    where the two values disagree (similarity below the threshold).
+    Sources missing either side (no structured license, or no
+    extractable license in the README) are silently skipped — there's
+    nothing to compare.
+    """
+    conflicts: Dict[str, str] = {}
+    for name, source in (named_sources or {}).items():
+        if not isinstance(source, Mapping):
+            continue
+        structured = source.get("license")
+        if not structured:
+            continue
+        readme = (named_readmes or {}).get(name) or ""
+        readme_license = extract_license_from_text(readme)
+        if not readme_license:
+            continue
+        norm_structured = normalize_license(structured)
+        norm_readme = normalize_license(readme_license)
+        if not norm_structured or not norm_readme:
+            continue
+        if license_similarity(norm_structured, norm_readme) >= _SIMILARITY_THRESHOLD:
+            continue
+        conflicts[name] = f"cardData={norm_structured}; readme={norm_readme}"
+    return conflicts

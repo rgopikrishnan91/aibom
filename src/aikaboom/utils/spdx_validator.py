@@ -279,15 +279,28 @@ class SPDXValidator:
         return field_data
 
     def _as_list(self, value: Any) -> List[Any]:
-        """Normalize scalar/list SPDX properties to a clean list."""
+        """Normalize scalar/list SPDX properties to a clean list.
+
+        Filters nil sentinels (``"noAssertion"``, ``"Not found."`` …) at every
+        level: a top-level nil returns ``[]``; nil entries inside a list are
+        dropped; a string that splits into segments has each segment checked.
+        Without this, ``_as_list("noAssertion")`` returned ``["noAssertion"]``
+        and downstream consumers got a one-element list of garbage.
+        """
         value = self._extract_value(value)
-        if value is None or value == "":
+        if value is None or value == "" or _is_nil_value(value):
             return []
         if isinstance(value, list):
-            return [v for v in (self._extract_value(item) for item in value) if v not in (None, "")]
+            return [
+                v for v in (self._extract_value(item) for item in value)
+                if v not in (None, "") and not _is_nil_value(v)
+            ]
         if isinstance(value, str):
-            parts = [p.strip() for p in re.split(r"[;,\n]+", value) if p.strip()]
-            return parts or [value]
+            parts = [
+                p.strip() for p in re.split(r"[;,\n]+", value)
+                if p.strip() and not _is_nil_value(p.strip())
+            ]
+            return parts or ([] if _is_nil_value(value) else [value])
         return [value]
 
     def _normalize_timestamp(self, value: Any, default: Optional[str] = None) -> str:
@@ -350,9 +363,14 @@ class SPDXValidator:
         return out or [default]
 
     def _dictionary_entries(self, value: Any) -> List[Dict[str, str]]:
-        """Convert loose metadata into SPDX DictionaryEntry objects."""
+        """Convert loose metadata into SPDX DictionaryEntry objects.
+
+        Skips nil sentinels at every level so a parent ``"noAssertion"`` does
+        not produce ``{"key": "value1", "value": "noAssertion"}`` and a nil
+        ``value`` inside a real key/value dict is silently dropped.
+        """
         value = self._extract_value(value)
-        if not value:
+        if not value or _is_nil_value(value):
             return []
         if isinstance(value, dict):
             if "key" in value:
@@ -360,19 +378,20 @@ class SPDXValidator:
                 if not key:
                     return []
                 entry = {"type": "DictionaryEntry", "key": key}
-                if value.get("value") not in (None, ""):
-                    entry["value"] = str(value["value"])
+                inner = value.get("value")
+                if inner not in (None, "") and not _is_nil_value(inner):
+                    entry["value"] = str(inner)
                 return [entry]
             return [
                 {"type": "DictionaryEntry", "key": str(k), "value": str(v)}
                 for k, v in value.items()
-                if k not in (None, "") and v not in (None, "")
+                if k not in (None, "") and v not in (None, "") and not _is_nil_value(v)
             ]
         entries = []
         for index, item in enumerate(self._as_list(value), start=1):
             if isinstance(item, dict) and "key" in item:
                 entries.extend(self._dictionary_entries(item))
-            else:
+            elif not _is_nil_value(item):
                 entries.append({"type": "DictionaryEntry", "key": f"value{index}", "value": str(item)})
         return entries
     
@@ -800,10 +819,10 @@ class SPDXValidator:
         # less misleading than emitting "0").
         dataset_package = {
             "type": "dataset_DatasetPackage",
-            "spdxId": f"https://spdx.org/spdxdocs/DatasetPackage1-{dataset_uuid}",
+            "spdxId": f"urn:spdx:DatasetPackage-{dataset_uuid}",
             "creationInfo": "_:creationinfo",
             "name": dataset_name,
-            "originatedBy": [f"https://spdx.org/spdxdocs/Organization1-{org_uuid}"],
+            "originatedBy": [f"urn:spdx:Organization-{org_uuid}"],
             "builtTime": built_time,
             "releaseTime": release_time,
             "software_downloadLocation": download_location,
@@ -838,13 +857,13 @@ class SPDXValidator:
                     "type": "CreationInfo",
                     "@id": "_:creationinfo",
                     "specVersion": "3.0.1",
-                    "createdBy": [f"https://spdx.org/spdxdocs/Person1-{person_uuid}"],
+                    "createdBy": [f"urn:spdx:Person-{person_uuid}"],
                     "created": created_time
                 },
                 # 2. Person
                 {
                     "type": "Person",
-                    "spdxId": f"https://spdx.org/spdxdocs/Person1-{person_uuid}",
+                    "spdxId": f"urn:spdx:Person-{person_uuid}",
                     "creationInfo": "_:creationinfo",
                     "name": "Dataset BOM Generator",
                     "externalIdentifier": [{
@@ -856,7 +875,7 @@ class SPDXValidator:
                 # 3. Organization
                 {
                     "type": "Organization",
-                    "spdxId": f"https://spdx.org/spdxdocs/Organization1-{org_uuid}",
+                    "spdxId": f"urn:spdx:Organization-{org_uuid}",
                     "creationInfo": "_:creationinfo",
                     "name": originated_by,
                     "externalIdentifier": [{
@@ -870,25 +889,25 @@ class SPDXValidator:
                 # 4. SpdxDocument
                 {
                     "type": "SpdxDocument",
-                    "spdxId": f"https://spdx.org/spdxdocs/Document1-{doc_uuid}",
+                    "spdxId": f"urn:spdx:Document-{doc_uuid}",
                     "creationInfo": "_:creationinfo",
                     "profileConformance": ["core", "dataset"],
-                    "rootElement": [f"https://spdx.org/spdxdocs/BOM1-{bom_uuid}"]
+                    "rootElement": [f"urn:spdx:Bom-{bom_uuid}"]
                 },
                 # 5. Bom
                 {
                     "type": "Bom",
-                    "spdxId": f"https://spdx.org/spdxdocs/BOM1-{bom_uuid}",
+                    "spdxId": f"urn:spdx:Bom-{bom_uuid}",
                     "creationInfo": "_:creationinfo",
                     "profileConformance": ["core", "dataset"],
-                    "rootElement": [f"https://spdx.org/spdxdocs/DatasetPackage1-{dataset_uuid}"]
+                    "rootElement": [f"urn:spdx:DatasetPackage-{dataset_uuid}"]
                 },
                 # 6. DatasetPackage (built above so dataset_datasetSize can be omitted on no-assertion)
                 dataset_package,
                 # 7. LicenseExpression
                 {
                     "type": "simplelicensing_LicenseExpression",
-                    "spdxId": f"https://spdx.org/licenses/{license_uuid}",
+                    "spdxId": f"urn:spdx:License-{license_uuid}",
                     "creationInfo": "_:creationinfo",
                     "simplelicensing_licenseExpression": license_expr,
                     "simplelicensing_licenseListVersion": "3.25.0",
@@ -897,21 +916,21 @@ class SPDXValidator:
                 # 8. Relationship - concludedLicense
                 {
                     "type": "Relationship",
-                    "spdxId": f"https://spdx.org/spdxdocs/Relationship/concludedLicense-{rel_concluded_uuid}",
+                    "spdxId": f"urn:spdx:Relationship-concludedLicense-{rel_concluded_uuid}",
                     "creationInfo": "_:creationinfo",
                     "relationshipType": "hasConcludedLicense",
-                    "from": f"https://spdx.org/spdxdocs/DatasetPackage1-{dataset_uuid}",
-                    "to": [f"https://spdx.org/licenses/{license_uuid}"],
+                    "from": f"urn:spdx:DatasetPackage-{dataset_uuid}",
+                    "to": [f"urn:spdx:License-{license_uuid}"],
                     "description": "Concluded license for dataset package"
                 },
                 # 9. Relationship - declaredLicense
                 {
                     "type": "Relationship",
-                    "spdxId": f"https://spdx.org/spdxdocs/Relationship/declaredLicense-{rel_declared_uuid}",
+                    "spdxId": f"urn:spdx:Relationship-declaredLicense-{rel_declared_uuid}",
                     "creationInfo": "_:creationinfo",
                     "relationshipType": "hasDeclaredLicense",
-                    "from": f"https://spdx.org/spdxdocs/DatasetPackage1-{dataset_uuid}",
-                    "to": [f"https://spdx.org/licenses/{license_uuid}"],
+                    "from": f"urn:spdx:DatasetPackage-{dataset_uuid}",
+                    "to": [f"urn:spdx:License-{license_uuid}"],
                     "description": "Declared license for dataset package"
                 }
             ]

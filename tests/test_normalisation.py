@@ -163,6 +163,73 @@ class TestNormalizeLicense:
     def test_none_returns_empty(self):
         assert N.normalize_license(None) == ""
 
+    def test_mit_variants(self):
+        assert N.normalize_license("mit") == "MIT"
+        assert N.normalize_license("MIT License") == "MIT"
+        assert N.normalize_license("the mit license") == "MIT"
+
+    def test_apache_variants(self):
+        assert N.normalize_license("apache-2.0") == "Apache-2.0"
+        assert N.normalize_license("apache license 2.0") == "Apache-2.0"
+
+    def test_cc_variants(self):
+        assert N.normalize_license("cc-by-4.0") == "CC-BY-4.0"
+        assert N.normalize_license("cc0") == "CC0-1.0"
+
+    def test_empty_string(self):
+        assert N.normalize_license("") == ""
+
+    def test_unknown_license_returns_cleaned(self):
+        assert N.normalize_license("some-unknown-license") == "some-unknown-license"
+
+    def test_whitespace_handling(self):
+        assert N.normalize_license("  MIT  ") == "MIT"
+
+    def test_license_suffix_stripping(self):
+        # "bsd license" → strip "license" → "bsd" → alias → "BSD-3-Clause"
+        assert N.normalize_license("bsd license") == "BSD-3-Clause"
+
+
+class TestExtractLicenseFromText:
+    def test_licensed_under_pattern(self):
+        text = "This software is licensed under the MIT License."
+        result = N.extract_license_from_text(text)
+        assert result is not None and "MIT" in result
+
+    def test_released_under_pattern(self):
+        text = "This model is released under the Apache License 2.0."
+        result = N.extract_license_from_text(text)
+        assert result is not None and "Apache" in result
+
+    def test_yaml_header_pattern(self):
+        text = "license: MIT\ntags:\n- nlp"
+        result = N.extract_license_from_text(text)
+        assert result is not None and "MIT" in result
+
+    def test_no_license_found(self):
+        assert N.extract_license_from_text("This is a simple text with no license information.") is None
+
+    def test_empty_text(self):
+        assert N.extract_license_from_text("") is None
+
+    def test_none_text(self):
+        assert N.extract_license_from_text(None) is None
+
+
+class TestLicenseSimilarity:
+    def test_identical_licenses(self):
+        assert N.license_similarity("MIT", "MIT") == 1.0
+
+    def test_same_after_normalization(self):
+        assert N.license_similarity("mit", "MIT License") == 1.0
+
+    def test_completely_different(self):
+        assert N.license_similarity("MIT", "GPL-3.0") < 0.5
+
+    def test_empty_string_returns_zero(self):
+        assert N.license_similarity("", "MIT") == 0.0
+        assert N.license_similarity("MIT", "") == 0.0
+
 
 class TestEnumPostProcessors:
     def test_purpose_normalises_to_spdx_enum(self):

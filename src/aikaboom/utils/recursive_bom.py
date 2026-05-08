@@ -140,7 +140,11 @@ def discover_recursive_targets(
         return [], audit
 
     rag_fields = metadata.get("rag_fields") or {}
-    parent_id = metadata.get("model_id") or metadata.get("repo_id") or "parent-bom"
+    # Prefer ``repo_id`` (canonical ``owner/name`` form) over ``model_id``
+    # (filename-safe slug ``owner_name``). modelLineage triplets surface in
+    # canonical form, so the self-loop visit-key comparison fails when the
+    # parent is recorded under the slug.
+    parent_id = metadata.get("repo_id") or metadata.get("model_id") or "parent-bom"
     targets: List[Dict[str, Any]] = []
 
     for field, (child_bom_type, relationship_type) in AI_RELATIONSHIP_FIELDS.items():
@@ -283,7 +287,11 @@ def generate_recursive_boms(
     """
     max_depth = max(0, int(max_depth or 0))
     safety_cap = max(0, int(safety_cap or 0))
-    parent_id = metadata.get("model_id") or metadata.get("repo_id") or "parent-bom"
+    # Prefer ``repo_id`` (canonical ``owner/name`` form) over ``model_id``
+    # (filename-safe slug ``owner_name``). modelLineage triplets surface in
+    # canonical form, so the self-loop visit-key comparison fails when the
+    # parent is recorded under the slug.
+    parent_id = metadata.get("repo_id") or metadata.get("model_id") or "parent-bom"
     visited: Set[Tuple[str, str]] = {_visit_key(bom_type, parent_id)}
 
     generated: List[Dict[str, Any]] = []
@@ -456,7 +464,7 @@ def build_linked_spdx_bundle(
     root_id_by_target: Dict[Tuple[str, str], str] = {}
     parent_root = _root_package_id(parent_spdx)
     if parent_root is not None:
-        parent_label = parent_metadata.get("model_id") or parent_metadata.get("repo_id") or "parent-bom"
+        parent_label = parent_metadata.get("repo_id") or parent_metadata.get("model_id") or "parent-bom"
         root_id_by_target[_visit_key(bom_type, parent_label)] = parent_root
 
     seen_node_ids = {e.get("spdxId") or e.get("@id") for e in graph}

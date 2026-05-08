@@ -16,8 +16,10 @@ import requests
 from aikaboom.core.agentic_rag import AgenticRAG, DirectLLM, FIXED_QUESTIONS_AI, FIXED_QUESTIONS_DATA
 from aikaboom.utils.metadata_fetcher import MetadataFetcher
 from aikaboom.core.source_handler import SourceHandler
+from aikaboom.core.internal_conflict import check_license_intra_source
 from aikaboom.utils.source_priority import get_direct_priority
 from aikaboom.utils.normalise import (
+    normalize_license,
     normalize_org,
     normalize_url,
     normalize_version,
@@ -282,15 +284,23 @@ class AIBOMProcessor:
 
         Prefer :meth:`process_ai_model`, which fetches the source objects
         once and reuses them for both RAG structured chunks and direct
-        resolution.
+        resolution. This wrapper does not fetch READMEs, so the
+        license intra-source check has nothing to compare and is a no-op.
         """
         _, github_metadata, _, huggingface_metadata = self._fetch_source_objects(
             github_url=github_url, hf_repo_id=hf_repo_id, bom_type='ai',
         )
         return self._resolve_direct_fields_ai(huggingface_metadata, github_metadata)
 
-    def _resolve_direct_fields_ai(self, huggingface_metadata, github_metadata) -> dict:
-        """Resolve AI BOM direct fields from already-inspected source dicts."""
+    def _resolve_direct_fields_ai(
+        self, huggingface_metadata, github_metadata, named_readmes=None,
+    ) -> dict:
+        """Resolve AI BOM direct fields from already-inspected source dicts.
+
+        ``named_readmes`` is an optional ``{source_name: readme_text}``
+        dict; when present, the license intra-source check runs and
+        attaches its result to ``direct_metadata["license_intra_conflicts"]``.
+        """
         direct_metadata = {}
         named_sources = {"huggingface": huggingface_metadata, "github": github_metadata}
 
@@ -318,6 +328,21 @@ class AIBOMProcessor:
             "packageVersion", named_sources,
             priority=get_direct_priority("packageVersion"),
             normaliser=normalize_version,
+        )
+        # license: HF cardData.license + GitHub repo license API both emit a
+        # ``license`` key from the inspectors. Resolve here so exporters read
+        # ``direct.license`` directly instead of round-tripping the value
+        # through the RAG path.
+        direct_metadata["license"], direct_metadata["license_source"], direct_metadata["license_conflicts"] = SourceHandler.get_field_conflict_with_priority(
+            "license", named_sources,
+            priority=get_direct_priority("license"),
+            normaliser=normalize_license,
+        )
+        # License-only intra-source check: cardData.license vs same-source
+        # README license mention. Empty dict when no source disagrees with
+        # itself or when READMEs aren't available (back-compat path).
+        direct_metadata["license_intra_conflicts"] = check_license_intra_source(
+            named_sources, named_readmes or {},
         )
         return direct_metadata
 
@@ -434,15 +459,28 @@ class AIBOMProcessor:
             skip_keys={'model_id'}
         )
         
+        # Fetch READMEs once so the license intra-source check can compare
+        # cardData.license against the same source's free-text license
+        # mention. Failures degrade silently (helpers return "").
+        named_readmes = {
+            "huggingface": self._fetch_hf_readme(repo_id) or "",
+            "github": self._fetch_github_readme(github_url) or "",
+        }
         direct_metadata_raw = self._resolve_direct_fields_ai(
-            huggingface_metadata, github_metadata,
+            huggingface_metadata, github_metadata, named_readmes=named_readmes,
         )
-        
+
         direct_fields = _build_triplet_payload(
             direct_metadata_raw,
             conflict_suffix='_conflicts',
-            source_suffix='_source'
+            source_suffix='_source',
+            skip_keys={'license_intra_conflicts'},
         )
+        # License-only special case: attach the per-source intra
+        # disagreement dict as a sibling key on the license triplet.
+        intra = direct_metadata_raw.get("license_intra_conflicts") or {}
+        if intra and "license" in direct_fields:
+            direct_fields["license"]["intra_conflicts"] = intra
 
         complete_metadata = {
             "repo_id": repo_id or model_id,
@@ -575,14 +613,25 @@ class DATABOMProcessor:
         return {k: v for k, v in chunks.items() if v}
 
     def fetch_direct_metadata(self, github_url: str, hf_url: str) -> dict:
-        """Backwards-compatible wrapper: fetch source objects then resolve."""
+        """Backwards-compatible wrapper: fetch source objects then resolve.
+
+        Does not fetch READMEs, so the license intra-source check is a
+        no-op here. Prefer :meth:`process_dataset` for the full path.
+        """
         _, github_metadata, _, huggingface_metadata = self._fetch_source_objects(
             github_url=github_url, hf_url=hf_url,
         )
         return self._resolve_direct_fields_data(huggingface_metadata, github_metadata)
 
-    def _resolve_direct_fields_data(self, huggingface_metadata, github_metadata) -> dict:
-        """Resolve Dataset BOM direct fields from already-inspected dicts."""
+    def _resolve_direct_fields_data(
+        self, huggingface_metadata, github_metadata, named_readmes=None,
+    ) -> dict:
+        """Resolve Dataset BOM direct fields from already-inspected dicts.
+
+        ``named_readmes`` is an optional ``{source_name: readme_text}``
+        dict; when present, the license intra-source check runs and
+        attaches its result to ``direct_metadata["license_intra_conflicts"]``.
+        """
         direct_metadata = {}
         named_sources = {"huggingface": huggingface_metadata, "github": github_metadata}
 
@@ -617,6 +666,19 @@ class DATABOMProcessor:
         direct_metadata["contentIdentifier"], direct_metadata["contentIdentifier_source"], direct_metadata["contentIdentifier_conflicts"] = SourceHandler.get_field_conflict_with_priority(
             "contentIdentifier", named_sources,
             priority=get_direct_priority("contentIdentifier"),
+        )
+
+        # license: HF dataset cards expose ``cardData.license``; resolve it
+        # via the direct path so exporters don't need a RAG fallback.
+        direct_metadata["license"], direct_metadata["license_source"], direct_metadata["license_conflicts"] = SourceHandler.get_field_conflict_with_priority(
+            "license", named_sources,
+            priority=get_direct_priority("license"),
+            normaliser=normalize_license,
+        )
+        # License-only intra-source check: cardData.license vs same-source
+        # README license mention. Same shape as the AI path.
+        direct_metadata["license_intra_conflicts"] = check_license_intra_source(
+            named_sources, named_readmes or {},
         )
 
         return direct_metadata
@@ -704,9 +766,16 @@ class DATABOMProcessor:
         )
         structured_chunks = self._build_structured_chunks(github_repo, hf_info)
 
+        # READMEs feed the license intra-source check; failures degrade
+        # silently to "" (no comparison happens for that source).
+        named_readmes = {
+            "huggingface": self._fetch_hf_readme(hf_url) or "",
+            "github": self._fetch_github_readme(github_url) or "",
+        }
+
         # Step 1: Direct Metadata Resolution
         direct_metadata_raw = self._resolve_direct_fields_data(
-            huggingface_metadata, github_metadata,
+            huggingface_metadata, github_metadata, named_readmes=named_readmes,
         )
 
         # Step 2: Agentic RAG Processing
@@ -719,8 +788,14 @@ class DATABOMProcessor:
         direct_fields = _build_triplet_payload(
             direct_metadata_raw,
             conflict_suffix='_conflicts',
-            source_suffix='_source'
+            source_suffix='_source',
+            skip_keys={'license_intra_conflicts'},
         )
+        # License-only special case: attach per-source intra disagreement
+        # dict on the license triplet.
+        intra = direct_metadata_raw.get("license_intra_conflicts") or {}
+        if intra and "license" in direct_fields:
+            direct_fields["license"]["intra_conflicts"] = intra
 
         # Combine all metadata
         complete_metadata = {
