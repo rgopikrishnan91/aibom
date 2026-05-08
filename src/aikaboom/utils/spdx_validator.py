@@ -33,17 +33,11 @@ _SOFTWARE_PURPOSES = {
 }
 _PRESENCE_VALUES = {"yes", "no", "noAssertion"}
 
-# Sentinels meaning "no information for this field". Used to short-circuit
-# stub-package emission so a silent field doesn't fabricate a child element
-# named "noAssertion" or similar (Phase 9 / Finding #16).
-_NIL_VALUES = {"not found", "not found.", "noassertion", "n/a", "none", ""}
-
-
-def _is_nil_value(value) -> bool:
-    if value is None:
-        return True
-    text = str(value).strip().lower()
-    return text in _NIL_VALUES
+# Sentinels meaning "no information for this field". Lifted into
+# ``aikaboom.utils.value_helpers`` in Phase 10 so the CycloneDX exporter
+# can apply the same filter without duplicating the constant.
+from aikaboom.utils.value_helpers import _NIL_VALUES, _is_nil_value  # noqa: F401, E402
+from aikaboom.utils.lineage import split_lineage_targets  # noqa: E402
 _AI_SAFETY_VALUES = {"low", "medium", "high", "serious"}
 _DATASET_AVAILABILITY_VALUES = {
     "clickthrough", "directDownload", "query", "registration", "scrapingScript",
@@ -239,17 +233,25 @@ class SPDXValidator:
         "sensorUsed": "dataset_sensor",
     }
     
-    def __init__(self, template_path: str = None, bom_type: str = 'ai'):
+    def __init__(self, template_path: str = None, bom_type: str = 'ai',
+                 relationship_cap: Optional[int] = None):
         """
         Initialize validator with optional SPDX template
-        
+
         Args:
             template_path: Optional path to SPDX template file
             bom_type: Type of BOM to generate ('ai' or 'data')
+            relationship_cap: Max number of trainedOn / testedOn /
+                dependsOn child packages to emit per relationship in the
+                standalone SPDX BOM. ``None`` (default) is unbounded —
+                matches the recursive walker and linked bundle. Phase 10
+                exposes this as a CLI / web / HF-Space form parameter
+                (Finding #22).
         """
         self.template_path = template_path
         self.bom_type = bom_type.lower()
         self.template = self._load_template() if template_path else None
+        self.relationship_cap = relationship_cap
     
     def _load_template(self) -> Optional[Dict[str, Any]]:
         """Load SPDX template from file"""
@@ -559,28 +561,25 @@ class SPDXValidator:
 
         Returns: ``(stub_elements: list[dict], relationships: list[dict])``.
         """
-        if _is_nil_value(value) or not isinstance(value, str):
+        # Shared helper handles separator parsing (commas, semicolons,
+        # newlines, ``->`` / ``→`` arrows), dedup, nil-sentinel removal,
+        # and self-loop drops. Same parser the recursive walker uses.
+        unique_names = split_lineage_targets(value, parent_identifier)
+        if not unique_names:
             return [], []
 
-        # Split on standard separators plus ``->`` / ``→`` arrows. Each
-        # segment is a candidate target; nil sentinels and self-loops are
-        # filtered below.
-        parts = re.split(r'[,;\n]|\s*(?:->|→)\s*', value)
-        names = [n.strip() for n in parts if n and n.strip()]
-
-        parent_lower = (parent_identifier or "").strip().lower()
-        seen = set()
-        unique_names = []
-        for n in names:
-            low = n.lower()
-            if low in seen or low == parent_lower or _is_nil_value(low):
-                continue
-            seen.add(low)
-            unique_names.append(n)
+        # Apply the user-configurable cap (Phase 10 / Finding #22).
+        # Default ``None`` → unbounded; the recursive walker and linked
+        # bundle have always been unbounded, so the standalone SPDX now
+        # matches by default. Users can pass --spdx-relationship-cap to
+        # cap the standalone output.
+        cap = self.relationship_cap
+        if cap is not None and cap >= 0:
+            unique_names = unique_names[:cap]
 
         stubs = []
         rels = []
-        for name in unique_names[:10]:
+        for name in unique_names:
             child_uuid = self._generate_uuid()
             stub = self._lineage_stub(name, rel_type, child_uuid, creation_uuid)
             stubs.append(stub)
@@ -1114,26 +1113,31 @@ class SPDXValidator:
 
 
 def validate_bom_to_spdx(
-    bom_data: Dict[str, Any], 
+    bom_data: Dict[str, Any],
     bom_type: str = 'ai',
     output_path: Optional[str] = None,
     validate: bool = True,
     strict: bool = False,
+    relationship_cap: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
     Convenience function to validate and convert BOM data to SPDX format
-    
+
     Args:
         bom_data: BOM metadata dictionary
         bom_type: Type of BOM ('ai' or 'data')
         output_path: Optional path to save SPDX JSON
         validate: Validate generated SPDX before returning
         strict: Also run beta SHACL validation when validate is True
-        
+        relationship_cap: Max trainedOn / testedOn / dependsOn child
+            packages per relationship in the standalone SPDX. ``None``
+            (default) is unbounded — matches the recursive walker and
+            linked bundle. Phase 10 (Finding #22).
+
     Returns:
         SPDX 3.0.1 compliant dictionary
     """
-    validator = SPDXValidator(bom_type=bom_type)
+    validator = SPDXValidator(bom_type=bom_type, relationship_cap=relationship_cap)
     spdx_data = validator.validate_and_convert(bom_data, bom_type=bom_type)
 
     if validate:

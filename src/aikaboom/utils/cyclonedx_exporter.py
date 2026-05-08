@@ -23,6 +23,8 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+from aikaboom.utils.value_helpers import _is_nil_value
+
 
 CDX_SPEC_VERSION = "1.6"
 
@@ -119,40 +121,70 @@ class CycloneDXExporter:
         if model_params:
             model_card["modelParameters"] = model_params
 
-        # Training datasets
-        datasets = []
+        # Training / evaluation datasets. CycloneDX 1.7 introduced
+        # ``type: "training"`` / ``type: "evaluation"`` as enum values
+        # for modelCard datasets, but we emit 1.6 (sbom-utility v0.18.x
+        # only ships embedded schemas through 1.6) — that enum doesn't
+        # exist there. Drop the ``type`` field; surface the train/test
+        # split as custom properties instead. Phase 10 / Finding #23.
+        # Also nil-filter so a "noAssertion" parent value doesn't
+        # fabricate a child dataset entry. Finding #24.
+        trained_names: List[str] = []
+        tested_names: List[str] = []
         trained_on = self._extract_value(rag.get("trainedOnDatasets"))
-        if trained_on and isinstance(trained_on, str) and trained_on.lower() not in ("not found", "not found.", ""):
-            for ds_name in [n.strip() for n in trained_on.split(",") if n.strip()]:
-                datasets.append({"type": "training", "name": ds_name})
-
+        if isinstance(trained_on, str) and not _is_nil_value(trained_on):
+            trained_names = [
+                n.strip() for n in trained_on.split(",")
+                if n.strip() and not _is_nil_value(n)
+            ]
         tested_on = self._extract_value(rag.get("testedOnDatasets"))
-        if tested_on and isinstance(tested_on, str) and tested_on.lower() not in ("not found", "not found.", ""):
-            for ds_name in [n.strip() for n in tested_on.split(",") if n.strip()]:
-                datasets.append({"type": "evaluation", "name": ds_name})
+        if isinstance(tested_on, str) and not _is_nil_value(tested_on):
+            tested_names = [
+                n.strip() for n in tested_on.split(",")
+                if n.strip() and not _is_nil_value(n)
+            ]
 
+        datasets = [{"name": n} for n in trained_names + tested_names]
         if datasets:
             if "modelParameters" not in model_card:
                 model_card["modelParameters"] = {}
             model_card["modelParameters"]["datasets"] = datasets
 
         # Quantitative analysis
-        if metric:
+        if metric and not _is_nil_value(metric):
             model_card["quantitativeAnalysis"] = {
                 "performanceMetrics": [{"type": "other", "value": metric}]
             }
 
-        # Considerations
+        # Considerations — nil-filter so silent fields don't fabricate
+        # entries with name="noAssertion" (Finding #24).
         considerations = {}
-        if limitation:
+        if limitation and not _is_nil_value(limitation):
             considerations["technicalLimitations"] = [limitation]
-        if safety:
-            considerations["ethicalConsiderations"] = [{"name": "safetyRiskAssessment", "description": safety}]
+        if safety and not _is_nil_value(safety):
+            considerations["ethicalConsiderations"] = [
+                {"name": "safetyRiskAssessment", "description": safety}
+            ]
         if considerations:
             model_card["considerations"] = considerations
 
         # Custom properties (fields without a native CycloneDX slot + conflicts)
         properties = []
+
+        # Surface the train/test split via properties since the 1.6 schema
+        # doesn't accept the ``type: "training"`` / ``type: "evaluation"``
+        # enum values that 1.7 introduced. Finding #23.
+        if trained_names:
+            properties.append({
+                "name": "aikaboom:training-set:names",
+                "value": ", ".join(trained_names),
+            })
+        if tested_names:
+            properties.append({
+                "name": "aikaboom:evaluation-set:names",
+                "value": ", ".join(tested_names),
+            })
+
         custom_fields = {
             "energyConsumption": rag.get("energy_consumption", rag.get("energyConsumption")),
             "autonomyType": rag.get("autonomy_type", rag.get("autonomyType")),
@@ -162,7 +194,7 @@ class CycloneDXExporter:
         }
         for prop_name, raw in custom_fields.items():
             val = self._extract_value(raw)
-            if val and str(val).lower() not in ("not found", "not found.", ""):
+            if val and not _is_nil_value(val):
                 properties.append({"name": f"aikaboom:{prop_name}", "value": str(val)})
 
         # Preserve conflict info as properties

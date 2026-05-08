@@ -73,28 +73,46 @@ def _conflict_of(triplet: Any) -> Optional[Dict[str, Any]]:
     return None
 
 
-def _split_targets(value: Any) -> List[str]:
+def _split_targets(value: Any, parent_identifier: Optional[str] = None) -> List[str]:
+    """Parse a relationship-target value into deduplicated unique targets.
+
+    Strings go through the shared :func:`aikaboom.utils.lineage.split_lineage_targets`
+    helper (Phase 10 / Finding #17) so arrow-typed lineage strings
+    (``"A -> B"``) split into separate targets the same way the SPDX
+    builder does. List/tuple/dict inputs (rare; from upstream code that
+    already pre-split) are walked element-by-element with the same nil-
+    sentinel + dedupe + self-loop filter.
+    """
+    from aikaboom.utils.lineage import split_lineage_targets
+    from aikaboom.utils.value_helpers import _is_nil_value
+
     value = _extract_value(value)
     if value is None:
         return []
+
+    parent_lower = (parent_identifier or "").strip().lower()
+
+    if isinstance(value, str):
+        # Shared helper handles separators, nil-filter, dedupe, self-loop.
+        return split_lineage_targets(value, parent_identifier)
+
     if isinstance(value, (list, tuple, set)):
         pieces: Iterable[Any] = value
     elif isinstance(value, dict):
         pieces = value.values()
     else:
-        pieces = re.split(r"[,;\n]+", str(value))
+        return split_lineage_targets(str(value), parent_identifier)
 
     targets: List[str] = []
-    seen = set()
+    seen: set = set()
     for piece in pieces:
         text = str(_extract_value(piece) or "").strip()
         text = re.sub(r"^\s*[-*]\s*", "", text)
-        if not text or text.lower() in {"unknown", "none", "n/a", "noassertion"}:
+        low = text.lower()
+        if not text or _is_nil_value(low) or low == parent_lower or low in seen:
             continue
-        key = text.lower()
-        if key not in seen:
-            seen.add(key)
-            targets.append(text)
+        seen.add(low)
+        targets.append(text)
     return targets
 
 
@@ -139,7 +157,7 @@ def discover_recursive_targets(
             })
             continue
 
-        for target in _split_targets(triplet):
+        for target in _split_targets(triplet, parent_identifier=parent_id):
             targets.append({
                 "source_field": field,
                 "relationship_type": relationship_type,

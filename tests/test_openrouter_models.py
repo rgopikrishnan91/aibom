@@ -94,70 +94,37 @@ class TestListOpenrouterModels:
             orm.list_openrouter_models(force_refresh=True)
             assert mock_get.call_count == 2
 
-    def test_network_failure_falls_back_to_curated(self):
+    def test_network_failure_returns_empty(self):
+        """Phase 10 retired the curated free-model fallback (Findings #6,
+        #12). The catalog now returns ``[]`` on network failure; callers
+        decide how to surface the missing data."""
         with patch("requests.get", side_effect=Exception("boom")):
             models = orm.list_openrouter_models()
-        ids = {m["id"] for m in models}
-        assert ids == set(orm.CURATED_FREE_FALLBACK)
+        assert models == []
 
-    def test_403_falls_back_to_curated(self):
+    def test_403_returns_empty(self):
         with patch("requests.get", return_value=_mock_response(status=403)):
             models = orm.list_openrouter_models()
-        # Curated fallback is used on any error including 403
-        assert all(m["id"].endswith(":free") for m in models)
+        assert models == []
 
 
-class TestListFreeOpenrouterModels:
-
-    def test_filters_by_free_suffix(self):
-        with patch("requests.get", return_value=_mock_response(json_data=SAMPLE_RESPONSE)):
-            free = orm.list_free_openrouter_models()
-        ids = {m["id"] for m in free}
-        # Both :free models AND the "all-zero pricing" model should be returned
-        assert "meta-llama/llama-3.3-70b-instruct:free" in ids
-        assert "google/gemini-2.0-flash-exp:free" in ids
-        assert "experimental/no-suffix-but-zero" in ids
-        # Paid models excluded
-        assert "openai/gpt-4o" not in ids
-        assert "meta-llama/llama-3.3-70b-instruct" not in ids
-
-    def test_sorted_by_context_length_desc(self):
-        with patch("requests.get", return_value=_mock_response(json_data=SAMPLE_RESPONSE)):
-            free = orm.list_free_openrouter_models()
-        ctxs = [m["context_length"] for m in free]
-        # Gemini 2.0 has 1M context, Llama 3.3 has 131K, experimental has 4K
-        assert ctxs == sorted(ctxs, reverse=True)
-
-
-class TestPickFreeOpenrouterModel:
-
-    def test_returns_string(self):
-        with patch("requests.get", return_value=_mock_response(json_data=SAMPLE_RESPONSE)):
-            picked = orm.pick_free_openrouter_model()
-        assert isinstance(picked, str)
-        assert picked  # non-empty
-
-    def test_picks_largest_context(self):
-        with patch("requests.get", return_value=_mock_response(json_data=SAMPLE_RESPONSE)):
-            picked = orm.pick_free_openrouter_model()
-        # Gemini 2.0 has the largest context window in the sample
-        assert picked == "google/gemini-2.0-flash-exp:free"
-
-    def test_falls_back_when_offline(self):
-        with patch("requests.get", side_effect=Exception("offline")):
-            picked = orm.pick_free_openrouter_model()
-        assert picked in orm.CURATED_FREE_FALLBACK
+# Phase 10 retired the free-model surface entirely
+# (TestListFreeOpenrouterModels / TestPickFreeOpenrouterModel /
+# CURATED_FREE_FALLBACK). The free-tier path was a usability trap;
+# tests/test_phase10_fixes.py now guards the removal with importability
+# regression tests.
 
 
 class TestPublicAPIReexports:
 
-    def test_can_import_from_top_level(self):
-        from aikaboom import (
-            list_openrouter_models,
-            list_free_openrouter_models,
-            pick_free_openrouter_model,
-        )
-        # All three should be callable
+    def test_can_import_list_from_top_level(self):
+        from aikaboom import list_openrouter_models
         assert callable(list_openrouter_models)
-        assert callable(list_free_openrouter_models)
-        assert callable(pick_free_openrouter_model)
+
+    def test_free_helpers_are_not_re_exported(self):
+        """Regression for Phase 10: re-exporting the deleted helpers
+        from the top-level package would silently break downstream
+        consumers that rely on the new shape."""
+        import aikaboom
+        assert not hasattr(aikaboom, "list_free_openrouter_models")
+        assert not hasattr(aikaboom, "pick_free_openrouter_model")

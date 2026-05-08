@@ -80,19 +80,28 @@ class TestAIBOMConversion:
         assert "GPT-2" in mc.get("modelParameters", {}).get("architectureFamily", "")
 
     def test_training_datasets(self):
+        """CycloneDX 1.6 doesn't accept the 1.7-only ``type: "training"`` enum
+        on dataset entries (Phase 10 / Finding #23). The train/test split
+        now lives in custom properties; the dataset entries carry the
+        ``name`` only."""
         cdx = CycloneDXExporter(bom_type="ai").validate_and_convert(_ai_bom_data())
-        mc = cdx["components"][0].get("modelCard", {})
+        comp = cdx["components"][0]
+        mc = comp.get("modelCard", {})
         datasets = mc.get("modelParameters", {}).get("datasets", [])
-        training = [d for d in datasets if d.get("type") == "training"]
-        assert len(training) >= 1
-        assert any("Reddit" in d["name"] for d in training)
+        # No type field on any dataset entry (would be a 1.7-only enum).
+        assert all("type" not in d for d in datasets), datasets
+        # Training set names surface via the property block instead.
+        props = {p["name"]: p["value"] for p in comp.get("properties", [])}
+        assert "Reddit" in props.get("aikaboom:training-set:names", "")
 
     def test_evaluation_datasets(self):
+        """Evaluation set names surface via custom properties (no
+        ``type: "evaluation"`` on dataset entries — Finding #23)."""
         cdx = CycloneDXExporter(bom_type="ai").validate_and_convert(_ai_bom_data())
-        mc = cdx["components"][0].get("modelCard", {})
-        datasets = mc.get("modelParameters", {}).get("datasets", [])
-        evaluation = [d for d in datasets if d.get("type") == "evaluation"]
-        assert len(evaluation) >= 1
+        comp = cdx["components"][0]
+        props = {p["name"]: p["value"] for p in comp.get("properties", [])}
+        assert "aikaboom:evaluation-set:names" in props
+        assert props["aikaboom:evaluation-set:names"]  # non-empty
 
     def test_pedigree_ancestors(self):
         cdx = CycloneDXExporter(bom_type="ai").validate_and_convert(_ai_bom_data())

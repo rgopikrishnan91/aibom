@@ -628,18 +628,17 @@
                 <div class="form-group" id="model_group_openrouter">
                     <label for="openrouter_model_select">🤖 OpenRouter Model</label>
                     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
-                        <button type="button" id="btn_load_free_models" style="padding:6px 10px;border:1px solid #1e8449;background:#e8f5e9;color:#1e8449;border-radius:6px;cursor:pointer;font-size:0.85em;">🎯 Pick a free model</button>
-                        <button type="button" id="btn_load_all_models" style="padding:6px 10px;border:1px solid #888;background:#f5f5f5;color:#333;border-radius:6px;cursor:pointer;font-size:0.85em;">📋 Show all models</button>
+                        <button type="button" id="btn_load_all_models" style="padding:6px 10px;border:1px solid #888;background:#f5f5f5;color:#333;border-radius:6px;cursor:pointer;font-size:0.85em;">📋 Load model catalog</button>
                     </div>
                     <select id="openrouter_model_select" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:0.95em;margin-bottom:6px;">
-                        <option value="qwen/qwen-2.5-72b-instruct:free">qwen/qwen-2.5-72b-instruct:free (free, default)</option>
+                        <option value="meta-llama/llama-3.3-70b-instruct">meta-llama/llama-3.3-70b-instruct (default)</option>
                         <option value="__custom__">Custom model ID...</option>
                     </select>
                     <input type="text" id="openrouter_model" name="openrouter_model"
-                           value="qwen/qwen-2.5-72b-instruct:free"
-                           placeholder="e.g. meta-llama/llama-3.3-70b-instruct:free"
+                           value="meta-llama/llama-3.3-70b-instruct"
+                           placeholder="e.g. openai/gpt-4o-mini"
                            style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:0.95em;box-sizing:border-box;display:none;">
-                    <div class="url-hint" id="openrouter_model_hint">Click "Pick a free model" to load free models from OpenRouter.</div>
+                    <div class="url-hint" id="openrouter_model_hint">Click "Load model catalog" to fetch the live OpenRouter list.</div>
                 </div>
 
                 <div class="form-group" id="model_group_openai" style="display:none;">
@@ -741,6 +740,10 @@
                         <label style="display:flex;align-items:center;gap:6px;font-weight:500;">
                             Safety cap
                             <input type="number" id="recursive_safety_cap" min="1" max="500" value="50" style="width:72px;padding:6px 8px;">
+                        </label>
+                        <label style="display:flex;align-items:center;gap:6px;font-weight:500;" title="Cap children-per-relationship in the standalone SPDX. Empty = unbounded. Recursive walker and linked bundle are always unbounded.">
+                            SPDX cap
+                            <input type="number" id="spdx_relationship_cap" min="1" max="500" placeholder="unbounded" style="width:96px;padding:6px 8px;">
                         </label>
                     </div>
                     <div class="url-hint" style="color:#a04500;">
@@ -911,7 +914,6 @@
             const hidden = document.getElementById('openrouter_model');
             const customInput = hidden;  // same element repurposed for custom
             const hint = document.getElementById('openrouter_model_hint');
-            const btnFree = document.getElementById('btn_load_free_models');
             const btnAll = document.getElementById('btn_load_all_models');
 
             function setHint(msg, color) {
@@ -938,18 +940,16 @@
             select.addEventListener('change', applySelectedModel);
             applySelectedModel();
 
-            async function loadModels(freeOnly) {
-                setHint(freeOnly ? '🎯 Loading free models...' : '📋 Loading all models...', '#666');
+            async function loadModels() {
+                setHint('📋 Loading model catalog...', '#666');
                 try {
-                    const url = `/models?provider=openrouter&free_only=${freeOnly}`;
-                    const resp = await fetch(url);
+                    const resp = await fetch('/models?provider=openrouter');
                     const data = await resp.json();
                     const models = data.models || [];
                     if (!models.length) {
                         setHint('No models returned from OpenRouter.', '#c0392b');
                         return;
                     }
-                    // Rebuild dropdown
                     select.innerHTML = '';
                     models.forEach(function(m) {
                         const opt = document.createElement('option');
@@ -964,14 +964,13 @@
                     select.appendChild(customOpt);
                     select.value = models[0].id;
                     applySelectedModel();
-                    setHint(`✓ Loaded ${models.length} ${freeOnly ? 'free' : ''} model(s) from OpenRouter.`, '#1e8449');
+                    setHint(`✓ Loaded ${models.length} model(s) from OpenRouter.`, '#1e8449');
                 } catch (err) {
                     setHint('Could not load models: ' + err.message, '#c0392b');
                 }
             }
 
-            btnFree.addEventListener('click', function() { loadModels(true); });
-            btnAll.addEventListener('click', function() { loadModels(false); });
+            btnAll.addEventListener('click', loadModels);
         })();
 
         // Debugging: Ensure the script is loaded
@@ -1064,6 +1063,12 @@
                     ? 'all'
                     : parseInt(document.getElementById('recursive_depth').value || '1', 10),
                 recursive_safety_cap: parseInt(document.getElementById('recursive_safety_cap').value || '50', 10),
+                spdx_relationship_cap: (function(){
+                    var raw = document.getElementById('spdx_relationship_cap').value;
+                    if (!raw) return null;  // empty = unbounded
+                    var n = parseInt(raw, 10);
+                    return (isNaN(n) || n < 1) ? null : n;
+                })(),
                 format: 'both'
             };
 

@@ -1,6 +1,27 @@
 """AIkaBoOM - AI Bills of Materials"""
 __version__ = "1.0.0"
 
+# Suppress the langchain_core PendingDeprecationWarning that fires on
+# every ``langgraph.cache.base`` import. Has to run BEFORE any
+# ``aikaboom.utils.*`` import below — those pull langgraph in
+# transitively. Phase 9 placed this filter in cli.py, but the package
+# __init__ runs FIRST when CLI is invoked, so the filter was being
+# installed too late and the warning had already fired. Phase 10 /
+# Finding #13.
+import warnings as _warnings
+
+try:
+    import langchain_core._api.deprecation as _lcdep  # noqa: E402
+    _lcdep.surface_langchain_deprecation_warnings = lambda: None
+except ImportError:
+    pass  # langchain isn't installed — nothing to defang.
+
+# ``simplefilter`` prepends to ``warnings.filters`` so this entry wins
+# over the ``"default"`` filter the deprecation module pushed when
+# langchain_core was imported above.
+_warnings.simplefilter("ignore", PendingDeprecationWarning)
+_warnings.filterwarnings("ignore", message=r".*allowed_objects.*")
+
 from aikaboom.utils.spdx_validator import validate_bom_to_spdx, validate_spdx_export
 from aikaboom.utils.recursive_bom import (
     discover_recursive_targets,
@@ -50,17 +71,11 @@ except ModuleNotFoundError as e:
     DirectLLM = None
 
 try:
-    from aikaboom.utils.openrouter_models import (
-        list_openrouter_models,
-        list_free_openrouter_models,
-        pick_free_openrouter_model,
-    )
+    from aikaboom.utils.openrouter_models import list_openrouter_models
 except ModuleNotFoundError as e:
     if not _missing_optional(e):
         raise
     list_openrouter_models = None
-    list_free_openrouter_models = None
-    pick_free_openrouter_model = None
 
 try:
     from aikaboom.utils.cyclonedx_exporter import CycloneDXExporter, bom_to_cyclonedx
@@ -76,8 +91,6 @@ __all__ = [
     "AgenticRAG",
     "DirectLLM",
     "list_openrouter_models",
-    "list_free_openrouter_models",
-    "pick_free_openrouter_model",
     "CycloneDXExporter",
     "bom_to_cyclonedx",
     "validate_bom_to_spdx",

@@ -2,15 +2,19 @@
 OpenRouter model catalog helpers.
 
 Fetches the public OpenRouter model list (https://openrouter.ai/api/v1/models),
-caches it for 1 hour, and exposes filtering helpers for free models.
+caches it for 1 hour, and exposes a single helper for the CLI/web to
+present the catalog.
 
 Public API:
     list_openrouter_models(force_refresh=False) -> list[dict]
-    list_free_openrouter_models(force_refresh=False) -> list[dict]
-    pick_free_openrouter_model() -> str
-    CURATED_FREE_FALLBACK -> list[str]
 
 Each returned model dict has at least: id, name, context_length, pricing.
+
+Phase 10 retired the free-model surface (picker, modality filter,
+curated fallback list). Real-user testing showed the free-tier path
+was a usability trap — rate limits made it unusable for non-trivial
+runs, and the picker mislabeled non-chat models. OpenRouter as a
+provider stays; users supply their own paid model id explicitly.
 """
 from __future__ import annotations
 
@@ -26,30 +30,6 @@ _CACHE_TTL_SECONDS = 3600
 # Module-level cache: {key: (timestamp, value)}
 _cache: Dict[str, tuple[float, List[Dict[str, Any]]]] = {}
 
-# Hand-curated list of free models, used as a fallback when the live API is
-# unreachable.  These have been stable for a while; if any disappear the
-# function still returns the rest plus whatever the catalog had.
-CURATED_FREE_FALLBACK: List[str] = [
-    "meta-llama/llama-3.3-70b-instruct:free",
-    "google/gemini-2.0-flash-exp:free",
-    "deepseek/deepseek-r1:free",
-    "qwen/qwen-2.5-72b-instruct:free",
-    "mistralai/mistral-7b-instruct:free",
-]
-
-
-def _curated_fallback_models() -> List[Dict[str, Any]]:
-    """Return CURATED_FREE_FALLBACK shaped like normal model entries."""
-    return [
-        {
-            "id": mid,
-            "name": mid.split("/", 1)[-1].replace(":free", "") + " (free)",
-            "context_length": None,
-            "pricing": {"prompt": "0", "completion": "0"},
-        }
-        for mid in CURATED_FREE_FALLBACK
-    ]
-
 
 def _slim(model: Dict[str, Any]) -> Dict[str, Any]:
     """Pick only the fields we need for the UI/CLI."""
@@ -58,55 +38,16 @@ def _slim(model: Dict[str, Any]) -> Dict[str, Any]:
         "name": model.get("name") or model.get("id"),
         "context_length": model.get("context_length"),
         "pricing": model.get("pricing", {}),
-        # ``architecture`` carries modality info ({input,output}_modalities or
-        # the older ``modality`` field). Kept in the slim shape so the
-        # free-model picker can filter to text-chat models — Phase 9 /
-        # Finding #12 (the picker was sorting by context length and ended up
-        # selecting music-generation models like ``google/lyria-3-pro-preview``).
-        "architecture": model.get("architecture") or {},
     }
-
-
-_NON_CHAT_NAME_PATTERNS = (
-    "lyria", "owl-alpha", "music", "audio", "tts", "speech",
-    "video", "image-", "vision-", "diffusion",
-)
-
-
-def _is_text_chat_model(model: Dict[str, Any]) -> bool:
-    """True if a model is text-in / text-out (a chat-completion model).
-
-    Falls back to a name blocklist for entries from the curated fallback
-    list (which doesn't carry architecture metadata) or models whose
-    ``architecture`` dict is empty.
-    """
-    arch = model.get("architecture") or {}
-    inp = arch.get("input_modalities") or []
-    out = arch.get("output_modalities") or []
-    if inp or out:
-        return ("text" in inp) and ("text" in out)
-    modality = arch.get("modality") or ""
-    if modality:
-        return "text" in modality.lower()
-    name = (model.get("id") or "").lower()
-    return not any(p in name for p in _NON_CHAT_NAME_PATTERNS)
-
-
-def _is_free(model: Dict[str, Any]) -> bool:
-    """A model is free if it has a :free id suffix or zero pricing."""
-    mid = model.get("id") or ""
-    if mid.endswith(":free"):
-        return True
-    pricing = model.get("pricing") or {}
-    # OpenRouter returns prices as decimal strings, e.g. "0" or "0.0000005".
-    return pricing.get("prompt") == "0" and pricing.get("completion") == "0"
 
 
 def list_openrouter_models(force_refresh: bool = False, *, timeout: int = 10) -> List[Dict[str, Any]]:
     """Fetch the full OpenRouter model catalog. Cached for 1 hour.
 
     Returns a list of slim dicts: {id, name, context_length, pricing}.
-    On network error returns the curated fallback list (still slim-shaped).
+    On network / parse failure returns an empty list (caller is expected
+    to handle that — typically by surfacing a "couldn't fetch catalog"
+    message and asking the user to provide a model id explicitly).
     """
     cache_key = "all"
     now = time.monotonic()
@@ -123,41 +64,5 @@ def list_openrouter_models(force_refresh: bool = False, *, timeout: int = 10) ->
         _cache[cache_key] = (now, models)
         return models
     except Exception as exc:  # network, timeout, JSON, etc.
-        print(f"  ⚠️ OpenRouter /models fetch failed ({exc}); using curated fallback")
-        fallback = _curated_fallback_models()
-        # Cache the fallback too, but with a short-ish TTL via timestamp.
-        _cache[cache_key] = (now, fallback)
-        return fallback
-
-
-def list_free_openrouter_models(force_refresh: bool = False) -> List[Dict[str, Any]]:
-    """Return free chat-completion models, sorted by context_length desc.
-
-    Excludes audio / music / image / video generation models — sorting
-    purely by context length used to surface things like
-    ``google/lyria-3-pro-preview`` (a music model) above any usable chat
-    model. See ``_is_text_chat_model`` for the filter rule (Phase 9 /
-    Finding #12).
-    """
-    all_models = list_openrouter_models(force_refresh=force_refresh)
-    free = [m for m in all_models if _is_free(m) and _is_text_chat_model(m)]
-
-    def _ctx_key(m: Dict[str, Any]) -> int:
-        ctx = m.get("context_length")
-        return ctx if isinstance(ctx, int) else 0
-
-    free.sort(key=_ctx_key, reverse=True)
-    return free
-
-
-def pick_free_openrouter_model() -> str:
-    """Return one free model id. Picks the highest-context model available.
-
-    Used by ``aikaboom generate --pick-free-model`` and the equivalent
-    Python API path.  Always returns a string (uses CURATED_FREE_FALLBACK[0]
-    as the absolute last resort).
-    """
-    free = list_free_openrouter_models()
-    if free and free[0].get("id"):
-        return free[0]["id"]
-    return CURATED_FREE_FALLBACK[0]
+        print(f"  ⚠️ OpenRouter /models fetch failed ({exc})")
+        return []

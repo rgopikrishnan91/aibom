@@ -14,7 +14,7 @@
 
 ---
 
-AIkaBoOM extracts metadata from **HuggingFace**, **GitHub**, and **arXiv**, uses an LLM to populate structured BOM fields, and flags conflicts when sources disagree. The result is a JSON document with field-level provenance plus SPDX 3.0.1 JSON-LD validation. CycloneDX 1.7 export, recursive child BOM seed generation, and strict SPDX SHACL validation are available as beta features.
+AIkaBoOM extracts metadata from **HuggingFace**, **GitHub**, and **arXiv**, uses an LLM to populate structured BOM fields, and flags conflicts when sources disagree. The result is a JSON document with field-level provenance plus SPDX 3.0.1 JSON-LD validation. CycloneDX 1.6 ML-BOM export, recursive child BOM seed generation, and strict SPDX SHACL validation are available as beta features.
 
 ## Why?
 
@@ -27,7 +27,7 @@ AIkaBoOM extracts metadata from **HuggingFace**, **GitHub**, and **arXiv**, uses
 ```bash
 git clone https://github.com/rgopikrishnan91/aikaboom && cd aikaboom
 pip install -e .
-cp .env.example .env   # add a provider key (OpenRouter free tier works)
+cp .env.example .env   # add a provider key (OpenRouter / OpenAI / Ollama)
 python run.py           # opens http://localhost:5000
 ```
 
@@ -69,14 +69,14 @@ aikaboom serve --port 5000
 ```
 
 Pick BOM type (AI / Data), mode (RAG / Direct), and provider. For OpenRouter,
-click **🎯 Pick a free model** to load free models directly from
-`/v1/models`. The **Provenance BOM** and **SPDX 3.0.1** export are generated automatically. The UI also exposes beta toggles/status for **CycloneDX 1.7**, **recursive BOM generation**, and **Deep SHACL validation (beta)**. Server logs stream live in the **Logs** tab; the **Conflicts** tab shows a coloured count badge.
+click **📋 Load model catalog** to fetch the live model list from
+`/v1/models`. The **Provenance BOM** and **SPDX 3.0.1** export are generated automatically. The UI also exposes beta toggles/status for **CycloneDX 1.6 ML-BOM**, **recursive BOM generation**, and **Deep SHACL validation (beta)**. Server logs stream live in the **Logs** tab; the **Conflicts** tab shows a coloured count badge.
 
 ### CLI
 
 ```bash
-# List free OpenRouter models
-aikaboom list-models --free --limit 10
+# List OpenRouter models
+aikaboom list-models --provider openrouter --limit 10
 
 # Generate an AI BOM (provider auto-detected from .env)
 aikaboom generate --type ai \
@@ -94,8 +94,9 @@ aikaboom generate --type ai --repo org/model \
     --output result.json \
     --recursive-bom --recursive-output result.recursive.json
 
-# Auto-pick a free OpenRouter model
-aikaboom generate --type ai --repo org/model --pick-free-model
+# Cap the standalone SPDX's children-per-relationship list (default unbounded)
+aikaboom generate --type ai --repo org/model \
+    --spdx result.spdx.json --spdx-relationship-cap 10
 
 # Generate a Dataset BOM
 aikaboom generate --type data \
@@ -111,16 +112,10 @@ skip the prompt in scripts.
 ### Python API
 
 ```python
-from aikaboom import (
-    AIBOMProcessor, DATABOMProcessor,
-    pick_free_openrouter_model, list_free_openrouter_models,
-)
-
-# Optional: pick a free model dynamically
-model = pick_free_openrouter_model()
+from aikaboom import AIBOMProcessor, DATABOMProcessor
 
 processor = AIBOMProcessor(
-    model=model,
+    model="meta-llama/llama-3.3-70b-instruct",
     mode="rag",
     llm_provider="openrouter",
     use_case="complete",
@@ -239,16 +234,16 @@ the difference is intentional and documented here.
   any benchmark figure against the source paper before relying on
   it. A future phase may add cross-source agreement / re-prompt
   verification for numeric fields; today the answer is best-effort.
-- **Free-tier OpenRouter models** (rate-limited at 8 RPM) work but
-  are slow and occasionally drop fields under sustained load; the
-  pipeline retries with backoff but a heavy run may still leave a
-  few fields as `noAssertion`. For production extraction, prefer a
-  paid OpenRouter model or self-hosted Ollama.
 - **CycloneDX 1.6 emission, not 1.7.** The validator we adopted
   (`sbom-utility`) ships embedded JSON schemas for 1.2-1.6 only as
   of v0.18.x; we emit 1.6 so our own outputs can actually be
   validated end-to-end. None of CycloneDX 1.7's additions are used
   by AIkaBoOM today.
+- **OpenRouter free tier is unsupported.** The previous free-model
+  picker and `--free` flag were retired in Phase 10 — rate-limit
+  caps (8 RPM on `:free` tiers) made the path unusable for any
+  non-trivial run. OpenRouter as a provider stays; supply a paid
+  model id explicitly.
 
 ## Conflict Detection and Value Selection
 
@@ -360,7 +355,7 @@ AIkaBoOM always produces the native Provenance BOM and can emit standards-focuse
 |--------|----------|-------|
 | **Provenance BOM** | AIkaBoOM JSON | Native format. Field-level source attribution + structured conflict triplets. |
 | **SPDX 3.0.1** | [SPDX AI Profile](https://spdx.github.io/spdx-spec/v3.0.1/) JSON-LD | The same content as the Provenance BOM, expressed using the SPDX 3.0.1 AI Profile (`ai_AIPackage`, `dataset_DatasetPackage`, `trainedOn`/`testedOn`/`dependsOn`). |
-| **CycloneDX 1.7 (beta)** | [CycloneDX ML-BOM](https://cyclonedx.org/) JSON | The same content as the Provenance BOM, expressed using the CycloneDX 1.7 ML-BOM (`modelCard`, `pedigree.ancestors`, `quantitativeAnalysis`). |
+| **CycloneDX 1.6 ML-BOM (beta)** | [CycloneDX ML-BOM](https://cyclonedx.org/) JSON | The same content as the Provenance BOM, expressed using the CycloneDX 1.6 ML-BOM (`modelCard`, `pedigree.ancestors`, `quantitativeAnalysis`). |
 | **Recursive BOMs (beta)** | AIkaBoOM JSON bundle | Per-child BOMs for every `trainedOn` / `testedOn` / `dependsOn` target discovered in the dependency tree. |
 | **Linked SPDX bundle (beta)** | SPDX 3.0.1 JSON-LD | Single `@graph` merging the parent and every recursive child with explicit Relationship edges; passes both lightweight and strict SPDX validation. |
 
@@ -432,7 +427,7 @@ AIkaBoOM works with any OpenAI-compatible chat API. Pick the one that fits your 
 
 | Provider     | When to use it                                                                                         |
 |--------------|--------------------------------------------------------------------------------------------------------|
-| OpenRouter   | **Recommended for free / hobby use.** Free models available, click "Pick a free model" in the UI.    |
+| OpenRouter   | Single key for many hosted models (Llama, Qwen, GPT, Claude, Mistral, …). Paid; no free-tier support.  |
 | OpenAI       | If you already have credits or want the highest-quality reasoning.                                     |
 | Ollama       | Fully local / offline. Pulls a model to your machine; no key required.                                 |
 
@@ -440,9 +435,9 @@ AIkaBoOM works with any OpenAI-compatible chat API. Pick the one that fits your 
 
 When deployed to HuggingFace Spaces (see below), the container itself does **not** host a large model. The Space calls out to whichever provider you configure:
 
-- **OpenRouter `:free` models** are the easiest path. Set `OPENROUTER_API_KEY` in the Space secrets and use the in-app **Pick a free model** button. Works on the free CPU tier.
+- **OpenRouter** is the easiest path. Set `OPENROUTER_API_KEY` in the Space secrets, hit **Load model catalog**, pick a paid model id (e.g. `openai/gpt-4o-mini`, `meta-llama/llama-3.3-70b-instruct`).
 - **OpenAI / Anthropic / Mistral hosted APIs** also work via OpenRouter.
-- **Ollama-in-Spaces** is technically possible but constrained: the free tier has 16 GB RAM and 50 GB ephemeral disk, so only smaller models (~`llama3:8b`) fit, and cold-start times are long. Most users keep Ollama on their own hardware and only use Spaces for the web UI.
+- **Ollama-in-Spaces** is technically possible but constrained: the free Spaces tier has 16 GB RAM and 50 GB ephemeral disk, so only smaller models (~`llama3:8b`) fit, and cold-start times are long. Most users keep Ollama on their own hardware and only use Spaces for the web UI.
 - The local embedding model (`BAAI/bge-small-en-v1.5`, ~50 MB) runs inside the Space without any configuration.
 
 ## Configuration
@@ -454,7 +449,7 @@ cp .env.example .env
 ```env
 # Pick ONE LLM provider:
 OPENAI_API_KEY=sk-...                       # Option 1: OpenAI
-OPENROUTER_API_KEY=sk-or-...                # Option 2: OpenRouter (free models available)
+OPENROUTER_API_KEY=sk-or-...                # Option 2: OpenRouter (paid)
 OLLAMA_BASE_URL=http://localhost:11434/v1/  # Option 3: Ollama (local, no key)
 
 # Source API tokens (optional, increases rate limits):
