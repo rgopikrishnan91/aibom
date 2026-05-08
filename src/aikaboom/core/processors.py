@@ -16,6 +16,7 @@ import requests
 from aikaboom.core.agentic_rag import AgenticRAG, DirectLLM, FIXED_QUESTIONS_AI, FIXED_QUESTIONS_DATA
 from aikaboom.utils.metadata_fetcher import MetadataFetcher
 from aikaboom.core.source_handler import SourceHandler
+from aikaboom.core.internal_conflict import LicenseConflictChecker
 from aikaboom.utils.source_priority import get_direct_priority
 from aikaboom.utils.normalise import (
     normalize_org,
@@ -319,6 +320,15 @@ class AIBOMProcessor:
             priority=get_direct_priority("packageVersion"),
             normaliser=normalize_version,
         )
+        # license: HF cardData.license + GitHub repo license API both emit a
+        # ``license`` key from the inspectors. Resolve here so exporters read
+        # ``direct.license`` directly instead of round-tripping the value
+        # through the RAG path.
+        direct_metadata["license"], direct_metadata["license_source"], direct_metadata["license_conflicts"] = SourceHandler.get_field_conflict_with_priority(
+            "license", named_sources,
+            priority=get_direct_priority("license"),
+            normaliser=LicenseConflictChecker.normalize_license,
+        )
         return direct_metadata
 
     def _fetch_github_readme(self, github_url: str) -> str:
@@ -617,6 +627,14 @@ class DATABOMProcessor:
         direct_metadata["contentIdentifier"], direct_metadata["contentIdentifier_source"], direct_metadata["contentIdentifier_conflicts"] = SourceHandler.get_field_conflict_with_priority(
             "contentIdentifier", named_sources,
             priority=get_direct_priority("contentIdentifier"),
+        )
+
+        # license: HF dataset cards expose ``cardData.license``; resolve it
+        # via the direct path so exporters don't need a RAG fallback.
+        direct_metadata["license"], direct_metadata["license_source"], direct_metadata["license_conflicts"] = SourceHandler.get_field_conflict_with_priority(
+            "license", named_sources,
+            priority=get_direct_priority("license"),
+            normaliser=LicenseConflictChecker.normalize_license,
         )
 
         return direct_metadata

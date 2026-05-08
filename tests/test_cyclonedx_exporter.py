@@ -80,23 +80,24 @@ class TestAIBOMConversion:
         assert "GPT-2" in mc.get("modelParameters", {}).get("architectureFamily", "")
 
     def test_training_datasets(self):
-        """CycloneDX 1.6 doesn't accept the 1.7-only ``type: "training"`` enum
-        on dataset entries (Phase 10 / Finding #23). The train/test split
-        now lives in custom properties; the dataset entries carry the
-        ``name`` only."""
+        """CycloneDX 1.6 requires ``type`` on every modelCard dataset entry
+        (Phase 11 / Finding #23 follow-up: setting ``type: "dataset"`` is
+        the only 1.6 enum value that fits). Train/test split still rides
+        in custom properties so we don't lose the distinction."""
         cdx = CycloneDXExporter(bom_type="ai").validate_and_convert(_ai_bom_data())
         comp = cdx["components"][0]
         mc = comp.get("modelCard", {})
         datasets = mc.get("modelParameters", {}).get("datasets", [])
-        # No type field on any dataset entry (would be a 1.7-only enum).
-        assert all("type" not in d for d in datasets), datasets
+        assert datasets, "expected at least one dataset entry"
+        assert all(d.get("type") == "dataset" for d in datasets), datasets
         # Training set names surface via the property block instead.
         props = {p["name"]: p["value"] for p in comp.get("properties", [])}
         assert "Reddit" in props.get("aikaboom:training-set:names", "")
 
     def test_evaluation_datasets(self):
-        """Evaluation set names surface via custom properties (no
-        ``type: "evaluation"`` on dataset entries — Finding #23)."""
+        """Evaluation set names surface via custom properties (the
+        train/test distinction lives in properties because every dataset
+        entry must carry ``type: "dataset"`` under 1.6 — Finding #23)."""
         cdx = CycloneDXExporter(bom_type="ai").validate_and_convert(_ai_bom_data())
         comp = cdx["components"][0]
         props = {p["name"]: p["value"] for p in comp.get("properties", [])}

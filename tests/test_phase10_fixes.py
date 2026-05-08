@@ -113,11 +113,13 @@ def test_web_route_reads_spdx_relationship_cap_from_request_body():
 # ---------------------------------------------------------------------------
 
 
-def test_cyclonedx_dataset_entries_have_no_type_field():
-    """The 1.7-only ``type: "training"`` / ``type: "evaluation"`` keys are
-    schema errors against the 1.6 spec (sbom-utility v0.18.x reported
-    41-85 errors per BOM in the re-test). The exporter now omits the
-    type field; train/test split lives in custom properties instead."""
+def test_cyclonedx_dataset_entries_carry_type_dataset():
+    """Phase 11 follow-up to #23: dropping ``type`` entirely (Phase 10) made
+    sbom-utility v0.18.x flag every dataset entry as missing the required
+    field. The 1.6 enum is small (source-code/configuration/dataset/
+    definition/other); ``type: "dataset"`` is the only value that conveys
+    "this is a training or evaluation dataset". Train/test split still
+    lives in custom properties so we don't lose the distinction."""
     from aikaboom.utils.cyclonedx_exporter import CycloneDXExporter
 
     bom = {
@@ -134,7 +136,7 @@ def test_cyclonedx_dataset_entries_have_no_type_field():
     datasets = comp.get("modelCard", {}).get("modelParameters", {}).get("datasets", [])
     assert datasets, "datasets list should be populated"
     for d in datasets:
-        assert "type" not in d, f"dataset entry has 1.7-only type field: {d}"
+        assert d.get("type") == "dataset", f"missing type=dataset: {d}"
         assert "name" in d
 
 

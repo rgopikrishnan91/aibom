@@ -144,7 +144,11 @@ class CycloneDXExporter:
                 if n.strip() and not _is_nil_value(n)
             ]
 
-        datasets = [{"name": n} for n in trained_names + tested_names]
+        # CycloneDX 1.6 requires ``type`` on every modelCard dataset entry;
+        # the 1.6 enum is source-code | configuration | dataset | definition |
+        # other. ``"dataset"`` is the only value that matches the field's
+        # purpose. Train / test split rides in the ``properties`` block below.
+        datasets = [{"type": "dataset", "name": n} for n in trained_names + tested_names]
         if datasets:
             if "modelParameters" not in model_card:
                 model_card["modelParameters"] = {}
@@ -240,7 +244,16 @@ class CycloneDXExporter:
     def _build_dataset_component(self, dataset_id, direct, rag, bom_data):
         name = self._extract_value(direct.get("name")) or dataset_id
         license_val = self._extract_value(direct.get("license")) or "NOASSERTION"
-        description = self._extract_value(rag.get("intendedUse")) or ""
+        # ``description`` is the data-BOM equivalent of the AI BOM's auto-
+        # extracted blurb; ``intendedUse`` is rarely populated for datasets.
+        # Prefer description; fall back to intendedUse only if description is
+        # missing or a nil sentinel like ``"noAssertion"``.
+        raw_desc = (
+            self._extract_value(rag.get("description"))
+            or self._extract_value(rag.get("intendedUse"))
+            or ""
+        )
+        description = "" if _is_nil_value(raw_desc) else raw_desc
         originated_by = self._extract_value(direct.get("originatedBy")) or ""
 
         component = {
