@@ -341,24 +341,22 @@ def list_models_endpoint():
 
     Query params:
         provider: 'openrouter' (default). Other providers return [] for now.
-        free_only: 'true' to only return free models.
         force_refresh: 'true' to bypass the in-memory cache.
+
+    Phase 10 retired the ``free_only`` filter (Findings #6, #12). The
+    free-tier path was a usability trap; the catalog now always returns
+    the full list and users pick paid model ids explicitly.
     """
     provider = request.args.get('provider', 'openrouter').lower()
-    free_only = request.args.get('free_only', 'false').lower() == 'true'
     force_refresh = request.args.get('force_refresh', 'false').lower() == 'true'
 
     if provider != 'openrouter':
         return jsonify({'provider': provider, 'models': []})
 
-    from aikaboom.utils.openrouter_models import (
-        list_free_openrouter_models,
-        list_openrouter_models,
-    )
-    fn = list_free_openrouter_models if free_only else list_openrouter_models
+    from aikaboom.utils.openrouter_models import list_openrouter_models
     try:
-        models = fn(force_refresh=force_refresh)
-        return jsonify({'provider': provider, 'free_only': free_only, 'models': models})
+        models = list_openrouter_models(force_refresh=force_refresh)
+        return jsonify({'provider': provider, 'models': models})
     except Exception as exc:
         return jsonify({'provider': provider, 'models': [], 'error': str(exc)}), 500
 
@@ -382,6 +380,17 @@ def process():
         use_case = normalize_use_case(data.get('use_case', 'complete'), bom_type)
         validate_spdx = data.get('validate_spdx', True) is not False
         strict_spdx_validation = bool(data.get('strict_spdx_validation', False))
+        # Phase 10 / Finding #22: optional cap on the standalone SPDX
+        # relationship-children list. ``None`` (default, or empty form
+        # input, or ``0``/negative) means unbounded — same behaviour as
+        # the recursive walker and linked bundle.
+        raw_cap = data.get('spdx_relationship_cap')
+        try:
+            spdx_relationship_cap = int(raw_cap) if raw_cap not in (None, '', 'unbounded') else None
+        except (TypeError, ValueError):
+            spdx_relationship_cap = None
+        if spdx_relationship_cap is not None and spdx_relationship_cap < 1:
+            spdx_relationship_cap = None
         recursive_bom = bool(data.get('recursive_bom', False))
         recursive_safety_cap = max(1, int(data.get('recursive_safety_cap', 50)))
         raw_depth = data.get('recursive_depth', 1)
@@ -648,7 +657,10 @@ def process():
         # If conversion fails, log it but don't break the rest of the response.
         try:
             from aikaboom.utils.spdx_validator import SPDXValidator, validate_spdx_export
-            validator = SPDXValidator(bom_type=bom_type)
+            validator = SPDXValidator(
+                bom_type=bom_type,
+                relationship_cap=spdx_relationship_cap,
+            )
             spdx_output = validator.validate_and_convert(metadata)
             spdx_filename = filename.replace('.json', '.spdx.json')
             spdx_path = os.path.join(app.config['UPLOAD_FOLDER'], spdx_filename)

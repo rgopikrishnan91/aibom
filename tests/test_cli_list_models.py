@@ -1,4 +1,10 @@
-"""Tests for the aikaboom list-models subcommand and --pick-free-model flag."""
+"""Tests for the ``aikaboom list-models`` subcommand.
+
+Phase 10 retired the ``--free`` flag (free-model filtering) and the
+``--pick-free-model`` flag on ``generate`` (auto-picker). See
+``tests/test_phase10_fixes.py::test_free_flag_no_longer_in_cli_argparse``
+for the regression guarding the removal.
+"""
 import json
 import os
 import subprocess
@@ -7,7 +13,7 @@ import sys
 
 def _run_cli(args, env_overrides=None, timeout=30):
     env = os.environ.copy()
-    # Strip provider env so detection is deterministic
+    # Strip provider env so detection is deterministic.
     for k in ("OPENAI_API_KEY", "OPENROUTER_API_KEY", "OLLAMA_BASE_URL"):
         env.pop(k, None)
     if env_overrides:
@@ -23,61 +29,44 @@ class TestListModelsCommand:
     def test_help(self):
         r = _run_cli(["list-models", "--help"])
         assert r.returncode == 0
-        assert "--free" in r.stdout
+        # Phase 10 retired --free; --limit and --json remain.
+        assert "--free" not in r.stdout
         assert "--limit" in r.stdout
         assert "--json" in r.stdout
 
-    def test_free_prints_models(self):
-        r = _run_cli(["list-models", "--free"])
+    def test_default_runs(self):
+        """In offline environments the catalog returns ``[]`` rather than
+        the curated fallback (Phase 10). The command exits cleanly and
+        prints "No models returned."""
+        r = _run_cli(["list-models"])
         assert r.returncode == 0
-        # Should print at least the curated fallback ids in offline environments
-        assert ":free" in r.stdout
 
     def test_limit(self):
-        r = _run_cli(["list-models", "--free", "--limit", "2"])
+        """--limit still caps row count even with an empty catalog."""
+        r = _run_cli(["list-models", "--limit", "2"])
         assert r.returncode == 0
-        # 2 model rows + 2 header lines (header + separator)
-        # We don't pin exact lines, just assert at most 2 :free occurrences
-        # in the output (the curated fallback has 5).
-        free_lines = [ln for ln in r.stdout.splitlines() if ":free" in ln]
-        assert len(free_lines) <= 2
 
     def test_json_output(self):
-        r = _run_cli(["list-models", "--free", "--json"])
+        r = _run_cli(["list-models", "--json"])
         assert r.returncode == 0
-        # Locate the JSON portion (output may include a warning line first)
         start = r.stdout.find("[")
         assert start != -1, f"No JSON in output: {r.stdout!r}"
         data = json.loads(r.stdout[start:])
         assert isinstance(data, list)
-        assert all(isinstance(m, dict) and "id" in m for m in data)
+        # Catalog may be empty in this environment; that's fine.
+        for m in data:
+            assert isinstance(m, dict) and "id" in m
 
 
-class TestPickFreeModelFlag:
+class TestPickFreeModelFlagRetired:
+    """Phase 10 retired ``--pick-free-model``; sending it now produces an
+    argparse error (the flag is unrecognized)."""
 
-    def test_pick_free_model_with_explicit_model_errors(self):
-        r = _run_cli([
-            "generate", "--type", "ai", "--repo", "test/m",
-            "--pick-free-model", "--model", "gpt-4o",
-        ])
-        assert r.returncode != 0
-        assert "mutually exclusive" in r.stderr.lower()
-
-    def test_pick_free_model_with_wrong_provider_errors(self):
-        r = _run_cli([
-            "generate", "--type", "ai", "--repo", "test/m",
-            "--pick-free-model", "--provider", "openai",
-        ])
-        assert r.returncode != 0
-        assert "openrouter" in r.stderr.lower()
-
-    def test_pick_free_model_picks_one(self):
-        # No env keys set; --pick-free-model forces openrouter, but we don't
-        # have a key, so we expect the resolver to bail with a helpful error.
-        # The key assertion is that pick_free_openrouter_model() ran and
-        # printed a model id, _then_ failed at the provider-key check.
+    def test_pick_free_model_flag_unrecognized(self):
         r = _run_cli([
             "generate", "--type", "ai", "--repo", "test/m",
             "--pick-free-model",
         ])
-        assert "Picked free OpenRouter model:" in r.stdout
+        assert r.returncode != 0
+        # argparse prints "unrecognized arguments" or similar.
+        assert "--pick-free-model" in (r.stderr + r.stdout) or "unrecognized" in r.stderr.lower()

@@ -75,7 +75,10 @@ def test_detect_default_provider_picks_openrouter_when_set(monkeypatch):
     monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-test")
     provider, model = detect_default_provider()
     assert provider == "openrouter"
-    assert model and ":free" in model
+    # Phase 10 retired the ``:free`` default — sanity check we get a real
+    # paid model id back.
+    assert model
+    assert ":free" not in model
 
 
 def test_detect_default_provider_returns_none_when_nothing_set(monkeypatch):
@@ -100,75 +103,10 @@ def test_detect_default_provider_prefers_openrouter_over_openai(monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# #12 — free-model picker filters non-chat
+# #12 — free-model picker tests retired in Phase 10 (free-model support
+# removed entirely; see tests/test_phase10_fixes.py for the regression
+# tests guarding the removal).
 # ---------------------------------------------------------------------------
-
-
-def test_is_text_chat_model_uses_modality_when_available():
-    from aikaboom.utils.openrouter_models import _is_text_chat_model
-
-    assert _is_text_chat_model({
-        "id": "meta-llama/llama-3.3-70b",
-        "architecture": {
-            "input_modalities": ["text"],
-            "output_modalities": ["text"],
-        },
-    })
-    assert not _is_text_chat_model({
-        "id": "google/lyria-3-pro-preview",
-        "architecture": {
-            "input_modalities": ["text"],
-            "output_modalities": ["audio"],
-        },
-    })
-
-
-def test_is_text_chat_model_falls_back_to_name_blocklist():
-    """Curated fallback entries don't carry architecture data; the picker
-    must still filter obvious non-chat names."""
-    from aikaboom.utils.openrouter_models import _is_text_chat_model
-
-    assert _is_text_chat_model({
-        "id": "meta-llama/llama-3.3-70b-instruct:free",
-        "architecture": {},
-    })
-    assert not _is_text_chat_model({
-        "id": "google/lyria-3-pro-preview",
-        "architecture": {},
-    })
-    assert not _is_text_chat_model({
-        "id": "openrouter/owl-alpha:free",
-        "architecture": {},
-    })
-
-
-def test_list_free_openrouter_models_drops_non_chat():
-    """End-to-end: with the API mocked to return a music model alongside
-    a text model, the free list contains only the text one."""
-    from aikaboom.utils import openrouter_models
-
-    fake_models = [
-        {
-            "id": "meta-llama/llama-3.3-70b-instruct:free",
-            "name": "Llama 3.3 free",
-            "context_length": 128_000,
-            "pricing": {"prompt": "0", "completion": "0"},
-            "architecture": {"input_modalities": ["text"],
-                             "output_modalities": ["text"]},
-        },
-        {
-            "id": "google/lyria-3-pro-preview:free",
-            "name": "Lyria",
-            "context_length": 1_000_000,
-            "pricing": {"prompt": "0", "completion": "0"},
-            "architecture": {"input_modalities": ["text"],
-                             "output_modalities": ["audio"]},
-        },
-    ]
-    with patch.object(openrouter_models, "list_openrouter_models",
-                      return_value=fake_models):
-        free = openrouter_models.list_free_openrouter_models()
-    assert [m["id"] for m in free] == ["meta-llama/llama-3.3-70b-instruct:free"]
 
 
 # ---------------------------------------------------------------------------
@@ -176,29 +114,30 @@ def test_list_free_openrouter_models_drops_non_chat():
 # ---------------------------------------------------------------------------
 
 
-def test_cli_module_installs_warning_filter():
-    """The CLI module must install a ``DeprecationWarning`` filter scoped
-    to ``langgraph.cache.base`` BEFORE any aikaboom imports so the noisy
-    warning doesn't print on every invocation.
+def test_warning_filter_installed_at_package_init():
+    """The langchain_core PendingDeprecationWarning suppression has to
+    run BEFORE the aikaboom.utils.* imports — those pull langgraph in
+    transitively.
 
-    Static-source check (rather than inspecting ``warnings.filters`` at
-    runtime) because pytest resets the filter list between tests, so a
-    runtime check is order-dependent. Verifies the filter call is wired
-    in cli.py at module top.
+    Phase 9 placed the filter in cli.py; Phase 10 moved it to
+    ``aikaboom/__init__.py`` because the package init runs first when
+    the CLI is invoked, so the cli.py-level filter was being installed
+    too late and the warning had already fired (Finding #13).
     """
     import inspect
-    import aikaboom.cli
+    import aikaboom
 
-    src = inspect.getsource(aikaboom.cli)
-    assert "filterwarnings" in src
-    assert "langgraph" in src
-    # The filter must run BEFORE the dotenv/argparse imports so it
-    # catches the langgraph import chain.
-    filter_idx = src.find("filterwarnings")
-    argparse_idx = src.find("import argparse")
-    assert 0 < filter_idx < argparse_idx, (
-        "warnings.filterwarnings must run before argparse / aikaboom imports"
-    )
+    src = inspect.getsource(aikaboom)
+    assert "simplefilter" in src or "filterwarnings" in src
+    # The filter must run BEFORE the spdx_validator import (which pulls
+    # langgraph in transitively).
+    init_path = inspect.getfile(aikaboom)
+    text = open(init_path, encoding="utf-8").read()
+    filter_idx = text.find("simplefilter")
+    if filter_idx == -1:
+        filter_idx = text.find("filterwarnings")
+    spdx_idx = text.find("from aikaboom.utils.spdx_validator")
+    assert 0 < filter_idx < spdx_idx
 
 
 # ---------------------------------------------------------------------------

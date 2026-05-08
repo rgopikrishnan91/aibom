@@ -7,24 +7,11 @@ Usage:
 
 """
 
-# Suppress the langgraph deprecation chatter that fires on every import. The
-# filter is module-scoped so genuine warnings from elsewhere still print.
-# Phase 9 / Finding #13.
-import warnings as _warnings  # noqa: I001 — must run BEFORE the langgraph import chain
-_warnings.filterwarnings(
-    "ignore",
-    category=DeprecationWarning,
-    module=r"langgraph\.cache\.base",
-)
-_warnings.filterwarnings(
-    "ignore",
-    category=PendingDeprecationWarning,
-    module=r"langgraph\.cache\.base",
-)
-_warnings.filterwarnings(
-    "ignore",
-    message=r".*allowed_objects.*",
-)
+# Note: the langchain_core PendingDeprecationWarning suppression now
+# lives in ``aikaboom/__init__.py``. The package init runs before this
+# module's top-level statements, and the langgraph import chain that
+# fires the warning is triggered from there — putting the filter in
+# this CLI module was too late. Phase 10 / Finding #13.
 
 import argparse
 import json
@@ -37,11 +24,14 @@ load_dotenv()
 
 
 # Provider -> (env var, default model) mapping for auto-detection.
-# OpenRouter default uses the :free variant so users without credits can run
-# the tool out of the box.
+# Phase 10 retired the OpenRouter free-tier path (rate-limit usability
+# trap; see Phase 10 plan / Findings #6, #12). The OpenRouter default
+# is now a paid model from the same family (Llama 3.3 70B) so users
+# who set ``OPENROUTER_API_KEY`` without specifying ``--model`` still
+# get a sane choice.
 PROVIDER_ENV = {
     "openai": ("OPENAI_API_KEY", "gpt-4o"),
-    "openrouter": ("OPENROUTER_API_KEY", "qwen/qwen-2.5-72b-instruct:free"),
+    "openrouter": ("OPENROUTER_API_KEY", "meta-llama/llama-3.3-70b-instruct"),
     "ollama": ("OLLAMA_BASE_URL", "llama3:8b"),
 }
 
@@ -94,7 +84,7 @@ def _resolve_provider_and_model(args):
             "Error: no LLM provider credentials detected.\n"
             "Set one of:\n"
             "  - OPENAI_API_KEY (for OpenAI)\n"
-            "  - OPENROUTER_API_KEY (for OpenRouter; free models available)\n"
+            "  - OPENROUTER_API_KEY (for OpenRouter)\n"
             "  - OLLAMA_BASE_URL (for local Ollama, e.g. http://localhost:11434/v1/)\n"
             "Pass --provider explicitly or copy .env.example to .env and edit.",
             file=sys.stderr,
@@ -166,20 +156,6 @@ def _summarise_rag_fields(result):
 
 def cmd_generate(args):
     """Generate a BOM for an AI model or dataset."""
-    if getattr(args, "pick_free_model", False):
-        if args.model:
-            print("Error: --pick-free-model is mutually exclusive with --model", file=sys.stderr)
-            sys.exit(1)
-        # If provider isn't openrouter, force-select openrouter so the
-        # picker has somewhere to dispatch to.
-        if args.provider and args.provider != "openrouter":
-            print(f"Error: --pick-free-model requires --provider openrouter (got {args.provider})", file=sys.stderr)
-            sys.exit(1)
-        args.provider = "openrouter"
-        from aikaboom.utils.openrouter_models import pick_free_openrouter_model
-        args.model = pick_free_openrouter_model()
-        print(f"Picked free OpenRouter model: {args.model}")
-
     if getattr(args, "linked_bom_output", None) and not args.recursive_bom:
         print(
             "Error: --linked-bom-output requires --recursive-bom (the linked "
@@ -275,6 +251,7 @@ def cmd_generate(args):
             bom_type=bom_type,
             output_path=args.spdx,
             validate=False,
+            relationship_cap=args.spdx_relationship_cap,
         )
         print(f"SPDX 3.0.1 BOM saved to {args.spdx}")
         if args.validate_spdx:
@@ -426,12 +403,12 @@ def cmd_list_models(args):
         print(f"Error: list-models only supports openrouter (got {args.provider})", file=sys.stderr)
         sys.exit(1)
 
-    from aikaboom.utils.openrouter_models import (
-        list_free_openrouter_models,
-        list_openrouter_models,
-    )
-    fn = list_free_openrouter_models if args.free else list_openrouter_models
-    models = fn()
+    # Phase 10 retired the free-tier filter (Findings #6, #12) — the
+    # picker mislabeled non-chat models and the rate-limited free path
+    # was a usability trap. ``list-models`` now returns the full
+    # OpenRouter catalogue; users pick a paid model id explicitly.
+    from aikaboom.utils.openrouter_models import list_openrouter_models
+    models = list_openrouter_models()
     if args.limit:
         models = models[: args.limit]
 
@@ -503,6 +480,18 @@ def main():
         help="Run slower SHACL validation after the default SPDX JSON Schema validation (beta).",
     )
     gen.set_defaults(validate_spdx=True)
+    gen.add_argument(
+        "--spdx-relationship-cap",
+        type=int,
+        default=None,
+        metavar="N",
+        help=(
+            "Cap the number of trainedOn/testedOn/dependsOn child packages "
+            "emitted per relationship in the standalone SPDX BOM (default: "
+            "unbounded). The recursive walker and linked SPDX bundle are "
+            "always unbounded; this flag only affects the parent SPDX."
+        ),
+    )
     gen.add_argument("--cyclonedx", help="Also generate CycloneDX 1.6 output at this path (beta)")
     gen.add_argument(
         "--recursive-bom",
@@ -547,13 +536,6 @@ def main():
         action="store_true",
         help="Skip provider confirmation prompt when multiple keys are set.",
     )
-    gen.add_argument(
-        "--pick-free-model",
-        action="store_true",
-        help="Auto-select the highest-context free model from OpenRouter "
-             "(forces --provider openrouter; mutually exclusive with --model).",
-    )
-
     # --- serve ---
     srv = subparsers.add_parser("serve", help="Start the web UI")
     srv.add_argument("--host", help="Bind address (default: 127.0.0.1)")
@@ -567,7 +549,6 @@ def main():
         choices=["openrouter"],
         help="Provider to list models for (default: openrouter).",
     )
-    lm.add_argument("--free", action="store_true", help="Only show free models.")
     lm.add_argument("--limit", type=int, default=None, help="Max number of models to show.")
     lm.add_argument("--json", action="store_true", help="Output JSON instead of a table.")
 

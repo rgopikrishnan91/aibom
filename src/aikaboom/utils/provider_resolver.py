@@ -13,10 +13,14 @@ from typing import List, Optional, Tuple
 
 # Priority order — first provider with a configured env var wins. Mirrors the
 # behaviour of ``aikaboom.cli._resolve_provider_and_model``: prefer
-# OpenRouter (free tier available) and Ollama (local) over OpenAI when more
-# than one is configured.
+# OpenRouter and Ollama (local) over OpenAI when more than one is
+# configured.
+#
+# Phase 10 retired the OpenRouter free-tier path. The default model
+# below is a paid Llama 3.3 70B; users who want something else pass
+# ``--model`` explicitly. (Findings #6, #12.)
 PROVIDER_PRIORITY: List[Tuple[str, Optional[str], str]] = [
-    ("openrouter", "OPENROUTER_API_KEY", "qwen/qwen-2.5-72b-instruct:free"),
+    ("openrouter", "OPENROUTER_API_KEY", "meta-llama/llama-3.3-70b-instruct"),
     ("ollama",     "OLLAMA_BASE_URL",    "llama3:8b"),
     ("openai",     "OPENAI_API_KEY",     "gpt-4o"),
 ]
