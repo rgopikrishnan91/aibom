@@ -244,6 +244,24 @@ the difference is intentional and documented here.
   caps (8 RPM on `:free` tiers) made the path unusable for any
   non-trivial run. OpenRouter as a provider stays; supply a paid
   model id explicitly.
+- **License normalisation uses a hand-maintained alias table.** The
+  intra-source license check (cardData vs README) and the SPDX-id
+  canonicalisation downstream rely on `SPDX_ALIASES` in
+  `aikaboom/utils/normalise.py` (~60 entries covering the most
+  common forms) and a regex extractor for free-text mentions. A
+  future phase may swap in a layered integration with
+  [`license-expression`](https://github.com/aboutcode-org/license-expression)
+  to pick up the full SPDX 3.x license registry, deprecated-form
+  canonicalisation (e.g. `GPL-3.0` → `GPL-3.0-only`), and compound
+  expression parsing (`Apache-2.0 OR MIT`). The two off-the-shelf
+  candidates we evaluated —
+  [`license-expression`](https://github.com/aboutcode-org/license-expression)
+  and [`spdx-matcher`](https://pypi.org/project/spdx-matcher/) —
+  both target adjacent problems (structured-expression parsing and
+  full-text template matching, respectively); neither resolves
+  colloquial cardData strings like `"Apache 2.0"` or `"GPLv3"` on
+  its own, so a real swap would have to layer them on top of the
+  current alias table rather than replace it.
 
 ## Conflict Detection and Value Selection
 
