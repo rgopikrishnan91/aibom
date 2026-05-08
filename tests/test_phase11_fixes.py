@@ -597,3 +597,133 @@ def test_spdx_dataset_known_bias_drops_nil():
     assert dataset_packages
     for ds in dataset_packages:
         assert ds.get("dataset_knownBias", []) == [], ds
+
+
+# ---------------------------------------------------------------------------
+# Phase 11.7 — truthy-triplet or-chain bug (#33) at the dataset SPDX builder
+#              and the AI suppliedBy site
+# ---------------------------------------------------------------------------
+
+
+def test_first_non_nil_unwraps_triplet_with_none_value():
+    """`_first_non_nil` falls past a triplet dict whose value is None,
+    where the bare `or` chain would short-circuit on the truthy triplet."""
+    from aikaboom.utils.spdx_validator import SPDXValidator
+
+    v = SPDXValidator(bom_type="data")
+    triplet_none = {"value": None, "source": None, "conflict": None}
+    triplet_real = {"value": "realvalue", "source": "huggingface", "conflict": None}
+
+    # Dead-branch: triplet with None value should be skipped, default used.
+    assert v._first_non_nil(triplet_none, default="X") == "X"
+    # Real value: returned as-is.
+    assert v._first_non_nil(triplet_real, default="X") == "realvalue"
+    # Cascade: first non-nil wins.
+    assert v._first_non_nil(triplet_none, triplet_real, default="X") == "realvalue"
+    # Nil sentinels skipped.
+    assert v._first_non_nil({"value": "noAssertion"}, default="X") == "X"
+    assert v._first_non_nil("", default="X") == "X"
+
+
+def test_spdx_dataset_download_location_falls_back_when_direct_none():
+    """#33: when an unresolved child has direct.downloadLocation = None,
+    the SPDX bundle must fall back to urls.github / urls.huggingface /
+    NOASSERTION instead of emitting `software_downloadLocation: null`."""
+    from aikaboom.utils.spdx_validator import SPDXValidator
+
+    v = SPDXValidator(bom_type="data")
+    bom = {
+        "dataset_id": "allenai/quac",
+        "name": "allenai/quac",
+        "direct_fields": {
+            "downloadLocation": {"value": None, "source": None, "conflict": None},
+            "originatedBy": {"value": None, "source": None, "conflict": None},
+            "builtTime": {"value": None, "source": None, "conflict": None},
+            "releaseTime": {"value": None, "source": None, "conflict": None},
+            "license": {"value": None, "source": None, "conflict": None},
+        },
+        "rag_fields": {},
+        "urls": {"huggingface": "https://huggingface.co/datasets/allenai/quac"},
+    }
+    spdx = v.validate_and_convert(bom)
+    dataset_packages = [
+        e for e in spdx["@graph"] if e.get("type") == "dataset_DatasetPackage"
+    ]
+    assert dataset_packages
+    for ds in dataset_packages:
+        dl = ds.get("software_downloadLocation")
+        assert dl is not None, "software_downloadLocation must never be null"
+        assert dl != "", "software_downloadLocation must never be empty"
+        # Either the HF url fallback or NOASSERTION — both valid.
+        assert dl in (
+            "https://huggingface.co/datasets/allenai/quac",
+            "NOASSERTION",
+        ), f"unexpected downloadLocation: {dl!r}"
+
+
+def test_spdx_dataset_download_location_uses_direct_when_present():
+    """Regression: when direct.downloadLocation IS populated, that's
+    what we use — the new fallback logic must not override real values."""
+    from aikaboom.utils.spdx_validator import SPDXValidator
+
+    v = SPDXValidator(bom_type="data")
+    bom = {
+        "dataset_id": "x/y",
+        "name": "x/y",
+        "direct_fields": {
+            "downloadLocation": {
+                "value": "https://huggingface.co/datasets/x/y",
+                "source": "huggingface",
+                "conflict": None,
+            },
+        },
+        "rag_fields": {},
+        "urls": {"github": "https://github.com/should-not-win"},
+    }
+    spdx = v.validate_and_convert(bom)
+    dataset_packages = [
+        e for e in spdx["@graph"] if e.get("type") == "dataset_DatasetPackage"
+    ]
+    for ds in dataset_packages:
+        assert ds["software_downloadLocation"] == "https://huggingface.co/datasets/x/y"
+
+
+def test_spdx_dataset_originated_by_falls_back_to_unknown():
+    """#33 sibling: originatedBy with None triplet must fall back to "Unknown",
+    not propagate None into Person/Organization elements."""
+    from aikaboom.utils.spdx_validator import SPDXValidator
+
+    v = SPDXValidator(bom_type="data")
+    bom = {
+        "dataset_id": "x/y",
+        "name": "x/y",
+        "direct_fields": {
+            "originatedBy": {"value": None, "source": None, "conflict": None},
+        },
+        "rag_fields": {},
+    }
+    spdx = v.validate_and_convert(bom)
+    # Walk the @graph; nothing should carry a literal None as name.
+    for e in spdx["@graph"]:
+        if e.get("type") in {"Person", "Organization"}:
+            assert e.get("name") is not None, e
+
+
+def test_spdx_ai_supplied_by_falls_back_to_unknown():
+    """AI builder sibling at line 447: triplet with None value previously
+    produced supplied_by = None; now falls back to "Unknown"."""
+    from aikaboom.utils.spdx_validator import SPDXValidator
+
+    v = SPDXValidator(bom_type="ai")
+    bom = {
+        "model_id": "x_y",
+        "repo_id": "x/y",
+        "direct_fields": {
+            "suppliedBy": {"value": None, "source": None, "conflict": None},
+        },
+        "rag_fields": {},
+    }
+    spdx = v.validate_and_convert(bom)
+    for e in spdx["@graph"]:
+        if e.get("type") in {"Person", "Organization"}:
+            assert e.get("name") is not None, e

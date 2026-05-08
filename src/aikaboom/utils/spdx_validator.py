@@ -278,6 +278,28 @@ class SPDXValidator:
             return field_data["value"]
         return field_data
 
+    def _first_non_nil(self, *candidates: Any, default: Any = None) -> Any:
+        """Return the first candidate whose unwrapped value is non-nil.
+
+        Each candidate is run through ``_extract_value`` (so triplet
+        dicts ``{value, source, conflict}`` become their value) and then
+        nil-checked (``None``, ``""``, ``"noAssertion"``, ``"Not found."``,
+        …). The first usable value wins; falls back to ``default``.
+
+        This replaces the ``direct.get(k) or rag.get(k) or "X"`` idiom,
+        which is broken once direct fields are triplet dicts: the truthy
+        triplet short-circuits the ``or`` chain even when its ``value``
+        is ``None``, so the ``rag`` and default branches never run.
+        """
+        for candidate in candidates:
+            value = self._extract_value(candidate)
+            if value in (None, ""):
+                continue
+            if isinstance(value, str) and _is_nil_value(value):
+                continue
+            return value
+        return default
+
     def _as_list(self, value: Any) -> List[Any]:
         """Normalize scalar/list SPDX properties to a clean list.
 
@@ -443,8 +465,10 @@ class SPDXValidator:
         # Get timestamp
         timestamp = self._get_current_timestamp()
         
-        # Extract organization info
-        supplied_by = self._extract_value(direct_fields.get("suppliedBy", "Unknown"))
+        # Extract organization info. Triplet dicts are always truthy so
+        # ``.get(k, "Unknown")`` would never fall through to the default;
+        # ``_first_non_nil`` unwraps + nil-checks before falling back.
+        supplied_by = self._first_non_nil(direct_fields.get("suppliedBy"), default="Unknown")
         
         # Extract license. Triplet dicts are always truthy so the dict-default
         # in .get() never kicks in; explicitly check the unwrapped value for
@@ -771,14 +795,36 @@ class SPDXValidator:
         # Get timestamp
         created_time = self._get_current_timestamp()
         
-        # Extract values with fallbacks
-        dataset_name = self._extract_value(direct.get('name') or rag.get('name') or dataset_id)
-        originated_by = self._extract_value(direct.get('originatedBy') or rag.get('originatedBy') or "Unknown")
-        built_time = self._normalize_timestamp(direct.get('builtTime') or rag.get('builtTime'), created_time)
-        release_time = self._normalize_timestamp(direct.get('releaseTime') or rag.get('releaseTime'), created_time)
-        download_location = self._extract_value(direct.get('downloadLocation') or urls.get('github') or urls.get('huggingface') or "NOASSERTION")
+        # Extract values with fallbacks. Use ``_first_non_nil`` rather
+        # than the bare ``or``-chain idiom: direct-field triplet dicts
+        # are always truthy, so ``direct.get(k) or rag.get(k) or "X"``
+        # short-circuits on the truthy triplet even when its ``value``
+        # is ``None``, leaving the rag and default branches dead.
+        dataset_name = self._first_non_nil(
+            direct.get('name'), rag.get('name'), default=dataset_id,
+        )
+        originated_by = self._first_non_nil(
+            direct.get('originatedBy'), rag.get('originatedBy'), default="Unknown",
+        )
+        built_time = self._normalize_timestamp(
+            self._first_non_nil(direct.get('builtTime'), rag.get('builtTime')),
+            created_time,
+        )
+        release_time = self._normalize_timestamp(
+            self._first_non_nil(direct.get('releaseTime'), rag.get('releaseTime')),
+            created_time,
+        )
+        download_location = self._first_non_nil(
+            direct.get('downloadLocation'),
+            urls.get('github'),
+            urls.get('huggingface'),
+            default="NOASSERTION",
+        )
         primary_purpose = self._normalize_enum(
-            direct.get('primaryPurpose') or rag.get('primaryPurpose') or "data",
+            self._first_non_nil(
+                direct.get('primaryPurpose'), rag.get('primaryPurpose'),
+                default="data",
+            ),
             _SOFTWARE_PURPOSES,
             "data",
         )
@@ -801,7 +847,11 @@ class SPDXValidator:
         else:
             license_expr = license_raw
         dataset_availability = self._normalize_enum(
-            direct.get('datasetAvailability') or rag.get('datasetAvailability') or "directDownload",
+            self._first_non_nil(
+                direct.get('datasetAvailability'),
+                rag.get('datasetAvailability'),
+                default="directDownload",
+            ),
             _DATASET_AVAILABILITY_VALUES,
             "directDownload",
         )

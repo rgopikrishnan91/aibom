@@ -95,15 +95,34 @@ def _build_trace_block(mapping, key):
     external = mapping.get(f"{key}_external_conflicts") or []
     selected = mapping.get(f"{key}_selected_sources") or []
     # Round-trip pair tuples through lists for clean JSON serialisation.
+    # Preserve Phase 12B grounding + statements where present so the
+    # BOM trace shows confidence per conflict.
     external_list = [
-        {"sources": list(c.get("sources", [])),
-         "description": c.get("description", "")}
+        {
+            "sources": list(c.get("sources", [])),
+            "description": c.get("description", ""),
+            **({"statements": c["statements"]} if "statements" in c else {}),
+            **({"grounding": c["grounding"]} if "grounding" in c else {}),
+        }
         for c in external
     ]
+    # internal is now ``{src: {"narrative", "statements", "grounding"}}``
+    # post-Phase 12B; older flat-string shapes are normalised on read for
+    # back-compat with any still-cached state.
+    internal_dict = {}
+    for src, entry in internal.items():
+        if isinstance(entry, dict):
+            internal_dict[src] = {
+                "narrative": entry.get("narrative", ""),
+                **({"statements": entry["statements"]} if "statements" in entry else {}),
+                **({"grounding": entry["grounding"]} if "grounding" in entry else {}),
+            }
+        else:
+            internal_dict[src] = {"narrative": str(entry)}
     return {
         "claims": dict(claims),
         "selected_sources": list(selected),
-        "internal_conflicts": dict(internal),
+        "internal_conflicts": internal_dict,
         "external_conflicts": external_list,
     }
 
@@ -494,6 +513,12 @@ class AIBOMProcessor:
             # produce those exports. Empty list = vanilla SPDX-only run.
             "beta_fields": [],
         }
+        # Phase 12C — count summary so display surfaces (CLI, web UI,
+        # HF Space) can show "Conflicts: N total (H high, L low)" at a
+        # glance. Computed once here; embedded in the BOM JSON so any
+        # consumer that parses the BOM gets the same numbers.
+        from aikaboom.core.conflict_routing import summarise_conflicts
+        complete_metadata["conflict_summary"] = summarise_conflicts(complete_metadata)
 
         return complete_metadata
 
@@ -815,5 +840,8 @@ class DATABOMProcessor:
             # vanilla SPDX-only run.
             "beta_fields": [],
         }
+        # Phase 12C — count summary; same shape as the AI BOM path.
+        from aikaboom.core.conflict_routing import summarise_conflicts
+        complete_metadata["conflict_summary"] = summarise_conflicts(complete_metadata)
 
         return complete_metadata

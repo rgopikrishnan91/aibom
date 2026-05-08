@@ -237,8 +237,11 @@ class AgentState(TypedDict, total=False):
     external_conflict: str            # "No" or "Yes: ..."
     # Phase 4 — structured per-source trace produced by the auditor prompt.
     source_claims: Dict[str, Optional[str]]      # {source: claim or None if silent}
-    internal_conflicts: Dict[str, str]           # {source: narrative}
-    external_conflicts: List[Dict]               # [{"sources": [a, b], "description": str}]
+    # Phase 12B — nested-dict shape carries grounding scores per conflict.
+    # internal: {source: {"narrative": str, "statements": [s1, s2], "grounding": float}}
+    # external: [{"sources": [a, b], "description": str, "statements": {a: ..., b: ...}, "grounding": float}]
+    internal_conflicts: Dict[str, Dict[str, Any]]
+    external_conflicts: List[Dict]
     selected_sources: List[str]                  # sources that survived routing
 
 
@@ -261,27 +264,55 @@ class HeaderAwareTextSplitter:
         ]
     
     def split_text(self, text: str) -> List[str]:
-        """Split text based on headers while maintaining context"""
+        """Split text based on headers while maintaining context.
+
+        Markdown tables are detected and accumulated as one atomic unit
+        so the column-header row never gets separated from the data
+        rows. Oversized tables (> ``chunk_size * 1.5``) emit per-row
+        mini-chunks where each row is prefixed with the column-header
+        + separator rows so the row→column association survives the
+        downstream LLM prompt.
+        """
         if not text:
             return []
-        
+
         lines = text.split('\n')
         chunks = []
         current_chunk = []
         current_size = 0
         header_context = []  # Stack to maintain header hierarchy
-        
-        for line in lines:
+
+        i = 0
+        while i < len(lines):
+            line = lines[i]
+
+            # ----------------------------------------------------------
+            # Markdown table detection — emit table as atomic unit(s).
+            # ----------------------------------------------------------
+            if self._is_table_start(lines, i):
+                table_lines, next_i = self._accumulate_table(lines, i)
+                # Flush any in-progress chunk before emitting the table.
+                if current_chunk:
+                    chunk_text = self._build_chunk_with_context(current_chunk, header_context)
+                    if len(chunk_text) >= self.min_chunk_size:
+                        chunks.append(chunk_text)
+                    current_chunk = []
+                    current_size = 0
+                # Emit table chunk(s).
+                chunks.extend(self._emit_table_chunks(table_lines, header_context))
+                i = next_i
+                continue
+
             line_size = len(line) + 1  # +1 for newline
-            
+
             # Check if line is a header
             header_level = self._get_header_level(line)
-            
+
             if header_level is not None:
                 # Update header context - remove headers at same or lower level
                 header_context = [h for h in header_context if h['level'] < header_level]
                 header_context.append({'level': header_level, 'text': line})
-                
+
                 # If current chunk is getting large and we hit a header, finalize it
                 if current_size > self.chunk_size * 0.7 and current_chunk:
                     chunk_text = self._build_chunk_with_context(current_chunk, header_context[:-1])
@@ -289,27 +320,27 @@ class HeaderAwareTextSplitter:
                         chunks.append(chunk_text)
                     current_chunk = []
                     current_size = 0
-            
+
             # Add line to current chunk
             current_chunk.append(line)
             current_size += line_size
-            
+
             # If chunk exceeds size limit, try to split at a good point
             if current_size > self.chunk_size:
                 # Look for a good split point (paragraph break, sentence end, etc.)
                 split_point = self._find_split_point(current_chunk)
-                
+
                 if split_point > 0:
                     # Create chunk up to split point
                     chunk_lines = current_chunk[:split_point]
                     chunk_text = self._build_chunk_with_context(chunk_lines, header_context)
                     if len(chunk_text) >= self.min_chunk_size:
                         chunks.append(chunk_text)
-                    
+
                     # Start new chunk with overlap
                     overlap_start = max(0, split_point - self._calculate_overlap_lines(current_chunk[split_point:]))
                     current_chunk = current_chunk[overlap_start:]
-                    current_size = sum(len(line) + 1 for line in current_chunk)
+                    current_size = sum(len(l) + 1 for l in current_chunk)
                 else:
                     # Force split if no good point found
                     chunk_text = self._build_chunk_with_context(current_chunk[:-1], header_context)
@@ -317,13 +348,15 @@ class HeaderAwareTextSplitter:
                         chunks.append(chunk_text)
                     current_chunk = current_chunk[-1:]
                     current_size = len(current_chunk[0]) + 1
-        
+
+            i += 1
+
         # Add remaining content
         if current_chunk:
             chunk_text = self._build_chunk_with_context(current_chunk, header_context)
             if len(chunk_text) >= self.min_chunk_size:
                 chunks.append(chunk_text)
-        
+
         return [chunk for chunk in chunks if chunk.strip()]
     
     def _get_header_level(self, line: str) -> Optional[int]:
@@ -373,17 +406,107 @@ class HeaderAwareTextSplitter:
         """Calculate how many lines to overlap based on chunk_overlap setting"""
         if not remaining_lines:
             return 0
-        
+
         overlap_chars = 0
         overlap_lines = 0
-        
+
         for line in remaining_lines:
             if overlap_chars >= self.chunk_overlap:
                 break
             overlap_chars += len(line) + 1
             overlap_lines += 1
-        
+
         return min(overlap_lines, len(remaining_lines) // 2)
+
+    # ------------------------------------------------------------------
+    # Markdown-table support (Phase 12A)
+    # ------------------------------------------------------------------
+    _TABLE_SEPARATOR_RE = re.compile(r'^\s*\|?\s*:?-{3,}.*\|.*$')
+
+    @staticmethod
+    def _is_table_line(line: str) -> bool:
+        return line.lstrip().startswith('|')
+
+    @classmethod
+    def _is_table_separator(cls, line: str) -> bool:
+        """Markdown header-separator row: ``|---|---|`` (with optional
+        alignment colons)."""
+        stripped = line.strip()
+        if not stripped.startswith('|'):
+            return False
+        # All non-pipe characters must be hyphens, colons, or whitespace.
+        body = stripped.strip('|')
+        return bool(body) and all(c in '-:| \t' for c in body) and '-' in body
+
+    def _is_table_start(self, lines: List[str], idx: int) -> bool:
+        """A markdown table starts when the current line is a pipe row AND
+        the next non-blank line is a header-separator. Avoids treating a
+        single stray ``|`` line as a table.
+        """
+        if idx >= len(lines) or not self._is_table_line(lines[idx]):
+            return False
+        # Look at the next line — separator must be immediately after the
+        # header for valid GFM tables.
+        if idx + 1 >= len(lines):
+            return False
+        return self._is_table_separator(lines[idx + 1])
+
+    def _accumulate_table(self, lines: List[str], start_idx: int) -> Tuple[List[str], int]:
+        """Collect contiguous markdown-table lines starting at ``start_idx``.
+        Returns ``(table_lines, next_idx)`` where ``next_idx`` points at
+        the first line that is no longer part of the table.
+        """
+        table_lines = []
+        i = start_idx
+        while i < len(lines) and self._is_table_line(lines[i]):
+            table_lines.append(lines[i])
+            i += 1
+        return table_lines, i
+
+    def _emit_table_chunks(
+        self, table_lines: List[str], header_context: List[Dict],
+    ) -> List[str]:
+        """Emit one or more chunks for a markdown table.
+
+        - If the whole table fits within ``chunk_size * 1.5``, emit a
+          single chunk wrapped in the surrounding header context.
+        - Otherwise emit per-row mini-chunks, each consisting of:
+          column-header row + separator row + the data row, wrapped in
+          the same header context. This guarantees every row in the
+          downstream prompt carries its column labels, eliminating the
+          off-by-one row→value alignment bug seen in metric extraction.
+        """
+        if not table_lines:
+            return []
+
+        whole = "\n".join(table_lines)
+        if len(whole) <= self.chunk_size * 1.5:
+            chunk_text = self._build_chunk_with_context(table_lines, header_context)
+            if len(chunk_text) >= self.min_chunk_size:
+                return [chunk_text]
+            return []
+
+        # Per-row split: line 0 is header, line 1 is separator (verified
+        # by ``_is_table_start``); rows 2.. are data.
+        if len(table_lines) < 3:
+            # Header + separator only, no data rows; nothing useful to split.
+            chunk_text = self._build_chunk_with_context(table_lines, header_context)
+            return [chunk_text] if len(chunk_text) >= self.min_chunk_size else []
+
+        header_row = table_lines[0]
+        separator_row = table_lines[1]
+        out = []
+        for data_row in table_lines[2:]:
+            row_chunk_lines = [header_row, separator_row, data_row]
+            chunk_text = self._build_chunk_with_context(row_chunk_lines, header_context)
+            if len(chunk_text) >= self.min_chunk_size:
+                out.append(chunk_text)
+            else:
+                # Row is too small after wrapping; still emit so we don't
+                # silently drop a data row. Prepend a marker so the LLM
+                # knows it's a table fragment.
+                out.append(f"(table row)\n{chunk_text}")
+        return out
 
 
 # Phase 4 — group-anonymized auditor + consensus-based chunk routing
@@ -394,6 +517,7 @@ from .conflict_routing import (  # noqa: E402
     _parse_detector_output,
     _route_chunks,
     _in_conflict,
+    extract_conflict_statements,
 )
 
 
@@ -535,14 +659,48 @@ class AgenticRAG:
                 }
             raise
 
-        source_claims, internal_conflicts, external_conflicts = _parse_detector_output(
+        source_claims, raw_internal_conflicts, raw_external_conflicts = _parse_detector_output(
             response_text, group_to_source
         )
+
+        # Phase 12B — score every conflict's grounding against the
+        # actual chunks fed to the auditor. Nested-dict shape carries
+        # the score into the BOM trace so downstream consumers (BOM
+        # JSON viewers, web UI Conflicts tab, CLI summary) can show
+        # high-confidence vs low-confidence at a glance.
+        source_to_letter = {src: letter for letter, src in group_to_source.items()}
+        internal_conflicts = {}
+        for src, narrative in raw_internal_conflicts.items():
+            stmt_a, stmt_b = extract_conflict_statements(narrative, kind="internal")
+            chunks = group_chunks.get(source_to_letter.get(src), []) if source_to_letter else []
+            grounding = self._score_grounding([stmt_a, stmt_b], chunks)
+            internal_conflicts[src] = {
+                "narrative": narrative,
+                "statements": [stmt_a, stmt_b],
+                "grounding": grounding,
+            }
+        external_conflicts = []
+        for entry in raw_external_conflicts:
+            narrative = entry.get("description", "")
+            stmt_a, stmt_b = extract_conflict_statements(narrative, kind="external")
+            sources = entry.get("sources", [])
+            chunks_a = group_chunks.get(source_to_letter.get(sources[0]), []) if len(sources) >= 1 else []
+            chunks_b = group_chunks.get(source_to_letter.get(sources[1]), []) if len(sources) >= 2 else []
+            score_a = self._score_grounding([stmt_a], chunks_a)
+            score_b = self._score_grounding([stmt_b], chunks_b)
+            grounding = min(score_a, score_b) if (chunks_a and chunks_b) else max(score_a, score_b)
+            external_conflicts.append({
+                "sources": list(sources),
+                "description": narrative,
+                "statements": {sources[0] if sources else "a": stmt_a,
+                               sources[1] if len(sources) >= 2 else "b": stmt_b},
+                "grounding": grounding,
+            })
 
         # Derive legacy single-string fields for downstream backwards compat.
         if internal_conflicts:
             internal_str = "Yes: " + "; ".join(
-                f"{src} — {narr}" for src, narr in internal_conflicts.items()
+                f"{src} — {entry['narrative']}" for src, entry in internal_conflicts.items()
             )
         else:
             internal_str = "No"
@@ -565,6 +723,56 @@ class AgenticRAG:
             "internal_conflict": internal_str,
             "external_conflict": external_str,
         }
+
+    def _score_grounding(self, statements, chunks):
+        """Cosine-similarity grounding score for a set of statements
+        against the chunks they're supposed to come from.
+
+        Returns the *minimum* of each statement's best-matching chunk
+        cosine — so a conflict is "well grounded" only when ALL of its
+        quoted statements are quotable from chunks. Hallucinated
+        statements (LLM invented text not present in any chunk) drag
+        the min toward 0.
+
+        Uses ``self.embeddings`` (the langchain Embeddings instance
+        already loaded for retrieval). HuggingFaceEmbeddings is
+        configured with ``normalize_embeddings=True`` so dot product
+        equals cosine similarity; OpenAIEmbeddings vectors aren't
+        L2-normalised by default, so we normalise once here.
+
+        Returns 0.0 when there are no statements or no chunks.
+        """
+        statements = [s for s in (statements or []) if s and s.strip()]
+        chunks = [c for c in (chunks or []) if c and c.strip()]
+        if not statements or not chunks:
+            return 0.0
+        try:
+            stmt_vecs = self.embeddings.embed_documents(statements)
+            chunk_vecs = self.embeddings.embed_documents(chunks)
+        except Exception as e:
+            print(f"  ⚠️  Conflict grounding skipped (embedding error): {str(e)[:120]}")
+            return 0.0
+
+        def _normalise(v):
+            mag = sum(x * x for x in v) ** 0.5
+            return [x / mag for x in v] if mag > 0 else v
+
+        stmt_vecs = [_normalise(v) for v in stmt_vecs]
+        chunk_vecs = [_normalise(v) for v in chunk_vecs]
+
+        per_stmt_max = []
+        for sv in stmt_vecs:
+            best = 0.0
+            for cv in chunk_vecs:
+                # dot product == cosine similarity for L2-normalised vectors.
+                sim = sum(a * b for a, b in zip(sv, cv))
+                if sim > best:
+                    best = sim
+            per_stmt_max.append(best)
+        # Clamp into [0, 1] — cosine on normalised vectors can be slightly
+        # negative for distant texts; we treat that as "no grounding".
+        per_stmt_max = [max(0.0, min(1.0, s)) for s in per_stmt_max]
+        return min(per_stmt_max) if per_stmt_max else 0.0
 
     def _generate_answer_node(self, state: AgentState) -> AgentState:
         """
