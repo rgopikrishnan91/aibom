@@ -300,3 +300,106 @@ def test_dataset_spdx_uses_urn_spdx_uri_form():
         sid = elem.get("spdxId")
         if sid:
             assert sid.startswith("urn:spdx:"), elem
+
+
+# ---------------------------------------------------------------------------
+# Phase 11.5 — license intra-source conflict (license-only special case)
+# ---------------------------------------------------------------------------
+
+
+def test_intra_source_license_conflict_hf():
+    """HF cardData says Apache-2.0 but the same source's README says MIT
+    → intra-source conflict on huggingface."""
+    from aikaboom.core.processors import AIBOMProcessor
+
+    proc = AIBOMProcessor.__new__(AIBOMProcessor)
+    hf_meta = {"license": "Apache-2.0"}
+    gh_meta = {"license": "Apache-2.0"}
+    readmes = {
+        "huggingface": "This software is licensed under the MIT License.",
+        "github": "Released under the Apache License 2.0.",
+    }
+
+    direct = proc._resolve_direct_fields_ai(hf_meta, gh_meta, named_readmes=readmes)
+
+    intra = direct["license_intra_conflicts"]
+    assert "huggingface" in intra
+    assert "Apache-2.0" in intra["huggingface"]
+    assert "MIT" in intra["huggingface"]
+    # github agrees with itself, no conflict there.
+    assert "github" not in intra
+
+
+def test_intra_source_no_conflict_when_aliases_match():
+    """cardData=Apache-2.0 vs README \"Apache License 2.0\" — same license
+    after SPDX normalisation, no intra conflict."""
+    from aikaboom.core.processors import AIBOMProcessor
+
+    proc = AIBOMProcessor.__new__(AIBOMProcessor)
+    hf_meta = {"license": "Apache-2.0"}
+    gh_meta = {}
+    readmes = {"huggingface": "Released under the Apache License 2.0."}
+
+    direct = proc._resolve_direct_fields_ai(hf_meta, gh_meta, named_readmes=readmes)
+    assert direct["license_intra_conflicts"] == {}
+
+
+def test_intra_source_no_conflict_when_readme_silent():
+    """README has no license mention → nothing to compare, no conflict."""
+    from aikaboom.core.processors import AIBOMProcessor
+
+    proc = AIBOMProcessor.__new__(AIBOMProcessor)
+    hf_meta = {"license": "Apache-2.0"}
+    gh_meta = {}
+    readmes = {"huggingface": "This is a great model. No license info here."}
+
+    direct = proc._resolve_direct_fields_ai(hf_meta, gh_meta, named_readmes=readmes)
+    assert direct["license_intra_conflicts"] == {}
+
+
+def test_intra_source_no_readmes_at_all():
+    """Back-compat: resolver called without READMEs (the
+    fetch_direct_metadata path) yields an empty intra dict, no crash."""
+    from aikaboom.core.processors import AIBOMProcessor
+
+    proc = AIBOMProcessor.__new__(AIBOMProcessor)
+    hf_meta = {"license": "Apache-2.0"}
+    gh_meta = {"license": "Apache-2.0"}
+
+    direct = proc._resolve_direct_fields_ai(hf_meta, gh_meta)
+    assert direct["license_intra_conflicts"] == {}
+
+
+def test_intra_source_inter_check_still_fires():
+    """Regression: adding the intra check must not break the existing
+    cross-source license conflict detection."""
+    from aikaboom.core.processors import AIBOMProcessor
+
+    proc = AIBOMProcessor.__new__(AIBOMProcessor)
+    hf_meta = {"license": "Apache-2.0"}
+    gh_meta = {"license": "MIT"}
+    readmes = {"huggingface": "", "github": ""}
+
+    direct = proc._resolve_direct_fields_ai(hf_meta, gh_meta, named_readmes=readmes)
+    # Inter-source still flagged.
+    assert direct["license_conflicts"]
+    assert "github" in direct["license_conflicts"]
+    # Intra empty (no README disagreements with cardData).
+    assert direct["license_intra_conflicts"] == {}
+
+
+def test_intra_source_data_path_works_too():
+    """Dataset BOM path also runs the intra check — datasets often have
+    license info in both cardData and README."""
+    from aikaboom.core.processors import DATABOMProcessor
+
+    proc = DATABOMProcessor.__new__(DATABOMProcessor)
+    hf_meta = {"license": "Apache-2.0"}
+    gh_meta = {}
+    readmes = {"huggingface": "This dataset is released under the GPL-3.0."}
+
+    direct = proc._resolve_direct_fields_data(hf_meta, gh_meta, named_readmes=readmes)
+    intra = direct["license_intra_conflicts"]
+    assert "huggingface" in intra
+    assert "Apache-2.0" in intra["huggingface"]
+    assert "GPL-3.0" in intra["huggingface"]

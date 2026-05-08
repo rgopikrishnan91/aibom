@@ -284,18 +284,20 @@ SPDX_ALIASES: Dict[str, str] = {
     "proprietary": "proprietary",
 }
 
-# Patterns ordered from most specific to most general.
+# Patterns ordered from most specific to most general. The trailing
+# boundary stops on `.` only when it is *not* followed by a digit, so
+# version numbers like "2.0" / "3.0" stay inside the captured group.
 LICENSE_PATTERNS = [
     re.compile(
-        r'licensed\s+under\s+(?:the\s+)?([A-Za-z0-9][^.\n,;(]{2,60}?)(?:\s+license)?[.\n,;]',
+        r'licensed\s+under\s+(?:the\s+)?([A-Za-z0-9][^\n,;(]{2,60}?)(?:\s+license)?(?:\.(?!\d)|[\n,;])',
         re.IGNORECASE,
     ),
     re.compile(
-        r'released\s+under\s+(?:the\s+)?([A-Za-z0-9][^.\n,;(]{2,60}?)(?:\s+license)?[.\n,;]',
+        r'released\s+under\s+(?:the\s+)?([A-Za-z0-9][^\n,;(]{2,60}?)(?:\s+license)?(?:\.(?!\d)|[\n,;])',
         re.IGNORECASE,
     ),
     re.compile(
-        r'distributed\s+under\s+(?:the\s+)?([A-Za-z0-9][^.\n,;(]{2,60}?)(?:\s+license)?(?:[.\n,;]|$)',
+        r'distributed\s+under\s+(?:the\s+)?([A-Za-z0-9][^\n,;(]{2,60}?)(?:\s+license)?(?:\.(?!\d)|[\n,;]|$)',
         re.IGNORECASE,
     ),
     re.compile(
