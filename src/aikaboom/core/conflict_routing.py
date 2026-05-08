@@ -64,6 +64,115 @@ def _build_groups(documents, source_order):
 _SILENT_MARKERS = {"no relevant information", "n/a", "none", ""}
 
 
+# Phase 12B — grounding-score threshold for "high-confidence" vs
+# "low-confidence" conflicts. Conflicts whose quoted statements
+# match well against the actual chunks (cosine ≥ this value) are
+# high-confidence; lower scores suggest paraphrase, scope confusion,
+# or LLM hallucination. Single source of truth so the BOM, web UI,
+# HF Space, and CLI all agree on the cutoff.
+HIGH_CONFIDENCE_THRESHOLD = 0.7
+
+
+# Match `"<stmt 1>" vs "<stmt 2>"` (internal) or `A says "<stmt>" vs
+# B says "<stmt>"` (external). Captures the two quoted statements.
+_INTERNAL_STMTS_RE = re.compile(r'"([^"]+)"\s*vs\s*"([^"]+)"', re.IGNORECASE)
+_EXTERNAL_STMTS_RE = re.compile(
+    r'[A-Z]\s+says\s+"([^"]+)"\s*vs\s+[A-Z]\s+says\s+"([^"]+)"',
+    re.IGNORECASE,
+)
+
+
+def extract_conflict_statements(narrative, kind="internal"):
+    """Extract the two quoted statements from an auditor narrative.
+
+    ``kind`` is ``"internal"`` for ``"<a>" vs "<b>"`` shape, or
+    ``"external"`` for ``A says "<a>" vs B says "<b>"`` shape.
+
+    Returns a ``(stmt_a, stmt_b)`` tuple. Falls back to
+    ``("", "")`` when the regex doesn't match — the narrative still
+    surfaces in the BOM, but grounding scoring will see an empty
+    statement set and return 0.0 (treated as low confidence).
+    """
+    if not narrative:
+        return ("", "")
+    pattern = _EXTERNAL_STMTS_RE if kind == "external" else _INTERNAL_STMTS_RE
+    m = pattern.search(narrative)
+    if m:
+        return (m.group(1).strip(), m.group(2).strip())
+    # External regex falls back to internal-style for narratives that
+    # don't carry the "A says" / "B says" prefixes.
+    if kind == "external":
+        m = _INTERNAL_STMTS_RE.search(narrative)
+        if m:
+            return (m.group(1).strip(), m.group(2).strip())
+    return ("", "")
+
+
+def _confidence_label(grounding):
+    """Map a grounding score to ``"high"`` / ``"low"`` / ``"n/a"``.
+
+    ``None`` (no LLM-judgement; deterministic direct/intra triplet
+    conflicts) → ``"n/a"``.
+    """
+    if grounding is None:
+        return "n/a"
+    return "high" if grounding >= HIGH_CONFIDENCE_THRESHOLD else "low"
+
+
+def summarise_conflicts(metadata):
+    """Walk a BOM metadata dict and return a count summary.
+
+    Returns ``{"total": int, "high_confidence": int, "low_confidence": int}``.
+    Counts (a) every direct/rag triplet ``conflict`` entry as
+    ``n/a``-confidence (deterministic; no grounding score), and
+    (b) every RAG ``trace.internal_conflicts`` entry and
+    ``trace.external_conflicts`` entry, classified by their
+    ``grounding`` field against ``HIGH_CONFIDENCE_THRESHOLD``.
+
+    Direct/intra triplet conflicts count toward ``total`` but split
+    into neither ``high_confidence`` nor ``low_confidence`` (they have
+    no LLM-judgement score). Display surfaces should report:
+    ``"N total (H high-confidence, L low-confidence)"`` and let the
+    remainder ``N - H - L`` represent the deterministic rest.
+    """
+    total = 0
+    high = 0
+    low = 0
+    if not isinstance(metadata, dict):
+        return {"total": 0, "high_confidence": 0, "low_confidence": 0}
+
+    for section in ("direct_fields", "rag_fields"):
+        fields = metadata.get(section, {})
+        if not isinstance(fields, dict):
+            continue
+        for triplet in fields.values():
+            if not isinstance(triplet, dict):
+                continue
+            if isinstance(triplet.get("conflict"), dict):
+                # Direct/intra triplet conflict — deterministic, n/a confidence.
+                total += 1
+            trace = triplet.get("trace") or {}
+            for entry in (trace.get("internal_conflicts") or {}).values():
+                total += 1
+                if isinstance(entry, dict):
+                    g = entry.get("grounding")
+                    if g is not None:
+                        if g >= HIGH_CONFIDENCE_THRESHOLD:
+                            high += 1
+                        else:
+                            low += 1
+            for entry in (trace.get("external_conflicts") or []):
+                total += 1
+                if isinstance(entry, dict):
+                    g = entry.get("grounding")
+                    if g is not None:
+                        if g >= HIGH_CONFIDENCE_THRESHOLD:
+                            high += 1
+                        else:
+                            low += 1
+    return {"total": total, "high_confidence": high, "low_confidence": low}
+
+
 def _parse_detector_output(text, group_to_source):
     """Parse the auditor LLM's deterministic CLAIM / CONFLICT_* output.
 

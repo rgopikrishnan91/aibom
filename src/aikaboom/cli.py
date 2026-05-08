@@ -241,6 +241,24 @@ def cmd_generate(args):
             msg += suffix
         print(msg)
 
+    # Phase 12C — conflict summary so the CLI surfaces both the count
+    # and the high/low confidence breakdown alongside RAG coverage.
+    from aikaboom.core.conflict_routing import summarise_conflicts
+    cs = result.get("conflict_summary") if isinstance(result, dict) else None
+    if not cs:
+        cs = summarise_conflicts(result)
+    if cs and cs.get("total"):
+        deterministic = cs["total"] - cs["high_confidence"] - cs["low_confidence"]
+        parts = []
+        if cs["high_confidence"]:
+            parts.append(f"{cs['high_confidence']} high-confidence")
+        if cs["low_confidence"]:
+            parts.append(f"{cs['low_confidence']} low-confidence")
+        if deterministic:
+            parts.append(f"{deterministic} deterministic")
+        breakdown = f" ({', '.join(parts)})" if parts else ""
+        print(f"Conflicts: {cs['total']} total{breakdown}")
+
     bom_type = "ai" if args.type == "ai" else "data"
 
     # Optionally convert to SPDX

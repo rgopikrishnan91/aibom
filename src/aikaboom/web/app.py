@@ -106,7 +106,21 @@ sys.stdout = _PrintCapture(sys.stdout)
 
 
 def _extract_conflicts(metadata: dict) -> list:
-    """Walk the BOM metadata and return a list of human-readable conflict dicts."""
+    """Walk the BOM metadata and return a list of human-readable conflict dicts.
+
+    Surfaces three classes of conflict:
+    1. Direct/intra triplet conflicts (`triplet.conflict`) — deterministic;
+       no LLM grounding score (``grounding`` is ``None``, ``confidence``
+       is ``"n/a"``).
+    2. RAG `trace.internal_conflicts` — auditor-LLM-detected
+       contradictions WITHIN one source. Carries a Phase 12B grounding
+       score (cosine vs the chunks); ``confidence`` lands as
+       ``"high"`` / ``"low"`` per ``HIGH_CONFIDENCE_THRESHOLD``.
+    3. RAG `trace.external_conflicts` — auditor-LLM-detected
+       contradictions BETWEEN sources. Same grounding shape as (2).
+    """
+    from aikaboom.core.conflict_routing import HIGH_CONFIDENCE_THRESHOLD, _confidence_label
+
     conflicts = []
     for section in ('direct_fields', 'rag_fields'):
         fields = metadata.get(section, {})
@@ -115,20 +129,65 @@ def _extract_conflicts(metadata: dict) -> list:
         for field, triplet in fields.items():
             if not isinstance(triplet, dict):
                 continue
+            section_label = section.replace('_fields', '')
+            trace = triplet.get('trace') or {}
+
+            # 1. Direct / intra triplet conflict (deterministic).
             c = triplet.get('conflict')
             if c and isinstance(c, dict):
-                trace = triplet.get('trace') or {}
                 conflicts.append({
                     'field': field,
-                    'section': section.replace('_fields', ''),
+                    'section': section_label,
+                    'kind': c.get('type') or 'inter',
                     'chosen_value': triplet.get('value'),
                     'chosen_source': triplet.get('source'),
                     'conflict_value': c.get('value'),
                     'conflict_source': c.get('source'),
                     'conflict_type': c.get('type'),
-                    # Phase 4: full per-source claim trace; renderer uses
-                    # this to show every source's claim alongside the
-                    # legacy single-conflict summary.
+                    'grounding': None,
+                    'confidence': 'n/a',
+                    'narrative': None,
+                    'claims': trace.get('claims') or {},
+                })
+
+            # 2. RAG auditor — internal (intra-source) LLM-detected.
+            for src, entry in (trace.get('internal_conflicts') or {}).items():
+                if not isinstance(entry, dict):
+                    entry = {'narrative': str(entry)}
+                grounding = entry.get('grounding')
+                conflicts.append({
+                    'field': field,
+                    'section': section_label,
+                    'kind': 'rag-internal',
+                    'chosen_value': triplet.get('value'),
+                    'chosen_source': triplet.get('source'),
+                    'conflict_value': None,
+                    'conflict_source': src,
+                    'conflict_type': 'rag-internal',
+                    'grounding': grounding,
+                    'confidence': _confidence_label(grounding),
+                    'narrative': entry.get('narrative'),
+                    'claims': trace.get('claims') or {},
+                })
+
+            # 3. RAG auditor — external (cross-source) LLM-detected.
+            for entry in (trace.get('external_conflicts') or []):
+                if not isinstance(entry, dict):
+                    continue
+                sources = entry.get('sources') or []
+                grounding = entry.get('grounding')
+                conflicts.append({
+                    'field': field,
+                    'section': section_label,
+                    'kind': 'rag-external',
+                    'chosen_value': triplet.get('value'),
+                    'chosen_source': triplet.get('source'),
+                    'conflict_value': None,
+                    'conflict_source': ' vs '.join(sources) if sources else None,
+                    'conflict_type': 'rag-external',
+                    'grounding': grounding,
+                    'confidence': _confidence_label(grounding),
+                    'narrative': entry.get('description'),
                     'claims': trace.get('claims') or {},
                 })
     return conflicts
@@ -528,6 +587,9 @@ def process():
                 },
                 'link_fallback': link_fallback_info,
                 'conflicts': _extract_conflicts(metadata),
+                'conflict_summary': metadata.get('conflict_summary') or {
+                    'total': 0, 'high_confidence': 0, 'low_confidence': 0,
+                },
             }
 
         else:
@@ -651,6 +713,9 @@ def process():
                 },
                 'link_fallback': link_fallback_info,
                 'conflicts': _extract_conflicts(metadata),
+                'conflict_summary': metadata.get('conflict_summary') or {
+                    'total': 0, 'high_confidence': 0, 'low_confidence': 0,
+                },
             }
 
         # Always generate SPDX 3.0.1 output — it's the headline value prop.

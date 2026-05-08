@@ -1318,17 +1318,47 @@
                     const conflictsViewer = document.getElementById('conflictsViewer');
                     const conflictsTabBtn = document.getElementById('conflictsTabBtn');
                     const conflicts = result.conflicts || [];
-                    conflictsTabBtn.textContent = `Conflicts (${conflicts.length})`;
+                    const summary = result.conflict_summary || {total: 0, high_confidence: 0, low_confidence: 0};
+                    // Tab title: include high/low confidence breakdown so a glance
+                    // tells the user how many conflicts are well-grounded.
+                    const tabLabel = summary.total > 0
+                        ? `Conflicts (${summary.total} — ${summary.high_confidence} high, ${summary.low_confidence} low)`
+                        : `Conflicts (0)`;
+                    conflictsTabBtn.textContent = tabLabel;
                     conflictsTabBtn.classList.remove('has-conflicts', 'no-conflicts');
                     conflictsTabBtn.classList.add(conflicts.length > 0 ? 'has-conflicts' : 'no-conflicts');
                     if (conflicts.length > 0) {
-                        let html = `<div style="margin-bottom:12px;"><strong>⚠️ ${conflicts.length} conflict(s) detected</strong></div>`;
+                        let html = `<div style="margin-bottom:12px;"><strong>⚠️ ${summary.total} conflict(s) detected</strong> &mdash; <span style="color:#27ae60;">${summary.high_confidence} high-confidence</span>, <span style="color:#e67e22;">${summary.low_confidence} low-confidence</span> (LLM-judged); the remainder are deterministic direct/intra triplet disagreements.</div>`;
                         html += '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
-                        html += '<tr style="background:#f0f0f0;"><th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Field</th><th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Chosen</th><th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Conflicting</th><th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Type</th><th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">All claims</th></tr>';
+                        html += '<tr style="background:#f0f0f0;">'
+                            + '<th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Field</th>'
+                            + '<th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Chosen</th>'
+                            + '<th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Conflicting</th>'
+                            + '<th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Kind</th>'
+                            + '<th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Confidence</th>'
+                            + '<th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">All claims</th>'
+                            + '</tr>';
                         conflicts.forEach(c => {
-                            const typeLabel = c.conflict_type === 'intra'
-                                ? '<span style="color:#e67e22;">intra-source</span>'
-                                : '<span style="color:#e74c3c;">inter-source</span>';
+                            let typeLabel;
+                            if (c.kind === 'rag-internal') {
+                                typeLabel = '<span style="color:#8e44ad;">rag-internal</span>';
+                            } else if (c.kind === 'rag-external') {
+                                typeLabel = '<span style="color:#2980b9;">rag-external</span>';
+                            } else if (c.kind === 'intra' || c.conflict_type === 'intra') {
+                                typeLabel = '<span style="color:#e67e22;">intra-source</span>';
+                            } else {
+                                typeLabel = '<span style="color:#e74c3c;">inter-source</span>';
+                            }
+                            // Confidence badge: green pill for high, amber for low,
+                            // grey “—” for deterministic triplet conflicts.
+                            let confidenceCell;
+                            if (c.confidence === 'high') {
+                                confidenceCell = `<span style="background:#27ae60;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;">high</span><br><small style="color:#888;">${(c.grounding || 0).toFixed(2)}</small>`;
+                            } else if (c.confidence === 'low') {
+                                confidenceCell = `<span style="background:#e67e22;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;">low</span><br><small style="color:#888;">${(c.grounding || 0).toFixed(2)}</small>`;
+                            } else {
+                                confidenceCell = '<small style="color:#888;">—</small>';
+                            }
                             // Render every source's claim (skip silent sources).
                             const claims = c.claims || {};
                             const claimItems = Object.entries(claims)
@@ -1336,12 +1366,20 @@
                                 .map(([src, claim]) =>
                                     `<div><strong>${escapeHtml(src)}:</strong> ${escapeHtml(String(claim))}</div>`)
                                 .join('');
-                            const claimsCell = claimItems || '<small style="color:#888;">—</small>';
+                            // For RAG conflicts, also show the auditor's narrative.
+                            let claimsCell = claimItems || '<small style="color:#888;">—</small>';
+                            if (c.narrative) {
+                                claimsCell = `<div style="margin-bottom:4px;"><em>${escapeHtml(String(c.narrative))}</em></div>` + claimsCell;
+                            }
+                            const conflictingCell = c.conflict_value
+                                ? `${escapeHtml(String(c.conflict_value))}<br><small style="color:#888;">from ${escapeHtml(String(c.conflict_source || '?'))}</small>`
+                                : `<small style="color:#888;">${escapeHtml(String(c.conflict_source || '—'))}</small>`;
                             html += `<tr style="border-bottom:1px solid #eee;">`;
-                            html += `<td style="padding:8px;vertical-align:top;"><strong>${c.field}</strong><br><small style="color:#888;">${c.section}</small></td>`;
-                            html += `<td style="padding:8px;vertical-align:top;">${c.chosen_value || '—'}<br><small style="color:#888;">from ${c.chosen_source || '?'}</small></td>`;
-                            html += `<td style="padding:8px;vertical-align:top;color:#c0392b;">${c.conflict_value || '—'}<br><small style="color:#888;">from ${c.conflict_source || '?'}</small></td>`;
+                            html += `<td style="padding:8px;vertical-align:top;"><strong>${escapeHtml(c.field)}</strong><br><small style="color:#888;">${escapeHtml(c.section)}</small></td>`;
+                            html += `<td style="padding:8px;vertical-align:top;">${escapeHtml(String(c.chosen_value || '—'))}<br><small style="color:#888;">from ${escapeHtml(String(c.chosen_source || '?'))}</small></td>`;
+                            html += `<td style="padding:8px;vertical-align:top;color:#c0392b;">${conflictingCell}</td>`;
                             html += `<td style="padding:8px;vertical-align:top;">${typeLabel}</td>`;
+                            html += `<td style="padding:8px;vertical-align:top;">${confidenceCell}</td>`;
                             html += `<td style="padding:8px;vertical-align:top;font-size:12px;">${claimsCell}</td>`;
                             html += `</tr>`;
                         });
