@@ -7,12 +7,34 @@
   "description": "A free-form text that describes the different biases that the dataset encompasses.",
   "post_process": null,
   "retrieval": {
-    "hypothetical_passage": "## Bias, Risks, and Limitations\n\nThe corpus is heavily skewed toward English-language Wikipedia articles authored predominantly by editors from North America and Western Europe, leading to under-representation of Global South perspectives and non-Western entities. Gender imbalance is documented: male-coded pronouns outnumber female-coded ones roughly 3:1 across biographical articles. Topic distribution over-indexes on STEM, sports, and pop culture. Models trained on this data may amplify these representational biases, particularly for low-resource demographics.",
-    "bm25_terms": ["known bias", "biases", "## Bias, Risks, and Limitations", "## Discussion of Biases", "skewed toward", "under-represented", "over-represented", "demographic imbalance", "gender bias", "racial bias", "Western perspectives", "English-centric", "fairness", "stereotypes", "spurious correlations", "amplify bias", "imbalanced classes", "social bias"]
+    "hypothetical_passage": "The dataset exhibits biases in its topic distribution and source concentration. Of a random sample of questions, a majority were mathematical in nature, while smaller fractions involved string manipulation, list processing, or other categories. The dataset is sourced predominantly from a single competitive-programming platform or examination corpus for validation and test splits. Models evaluated on this benchmark exhibit lopsided and uneven performance across subjects; they do not perform uniformly, performing notably worse on procedural and calculation-heavy tasks. The topic distribution over-indexes on STEM and certain domains, while non-Western perspectives are under-represented. Gender and demographic imbalance has been documented across biographical text and crowdworker labels.",
+    "bm25_terms": [
+      "bias",
+      "biases",
+      "skewed toward",
+      "predominantly",
+      "concentrated on",
+      "lopsided",
+      "uneven performance",
+      "mathematical in nature",
+      "topic distribution",
+      "we observed",
+      "we found",
+      "random sample",
+      "involved",
+      "do not perform",
+      "sourced from",
+      "under-represented",
+      "imbalance",
+      "demographic",
+      "limitations",
+      "wide room for improvement",
+      "notably poor"
+    ]
   },
   "extraction": {
     "instruction": "Extract the documented biases of the dataset, including demographic skew, language coverage, sampling bias, label bias, or any other limitation explicitly framed as a bias.",
     "field_spec": "SPDX property `dataset_knownBias`. Free-form xsd:string. Format: short paragraph or semicolon-separated list of named biases (e.g. 'gender skew 3:1 male; English-only; Western-centric topics').",
-    "output_guidance": "Prefer text under a section titled 'Bias', 'Biases', 'Discussion of Biases', or 'Bias, Risks, and Limitations'. Quote concrete numbers when present. If multiple biases are listed, combine them. Return noAssertion if the sources contain no bias discussion; do not extrapolate bias from dataset domain. If the source explicitly states 'no known biases', record that verbatim rather than noAssertion."
+    "output_guidance": "Look for bias, fairness, demographic-imbalance, or representational-skew discussion anywhere in the context \u2014 sections titled 'Bias', 'Biases', 'Discussion of Biases', or 'Bias, Risks, and Limitations' are preferred but not required. Topic-distribution observations (e.g. 'most questions are mathematical', 'predominantly Codeforces'), demographic-imbalance statements, and performance skews across subgroups all count as documented bias. Quote concrete numbers when present. If multiple biases are listed, combine them. Return noAssertion only when no such discussion appears."
   }
 }
