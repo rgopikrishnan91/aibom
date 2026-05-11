@@ -679,6 +679,16 @@ class AgenticRAG:
                 "statements": [stmt_a, stmt_b],
                 "grounding": grounding,
             }
+        # Phase 12 / Finding #35: the LLM judges its own pairwise output
+        # using the four explicit rules baked into ``prompt_detect_conflicts``
+        # (silence → no conflict, complementary → no conflict, different
+        # aspects → no conflict, direct contradiction → conflict with a
+        # confidence score). The prompt-v2 experiment showed this
+        # significantly outperforms an NLI cross-encoder swap on the same
+        # claim pairs: it kills silence-vs-presence false positives, rejects
+        # different-topic comparisons NLI confused for contradiction, and
+        # catches subtle factual disagreements (e.g. dataset-list overlap)
+        # the NLI model misses. See ``test_outputs/PROMPT_V2_RESULTS.md``.
         external_conflicts = []
         for entry in raw_external_conflicts:
             narrative = entry.get("description", "")
@@ -689,13 +699,19 @@ class AgenticRAG:
             score_a = self._score_grounding([stmt_a], chunks_a)
             score_b = self._score_grounding([stmt_b], chunks_b)
             grounding = min(score_a, score_b) if (chunks_a and chunks_b) else max(score_a, score_b)
-            external_conflicts.append({
+            ext = {
                 "sources": list(sources),
                 "description": narrative,
                 "statements": {sources[0] if sources else "a": stmt_a,
                                sources[1] if len(sources) >= 2 else "b": stmt_b},
                 "grounding": grounding,
-            })
+            }
+            # ``contradiction_score`` is the LLM-emitted confidence (0.0–1.0)
+            # parsed out of the ``Yes (confidence=0.NN): …`` line in
+            # ``_parse_detector_output``. Absent on legacy prompts.
+            if "contradiction_score" in entry:
+                ext["contradiction_score"] = entry["contradiction_score"]
+            external_conflicts.append(ext)
 
         # Derive legacy single-string fields for downstream backwards compat.
         if internal_conflicts:

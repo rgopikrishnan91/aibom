@@ -34,7 +34,12 @@ def prompt_detect_conflicts(field_spec, group_chunks):
     Output format the LLM follows:
         CLAIM_<L>: <one sentence or "No relevant information">
         CONFLICT_WITHIN_<L>: No | Yes: "<stmt 1>" vs "<stmt 2>"
-        CONFLICT_<A>_VS_<B>: No | Yes: A says "..." vs B says "..."
+        CONFLICT_<A>_VS_<B>: No | Yes (confidence=<0.0-1.0>): A says "..." vs B says "..."
+
+    The pairwise-conflict step applies four explicit rules to suppress the
+    failure modes the audit (Finding #35) flagged: silence-vs-presence,
+    complementary lists, and different-topic comparisons. The confidence
+    field surfaces a calibrated score downstream consumers can threshold.
     """
     group_letters = list(group_chunks.keys())
 
@@ -63,7 +68,7 @@ def prompt_detect_conflicts(field_spec, group_chunks):
         for b in group_letters[i + 1 :]
     ]
     step3_lines = "\n".join(
-        f'CONFLICT_{a}_VS_{b}: No | Yes: {a} says "<claim>" vs {b} says "<claim>"'
+        f'CONFLICT_{a}_VS_{b}: No | Yes (confidence=<0.0-1.0>): {a} says "<claim>" vs {b} says "<claim>"'
         for a, b in pairs
     ) or "(only one group present — no pairwise comparison)"
 
@@ -87,7 +92,7 @@ CONFLICT_WITHIN_A: No
 CONFLICT_WITHIN_B: No
 CONFLICT_WITHIN_C: No
 
-CONFLICT_A_VS_B: Yes: A says "decoder-only transformer" vs B says "encoder-decoder transformer"
+CONFLICT_A_VS_B: Yes (confidence=0.95): A says "decoder-only transformer" vs B says "encoder-decoder transformer"
 CONFLICT_A_VS_C: No
 CONFLICT_B_VS_C: No
 
@@ -108,12 +113,38 @@ If contradiction, write "Yes" with the two conflicting statements.
 
 {step2_lines}
 
-STEP 3 — Check for contradictions BETWEEN each pair of groups.
-Two groups contradict if they assert incompatible facts about the
-same aspect of this field. One group having more detail than another
-is not a contradiction.
-If no contradiction, write "No".
-If contradiction, write "Yes" with each group's conflicting claim.
+STEP 3 — Check for contradictions BETWEEN each pair of groups. Apply
+these four rules in strict order:
+
+Rule 1 (silence is not a conflict). If either group's claim is
+"No relevant information" or asserts the absence of information
+(phrasings like "not provided", "not specified", "the source does
+not mention", "not addressed", "the property is not mentioned",
+"information not available", "noassertion"), that group is silent.
+A silent group cannot conflict with anything. Output "No".
+
+Rule 2 (complementary statements are not a conflict). If both
+groups make positive assertions but the assertions are complementary
+(one mentions A and B; the other mentions B and C; or one provides
+more detail about the same underlying fact) rather than mutually
+exclusive, output "No".
+
+Rule 3 (different aspects are not a conflict). If the two claims
+address different aspects or sub-properties of the field and do not
+make opposing assertions about the same underlying fact, output
+"No".
+
+Rule 4 (direct factual contradiction is a conflict). Only output
+"Yes" when the two claims make positive assertions that cannot
+both be true simultaneously (e.g. "licensed under MIT" vs "licensed
+under GPL"; "trained on 1B tokens" vs "trained on 10B tokens";
+"supports up to 32K context" vs "supports up to 1M context" when
+both are stated as the maximum). When in doubt, prefer "No".
+
+For every "Yes", append a confidence score between 0.0 (the
+assertions could plausibly be reconciled) and 1.0 (the assertions
+are explicit opposites and cannot both be true). Format the line
+exactly as: ``Yes (confidence=0.NN): A says "..." vs B says "..."``
 
 {step3_lines}
 """
