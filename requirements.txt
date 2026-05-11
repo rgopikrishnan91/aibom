@@ -37,3 +37,6 @@ httpx>=0.25.0
 # SPDX 3.0.1 Validation (official SHACL shapes + JSON Schema)
 pyshacl>=0.30.0
 jsonschema>=4.0.0
+
+# Phase 12: supplier-alias resolution Tier 3 fallback
+jellyfish>=1.0.0

@@ -2,7 +2,8 @@
   "$comment": "AIkaBoOM source-priority config — community-editable. When AIkaBoOM detects a conflict between sources for a field, it uses these lists to pick which value goes into the triplet's `value` slot and into the SPDX/CycloneDX exports. Edit this file to change the defaults, or set AIKABOOM_SOURCE_PRIORITY=/path/to/your/copy.json to override without touching the package. Missing fields fall back to the matching `default` list, then to the loader's hard-coded fallback. See docs/FIELD_STRATEGIES.md for the full per-field reference.",
   "direct_fields": {
     "default":              ["huggingface", "github"],
-    "contentIdentifier":    ["github", "huggingface"]
+    "contentIdentifier":    ["github", "huggingface"],
+    "packageVersion":       ["huggingface_name", "huggingface", "github"]
   },
   "rag_fields_ai": {
     "default":                            ["huggingface", "arxiv", "github"],

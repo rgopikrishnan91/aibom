@@ -249,6 +249,7 @@ class MetadataFetcher:
 
             if bom_type == 'ai':
                 # AI BOM fields
+                hf_metadata["name"] = repo_info.id if repo_info.id else None
                 hf_metadata["releaseTime"] = repo_info.last_modified.isoformat() if repo_info.last_modified else None
                 hf_metadata["suppliedBy"] = repo_info.author if repo_info.author else (repo_info.id.split('/')[0] if '/' in repo_info.id else None)
                 hf_metadata["downloadLocation"] = f"https://huggingface.co/{repo_info.id}"
