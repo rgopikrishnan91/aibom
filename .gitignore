@@ -73,3 +73,7 @@ dist/
 results/
 results-golden-set/
 results_200nodes/
+
+# Test-run BOM outputs, paid-rerun logs, content caches, and ad-hoc
+# experiment artefacts. Large, regenerable, would inflate the repo.
+test_outputs/
