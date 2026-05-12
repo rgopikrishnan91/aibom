@@ -1,875 +1,1427 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unified BOM Generator - AI & Data</title>
+    <title>AIkaBoOM — AI Bills of Materials</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='aikaboom-logo.png') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,500;9..144,700;9..144,900&family=Geist:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            /* === Ink & Amber palette ===================================== */
+            --ink:           #0d1117;   /* deepest text + dark panels       */
+            --ink-soft:      #1f2430;   /* surface for code blocks          */
+            --ink-line:      #3a4150;   /* mono panel borders               */
+            --paper:         #fbf7f0;   /* page canvas — warm off-white     */
+            --paper-2:       #f3ece0;   /* secondary panel                  */
+            --paper-edge:    #e7dfd0;   /* hairline rules                   */
+            --paper-faint:   #b3a791;   /* placeholder / muted              */
+            --paper-mute:    #877964;   /* secondary text on paper          */
+
+            /* Brand & action colors */
+            --primary:       #0a8754;   /* deep teal — primary CTA          */
+            --primary-deep:  #08623c;
+            --primary-soft:  #d6ebde;
+
+            /* Beta — distinctive amber, never competes with primary */
+            --beta:          #c2410c;
+            --beta-soft:     #fde8d6;
+            --beta-edge:     #f4a45a;
+
+            /* Conflict band colors */
+            --conflict-high: #b91c1c;   /* red — grounding ≥ 0.7            */
+            --conflict-low:  #b45309;   /* amber — 0.1 ≤ g < 0.7            */
+            --conflict-det:  #1d4ed8;   /* blue — direct/intra              */
+            --conflict-sup:  #64748b;   /* slate — suppressed (g < 0.1)     */
+
+            --shadow-sm:  0 1px 2px rgba(13, 17, 23, 0.06);
+            --shadow:     0 6px 24px -10px rgba(13, 17, 23, 0.18);
+            --shadow-lg:  0 24px 60px -28px rgba(13, 17, 23, 0.28);
+
+            --display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+            --sans:    'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
+            --mono:    'JetBrains Mono', 'SF Mono', 'Menlo', monospace;
         }
-        
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body { height: 100%; }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: var(--sans);
+            background: var(--paper);
+            color: var(--ink);
             min-height: 100vh;
-            padding: 20px;
+            font-feature-settings: 'ss01', 'cv11';
+            -webkit-font-smoothing: antialiased;
+            font-smoothing: antialiased;
+            line-height: 1.5;
+            /* Subtle paper grain via SVG noise */
+            background-image:
+                radial-gradient(ellipse at top left, rgba(194, 65, 12, 0.04), transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(10, 135, 84, 0.04), transparent 60%),
+                url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85'/><feColorMatrix values='0 0 0 0 0.05 0 0 0 0 0.05 0 0 0 0 0.05 0 0 0 0.04 0'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
+        }
+
+        /* ========================================================== TOP BAR */
+
+        .topbar {
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
+            padding: 22px 40px;
+            border-bottom: 1px solid var(--paper-edge);
+            background: var(--paper);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(6px);
         }
-        
-        .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 1400px;
-            width: 100%;
-            padding: 40px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            min-height: 600px;
-        }
-        
-        .left-panel {
+
+        .brand {
             display: flex;
-            flex-direction: column;
-        }
-        
-        .right-panel {
-            display: flex;
-            flex-direction: column;
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 25px;
-            border: 2px solid #e0e0e0;
-        }
-        
-        .json-container {
-            flex: 1;
-            border: 2px solid rgba(102, 126, 234, 0.35);
-            border-radius: 12px;
-            background: #ffffff;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: inset 0 2px 8px rgba(102, 126, 234, 0.08);
-        }
-        
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 2em;
-        }
-        
-        .subtitle {
-            color: #666;
-            margin-bottom: 25px;
-            font-size: 0.95em;
-        }
-        
-        .right-panel h2 {
-            color: #333;
-            font-size: 1.3em;
-            margin-bottom: 15px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 600;
-            font-size: 0.95em;
-        }
-        
-        input[type="text"] {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 1em;
-            transition: all 0.3s ease;
-        }
-        
-        input[type="text"]:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        .button-group {
-            display: flex;
-            gap: 15px;
-            margin-top: 25px;
-        }
-        
-        button {
-            flex: 1;
-            padding: 14px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-process {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        .btn-process:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-        }
-        
-        .btn-process:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        
-        .btn-reset {
-            background: #f0f0f0;
-            color: #333;
-        }
-        
-        .btn-reset:hover {
-            background: #e0e0e0;
-        }
-        
-        .status {
-            margin-top: 15px;
-            padding: 12px;
-            border-radius: 8px;
-            display: none;
-            font-size: 0.9em;
-        }
-        
-        .status.success {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-        }
-        
-        .status.error {
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-        }
-        
-        .status.processing {
-            background: #d1ecf1;
-            border: 1px solid #bee5eb;
-            color: #0c5460;
-        }
-        
-        .spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 3px solid rgba(0, 0, 0, 0.1);
-            border-radius: 50%;
-            border-top-color: #0c5460;
-            animation: spin 0.8s linear infinite;
-            margin-right: 10px;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        .download-btn {
-            display: inline-block;
-            margin-top: 10px;
-            margin-right: 10px;
-            padding: 10px 20px;
-            background: #28a745;
-            color: white;
+            align-items: center;
+            gap: 14px;
             text-decoration: none;
-            border-radius: 6px;
-            font-weight: 600;
-            transition: all 0.3s ease;
+            color: var(--ink);
         }
-        
-        .download-btn:hover {
-            background: #218838;
-            transform: translateY(-2px);
+        .brand img {
+            height: 44px;
+            width: auto;
+            display: block;
         }
-        
-        .download-btn.spdx {
-            background: #6f42c1;
+        .brand-text {
+            font-family: var(--display);
+            font-weight: 900;
+            font-size: 28px;
+            letter-spacing: -0.02em;
+            line-height: 1;
         }
-        
-        .download-btn.spdx:hover {
-            background: #5a32a3;
+        .brand-tag {
+            font-family: var(--display);
+            font-style: italic;
+            font-weight: 500;
+            font-size: 15px;
+            color: var(--paper-mute);
+            margin-left: 18px;
+            padding-left: 18px;
+            border-left: 1px solid var(--paper-edge);
+            line-height: 1;
         }
-        
-        /* Mode Selector Styles */
-        .mode-selector {
+        .brand-tag b { color: var(--ink); font-style: normal; font-weight: 700; }
+
+        .topbar-meta {
             display: flex;
-            gap: 10px;
+            align-items: center;
+            gap: 18px;
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--paper-mute);
         }
-        
-        .mode-option {
-            flex: 1;
-            position: relative;
+        .topbar-meta a {
+            color: var(--paper-mute);
+            text-decoration: none;
+            border-bottom: 1px dotted var(--paper-edge);
+            transition: color .2s, border-color .2s;
         }
-        
-        .mode-option input[type="radio"] {
+        .topbar-meta a:hover { color: var(--primary); border-color: var(--primary); }
+
+        /* ========================================================== LAYOUT */
+
+        .shell {
+            display: grid;
+            grid-template-columns: minmax(380px, 460px) 1fr;
+            gap: 0;
+            min-height: calc(100vh - 89px);
+            align-items: stretch;
+        }
+        @media (max-width: 1100px) {
+            .shell { grid-template-columns: 1fr; }
+            .form-pane { border-right: none; border-bottom: 1px solid var(--paper-edge); }
+        }
+
+        .form-pane {
+            padding: 36px 40px 60px;
+            border-right: 1px solid var(--paper-edge);
+            background: var(--paper);
+            overflow-y: auto;
+        }
+        .result-pane {
+            padding: 36px 40px 60px;
+            background: var(--paper-2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;  /* allows json viewer to scroll */
+        }
+
+        /* ====================================================== TYPOGRAPHY */
+
+        .pane-eyebrow {
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: var(--paper-mute);
+            margin-bottom: 8px;
+        }
+        .pane-title {
+            font-family: var(--display);
+            font-weight: 700;
+            font-size: 30px;
+            letter-spacing: -0.015em;
+            line-height: 1.05;
+            color: var(--ink);
+            margin-bottom: 14px;
+        }
+        .pane-lead {
+            font-size: 14px;
+            color: var(--paper-mute);
+            margin-bottom: 28px;
+            max-width: 56ch;
+        }
+
+        /* Section divider with optional eyebrow */
+        .section {
+            margin-top: 28px;
+            padding-top: 18px;
+            border-top: 1px solid var(--paper-edge);
+        }
+        .section:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
+        .section-head {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .section-eyebrow {
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--paper-mute);
+        }
+
+        /* ============================================================ FORM */
+
+        .form-row {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 18px;
+        }
+        .form-row label.field-label {
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--paper-mute);
+        }
+        .form-row .hint {
+            font-size: 12px;
+            color: var(--paper-mute);
+            font-style: italic;
+            margin-top: 2px;
+        }
+        .form-row .hint code {
+            font-family: var(--mono);
+            font-style: normal;
+            font-size: 11px;
+            background: var(--paper-edge);
+            padding: 1px 5px;
+            border-radius: 3px;
+            color: var(--ink);
+        }
+
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 11px 13px;
+            border: 1px solid var(--paper-edge);
+            background: var(--paper);
+            color: var(--ink);
+            font-family: var(--mono);
+            font-size: 13px;
+            border-radius: 4px;
+            transition: border-color .15s, box-shadow .15s, background .15s;
+        }
+        input[type="text"]:hover, input[type="number"]:hover, select:hover {
+            border-color: var(--paper-faint);
+        }
+        input[type="text"]:focus, input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(10, 135, 84, 0.12);
+            background: #fff;
+        }
+        input::placeholder { color: var(--paper-faint); }
+
+        /* Segmented selectors (BOM type / mode / provider) */
+        .segmented {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+            gap: 0;
+            border: 1px solid var(--paper-edge);
+            border-radius: 4px;
+            overflow: hidden;
+            background: var(--paper);
+        }
+        .seg-option { position: relative; }
+        .seg-option input[type="radio"] {
             position: absolute;
             opacity: 0;
-            width: 0;
-            height: 0;
+            pointer-events: none;
         }
-        
-        .mode-option label {
+        .seg-option label {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
+            gap: 6px;
+            padding: 10px 12px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            background: white;
+            font-family: var(--mono);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--paper-mute);
+            background: var(--paper);
+            transition: background .15s, color .15s;
+            border-right: 1px solid var(--paper-edge);
+            user-select: none;
         }
-        
-        .mode-option input[type="radio"]:checked + label {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.1);
-        }
-        
-        .mode-option label:hover {
-            border-color: #667eea;
-        }
-        
-        .mode-icon {
-            font-size: 1em;
-        }
-        
-        .mode-label {
+        .seg-option:last-child label { border-right: none; }
+        .seg-option label:hover { color: var(--ink); background: var(--paper-2); }
+        .seg-option input[type="radio"]:checked + label {
+            background: var(--ink);
+            color: var(--paper);
             font-weight: 600;
-            color: #333;
-            font-size: 0.95em;
         }
-        
-        /* Use Case Dropdown Styles */
-        .usecase-dropdown-container {
+        .seg-option input[type="radio"]:focus-visible + label {
+            box-shadow: inset 0 0 0 2px var(--primary);
+        }
+
+        /* Use-case dropdown */
+        .dropdown {
             position: relative;
-            margin-bottom: 20px;
         }
-        
-        .usecase-dropdown-btn {
+        .dropdown-btn {
             width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            background: white;
+            padding: 11px 13px;
+            border: 1px solid var(--paper-edge);
+            background: var(--paper);
+            color: var(--ink);
+            font-family: var(--mono);
+            font-size: 13px;
+            border-radius: 4px;
             text-align: left;
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 1em;
-            transition: all 0.3s ease;
+            transition: border-color .15s;
         }
-        
-        .usecase-dropdown-btn:hover {
-            border-color: #667eea;
-        }
-        
-        .usecase-dropdown-container.open .usecase-dropdown-btn {
-            border-color: #667eea;
+        .dropdown-btn:hover { border-color: var(--paper-faint); }
+        .dropdown.open .dropdown-btn {
+            border-color: var(--primary);
             border-bottom-left-radius: 0;
             border-bottom-right-radius: 0;
         }
-        
-        .usecase-dropdown-menu {
+        .dropdown-arrow { transition: transform .2s; font-size: 10px; color: var(--paper-mute); }
+        .dropdown.open .dropdown-arrow { transform: rotate(180deg); }
+        .dropdown-menu {
             position: absolute;
             top: 100%;
             left: 0;
             right: 0;
-            background: white;
-            border: 2px solid #667eea;
+            background: var(--paper);
+            border: 1px solid var(--primary);
             border-top: none;
-            border-radius: 0 0 8px 8px;
+            border-radius: 0 0 4px 4px;
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.3s ease;
+            transition: max-height .25s ease;
             z-index: 100;
+            box-shadow: var(--shadow);
         }
-        
-        .usecase-dropdown-container.open .usecase-dropdown-menu {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        
-        .usecase-option {
-            padding: 10px 15px;
+        .dropdown.open .dropdown-menu { max-height: 320px; overflow-y: auto; }
+        .dropdown-option {
+            padding: 10px 13px;
             cursor: pointer;
-            transition: background 0.2s ease;
-            border-bottom: 1px solid #f0f0f0;
-            color: #333;
-            font-size: 0.95em;
+            font-family: var(--mono);
+            font-size: 13px;
+            color: var(--ink);
+            border-bottom: 1px solid var(--paper-edge);
         }
-        
-        .usecase-option:last-child {
-            border-bottom: none;
-        }
-        
-        .usecase-option:hover {
-            background: rgba(102, 126, 234, 0.1);
-        }
-        
-        .usecase-option.selected {
-            background: rgba(102, 126, 234, 0.15);
-        }
-        
-        .dropdown-arrow {
-            transition: transform 0.3s ease;
-        }
-        
-        .usecase-dropdown-container.open .dropdown-arrow {
-            transform: rotate(180deg);
-        }
-        
-        .info-box {
-            background: #f8f9fa;
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 4px;
-        }
-        
-        .info-box p {
-            color: #666;
-            font-size: 0.9em;
-            line-height: 1.6;
-        }
-        
-        .url-hint {
-            font-size: 0.85em;
-            color: #999;
-            margin-top: 5px;
-        }
-        
-        .json-viewer {
-            flex: 1;
-            border-radius: 8px;
-            padding: 10px;
-            overflow-y: auto;
-            max-height: 500px;
-            background: transparent;
-            border: none;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85em;
-            line-height: 1.6;
-            color: #333;
-            scrollbar-width: thin;
-            scrollbar-color: #667eea #f0f0f0;
-        }
-        
-        .json-viewer::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        .json-viewer::-webkit-scrollbar-track {
-            background: #f0f0f0;
-            border-radius: 4px;
-        }
-        
-        .json-viewer::-webkit-scrollbar-thumb {
-            background: #667eea;
-            border-radius: 4px;
-        }
-        
-        .json-viewer::-webkit-scrollbar-thumb:hover {
-            background: #764ba2;
-        }
-        
-        .json-viewer pre {
-            margin: 0;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-        
-        .json-placeholder {
-            color: #999;
-            text-align: center;
-            padding: 40px 20px;
+        .dropdown-option:last-child { border-bottom: none; }
+        .dropdown-option:hover { background: var(--primary-soft); }
+        .dropdown-option.selected { background: var(--primary-soft); color: var(--primary-deep); font-weight: 600; }
+
+        /* Inline checkbox group (validation, beta toggles) */
+        .checkbox-grid {
             display: flex;
+            flex-wrap: wrap;
+            gap: 14px 22px;
+        }
+        .cb {
+            display: inline-flex;
             align-items: center;
-            justify-content: center;
-            height: 100%;
-        }
-        
-        .json-key {
-            color: #881391;
-            font-weight: 600;
-        }
-        
-        .json-string {
-            color: #0976a4;
-        }
-        
-        .json-number {
-            color: #098658;
-        }
-        
-        .json-boolean {
-            color: #d73a49;
-            font-weight: 600;
-        }
-        
-        .json-null {
-            color: #6f42c1;
-            font-weight: 600;
-        }
-        
-        .json-toggle {
+            gap: 8px;
+            font-family: var(--sans);
+            font-size: 13px;
+            color: var(--ink);
             cursor: pointer;
-            user-select: none;
-            color: #667eea;
-            font-weight: bold;
-            margin-right: 5px;
-            display: inline-block;
-            width: 15px;
-            text-align: center;
         }
-        
-        .json-toggle:hover {
-            color: #764ba2;
+        .cb input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border: 1.5px solid var(--paper-faint);
+            border-radius: 3px;
+            background: var(--paper);
+            cursor: pointer;
+            position: relative;
+            transition: all .15s;
         }
-        
-        .json-object, .json-array {
-            display: block;
+        .cb input[type="checkbox"]:hover { border-color: var(--ink); }
+        .cb input[type="checkbox"]:checked {
+            background: var(--ink);
+            border-color: var(--ink);
         }
-        
-        .json-object.collapsed .json-content,
-        .json-array.collapsed .json-content,
-        .json-line.collapsed .json-content {
-            display: none;
+        .cb input[type="checkbox"]:checked::after {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            background: var(--paper);
+            clip-path: polygon(20% 50%, 0 70%, 40% 100%, 100% 25%, 80% 5%, 40% 65%);
         }
-        
-        .json-content {
-            margin-left: 20px;
-            display: block;
+        .cb-num {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-family: var(--sans);
+            font-size: 13px;
+            color: var(--ink);
         }
-        
-        .json-line {
-            display: block;
-            padding: 2px 0;
+        .cb-num input[type="number"] {
+            width: 70px;
+            padding: 5px 8px;
+            font-size: 12px;
         }
 
-        @media (max-width: 1200px) {
-            .container {
-                grid-template-columns: 1fr;
-                min-height: auto;
-            }
-            
-            .right-panel {
-                min-height: 400px;
-            }
+        /* Beta-feature surfaces — distinctive amber visual treatment */
+        .beta-card {
+            border: 1px dashed var(--beta-edge);
+            background:
+                linear-gradient(180deg, var(--beta-soft) 0%, transparent 30%),
+                var(--paper);
+            border-radius: 6px;
+            padding: 16px 18px;
+            position: relative;
         }
-        
-        .tabs {
+        .beta-card::before {
+            content: 'BETA';
+            position: absolute;
+            top: -8px;
+            left: 14px;
+            background: var(--beta);
+            color: white;
+            font-family: var(--mono);
+            font-size: 9.5px;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            padding: 2px 8px;
+            border-radius: 2px;
+            line-height: 1.4;
+        }
+        .beta-card .field-label { color: var(--beta); }
+        .beta-note {
+            font-size: 12px;
+            color: var(--paper-mute);
+            line-height: 1.55;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--beta-edge);
+        }
+        .beta-note strong { color: var(--beta); font-weight: 700; }
+        .beta-note code {
+            font-family: var(--mono);
+            font-size: 11px;
+            background: rgba(194, 65, 12, 0.08);
+            color: var(--beta);
+            padding: 1px 5px;
+            border-radius: 3px;
+        }
+
+        /* Inline beta tag for use in tab labels / headings */
+        .beta-tag {
+            display: inline-block;
+            background: var(--beta);
+            color: white;
+            font-family: var(--mono);
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            padding: 2px 6px;
+            border-radius: 2px;
+            vertical-align: middle;
+            margin-left: 6px;
+            line-height: 1.4;
+        }
+
+        /* ============================================================ CTA */
+
+        .cta-row {
             display: flex;
             gap: 10px;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #e0e0e0;
+            margin-top: 28px;
+            padding-top: 22px;
+            border-top: 1px solid var(--paper-edge);
         }
-        
-        .tab {
-            padding: 10px 20px;
-            background: transparent;
-            border: none;
-            border-bottom: 3px solid transparent;
-            cursor: pointer;
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 13px 22px;
+            font-family: var(--sans);
+            font-size: 14px;
             font-weight: 600;
-            color: #666;
-            transition: all 0.3s ease;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all .15s;
+            text-decoration: none;
+            line-height: 1;
         }
-        
-        .tab:hover {
-            color: #667eea;
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            flex: 1;
+            box-shadow: 0 1px 0 rgba(13, 17, 23, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.08);
         }
-        
-        .tab.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-deep);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px -4px rgba(10, 135, 84, 0.4);
+        }
+        .btn-primary:disabled {
+            background: var(--paper-faint);
+            cursor: not-allowed;
+        }
+        .btn-ghost {
+            background: transparent;
+            color: var(--paper-mute);
+            border-color: var(--paper-edge);
+        }
+        .btn-ghost:hover {
+            color: var(--ink);
+            border-color: var(--ink);
+        }
+        .btn-arrow { font-family: var(--mono); font-size: 16px; line-height: 1; }
+
+        /* ========================================================= STATUS */
+
+        .status {
+            margin-top: 18px;
+            padding: 12px 14px;
+            border-radius: 4px;
+            border-left: 3px solid;
+            font-size: 13px;
+            line-height: 1.55;
+            display: none;
+        }
+        .status code {
+            font-family: var(--mono);
+            font-size: 12px;
+            padding: 1px 4px;
+            border-radius: 2px;
+        }
+        .status.success {
+            background: var(--primary-soft);
+            color: var(--primary-deep);
+            border-left-color: var(--primary);
+        }
+        .status.success code { background: rgba(10, 135, 84, 0.12); }
+        .status.error {
+            background: #fbe7e3;
+            color: #7f1d1d;
+            border-left-color: var(--conflict-high);
+        }
+        .status.error code { background: rgba(185, 28, 28, 0.1); }
+        .status.processing {
+            background: var(--paper-2);
+            color: var(--ink);
+            border-left-color: var(--ink);
+        }
+        .spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid currentColor;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: -1px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ============================================ RESULT PANE / TABS */
+
+        .result-head {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 22px;
         }
 
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--paper-edge);
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .tabs::-webkit-scrollbar { display: none; }
+        .tab {
+            padding: 12px 18px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            font-family: var(--mono);
+            font-size: 11.5px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--paper-mute);
+            white-space: nowrap;
+            transition: color .15s, border-color .15s;
+            margin-bottom: -1px;
+        }
+        .tab:hover { color: var(--ink); }
+        .tab.active {
+            color: var(--ink);
+            border-bottom-color: var(--ink);
+            font-weight: 600;
+        }
+        .tab .beta-tag { font-size: 8.5px; padding: 1.5px 5px; }
         .tab.has-conflicts {
-            color: white;
-            background: #c0392b;
-            border-radius: 6px 6px 0 0;
+            color: var(--conflict-high);
+            border-bottom-color: var(--conflict-high);
         }
         .tab.has-conflicts.active {
-            color: white;
-            border-bottom-color: #c0392b;
+            color: var(--conflict-high);
+            border-bottom-color: var(--conflict-high);
         }
-        .tab.no-conflicts {
-            color: #1e8449;
-        }
+        .tab.no-conflicts { color: var(--primary); }
         .tab.no-conflicts.active {
-            color: #1e8449;
-            border-bottom-color: #1e8449;
+            color: var(--primary-deep);
+            border-bottom-color: var(--primary);
         }
 
         .tab-content {
             display: none;
             flex: 1;
+            min-height: 0;
         }
-        
         .tab-content.active {
             display: flex;
             flex-direction: column;
         }
-        
-        .download-buttons {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
+
+        /* ====================================================== DOWNLOADS */
+
+        .download-strip {
+            display: none;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 12px 14px;
+            border: 1px solid var(--paper-edge);
+            background: var(--paper);
+            border-radius: 6px;
+            margin-bottom: 14px;
+            align-items: center;
         }
+        .download-strip-label {
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--paper-mute);
+            margin-right: 4px;
+            padding-right: 10px;
+            border-right: 1px solid var(--paper-edge);
+        }
+        .download-btn {
+            display: none;          /* JS toggles inline-flex when ready */
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            background: var(--paper);
+            border: 1px solid var(--paper-edge);
+            color: var(--ink);
+            font-family: var(--mono);
+            font-size: 12px;
+            font-weight: 500;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all .15s;
+        }
+        .download-btn::before { content: '↓'; font-weight: 700; opacity: 0.6; }
+        .download-btn:hover {
+            border-color: var(--ink);
+            background: var(--ink);
+            color: var(--paper);
+        }
+        .download-btn:hover::before { opacity: 1; }
+        .download-btn.is-beta {
+            border-color: var(--beta-edge);
+            color: var(--beta);
+        }
+        .download-btn.is-beta:hover {
+            background: var(--beta);
+            border-color: var(--beta);
+            color: white;
+        }
+        .download-btn.is-beta::after {
+            content: 'BETA';
+            font-size: 8.5px;
+            letter-spacing: 0.14em;
+            padding: 1px 4px;
+            background: var(--beta-soft);
+            color: var(--beta);
+            border-radius: 2px;
+            margin-left: 4px;
+        }
+        .download-btn.is-beta:hover::after { background: rgba(255, 255, 255, 0.2); color: white; }
+
+        /* ============================================ JSON / CONTENT VIEW */
+
+        .json-shell {
+            flex: 1;
+            border: 1px solid var(--ink-line);
+            border-radius: 6px;
+            background: var(--ink);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            box-shadow: var(--shadow-sm);
+        }
+        .json-viewer {
+            flex: 1;
+            overflow: auto;
+            padding: 18px 20px;
+            font-family: var(--mono);
+            font-size: 12.5px;
+            line-height: 1.7;
+            color: #d0d7e2;
+            scrollbar-width: thin;
+            scrollbar-color: var(--ink-line) var(--ink);
+        }
+        .json-viewer::-webkit-scrollbar { width: 10px; height: 10px; }
+        .json-viewer::-webkit-scrollbar-track { background: var(--ink); }
+        .json-viewer::-webkit-scrollbar-thumb { background: var(--ink-line); border-radius: 5px; border: 2px solid var(--ink); }
+        .json-viewer::-webkit-scrollbar-thumb:hover { background: var(--paper-mute); }
+
+        .json-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            min-height: 320px;
+            padding: 40px;
+            color: var(--paper-faint);
+            font-family: var(--display);
+            font-style: italic;
+            font-size: 16px;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        /* JSON syntax highlighting (dark theme) */
+        .json-key      { color: #d4af72; font-weight: 500; }
+        .json-string   { color: #7dd3a3; }
+        .json-number   { color: #f59e0b; font-weight: 500; }
+        .json-boolean  { color: #f97583; font-weight: 500; }
+        .json-null     { color: #b794f4; font-weight: 500; }
+        .json-toggle {
+            cursor: pointer;
+            user-select: none;
+            color: var(--paper-mute);
+            font-weight: 700;
+            margin-right: 6px;
+            display: inline-block;
+            width: 12px;
+            text-align: center;
+            transition: color .15s;
+        }
+        .json-toggle:hover { color: var(--paper); }
+        .json-object, .json-array { display: block; }
+        .json-object.collapsed .json-content,
+        .json-array.collapsed .json-content,
+        .json-line.collapsed .json-content { display: none; }
+        .json-content { margin-left: 20px; display: block; }
+        .json-line { display: block; padding: 1px 0; }
+
+        /* ====================================================== CONFLICTS */
+
+        .conflicts-shell {
+            flex: 1;
+            background: var(--paper);
+            border: 1px solid var(--paper-edge);
+            border-radius: 6px;
+            overflow: auto;
+            min-height: 0;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .conflicts-summary {
+            display: flex;
+            gap: 18px;
+            padding: 18px 22px;
+            background: var(--paper-2);
+            border-bottom: 1px solid var(--paper-edge);
+            flex-wrap: wrap;
+        }
+        .conflict-stat {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 80px;
+        }
+        .conflict-stat .num {
+            font-family: var(--display);
+            font-weight: 700;
+            font-size: 28px;
+            line-height: 1;
+        }
+        .conflict-stat .lbl {
+            font-family: var(--mono);
+            font-size: 10.5px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--paper-mute);
+        }
+        .conflict-stat.is-total .num { color: var(--ink); }
+        .conflict-stat.is-high .num { color: var(--conflict-high); }
+        .conflict-stat.is-low .num { color: var(--conflict-low); }
+        .conflict-stat.is-det .num { color: var(--conflict-det); }
+        .conflict-stat.is-sup .num { color: var(--conflict-sup); }
+        .conflict-stat.is-sup { opacity: 0.7; }
+
+        .conflict-list { padding: 8px 0; }
+        .conflict-row {
+            display: grid;
+            grid-template-columns: minmax(160px, 1fr) minmax(200px, 1.5fr) minmax(200px, 1.5fr) auto;
+            gap: 22px;
+            padding: 16px 22px;
+            border-bottom: 1px solid var(--paper-edge);
+            align-items: start;
+            position: relative;
+        }
+        .conflict-row::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+        }
+        .conflict-row.band-high::before  { background: var(--conflict-high); }
+        .conflict-row.band-low::before   { background: var(--conflict-low); }
+        .conflict-row.band-det::before   { background: var(--conflict-det); }
+        .conflict-row.band-sup::before   { background: var(--conflict-sup); opacity: 0.5; }
+        .conflict-row.band-sup           { background: rgba(100, 116, 139, 0.04); opacity: 0.85; }
+
+        .conflict-field {
+            font-family: var(--mono);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ink);
+            word-break: break-word;
+        }
+        .conflict-section {
+            font-family: var(--mono);
+            font-size: 10.5px;
+            color: var(--paper-mute);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-top: 3px;
+        }
+
+        .conflict-cell-label {
+            font-family: var(--mono);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--paper-mute);
+            margin-bottom: 4px;
+        }
+        .conflict-value {
+            font-family: var(--mono);
+            font-size: 12.5px;
+            line-height: 1.5;
+            color: var(--ink);
+            word-break: break-word;
+        }
+        .conflict-value.is-conflict { color: var(--conflict-high); }
+        .conflict-source {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--paper-mute);
+            margin-top: 4px;
+        }
+        .conflict-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-end;
+            min-width: 110px;
+        }
+        .conf-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 3px 10px;
+            border-radius: 3px;
+        }
+        .conf-pill.high { background: var(--conflict-high); color: white; }
+        .conf-pill.low  { background: var(--conflict-low); color: white; }
+        .conf-pill.det  { background: var(--conflict-det); color: white; }
+        .conf-pill.sup  { background: var(--conflict-sup); color: white; opacity: 0.85; }
+        .conf-pill .grounding {
+            font-weight: 400;
+            opacity: 0.85;
+            border-left: 1px solid rgba(255, 255, 255, 0.3);
+            padding-left: 6px;
+            margin-left: 2px;
+        }
+        .kind-tag {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--paper-mute);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .conflict-claims {
+            grid-column: 1 / -1;
+            margin-top: 8px;
+            padding: 10px 12px;
+            background: var(--paper-2);
+            border-left: 2px solid var(--paper-edge);
+            border-radius: 0 4px 4px 0;
+            font-size: 12px;
+            line-height: 1.55;
+        }
+        .conflict-claims .narrative {
+            font-family: var(--display);
+            font-style: italic;
+            color: var(--ink);
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed var(--paper-edge);
+        }
+        .conflict-claims .claim {
+            font-family: var(--mono);
+            font-size: 11.5px;
+            color: var(--ink);
+            margin-bottom: 4px;
+        }
+        .conflict-claims .claim:last-child { margin-bottom: 0; }
+        .conflict-claims .claim .src {
+            color: var(--paper-mute);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-size: 10px;
+            margin-right: 6px;
+        }
+
+        .conflicts-empty {
+            padding: 50px 30px;
+            text-align: center;
+            color: var(--primary-deep);
+            font-family: var(--display);
+            font-style: italic;
+            font-size: 18px;
+        }
+        .conflicts-empty::before {
+            content: '✓';
+            display: block;
+            font-family: var(--sans);
+            font-size: 32px;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+
+        /* ============================================ SPDX VALIDATION BAR */
+        .spdx-status {
+            margin-bottom: 12px;
+            padding: 10px 14px;
+            border-radius: 4px;
+            border-left: 3px solid;
+            font-family: var(--mono);
+            font-size: 12px;
+            display: none;
+        }
+        .spdx-status.success { background: var(--primary-soft); color: var(--primary-deep); border-left-color: var(--primary); }
+        .spdx-status.error   { background: #fbe7e3; color: #7f1d1d; border-left-color: var(--conflict-high); }
+        .spdx-status.processing { background: var(--paper-2); color: var(--ink); border-left-color: var(--ink); }
+
+        /* ================================================ LIVE LOG VIEWER */
+        .logs-viewer {
+            flex: 1;
+            overflow: auto;
+            padding: 18px 20px;
+            font-family: var(--mono);
+            font-size: 12px;
+            line-height: 1.65;
+            color: #d4d4d4;
+            background: var(--ink);
+            white-space: pre-wrap;
+            word-break: break-word;
+            scrollbar-width: thin;
+            scrollbar-color: var(--ink-line) var(--ink);
+            border-radius: 6px;
+            border: 1px solid var(--ink-line);
+        }
+        .logs-viewer::-webkit-scrollbar { width: 10px; }
+        .logs-viewer::-webkit-scrollbar-track { background: var(--ink); }
+        .logs-viewer::-webkit-scrollbar-thumb { background: var(--ink-line); border-radius: 5px; border: 2px solid var(--ink); }
+        .logs-viewer .log-empty { color: var(--paper-faint); font-family: var(--display); font-style: italic; }
+
+        /* OpenRouter catalog row */
+        .catalog-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+        .btn-mini {
+            padding: 6px 10px;
+            font-family: var(--mono);
+            font-size: 11px;
+            background: var(--paper-2);
+            color: var(--ink);
+            border: 1px solid var(--paper-edge);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all .15s;
+        }
+        .btn-mini:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+        /* Footnote rule */
+        .rule-tiny {
+            display: block;
+            margin: 2px 0 0;
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--paper-faint);
+        }
+
+        /* Brand mark in footer */
+        .brand-rule {
+            margin-top: 30px;
+            padding-top: 18px;
+            border-top: 1px solid var(--paper-edge);
+            font-family: var(--display);
+            font-style: italic;
+            color: var(--paper-mute);
+            font-size: 13px;
+            text-align: center;
+        }
+        .brand-rule b { color: var(--ink); font-weight: 700; font-style: normal; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- LEFT PANEL: FORM -->
-        <div class="left-panel">
-            <h1>🌐 Unified BOM Generator</h1>
-            <p class="subtitle">AI Models & Datasets - Direct Fetching + Agentic RAG</p>
-            
-            <div class="info-box">
-                <p><strong>ℹ️ Instructions:</strong> Select BOM type (AI or Data), then enter at least one URL. The system will fetch metadata directly from APIs and perform deep document analysis using RAG.</p>
+    <!-- ===================================================== TOP BAR ==== -->
+    <header class="topbar">
+        <a class="brand" href="/">
+            <img src="{{ url_for('static', filename='aikaboom-logo.png') }}" alt="AIkaBoOM">
+            <div>
+                <div class="brand-text">AIkaBoOM</div>
             </div>
-            
+            <div class="brand-tag"><b>Aggregate.</b> <b>Align.</b> <b>Resolve.</b></div>
+        </a>
+        <div class="topbar-meta">
+            <span>SPDX 3.0.1</span>
+            <span>·</span>
+            <span>CycloneDX 1.6 <span class="beta-tag">Beta</span></span>
+            <span>·</span>
+            <a href="https://github.com/rgopikrishnan91/aikaboom" target="_blank" rel="noopener">github ↗</a>
+        </div>
+    </header>
+
+    <main class="shell">
+        <!-- =================================================== FORM PANE -->
+        <section class="form-pane">
+            <div class="pane-eyebrow">Generator</div>
+            <h1 class="pane-title">Build a Bill of Materials.</h1>
+            <p class="pane-lead">
+                Pull metadata from HuggingFace, GitHub, and arXiv. Resolve every
+                field as a triplet — <code style="font-family:var(--mono);font-size:12px;background:var(--paper-edge);padding:1px 4px;border-radius:3px;">{value, source, conflict}</code>
+                — then export to SPDX 3.0.1 or CycloneDX 1.6.
+            </p>
+
             <form id="processorForm">
-                <!-- BOM Type Selection -->
-                <div class="form-group">
-                    <label>📋 BOM Type</label>
-                    <div class="mode-selector">
-                        <div class="mode-option">
-                            <input type="radio" name="bom_type" id="bom_type_ai" value="ai" checked>
-                            <label for="bom_type_ai">
-                                <span class="mode-icon">🤖</span>
-                                <span class="mode-label">AI Model</span>
-                            </label>
-                        </div>
-                        <div class="mode-option">
-                            <input type="radio" name="bom_type" id="bom_type_data" value="data">
-                            <label for="bom_type_data">
-                                <span class="mode-icon">📊</span>
-                                <span class="mode-label">Dataset</span>
-                            </label>
+                <!-- ============================================ ARTIFACT -->
+                <div class="section">
+                    <div class="section-head">
+                        <span class="section-eyebrow">01 · Artifact</span>
+                    </div>
+
+                    <div class="form-row">
+                        <label class="field-label">BOM type</label>
+                        <div class="segmented">
+                            <div class="seg-option">
+                                <input type="radio" name="bom_type" id="bom_type_ai" value="ai" checked>
+                                <label for="bom_type_ai">AI Model</label>
+                            </div>
+                            <div class="seg-option">
+                                <input type="radio" name="bom_type" id="bom_type_data" value="data">
+                                <label for="bom_type_data">Dataset</label>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <!-- Processing Mode Selection -->
-                <div class="form-group">
-                    <label>🔧 Processing Mode</label>
-                    <div class="mode-selector">
-                        <div class="mode-option">
-                            <input type="radio" name="mode" id="mode_rag" value="rag" checked>
-                            <label for="mode_rag">
-                                <span class="mode-icon">🤖</span>
-                                <span class="mode-label">RAG</span>
-                            </label>
+
+                    <div id="ai_fields">
+                        <div class="form-row">
+                            <label class="field-label" for="repo_id">HuggingFace repo ID</label>
+                            <input type="text" id="repo_id" name="repo_id" placeholder="org/model-name or paste the full HF URL">
+                            <span class="hint">e.g. <code>microsoft/DialoGPT-medium</code></span>
                         </div>
-                        <div class="mode-option">
-                            <input type="radio" name="mode" id="mode_direct" value="direct">
-                            <label for="mode_direct">
-                                <span class="mode-icon">⚡</span>
-                                <span class="mode-label">Direct LLM</span>
-                            </label>
+                    </div>
+
+                    <div id="data_fields" style="display: none;">
+                        <div class="form-row">
+                            <label class="field-label" for="hf_repo_id_data">HuggingFace dataset ID</label>
+                            <input type="text" id="hf_repo_id_data" name="hf_repo_id" placeholder="org/dataset-name or paste the full HF URL">
+                            <span class="hint">e.g. <code>squad</code> or <code>allenai/c4</code></span>
                         </div>
+                    </div>
+
+                    <div class="form-row">
+                        <label class="field-label" for="arxiv_url">arXiv paper</label>
+                        <input type="text" id="arxiv_url" name="arxiv_url" placeholder="https://arxiv.org/abs/...">
+                        <span class="hint">Optional — improves RAG coverage when present.</span>
+                    </div>
+
+                    <div class="form-row">
+                        <label class="field-label" for="github_url">GitHub repository</label>
+                        <input type="text" id="github_url" name="github_url" placeholder="https://github.com/owner/repo">
+                        <span class="hint">Optional — README + license file get pulled into the source set.</span>
                     </div>
                 </div>
 
-                <!-- LLM Provider Selection -->
-                <div class="form-group">
-                    <label>🧠 LLM Provider</label>
-                    <div class="mode-selector">
-                        <div class="mode-option">
-                            <input type="radio" name="llm_provider" id="provider_openrouter" value="openrouter" checked>
-                            <label for="provider_openrouter">
-                                <span class="mode-icon">🌐</span>
-                                <span class="mode-label">OpenRouter</span>
+                <!-- ============================================== ENGINE -->
+                <div class="section">
+                    <div class="section-head">
+                        <span class="section-eyebrow">02 · Engine</span>
+                    </div>
+
+                    <div class="form-row">
+                        <label class="field-label">Extraction mode</label>
+                        <div class="segmented">
+                            <div class="seg-option">
+                                <input type="radio" name="mode" id="mode_rag" value="rag" checked>
+                                <label for="mode_rag">RAG</label>
+                            </div>
+                            <div class="seg-option">
+                                <input type="radio" name="mode" id="mode_direct" value="direct">
+                                <label for="mode_direct">Direct</label>
+                            </div>
+                        </div>
+                        <span class="hint">RAG: chunked retrieval + grounded conflict detection. Direct: single LLM call per field.</span>
+                    </div>
+
+                    <div class="form-row">
+                        <label class="field-label">LLM provider</label>
+                        <div class="segmented">
+                            <div class="seg-option">
+                                <input type="radio" name="llm_provider" id="provider_openrouter" value="openrouter" checked>
+                                <label for="provider_openrouter">OpenRouter</label>
+                            </div>
+                            <div class="seg-option">
+                                <input type="radio" name="llm_provider" id="provider_openai" value="openai">
+                                <label for="provider_openai">OpenAI</label>
+                            </div>
+                            <div class="seg-option">
+                                <input type="radio" name="llm_provider" id="provider_ollama" value="ollama">
+                                <label for="provider_ollama">Ollama</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row" id="model_group_openrouter">
+                        <label class="field-label" for="openrouter_model_select">OpenRouter model</label>
+                        <div class="catalog-row">
+                            <button type="button" id="btn_load_all_models" class="btn-mini">Load model catalog</button>
+                        </div>
+                        <select id="openrouter_model_select">
+                            <option value="meta-llama/llama-3.3-70b-instruct">meta-llama/llama-3.3-70b-instruct (default)</option>
+                            <option value="__custom__">Custom model ID…</option>
+                        </select>
+                        <input type="text" id="openrouter_model" name="openrouter_model"
+                               value="meta-llama/llama-3.3-70b-instruct"
+                               placeholder="e.g. openai/gpt-4o-mini"
+                               style="display:none;margin-top:6px;">
+                        <span class="hint" id="openrouter_model_hint">Click <em>Load model catalog</em> to fetch the live OpenRouter list.</span>
+                    </div>
+
+                    <div class="form-row" id="model_group_openai" style="display:none;">
+                        <label class="field-label" for="openai_model">OpenAI model</label>
+                        <select id="openai_model" name="openai_model">
+                            <option value="gpt-4o">gpt-4o</option>
+                            <option value="gpt-4o-mini">gpt-4o-mini</option>
+                            <option value="gpt-4-turbo">gpt-4-turbo</option>
+                            <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row" id="model_group_ollama" style="display:none;">
+                        <label class="field-label" for="ollama_model_input">Ollama model</label>
+                        <input type="text" id="ollama_model_input" name="ollama_model" placeholder="llama3:70b" value="llama3:70b">
+                        <span class="hint">Model tag from your local Ollama instance.</span>
+                    </div>
+
+                    <div class="form-row">
+                        <label class="field-label">Use-case focus</label>
+                        <div class="dropdown" id="useCaseContainer">
+                            <button type="button" class="dropdown-btn" id="useCaseDropdownBtn">
+                                <span id="useCaseLabel">Complete BOM</span>
+                                <span class="dropdown-arrow">▼</span>
+                            </button>
+                            <input type="hidden" name="use_case" id="use_case" value="complete">
+                            <div class="dropdown-menu" id="useCaseDropdownMenu">
+                                <div class="dropdown-option selected" data-value="complete">Complete BOM — every field</div>
+                                <div class="dropdown-option" data-value="safety">Safety & Bias</div>
+                                <div class="dropdown-option" data-value="security">Security & Privacy</div>
+                                <div class="dropdown-option" data-value="lineage">Data Lineage</div>
+                                <div class="dropdown-option" data-value="license">License & Rights</div>
+                            </div>
+                        </div>
+                        <span class="hint">Subsets restrict the question bank to fields relevant to one concern.</span>
+                    </div>
+                </div>
+
+                <!-- ========================================== VALIDATION -->
+                <div class="section">
+                    <div class="section-head">
+                        <span class="section-eyebrow">03 · Validation</span>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="checkbox-grid">
+                            <label class="cb">
+                                <input type="checkbox" id="validate_spdx" checked>
+                                Validate SPDX export
+                            </label>
+                            <label class="cb">
+                                <input type="checkbox" id="strict_spdx_validation">
+                                Deep SHACL validation (beta)
                             </label>
                         </div>
-                        <div class="mode-option">
-                            <input type="radio" name="llm_provider" id="provider_openai" value="openai">
-                            <label for="provider_openai">
-                                <span class="mode-icon">🔑</span>
-                                <span class="mode-label">OpenAI</span>
+                        <span class="hint">JSON Schema runs by default; SHACL is the slower semantic pass — best as a final check.</span>
+                    </div>
+                </div>
+
+                <!-- ================================================ BETA -->
+                <div class="section">
+                    <div class="section-head">
+                        <span class="section-eyebrow">04 · Beta exports</span>
+                    </div>
+
+                    <div class="beta-card">
+                        <label class="field-label">Recursive walker</label>
+                        <div class="checkbox-grid" style="margin-top:10px;">
+                            <label class="cb">
+                                <input type="checkbox" id="recursive_bom" onclick="confirmRecursive(this)">
+                                Generate recursive BOMs
+                            </label>
+                            <label class="cb-num">
+                                Depth
+                                <input type="number" id="recursive_depth" min="1" max="5" value="1">
+                            </label>
+                            <label class="cb" title="Walk the entire dependency tree until empty or the safety cap is reached.">
+                                <input type="checkbox" id="recursive_exhaust" onclick="document.getElementById('recursive_depth').disabled = this.checked;">
+                                Exhaust
+                            </label>
+                            <label class="cb-num" title="Hard cap on total child BOMs generated under Exhaust mode.">
+                                Safety cap
+                                <input type="number" id="recursive_safety_cap" min="1" max="500" value="50">
+                            </label>
+                            <label class="cb-num" title="Cap on children-per-relationship in the standalone SPDX. Empty = unbounded. Recursive walker and linked bundle are always unbounded.">
+                                SPDX cap
+                                <input type="number" id="spdx_relationship_cap" min="1" max="500" placeholder="∞">
                             </label>
                         </div>
-                        <div class="mode-option">
-                            <input type="radio" name="llm_provider" id="provider_ollama" value="ollama">
-                            <label for="provider_ollama">
-                                <span class="mode-icon">🦙</span>
-                                <span class="mode-label">Ollama</span>
-                            </label>
-                        </div>
+                        <p class="beta-note">
+                            <strong>Heads up.</strong> Recursive generation walks the
+                            dependency tree — each <code>trainedOn</code> /
+                            <code>testedOn</code> / <code>dependsOn</code> /
+                            <code>sourceInfo</code> target produces another BOM, which
+                            may itself reference more dependencies. AIkaBoOM keeps a
+                            unique-target set so each artefact is fetched once, and
+                            stops at <em>Depth</em> or when the set is exhausted.
+                            Higher depths cost more time, bandwidth, and LLM tokens.
+                        </p>
                     </div>
                 </div>
 
-                <!-- Model Selection (dynamic based on provider) -->
-                <div class="form-group" id="model_group_openrouter">
-                    <label for="openrouter_model_select">🤖 OpenRouter Model</label>
-                    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
-                        <button type="button" id="btn_load_all_models" style="padding:6px 10px;border:1px solid #888;background:#f5f5f5;color:#333;border-radius:6px;cursor:pointer;font-size:0.85em;">📋 Load model catalog</button>
-                    </div>
-                    <select id="openrouter_model_select" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:0.95em;margin-bottom:6px;">
-                        <option value="meta-llama/llama-3.3-70b-instruct">meta-llama/llama-3.3-70b-instruct (default)</option>
-                        <option value="__custom__">Custom model ID...</option>
-                    </select>
-                    <input type="text" id="openrouter_model" name="openrouter_model"
-                           value="meta-llama/llama-3.3-70b-instruct"
-                           placeholder="e.g. openai/gpt-4o-mini"
-                           style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:0.95em;box-sizing:border-box;display:none;">
-                    <div class="url-hint" id="openrouter_model_hint">Click "Load model catalog" to fetch the live OpenRouter list.</div>
-                </div>
-
-                <div class="form-group" id="model_group_openai" style="display:none;">
-                    <label for="openai_model">🤖 OpenAI Model</label>
-                    <select id="openai_model" name="openai_model" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:0.95em;">
-                        <option value="gpt-4o">gpt-4o</option>
-                        <option value="gpt-4o-mini">gpt-4o-mini</option>
-                        <option value="gpt-4-turbo">gpt-4-turbo</option>
-                        <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
-                    </select>
-                </div>
-
-                <div class="form-group" id="model_group_ollama" style="display:none;">
-                    <label for="ollama_model_input">🤖 Ollama Model</label>
-                    <input type="text" id="ollama_model_input" name="ollama_model" placeholder="llama3:70b" value="llama3:70b">
-                    <div class="url-hint">Model name as listed in your Ollama instance</div>
-                </div>
-                
-                <!-- Use Case Focus Selection -->
-                <div class="form-group">
-                    <label>🎯 Use Case Focus</label>
-                    <div class="usecase-dropdown-container" id="useCaseContainer">
-                        <button type="button" class="usecase-dropdown-btn" id="useCaseDropdownBtn">
-                            <span id="useCaseLabel">Complete BOM</span>
-                            <span class="dropdown-arrow">▼</span>
-                        </button>
-                        <input type="hidden" name="use_case" id="use_case" value="complete">
-                        <div class="usecase-dropdown-menu" id="useCaseDropdownMenu">
-                            <div class="usecase-option selected" data-value="complete">Complete BOM</div>
-                            <div class="usecase-option" data-value="safety">Safety & Bias</div>
-                            <div class="usecase-option" data-value="security">Security & Privacy</div>
-                            <div class="usecase-option" data-value="lineage">Data Lineage</div>
-                            <div class="usecase-option" data-value="license">License & Rights</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- AI Mode Fields -->
-                <div id="ai_fields">
-                    <div class="form-group">
-                        <label for="repo_id">🤗 HuggingFace Repo ID (optional)</label>
-                        <input type="text" id="repo_id" name="repo_id" placeholder="org/model-name">
-                        <div class="url-hint">Example: microsoft/DialoGPT-medium</div>
-                    </div>
-                </div>
-                
-                <!-- Data Mode Fields -->
-                <div id="data_fields" style="display: none;">
-                    <div class="form-group">
-                        <label for="hf_repo_id_data">🤗 HuggingFace Repo ID (optional)</label>
-                        <input type="text" id="hf_repo_id_data" name="hf_repo_id" placeholder="org/dataset-name">
-                        <div class="url-hint">Example: squad or username/my-dataset</div>
-                    </div>
-                </div>
-                
-                <!-- Common Fields -->
-                <div class="form-group">
-                    <label for="arxiv_url">📄 ArXiv URL (optional)</label>
-                    <input type="text" id="arxiv_url" name="arxiv_url" placeholder="https://arxiv.org/abs/...">
-                    <div class="url-hint">Example: https://arxiv.org/abs/2301.12345</div>
-                </div>
-                 
-                <div class="form-group">
-                    <label for="github_url">📦 GitHub URL (optional)</label>
-                    <input type="text" id="github_url" name="github_url" placeholder="https://github.com/owner/repo">
-                    <div class="url-hint">Example: https://github.com/username/repo</div>
-                </div>
-                
-                <div class="form-group">
-                    <label>SPDX validation</label>
-                    <div style="display:flex;gap:14px;flex-wrap:wrap;color:#333;font-size:0.92em;">
-                        <label style="display:flex;align-items:center;gap:6px;font-weight:500;">
-                            <input type="checkbox" id="validate_spdx" checked>
-                            Validate SPDX export
-                        </label>
-                        <label style="display:flex;align-items:center;gap:6px;font-weight:500;">
-                            <input type="checkbox" id="strict_spdx_validation">
-                            Deep SHACL validation (beta)
-                        </label>
-                    </div>
-                    <div class="url-hint">JSON Schema runs by default; SHACL is slower and best for final checks.</div>
-                </div>
-
-                <div class="form-group">
-                    <label>Beta exports</label>
-                    <div style="display:flex;gap:14px;flex-wrap:wrap;color:#333;font-size:0.92em;">
-                        <label style="display:flex;align-items:center;gap:6px;font-weight:500;">
-                            <input type="checkbox" id="recursive_bom" onclick="confirmRecursive(this)">
-                            Recursive BOM generation
-                        </label>
-                        <label style="display:flex;align-items:center;gap:6px;font-weight:500;">
-                            Depth
-                            <input type="number" id="recursive_depth" min="1" max="5" value="1" style="width:64px;padding:6px 8px;">
-                        </label>
-                        <label style="display:flex;align-items:center;gap:6px;font-weight:500;" title="Walk the entire dependency tree until empty or the safety cap is reached.">
-                            <input type="checkbox" id="recursive_exhaust" onclick="document.getElementById('recursive_depth').disabled = this.checked;">
-                            Exhaust
-                        </label>
-                        <label style="display:flex;align-items:center;gap:6px;font-weight:500;">
-                            Safety cap
-                            <input type="number" id="recursive_safety_cap" min="1" max="500" value="50" style="width:72px;padding:6px 8px;">
-                        </label>
-                        <label style="display:flex;align-items:center;gap:6px;font-weight:500;" title="Cap children-per-relationship in the standalone SPDX. Empty = unbounded. Recursive walker and linked bundle are always unbounded.">
-                            SPDX cap
-                            <input type="number" id="spdx_relationship_cap" min="1" max="500" placeholder="unbounded" style="width:96px;padding:6px 8px;">
-                        </label>
-                    </div>
-                    <div class="url-hint" style="color:#a04500;">
-                        <strong>Heads up:</strong> recursive generation walks the
-                        dependency tree — each <code>trainedOn</code> /
-                        <code>testedOn</code> / <code>dependsOn</code> target
-                        produces another BOM, which may itself reference more
-                        dependencies. AIkaBoOM keeps a unique-target set so each
-                        artefact is fetched once, and stops at <em>Depth</em> or
-                        when the set is exhausted. Higher depths cost more time,
-                        bandwidth, and LLM tokens.
-                    </div>
-                    <div class="url-hint">CycloneDX, recursive BOM generation, and strict SHACL validation are beta.</div>
-                </div>
-
-                <div class="button-group">
-                    <button type="button" class="btn-process" id="processBtn">🚀 Process Model or Dataset</button>
-                    <button type="button" class="btn-reset" onclick="resetForm()">🔄 Reset</button>
+                <div class="cta-row">
+                    <button type="button" class="btn btn-primary" id="processBtn">
+                        Generate BOM
+                        <span class="btn-arrow">→</span>
+                    </button>
+                    <button type="button" class="btn btn-ghost" onclick="resetForm()">Reset</button>
                 </div>
             </form>
-            
+
             <div id="status" class="status"></div>
-        </div>
-        
-        <!-- RIGHT PANEL: JSON VIEWER -->
-        <div class="right-panel">
-            <h2>📋 Generated BOM</h2>
-            
-            <div class="tabs">
-                <button class="tab active" onclick="switchTab('complete')" title="Source-traced fields with conflict detection">BOM with Provenance</button>
-                <button class="tab" id="conflictsTabBtn" onclick="switchTab('conflicts')" title="Summary of all detected conflicts">Conflicts</button>
-                <button class="tab" onclick="switchTab('spdx')" title="Standards-compliant SPDX 3.0.1 export">SPDX 3.0.1</button>
-                <button class="tab" onclick="switchTab('cyclonedx')" title="CycloneDX 1.6 ML-BOM export">CycloneDX 1.6 Beta</button>
-                <button class="tab" onclick="switchTab('recursive')" title="Recursive child BOM seed exports">Recursive Beta</button>
-                <button class="tab" onclick="switchTab('logs')" title="Server processing logs">Logs</button>
+
+            <div class="brand-rule">
+                <b>AIkaBoOM</b> · open-source · MIT
+            </div>
+        </section>
+
+        <!-- ================================================== RESULT PANE -->
+        <section class="result-pane">
+            <div class="result-head">
+                <div>
+                    <div class="pane-eyebrow">Output</div>
+                    <h2 class="pane-title">Generated BOM</h2>
+                </div>
             </div>
 
-            <div class="download-buttons" id="downloadButtons" style="display: none;">
-                <a id="downloadComplete" href="#" class="download-btn" target="_blank" style="display: none;">📥 Download Provenance BOM</a>
-                <a id="downloadSPDX" href="#" class="download-btn spdx" target="_blank" style="display: none;">📄 Download SPDX 3.0.1</a>
-                <a id="downloadCDX" href="#" class="download-btn spdx" target="_blank" style="display: none;">📦 Download CycloneDX 1.6 Beta</a>
-                <a id="downloadRecursive" href="#" class="download-btn spdx" target="_blank" style="display: none;">Download Recursive BOM Beta</a>
-                <a id="downloadLinked" href="#" class="download-btn spdx" target="_blank" style="display: none;">Download Linked SPDX Beta</a>
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab(event, 'complete')" title="Source-traced fields with conflict detection">BOM with Provenance</button>
+                <button class="tab" id="conflictsTabBtn" onclick="switchTab(event, 'conflicts')" title="Detected source disagreements, classified by grounding">Conflicts</button>
+                <button class="tab" onclick="switchTab(event, 'spdx')" title="Standards-compliant SPDX 3.0.1 export">SPDX 3.0.1</button>
+                <button class="tab" onclick="switchTab(event, 'cyclonedx')" title="CycloneDX 1.6 Beta — ML-BOM export">CycloneDX 1.6 <span class="beta-tag">Beta</span></button>
+                <button class="tab" onclick="switchTab(event, 'recursive')" title="Recursive Beta — child BOM seed exports">Recursive <span class="beta-tag">Beta</span></button>
+                <button class="tab" onclick="switchTab(event, 'logs')" title="Live server processing log">Logs</button>
+            </div>
+
+            <div class="download-strip" id="downloadButtons">
+                <span class="download-strip-label">Download</span>
+                <a id="downloadComplete" href="#" class="download-btn" target="_blank">Download Provenance BOM</a>
+                <a id="downloadSPDX" href="#" class="download-btn" target="_blank">Download SPDX 3.0.1</a>
+                <a id="downloadCDX" href="#" class="download-btn is-beta" target="_blank">Download CycloneDX 1.6 Beta</a>
+                <a id="downloadRecursive" href="#" class="download-btn is-beta" target="_blank">Download Recursive BOM Beta</a>
+                <a id="downloadLinked" href="#" class="download-btn is-beta" target="_blank">Download Linked SPDX Beta</a>
             </div>
 
             <div id="completeTab" class="tab-content active">
-                <div class="json-container">
+                <div class="json-shell">
                     <div id="jsonViewerComplete" class="json-viewer">
                         <div class="json-placeholder">
-                            Generated BOM with source provenance and conflict detection will appear here.
+                            The provenance BOM lands here.<br>
+                            Every field carries <em>value · source · conflict</em>.
                         </div>
                     </div>
                 </div>
             </div>
 
             <div id="conflictsTab" class="tab-content">
-                <div class="json-container">
-                    <div id="conflictsViewer" class="json-viewer" style="font-family:inherit;">
+                <div class="conflicts-shell">
+                    <div id="conflictsViewer">
                         <div class="json-placeholder">
-                            Conflict summary will appear here after processing.
+                            Conflict summary appears here after a run.
                         </div>
                     </div>
                 </div>
             </div>
 
             <div id="spdxTab" class="tab-content">
-                <div class="json-container">
-                    <div id="spdxValidationStatus" class="status" style="display:none;margin-top:0;margin-bottom:10px;"></div>
+                <div id="spdxValidationStatus" class="spdx-status"></div>
+                <div class="json-shell">
                     <div id="jsonViewerSPDX" class="json-viewer">
                         <div class="json-placeholder">
-                            SPDX 3.0.1 JSON-LD export will appear here.
+                            SPDX 3.0.1 JSON-LD export lands here.
                         </div>
                     </div>
                 </div>
             </div>
 
             <div id="cyclonedxTab" class="tab-content">
-                <div class="json-container">
+                <div class="json-shell">
                     <div id="jsonViewerCDX" class="json-viewer">
                         <div class="json-placeholder">
-                            CycloneDX 1.6 beta ML-BOM export will appear here.
+                            CycloneDX 1.6 ML-BOM (beta) lands here.
                         </div>
                     </div>
                 </div>
             </div>
 
             <div id="recursiveTab" class="tab-content">
-                <div class="json-container">
+                <div class="json-shell">
                     <div id="jsonViewerRecursive" class="json-viewer">
                         <div class="json-placeholder">
-                            Recursive BOM beta outputs will appear here when enabled.
+                            Recursive child-BOM bundle (beta) lands here when enabled.
                         </div>
                     </div>
                 </div>
             </div>
 
             <div id="logsTab" class="tab-content">
-                <div class="json-container">
-                    <div id="logsViewer" class="json-viewer" style="font-family:'Courier New',monospace; font-size:12px; white-space:pre-wrap; background:#1e1e1e; color:#d4d4d4; padding:12px; max-height:500px; overflow-y:auto;">
-                        <span style="color:#888;">Waiting for processing to start...</span>
-                    </div>
+                <div id="logsViewer" class="logs-viewer">
+                    <span class="log-empty">Waiting for processing to start…</span>
                 </div>
             </div>
-        </div>
-    </div>
-    
-    <script>
-        const form = document.getElementById('processorForm');
-        const statusDiv = document.getElementById('status');
-        const jsonViewerComplete = document.getElementById('jsonViewerComplete');
-        const jsonViewerSPDX = document.getElementById('jsonViewerSPDX');
-        const jsonViewerCDX = document.getElementById('jsonViewerCDX');
-        const jsonViewerRecursive = document.getElementById('jsonViewerRecursive');
-        const processBtn = document.getElementById('processBtn');
-        const downloadButtons = document.getElementById('downloadButtons');
-        const downloadComplete = document.getElementById('downloadComplete');
-        const downloadCDX = document.getElementById('downloadCDX');
-        const downloadSPDX = document.getElementById('downloadSPDX');
-        const downloadRecursive = document.getElementById('downloadRecursive');
-        const downloadLinked = document.getElementById('downloadLinked');
+        </section>
+    </main>
 
+    <script>
+        // ===== element refs ======================================================
+        const form                 = document.getElementById('processorForm');
+        const statusDiv            = document.getElementById('status');
+        const jsonViewerComplete   = document.getElementById('jsonViewerComplete');
+        const jsonViewerSPDX       = document.getElementById('jsonViewerSPDX');
+        const jsonViewerCDX        = document.getElementById('jsonViewerCDX');
+        const jsonViewerRecursive  = document.getElementById('jsonViewerRecursive');
+        const processBtn           = document.getElementById('processBtn');
+        const downloadButtons      = document.getElementById('downloadButtons');
+        const downloadComplete     = document.getElementById('downloadComplete');
+        const downloadCDX          = document.getElementById('downloadCDX');
+        const downloadSPDX         = document.getElementById('downloadSPDX');
+        const downloadRecursive    = document.getElementById('downloadRecursive');
+        const downloadLinked       = document.getElementById('downloadLinked');
+        const spdxValidationStatus = document.getElementById('spdxValidationStatus');
+        const useCaseDropdownBtn   = document.getElementById('useCaseDropdownBtn');
+        const useCaseContainer     = document.getElementById('useCaseContainer');
+        const useCaseDropdownMenu  = document.getElementById('useCaseDropdownMenu');
+        const useCaseLabelSpan     = document.getElementById('useCaseLabel');
+        const useCaseInput         = document.getElementById('use_case');
+
+        const USE_CASE_LABELS = {
+            complete: 'Complete BOM',
+            safety:   'Safety & Bias',
+            security: 'Security & Privacy',
+            lineage:  'Data Lineage',
+            license:  'License & Rights'
+        };
+
+        let currentTab = 'complete';
+        let spdxData   = null;
+
+        // Recursive-walker confirm modal — preserved verbatim per smoke tests.
         function confirmRecursive(checkbox) {
             if (!checkbox.checked) return;
             const ok = window.confirm(
                 "Recursive BOM generation walks the dependency tree:\n\n" +
-                "• Each trainedOn / testedOn / dependsOn target produces another BOM\n" +
+                "• Each trainedOn / testedOn / dependsOn / sourceInfo target produces another BOM\n" +
                 "• Those children may themselves have dependencies\n" +
                 "• A unique-target set deduplicates artefacts; the walk stops at the\n" +
                 "  configured depth or when the set is exhausted\n\n" +
@@ -878,80 +1430,58 @@
             );
             if (!ok) checkbox.checked = false;
         }
-        const spdxValidationStatus = document.getElementById('spdxValidationStatus');
-        const useCaseDropdownBtn = document.getElementById('useCaseDropdownBtn');
-        const useCaseContainer = document.getElementById('useCaseContainer');
-        const useCaseDropdownMenu = document.getElementById('useCaseDropdownMenu');
-        const useCaseLabelSpan = document.getElementById('useCaseLabel');
-        const useCaseInput = document.getElementById('use_case');
-        
-        const USE_CASE_LABELS = {
-            complete: 'Complete BOM',
-            safety: 'Safety & Bias',
-            security: 'Security & Privacy',
-            lineage: 'Data Lineage',
-            license: 'License & Rights'
-        };
-        
-        let currentTab = 'complete';
-        let spdxData = null;
-        
-        // Show/hide model inputs based on selected provider
+
+        // ===== provider visibility ===============================================
         function updateModelVisibility() {
             const provider = document.querySelector('input[name="llm_provider"]:checked').value;
-            document.getElementById('model_group_openrouter').style.display = provider === 'openrouter' ? 'block' : 'none';
-            document.getElementById('model_group_openai').style.display = provider === 'openai' ? 'block' : 'none';
-            document.getElementById('model_group_ollama').style.display = provider === 'ollama' ? 'block' : 'none';
+            document.getElementById('model_group_openrouter').style.display = provider === 'openrouter' ? '' : 'none';
+            document.getElementById('model_group_openai').style.display     = provider === 'openai'     ? '' : 'none';
+            document.getElementById('model_group_ollama').style.display     = provider === 'ollama'     ? '' : 'none';
         }
-        document.querySelectorAll('input[name="llm_provider"]').forEach(function(r) {
-            r.addEventListener('change', updateModelVisibility);
-        });
+        document.querySelectorAll('input[name="llm_provider"]').forEach(r =>
+            r.addEventListener('change', updateModelVisibility));
         updateModelVisibility();
 
-        // OpenRouter model dropdown wiring
+        // ===== OpenRouter catalog picker =========================================
         (function setupOpenRouterPicker() {
             const select = document.getElementById('openrouter_model_select');
             const hidden = document.getElementById('openrouter_model');
-            const customInput = hidden;  // same element repurposed for custom
-            const hint = document.getElementById('openrouter_model_hint');
+            const hint   = document.getElementById('openrouter_model_hint');
             const btnAll = document.getElementById('btn_load_all_models');
 
             function setHint(msg, color) {
                 hint.textContent = msg;
                 hint.style.color = color || '';
             }
-
             function fmtCtx(ctx) {
                 if (!ctx) return '';
                 if (ctx >= 1000) return Math.round(ctx / 1000) + 'K';
                 return String(ctx);
             }
-
             function applySelectedModel() {
                 if (select.value === '__custom__') {
-                    customInput.style.display = '';
+                    hidden.style.display = '';
                     setHint('Type a custom OpenRouter model ID.');
                 } else {
-                    customInput.value = select.value;
-                    customInput.style.display = 'none';
+                    hidden.value = select.value;
+                    hidden.style.display = 'none';
                 }
             }
-
             select.addEventListener('change', applySelectedModel);
             applySelectedModel();
 
             async function loadModels() {
-                setHint('📋 Loading model catalog...', '#666');
+                setHint('Loading model catalog…', '');
                 try {
                     const resp = await fetch('/models?provider=openrouter');
                     const data = await resp.json();
                     const models = data.models || [];
                     if (!models.length) {
-                        setHint('No models returned from OpenRouter.', '#c0392b');
+                        setHint('No models returned from OpenRouter.', 'var(--conflict-high)');
                         return;
                     }
                     select.innerHTML = '';
-                    models.forEach(function(m) {
+                    models.forEach(m => {
                         const opt = document.createElement('option');
                         opt.value = m.id;
                         const ctx = fmtCtx(m.context_length);
@@ -960,137 +1490,102 @@
                     });
                     const customOpt = document.createElement('option');
                     customOpt.value = '__custom__';
-                    customOpt.textContent = 'Custom model ID...';
+                    customOpt.textContent = 'Custom model ID…';
                     select.appendChild(customOpt);
                     select.value = models[0].id;
                     applySelectedModel();
-                    setHint(`✓ Loaded ${models.length} model(s) from OpenRouter.`, '#1e8449');
+                    setHint(`Loaded ${models.length} model(s) from OpenRouter.`, 'var(--primary-deep)');
                 } catch (err) {
-                    setHint('Could not load models: ' + err.message, '#c0392b');
+                    setHint('Could not load models: ' + err.message, 'var(--conflict-high)');
                 }
             }
-
             btnAll.addEventListener('click', loadModels);
         })();
 
-        // Debugging: Ensure the script is loaded
-        console.log("🚀 Script loaded successfully!");
-        
-        // Setup use case dropdown
-        useCaseDropdownBtn.addEventListener('click', function(e) {
+        // ===== use-case dropdown =================================================
+        useCaseDropdownBtn.addEventListener('click', e => {
             e.preventDefault();
             e.stopPropagation();
             useCaseContainer.classList.toggle('open');
         });
-        
-        document.querySelectorAll('.usecase-option').forEach(function(option) {
-            option.addEventListener('click', function(e) {
+        document.querySelectorAll('.dropdown-option').forEach(opt => {
+            opt.addEventListener('click', e => {
                 e.preventDefault();
                 e.stopPropagation();
-                var value = option.getAttribute('data-value');
-                var label = option.textContent;
-                
+                const value = opt.getAttribute('data-value');
+                const label = opt.textContent.split('—')[0].trim();
                 useCaseInput.value = value;
                 useCaseLabelSpan.textContent = label;
                 useCaseContainer.classList.remove('open');
-                
-                document.querySelectorAll('.usecase-option').forEach(function(o) {
-                    o.classList.remove('selected');
-                });
-                option.classList.add('selected');
+                document.querySelectorAll('.dropdown-option').forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
             });
         });
-        
-        document.addEventListener('click', function(e) {
-            if (!useCaseContainer.contains(e.target)) {
-                useCaseContainer.classList.remove('open');
-            }
+        document.addEventListener('click', e => {
+            if (!useCaseContainer.contains(e.target)) useCaseContainer.classList.remove('open');
         });
 
-        // Handle BOM type switching
-        document.querySelectorAll('input[name="bom_type"]').forEach(function(radio) {
+        // ===== BOM-type switch ===================================================
+        document.querySelectorAll('input[name="bom_type"]').forEach(radio => {
             radio.addEventListener('change', function() {
-                const bomType = this.value;
-                const aiFields = document.getElementById('ai_fields');
-                const dataFields = document.getElementById('data_fields');
-                
-                if (bomType === 'ai') {
-                    aiFields.style.display = 'block';
-                    dataFields.style.display = 'none';
-                } else {
-                    aiFields.style.display = 'none';
-                    dataFields.style.display = 'block';
-                }
+                const isAi = this.value === 'ai';
+                document.getElementById('ai_fields').style.display   = isAi ? 'block' : 'none';
+                document.getElementById('data_fields').style.display = isAi ? 'none'  : 'block';
             });
         });
 
-        // Handle process button click
+        // ===== process click =====================================================
         processBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             e.stopPropagation();
 
-            console.log("🚀 Process button clicked!");
-            
-            const selectedBomType = document.querySelector('input[name="bom_type"]:checked').value;
-            const selectedMode = document.querySelector('input[name="mode"]:checked').value;
-            const selectedUseCase = document.getElementById('use_case').value;
-
+            const selectedBomType  = document.querySelector('input[name="bom_type"]:checked').value;
+            const selectedMode     = document.querySelector('input[name="mode"]:checked').value;
+            const selectedUseCase  = document.getElementById('use_case').value;
             const selectedProvider = document.querySelector('input[name="llm_provider"]:checked').value;
-            let selectedModel = '';
-            if (selectedProvider === 'openrouter') {
-                selectedModel = document.getElementById('openrouter_model').value;
-            } else if (selectedProvider === 'openai') {
-                selectedModel = document.getElementById('openai_model').value;
-            } else {
-                selectedModel = document.getElementById('ollama_model_input').value;
-            }
 
-            // SPDX 3.0.1 is always generated alongside the provenance BOM.
+            let selectedModel = '';
+            if (selectedProvider === 'openrouter') selectedModel = document.getElementById('openrouter_model').value;
+            else if (selectedProvider === 'openai') selectedModel = document.getElementById('openai_model').value;
+            else                                    selectedModel = document.getElementById('ollama_model_input').value;
+
             const formData = {
-                bom_type: selectedBomType,
-                arxiv_url: document.getElementById('arxiv_url').value,
-                github_url: document.getElementById('github_url').value,
-                mode: selectedMode,
-                use_case: selectedUseCase,
-                llm_provider: selectedProvider,
-                model: selectedModel,
-                ollama_model: document.getElementById('ollama_model_input').value,
-                openrouter_model: document.getElementById('openrouter_model').value,
-                validate_spdx: document.getElementById('validate_spdx').checked,
+                bom_type:               selectedBomType,
+                arxiv_url:              document.getElementById('arxiv_url').value,
+                github_url:             document.getElementById('github_url').value,
+                mode:                   selectedMode,
+                use_case:               selectedUseCase,
+                llm_provider:           selectedProvider,
+                model:                  selectedModel,
+                ollama_model:           document.getElementById('ollama_model_input').value,
+                openrouter_model:       document.getElementById('openrouter_model').value,
+                validate_spdx:          document.getElementById('validate_spdx').checked,
                 strict_spdx_validation: document.getElementById('strict_spdx_validation').checked,
-                recursive_bom: document.getElementById('recursive_bom').checked,
-                recursive_depth: document.getElementById('recursive_exhaust').checked
-                    ? 'all'
-                    : parseInt(document.getElementById('recursive_depth').value || '1', 10),
-                recursive_safety_cap: parseInt(document.getElementById('recursive_safety_cap').value || '50', 10),
-                spdx_relationship_cap: (function(){
-                    var raw = document.getElementById('spdx_relationship_cap').value;
-                    if (!raw) return null;  // empty = unbounded
-                    var n = parseInt(raw, 10);
+                recursive_bom:          document.getElementById('recursive_bom').checked,
+                recursive_depth:        document.getElementById('recursive_exhaust').checked
+                                          ? 'all'
+                                          : parseInt(document.getElementById('recursive_depth').value || '1', 10),
+                recursive_safety_cap:   parseInt(document.getElementById('recursive_safety_cap').value || '50', 10),
+                spdx_relationship_cap:  (() => {
+                    const raw = document.getElementById('spdx_relationship_cap').value;
+                    if (!raw) return null;
+                    const n = parseInt(raw, 10);
                     return (isNaN(n) || n < 1) ? null : n;
                 })(),
                 format: 'both'
             };
+            if (selectedBomType === 'ai') formData.repo_id    = document.getElementById('repo_id').value;
+            else                          formData.hf_repo_id = (document.getElementById('hf_repo_id_data') || {}).value || '';
 
-            // Add fields based on BOM type
-            if (selectedBomType === 'ai') {
-                formData.repo_id = document.getElementById('repo_id').value;
-            } else {
-                formData.hf_repo_id = (document.getElementById('hf_repo_id_data') || {}).value || '';
-            }
-
-            console.log("📄 Form data:", formData);
-            console.log("🔧 BOM Type:", selectedBomType, "| Mode:", selectedMode, "| Use Case:", selectedUseCase);
-
-            // Validation
+            // ---- validation
             if (selectedBomType === 'ai') {
                 if (!formData.repo_id && !formData.arxiv_url && !formData.github_url) {
-                    showStatus('error', '❌ Please provide at least a repo ID or one URL!');
+                    showStatus('error', 'Provide at least a repo ID or one URL.');
                     return;
                 }
             } else {
                 if (!formData.hf_repo_id && !formData.arxiv_url && !formData.github_url) {
-                    showStatus('error', '❌ Please provide at least a repo ID or one URL!');
+                    showStatus('error', 'Provide at least a repo ID or one URL.');
                     return;
                 }
             }
@@ -1098,7 +1593,6 @@
             const bomTypeLabel = selectedBomType === 'ai' ? 'AI Model' : 'Dataset';
             processBtn.disabled = true;
 
-            // Helper to fill found links into the input fields immediately
             function applyFoundLinks(linkResult) {
                 const hfInput = selectedBomType === 'ai'
                     ? document.getElementById('repo_id')
@@ -1106,25 +1600,18 @@
                 if (linkResult.hf_repo_id) {
                     if (hfInput) hfInput.value = linkResult.hf_repo_id;
                     if (selectedBomType === 'ai') formData.repo_id = linkResult.hf_repo_id;
-                    else formData.hf_repo_id = linkResult.hf_repo_id;
+                    else                          formData.hf_repo_id = linkResult.hf_repo_id;
                 }
-                if (linkResult.arxiv_url) {
-                    document.getElementById('arxiv_url').value = linkResult.arxiv_url;
-                    formData.arxiv_url = linkResult.arxiv_url;
-                }
-                if (linkResult.github_url) {
-                    document.getElementById('github_url').value = linkResult.github_url;
-                    formData.github_url = linkResult.github_url;
-                }
+                if (linkResult.arxiv_url)  { document.getElementById('arxiv_url').value  = linkResult.arxiv_url;  formData.arxiv_url  = linkResult.arxiv_url; }
+                if (linkResult.github_url) { document.getElementById('github_url').value = linkResult.github_url; formData.github_url = linkResult.github_url; }
             }
 
             try {
-                // Step 1: Find any missing links immediately, before BOM generation
                 const hasAllLinks = formData.arxiv_url && formData.github_url &&
                     (selectedBomType === 'ai' ? formData.repo_id : formData.hf_repo_id);
 
                 if (!hasAllLinks) {
-                    showStatus('processing', '<span class="spinner"></span> 🔍 Searching for missing links...');
+                    showStatus('processing', '<span class="spinner"></span>Searching for missing links…');
                     try {
                         const linkResp = await fetch('/find_links', {
                             method: 'POST',
@@ -1137,162 +1624,128 @@
                             formData.skip_fallback = true;
                             let linkNote = '';
                             if (linkResult.status === 'skipped' && linkResult.reason === 'no_gemini_key') {
-                                linkNote = '🔗 <strong>Link Fallback Agent inactive</strong> — set <code>GEMINI_API_KEY</code> to enable auto-discovery. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Get a free key →</a><br>';
+                                linkNote = 'Link Fallback Agent inactive — set <code>GEMINI_API_KEY</code> to enable auto-discovery. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Get a free key →</a><br>';
                             } else if (linkResult.status === 'skipped' && linkResult.reason === 'genai_not_installed') {
-                                linkNote = '🔗 <strong>Link Fallback Agent unavailable</strong> — <code>google-genai</code> package not installed.<br>';
+                                linkNote = 'Link Fallback Agent unavailable — <code>google-genai</code> package not installed.<br>';
                             } else if (linkResult.status === 'success') {
                                 const ls = linkResult.link_status || {};
                                 const found = [];
                                 if (ls.hf_found)     found.push('HuggingFace');
-                                if (ls.arxiv_found)  found.push('ArXiv');
+                                if (ls.arxiv_found)  found.push('arXiv');
                                 if (ls.github_found) found.push('GitHub');
                                 const notFound = (linkResult.not_found || []).map(n =>
-                                    n === 'huggingface' ? 'HuggingFace' : n === 'arxiv' ? 'ArXiv' : 'GitHub'
+                                    n === 'huggingface' ? 'HuggingFace' : n === 'arxiv' ? 'arXiv' : 'GitHub'
                                 );
-                                if (found.length > 0) {
-                                    linkNote += `🔗 Found: ${found.join(', ')}. `;
-                                }
-                                if (notFound.length > 0) {
-                                    linkNote += `⚠️ Could not auto-discover: ${notFound.join(', ')}. `;
-                                }
+                                if (found.length > 0)    linkNote += `Found: ${found.join(', ')}. `;
+                                if (notFound.length > 0) linkNote += `Could not auto-discover: ${notFound.join(', ')}. `;
                             }
-                            showStatus('processing', `<span class="spinner"></span> ${linkNote}Generating ${bomTypeLabel} BOM...`);
+                            showStatus('processing', `<span class="spinner"></span>${linkNote}Generating ${bomTypeLabel} BOM…`);
                         }
                     } catch (linkErr) {
                         console.warn('Link search failed, continuing:', linkErr);
-                        showStatus('processing', `<span class="spinner"></span> Generating ${bomTypeLabel} BOM...`);
+                        showStatus('processing', `<span class="spinner"></span>Generating ${bomTypeLabel} BOM…`);
                     }
                 } else {
                     formData.skip_fallback = true;
-                    showStatus('processing', `<span class="spinner"></span> Generating ${bomTypeLabel} BOM with ${selectedMode.toUpperCase()} mode (${USE_CASE_LABELS[selectedUseCase]})... This may take a few minutes.`);
+                    showStatus('processing', `<span class="spinner"></span>Generating ${bomTypeLabel} BOM via ${selectedMode.toUpperCase()} (${USE_CASE_LABELS[selectedUseCase]}). This typically takes a few minutes.`);
                 }
 
-                // Step 2: Start live log stream
+                // live log stream
                 const logsViewer = document.getElementById('logsViewer');
                 logsViewer.innerHTML = '';
-                if (window._logSource) { window._logSource.close(); }
+                if (window._logSource) window._logSource.close();
                 window._logSource = new EventSource('/logs');
-                window._logSource.onmessage = function(e) {
+                window._logSource.onmessage = e => {
                     const line = document.createElement('div');
                     line.textContent = e.data;
                     logsViewer.appendChild(line);
                     logsViewer.scrollTop = logsViewer.scrollHeight;
                 };
 
-                // Step 3: Generate the full BOM
                 const response = await fetch('/process', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(formData)
                 });
-
-                console.log("📡 Response received:", response);
-
                 const result = await response.json();
 
                 if (result.status === 'success') {
-                    // Populate any remaining discovered links back into input boxes
-                    if (result.found_links) {
-                        applyFoundLinks(result.found_links);
-                    }
+                    if (result.found_links) applyFoundLinks(result.found_links);
 
                     const useCaseLabel = result.use_case_label || 'Complete BOM';
-                    const isSubset = result.is_subset || false;
+                    const isSubset     = result.is_subset || false;
                     const directFields = result.field_counts?.direct || 0;
-                    const ragFields = result.field_counts?.rag || 0;
-                    const totalFields = result.field_counts?.total || 0;
+                    const ragFields    = result.field_counts?.rag || 0;
 
-                    let statusMessage = `✅ ${result.message}<br>`;
-                    statusMessage += `<strong>Dataset ID:</strong> ${result.metadata.dataset_id}<br>`;
-                    statusMessage += `<strong>Use Case:</strong> ${useCaseLabel}<br>`;
-                    
+                    let statusMessage = `${result.message}<br>`;
+                    statusMessage += `<strong>Artifact:</strong> <code>${escapeHtml(result.metadata.dataset_id || result.metadata.model_id || '?')}</code><br>`;
+                    statusMessage += `<strong>Focus:</strong> ${escapeHtml(useCaseLabel)}<br>`;
                     if (isSubset) {
-                        statusMessage += `<strong>Output Mode:</strong> USE CASE SPECIFIC (selected fields with sources & conflicts)<br>`;
-                        statusMessage += `<strong>Fields Retrieved:</strong> ${ragFields} RAG fields (${directFields} direct fields)`;
+                        statusMessage += `<strong>Output:</strong> use-case subset (${ragFields} RAG + ${directFields} direct)`;
                     } else {
-                        statusMessage += `<strong>Output Mode:</strong> COMPLETE BOM (all fields with sources & conflicts)<br>`;
-                        statusMessage += `<strong>Fields Retrieved:</strong> ${directFields} direct + ${ragFields} RAG`;
+                        statusMessage += `<strong>Output:</strong> complete BOM (${directFields} direct + ${ragFields} RAG)`;
                     }
 
-                    // Show auto-filled links note
                     if (result.found_links) {
                         const auto = [];
-                        if (result.found_links.hf_repo_id)  auto.push('HuggingFace');
-                        if (result.found_links.arxiv_url)   auto.push('ArXiv');
-                        if (result.found_links.github_url)  auto.push('GitHub');
-                        if (auto.length > 0) {
-                            statusMessage += `<br><small>🔗 Links auto-filled: ${auto.join(', ')}</small>`;
-                        }
+                        if (result.found_links.hf_repo_id) auto.push('HuggingFace');
+                        if (result.found_links.arxiv_url)  auto.push('arXiv');
+                        if (result.found_links.github_url) auto.push('GitHub');
+                        if (auto.length > 0) statusMessage += `<br><small>Links auto-filled: ${auto.join(', ')}</small>`;
                     }
 
-                    // Show link fallback agent status
                     const lfb = result.link_fallback || {};
                     if (lfb.reason === 'no_gemini_key') {
-                        statusMessage += `<br><small>🔗 <em>Link Fallback Agent inactive. Set <code>GEMINI_API_KEY</code> to enable auto-discovery. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Get a free key</a></em></small>`;
+                        statusMessage += `<br><small>Link Fallback Agent inactive. Set <code>GEMINI_API_KEY</code> to enable auto-discovery. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Get a free key</a></small>`;
                     } else if (lfb.attempted && Array.isArray(lfb.not_found) && lfb.not_found.length > 0) {
-                        const labels = lfb.not_found.map(n =>
-                            n === 'huggingface' ? 'HuggingFace' : n === 'arxiv' ? 'ArXiv' : 'GitHub'
-                        );
-                        statusMessage += `<br><small>⚠️ Link Fallback Agent could not auto-discover: ${labels.join(', ')}</small>`;
+                        const labels = lfb.not_found.map(n => n === 'huggingface' ? 'HuggingFace' : n === 'arxiv' ? 'arXiv' : 'GitHub');
+                        statusMessage += `<br><small>Link Fallback Agent could not auto-discover: ${labels.join(', ')}</small>`;
                     }
-
-                    // Show link-validation rejections / warnings
                     const lstat = (lfb.link_status || {});
                     const rejected = [];
-                    if (lstat.hf_rejected) rejected.push(`HuggingFace (${lstat.hf_rejected})`);
-                    if (lstat.arxiv_rejected) rejected.push(`arXiv (${lstat.arxiv_rejected})`);
+                    if (lstat.hf_rejected)     rejected.push(`HuggingFace (${lstat.hf_rejected})`);
+                    if (lstat.arxiv_rejected)  rejected.push(`arXiv (${lstat.arxiv_rejected})`);
                     if (lstat.github_rejected) rejected.push(`GitHub (${lstat.github_rejected})`);
-                    if (rejected.length > 0) {
-                        statusMessage += `<br><small>🛑 Validator rejected discovered links: ${rejected.join('; ')}</small>`;
-                    }
+                    if (rejected.length > 0) statusMessage += `<br><small>Validator rejected discovered links: ${rejected.join('; ')}</small>`;
                     if (Array.isArray(lstat.warnings) && lstat.warnings.length > 0) {
                         const warns = lstat.warnings.map(w => `${w.link} (${w.reason})`);
-                        statusMessage += `<br><small>⚠️ Validator flagged user-provided links: ${warns.join('; ')}</small>`;
+                        statusMessage += `<br><small>Validator flagged user-provided links: ${warns.join('; ')}</small>`;
                     }
 
                     showStatus('success', statusMessage);
 
-                    // Display Provenance BOM JSON
+                    // ---- viewers + downloads ------------------------------------
                     displayJSON(result.metadata, jsonViewerComplete);
-
-                    // Setup download buttons
                     downloadComplete.href = result.download_url;
-                    downloadComplete.style.display = 'inline-block';
-
-                    // Update button text based on use case
-                    if (isSubset) {
-                        downloadComplete.textContent = `📥 Download ${useCaseLabel} Provenance BOM`;
-                    } else {
-                        downloadComplete.textContent = '📥 Download Provenance BOM';
-                    }
+                    downloadComplete.style.display = 'inline-flex';
+                    downloadComplete.textContent = isSubset
+                        ? `Download ${useCaseLabel} Provenance BOM`
+                        : 'Download Provenance BOM';
 
                     if (result.spdx_download_url && result.spdx_data) {
                         downloadSPDX.href = result.spdx_download_url;
-                        downloadSPDX.style.display = 'inline-block';
-
-                        // Display SPDX JSON directly from response
+                        downloadSPDX.style.display = 'inline-flex';
                         spdxData = result.spdx_data;
                         displayJSON(spdxData, jsonViewerSPDX);
                         renderSpdxValidation(result.spdx_validation);
                     } else {
                         downloadSPDX.style.display = 'none';
                         const errMsg = result.spdx_error
-                            ? `SPDX conversion failed: ${result.spdx_error}`
-                            : 'SPDX output not available';
+                            ? `SPDX conversion failed: ${escapeHtml(result.spdx_error)}`
+                            : 'SPDX output not available.';
                         jsonViewerSPDX.innerHTML = `<div class="json-placeholder">${errMsg}</div>`;
                         renderSpdxValidation(result.spdx_validation);
                     }
 
-                    // CycloneDX 1.6 beta
                     if (result.cyclonedx_download_url && result.cyclonedx_data) {
                         downloadCDX.href = result.cyclonedx_download_url;
-                        downloadCDX.style.display = 'inline-block';
+                        downloadCDX.style.display = 'inline-flex';
                         displayJSON(result.cyclonedx_data, jsonViewerCDX);
                     } else {
                         downloadCDX.style.display = 'none';
                         const cdxErr = result.cyclonedx_error
-                            ? `CycloneDX conversion failed: ${result.cyclonedx_error}`
-                            : 'CycloneDX output not available';
+                            ? `CycloneDX conversion failed: ${escapeHtml(result.cyclonedx_error)}`
+                            : 'CycloneDX output not available.';
                         jsonViewerCDX.innerHTML = `<div class="json-placeholder">${cdxErr}</div>`;
                     }
 
@@ -1300,140 +1753,148 @@
                         displayJSON(result.recursive_bom, jsonViewerRecursive);
                         if (result.recursive_bom_download_url) {
                             downloadRecursive.href = result.recursive_bom_download_url;
-                            downloadRecursive.style.display = 'inline-block';
+                            downloadRecursive.style.display = 'inline-flex';
                         }
                         if (result.linked_bom_download_url) {
                             downloadLinked.href = result.linked_bom_download_url;
-                            downloadLinked.style.display = 'inline-block';
+                            downloadLinked.style.display = 'inline-flex';
                         } else {
                             downloadLinked.style.display = 'none';
                         }
                     } else {
                         downloadRecursive.style.display = 'none';
                         downloadLinked.style.display = 'none';
-                        jsonViewerRecursive.innerHTML = '<div class="json-placeholder">Recursive BOM beta generation was not enabled.</div>';
+                        jsonViewerRecursive.innerHTML = '<div class="json-placeholder">Recursive BOM beta was not enabled for this run.</div>';
                     }
 
-                    // Populate Conflicts tab + update tab badge
-                    const conflictsViewer = document.getElementById('conflictsViewer');
-                    const conflictsTabBtn = document.getElementById('conflictsTabBtn');
-                    const conflicts = result.conflicts || [];
-                    const summary = result.conflict_summary || {total: 0, high_confidence: 0, low_confidence: 0, deterministic: 0, suppressed: 0};
-                    // Tab title: high/low/deterministic split + a "+N suppressed"
-                    // tail so the user sees the honest count AND the noise band.
-                    // Suppressed = grounding < 0.1 (LLM couldn't ground the
-                    // verdict against the chunks) — kept in the BOM trace but
-                    // excluded from the headline.
-                    const supTail = summary.suppressed ? ` +${summary.suppressed} suppressed` : '';
-                    const tabLabel = (summary.total > 0 || summary.suppressed > 0)
-                        ? `Conflicts (${summary.total} — ${summary.high_confidence} high, ${summary.low_confidence} low${supTail})`
-                        : `Conflicts (0)`;
-                    conflictsTabBtn.textContent = tabLabel;
-                    conflictsTabBtn.classList.remove('has-conflicts', 'no-conflicts');
-                    conflictsTabBtn.classList.add(conflicts.length > 0 ? 'has-conflicts' : 'no-conflicts');
-                    if (conflicts.length > 0 || summary.suppressed > 0) {
-                        const supBlurb = summary.suppressed
-                            ? ` <span style="color:#7f8c8d;">(+${summary.suppressed} suppressed below grounding 0.1 — see BOM trace)</span>`
-                            : '';
-                        const detBlurb = summary.deterministic
-                            ? `, <span style="color:#7f8c8d;">${summary.deterministic} deterministic</span> (direct/intra)`
-                            : '';
-                        let html = `<div style="margin-bottom:12px;"><strong>⚠️ ${summary.total} conflict(s) detected</strong> &mdash; <span style="color:#27ae60;">${summary.high_confidence} high-confidence</span>, <span style="color:#e67e22;">${summary.low_confidence} low-confidence</span> (LLM-judged)${detBlurb}${supBlurb}.</div>`;
-                        html += '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
-                        html += '<tr style="background:#f0f0f0;">'
-                            + '<th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Field</th>'
-                            + '<th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Chosen</th>'
-                            + '<th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Conflicting</th>'
-                            + '<th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Kind</th>'
-                            + '<th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Confidence</th>'
-                            + '<th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">All claims</th>'
-                            + '</tr>';
-                        conflicts.forEach(c => {
-                            let typeLabel;
-                            if (c.kind === 'rag-internal') {
-                                typeLabel = '<span style="color:#8e44ad;">rag-internal</span>';
-                            } else if (c.kind === 'rag-external') {
-                                typeLabel = '<span style="color:#2980b9;">rag-external</span>';
-                            } else if (c.kind === 'intra' || c.conflict_type === 'intra') {
-                                typeLabel = '<span style="color:#e67e22;">intra-source</span>';
-                            } else {
-                                typeLabel = '<span style="color:#e74c3c;">inter-source</span>';
-                            }
-                            // Confidence badge: green pill for high, amber for low,
-                            // grey “—” for deterministic triplet conflicts.
-                            let confidenceCell;
-                            if (c.confidence === 'high') {
-                                confidenceCell = `<span style="background:#27ae60;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;">high</span><br><small style="color:#888;">${(c.grounding || 0).toFixed(2)}</small>`;
-                            } else if (c.confidence === 'low') {
-                                confidenceCell = `<span style="background:#e67e22;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;">low</span><br><small style="color:#888;">${(c.grounding || 0).toFixed(2)}</small>`;
-                            } else {
-                                confidenceCell = '<small style="color:#888;">—</small>';
-                            }
-                            // Render every source's claim (skip silent sources).
-                            const claims = c.claims || {};
-                            const claimItems = Object.entries(claims)
-                                .filter(([, v]) => v != null && v !== '')
-                                .map(([src, claim]) =>
-                                    `<div><strong>${escapeHtml(src)}:</strong> ${escapeHtml(String(claim))}</div>`)
-                                .join('');
-                            // For RAG conflicts, also show the auditor's narrative.
-                            let claimsCell = claimItems || '<small style="color:#888;">—</small>';
-                            if (c.narrative) {
-                                claimsCell = `<div style="margin-bottom:4px;"><em>${escapeHtml(String(c.narrative))}</em></div>` + claimsCell;
-                            }
-                            const conflictingCell = c.conflict_value
-                                ? `${escapeHtml(String(c.conflict_value))}<br><small style="color:#888;">from ${escapeHtml(String(c.conflict_source || '?'))}</small>`
-                                : `<small style="color:#888;">${escapeHtml(String(c.conflict_source || '—'))}</small>`;
-                            html += `<tr style="border-bottom:1px solid #eee;">`;
-                            html += `<td style="padding:8px;vertical-align:top;"><strong>${escapeHtml(c.field)}</strong><br><small style="color:#888;">${escapeHtml(c.section)}</small></td>`;
-                            html += `<td style="padding:8px;vertical-align:top;">${escapeHtml(String(c.chosen_value || '—'))}<br><small style="color:#888;">from ${escapeHtml(String(c.chosen_source || '?'))}</small></td>`;
-                            html += `<td style="padding:8px;vertical-align:top;color:#c0392b;">${conflictingCell}</td>`;
-                            html += `<td style="padding:8px;vertical-align:top;">${typeLabel}</td>`;
-                            html += `<td style="padding:8px;vertical-align:top;">${confidenceCell}</td>`;
-                            html += `<td style="padding:8px;vertical-align:top;font-size:12px;">${claimsCell}</td>`;
-                            html += `</tr>`;
-                        });
-                        html += '</table>';
-                        conflictsViewer.innerHTML = html;
-                    } else {
-                        conflictsViewer.innerHTML = '<div style="padding:20px;text-align:center;color:#27ae60;">✅ No conflicts detected — all sources agree.</div>';
-                    }
+                    // ---- conflicts ----------------------------------------------
+                    renderConflicts(result.conflicts || [], result.conflict_summary || {});
 
                     downloadButtons.style.display = 'flex';
                 } else {
-                    showStatus('error', `❌ Error: ${result.message}`);
+                    showStatus('error', `Error: ${escapeHtml(result.message || 'unknown')}`);
                 }
             } catch (error) {
-                console.error("❌ Error during processing:", error);
-                showStatus('error', `❌ Network error: ${error.message}`);
+                console.error('Process error:', error);
+                showStatus('error', `Network error: ${escapeHtml(error.message)}`);
             } finally {
                 processBtn.disabled = false;
                 if (window._logSource) { window._logSource.close(); window._logSource = null; }
             }
         });
 
-        // Prevent form submission
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-        });
-        
-        function switchTab(tabName) {
+        // ===== conflicts renderer ================================================
+        function renderConflicts(conflicts, summary) {
+            const conflictsViewer = document.getElementById('conflictsViewer');
+            const conflictsTabBtn = document.getElementById('conflictsTabBtn');
+            summary = Object.assign(
+                { total: 0, high_confidence: 0, low_confidence: 0, deterministic: 0, suppressed: 0 },
+                summary || {}
+            );
+
+            // Tab label
+            const supTail = summary.suppressed ? ` +${summary.suppressed} suppressed` : '';
+            const tabLabel = (summary.total > 0 || summary.suppressed > 0)
+                ? `Conflicts (${summary.total} — ${summary.high_confidence} high, ${summary.low_confidence} low${supTail})`
+                : `Conflicts (0)`;
+            conflictsTabBtn.textContent = tabLabel;
+            conflictsTabBtn.classList.remove('has-conflicts', 'no-conflicts');
+            conflictsTabBtn.classList.add(conflicts.length > 0 ? 'has-conflicts' : 'no-conflicts');
+
+            if (conflicts.length === 0 && summary.suppressed === 0) {
+                conflictsViewer.innerHTML = '<div class="conflicts-empty">No conflicts detected — all sources agree.</div>';
+                return;
+            }
+
+            // Summary band
+            let html = '<div class="conflicts-summary">';
+            html += statCard('total',       summary.total, 'is-total');
+            if (summary.high_confidence) html += statCard('high', summary.high_confidence, 'is-high');
+            if (summary.low_confidence)  html += statCard('low',  summary.low_confidence,  'is-low');
+            if (summary.deterministic)   html += statCard('deterministic', summary.deterministic, 'is-det');
+            if (summary.suppressed)      html += statCard('suppressed', summary.suppressed, 'is-sup');
+            html += '</div>';
+
+            // Conflict rows
+            html += '<div class="conflict-list">';
+            conflicts.forEach(c => {
+                const band = bandFor(c);
+                const confPill = pillFor(c);
+                const claims = c.claims || {};
+                const claimItems = Object.entries(claims)
+                    .filter(([, v]) => v != null && v !== '')
+                    .map(([src, claim]) =>
+                        `<div class="claim"><span class="src">${escapeHtml(src)}</span>${escapeHtml(String(claim))}</div>`
+                    ).join('');
+                const narrative = c.narrative
+                    ? `<div class="narrative">${escapeHtml(String(c.narrative))}</div>`
+                    : '';
+
+                let kindLabel = c.kind || (c.conflict_type === 'intra' ? 'intra-source' : 'inter-source');
+
+                html += `<div class="conflict-row band-${band}">
+                    <div>
+                        <div class="conflict-field">${escapeHtml(c.field || '?')}</div>
+                        <div class="conflict-section">${escapeHtml(c.section || '')}</div>
+                    </div>
+                    <div>
+                        <div class="conflict-cell-label">Chosen value</div>
+                        <div class="conflict-value">${escapeHtml(String(c.chosen_value ?? '—'))}</div>
+                        <div class="conflict-source">from ${escapeHtml(String(c.chosen_source || '?'))}</div>
+                    </div>
+                    <div>
+                        <div class="conflict-cell-label">Conflicting value</div>
+                        ${
+                            c.conflict_value
+                                ? `<div class="conflict-value is-conflict">${escapeHtml(String(c.conflict_value))}</div>
+                                   <div class="conflict-source">from ${escapeHtml(String(c.conflict_source || '?'))}</div>`
+                                : `<div class="conflict-source">${escapeHtml(String(c.conflict_source || '—'))}</div>`
+                        }
+                    </div>
+                    <div class="conflict-meta">
+                        ${confPill}
+                        <span class="kind-tag">${escapeHtml(kindLabel)}</span>
+                    </div>
+                    ${narrative || claimItems ? `<div class="conflict-claims">${narrative}${claimItems}</div>` : ''}
+                </div>`;
+            });
+            html += '</div>';
+
+            conflictsViewer.innerHTML = html;
+        }
+
+        function statCard(label, num, klass) {
+            return `<div class="conflict-stat ${klass || ''}">
+                <span class="num">${num}</span>
+                <span class="lbl">${label}</span>
+            </div>`;
+        }
+        function bandFor(c) {
+            if (c.confidence === 'high') return 'high';
+            if (c.confidence === 'low')  return 'low';
+            if (c.confidence === 'suppressed' || (typeof c.grounding === 'number' && c.grounding < 0.1)) return 'sup';
+            return 'det';
+        }
+        function pillFor(c) {
+            const g = (typeof c.grounding === 'number') ? c.grounding.toFixed(2) : null;
+            const tier = c.confidence;
+            if (tier === 'high')       return `<span class="conf-pill high">high${g ? `<span class="grounding">${g}</span>` : ''}</span>`;
+            if (tier === 'low')        return `<span class="conf-pill low">low${g ? `<span class="grounding">${g}</span>` : ''}</span>`;
+            if (tier === 'suppressed') return `<span class="conf-pill sup">suppressed${g ? `<span class="grounding">${g}</span>` : ''}</span>`;
+            return `<span class="conf-pill det">deterministic</span>`;
+        }
+
+        // ===== misc helpers ======================================================
+        form.addEventListener('submit', e => { e.preventDefault(); e.stopPropagation(); });
+
+        function switchTab(ev, tabName) {
             currentTab = tabName;
-            
-            // Update tab buttons
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            // Update tab content
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            (ev.currentTarget || ev.target).classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.getElementById(tabName + 'Tab').classList.add('active');
         }
-        
+
         function showStatus(type, message) {
             statusDiv.className = `status ${type}`;
             statusDiv.innerHTML = message;
@@ -1442,168 +1903,120 @@
 
         function renderSpdxValidation(validation) {
             if (!spdxValidationStatus) return;
-            if (!validation) {
-                spdxValidationStatus.style.display = 'none';
-                return;
-            }
+            if (!validation) { spdxValidationStatus.style.display = 'none'; return; }
             if (validation.valid === null) {
-                spdxValidationStatus.className = 'status processing';
+                spdxValidationStatus.className = 'spdx-status processing';
                 spdxValidationStatus.innerHTML = 'SPDX validation skipped.';
             } else if (validation.valid) {
-                spdxValidationStatus.className = 'status success';
-                spdxValidationStatus.innerHTML = `SPDX validation passed (${validation.validator}).`;
+                spdxValidationStatus.className = 'spdx-status success';
+                spdxValidationStatus.innerHTML = `✓ SPDX validation passed (${validation.validator}).`;
             } else {
-                const errors = (validation.errors || []).slice(0, 5)
-                    .map(e => `<li>${escapeHtml(e)}</li>`).join('');
-                spdxValidationStatus.className = 'status error';
+                const errors = (validation.errors || []).slice(0, 5).map(e => `<li>${escapeHtml(e)}</li>`).join('');
+                spdxValidationStatus.className = 'spdx-status error';
                 spdxValidationStatus.innerHTML =
-                    `SPDX validation failed (${validation.validator}).<ul style="margin:8px 0 0 18px;">${errors}</ul>`;
+                    `✗ SPDX validation failed (${validation.validator}).<ul style="margin:6px 0 0 18px;">${errors}</ul>`;
             }
             spdxValidationStatus.style.display = 'block';
         }
-        
+
         function displayJSON(data, targetElement) {
             const formattedHTML = formatJSON(data, 0);
             targetElement.innerHTML = '<div class="json-object">' + formattedHTML + '</div>';
         }
-        
-        function formatJSON(obj, depth = 0) {
-            if (obj === null) {
-                return '<span class="json-null">null</span>';
-            }
-            
-            if (typeof obj === 'boolean') {
-                return `<span class="json-boolean">${obj}</span>`;
-            }
-            
-            if (typeof obj === 'number') {
-                return `<span class="json-number">${obj}</span>`;
-            }
-            
-            if (typeof obj === 'string') {
-                return `<span class="json-string">"${escapeHtml(obj)}"</span>`;
-            }
-            
+
+        function formatJSON(obj) {
+            if (obj === null) return '<span class="json-null">null</span>';
+            if (typeof obj === 'boolean') return `<span class="json-boolean">${obj}</span>`;
+            if (typeof obj === 'number')  return `<span class="json-number">${obj}</span>`;
+            if (typeof obj === 'string')  return `<span class="json-string">"${escapeHtml(obj)}"</span>`;
             if (Array.isArray(obj)) {
-                if (obj.length === 0) {
-                    return '<span class="json-array">[]</span>';
-                }
-                
-                let html = `<span class="json-toggle" onclick="toggleCollapse(this)">▼</span><span class="json-array">[</span>`;
-                html += '<div class="json-content">';
-                
-                obj.forEach((item, index) => {
-                    html += '<div class="json-line">';
-                    html += formatJSON(item, depth + 1);
-                    if (index < obj.length - 1) html += ',';
-                    html += '</div>';
+                if (obj.length === 0) return '<span class="json-array">[]</span>';
+                let html = `<span class="json-toggle" onclick="toggleCollapse(this)">▼</span><span class="json-array">[</span><div class="json-content">`;
+                obj.forEach((item, i) => {
+                    html += '<div class="json-line">' + formatJSON(item) + (i < obj.length - 1 ? ',' : '') + '</div>';
                 });
-                
-                html += '</div>';
-                html += '<span class="json-array">]</span>';
+                html += '</div><span class="json-array">]</span>';
                 return html;
             }
-            
             if (typeof obj === 'object') {
                 const keys = Object.keys(obj);
-                if (keys.length === 0) {
-                    return '<span class="json-object">{</span>';
-                }
-                
-                // For field triplets {value, source, conflict, trace?} order: value → source → conflict → trace → ...
+                if (keys.length === 0) return '<span class="json-object">{}</span>';
                 const isFieldTriplet = keys.includes('value') && keys.includes('conflict');
-                // For conflict sub-objects {value, source, type} order as value → source → type
-                const isConflictObj = keys.includes('value') && keys.includes('type') && !keys.includes('conflict');
+                const isConflictObj  = keys.includes('value') && keys.includes('type') && !keys.includes('conflict');
                 let orderedKeys;
                 if (isFieldTriplet) {
                     const fixed = ['value', 'source', 'conflict', 'trace'];
-                    orderedKeys = [
-                        ...fixed.filter(k => keys.includes(k)),
-                        ...keys.filter(k => !fixed.includes(k))
-                    ];
+                    orderedKeys = [...fixed.filter(k => keys.includes(k)), ...keys.filter(k => !fixed.includes(k))];
                 } else if (isConflictObj) {
-                    orderedKeys = ['value', 'source', 'type', ...keys.filter(k => k !== 'value' && k !== 'source' && k !== 'type')];
+                    orderedKeys = ['value', 'source', 'type', ...keys.filter(k => !['value','source','type'].includes(k))];
                 } else {
                     orderedKeys = keys;
                 }
-
-                let html = `<span class="json-toggle" onclick="toggleCollapse(this)">▼</span><span class="json-object">{</span>`;
-                html += '<div class="json-content">';
-
-                orderedKeys.forEach((key, index) => {
-                    // Provenance trace renders default-collapsed under the
-                    // existing toggle mechanism (CSS .json-line.collapsed).
+                let html = `<span class="json-toggle" onclick="toggleCollapse(this)">▼</span><span class="json-object">{</span><div class="json-content">`;
+                orderedKeys.forEach((key, i) => {
                     const collapseByDefault = isFieldTriplet && key === 'trace';
                     const lineClass = collapseByDefault ? 'json-line collapsed' : 'json-line';
-                    html += `<div class="${lineClass}">`;
-                    html += `<span class="json-key">"${escapeHtml(key)}"</span>: `;
+                    html += `<div class="${lineClass}"><span class="json-key">"${escapeHtml(key)}"</span>: `;
                     if (collapseByDefault) {
-                        // Pre-flip the toggle marker so it shows ▶ to match the collapsed state.
-                        const inner = formatJSON(obj[key], depth + 1)
+                        html += formatJSON(obj[key])
                             .replace('<span class="json-toggle" onclick="toggleCollapse(this)">▼</span>',
                                      '<span class="json-toggle" onclick="toggleCollapse(this)">▶</span>');
-                        html += inner;
                     } else {
-                        html += formatJSON(obj[key], depth + 1);
+                        html += formatJSON(obj[key]);
                     }
-                    if (index < orderedKeys.length - 1) html += ',';
-                    html += '</div>';
+                    html += (i < orderedKeys.length - 1 ? ',' : '') + '</div>';
                 });
-                
-                html += '</div>';
-                html += '<span class="json-object">}</span>';
+                html += '</div><span class="json-object">}</span>';
                 return html;
             }
-            
             return String(obj);
         }
-        
+
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
-        
+
         function toggleCollapse(element) {
             const parent = element.parentElement;
             parent.classList.toggle('collapsed');
             element.textContent = parent.classList.contains('collapsed') ? '▶' : '▼';
         }
-        
+
         function resetForm() {
             form.reset();
             statusDiv.style.display = 'none';
             downloadButtons.style.display = 'none';
-            downloadComplete.style.display = 'none';
-            downloadSPDX.style.display = 'none';
-            downloadCDX.style.display = 'none';
-            downloadRecursive.style.display = 'none';
-            downloadLinked.style.display = 'none';
+            [downloadComplete, downloadSPDX, downloadCDX, downloadRecursive, downloadLinked].forEach(b => b.style.display = 'none');
             spdxValidationStatus.style.display = 'none';
-            jsonViewerComplete.innerHTML = '<div class="json-placeholder">Process a dataset to view the complete BOM JSON output here</div>';
-            jsonViewerSPDX.innerHTML = '<div class="json-placeholder">Process a dataset to view the SPDX-compliant JSON output here</div>';
-            jsonViewerCDX.innerHTML = '<div class="json-placeholder">CycloneDX 1.6 beta ML-BOM export will appear here.</div>';
-            jsonViewerRecursive.innerHTML = '<div class="json-placeholder">Recursive BOM beta outputs will appear here when enabled.</div>';
+            jsonViewerComplete.innerHTML  = '<div class="json-placeholder">The provenance BOM lands here.<br>Every field carries <em>value · source · conflict</em>.</div>';
+            jsonViewerSPDX.innerHTML      = '<div class="json-placeholder">SPDX 3.0.1 JSON-LD export lands here.</div>';
+            jsonViewerCDX.innerHTML       = '<div class="json-placeholder">CycloneDX 1.6 ML-BOM (beta) lands here.</div>';
+            jsonViewerRecursive.innerHTML = '<div class="json-placeholder">Recursive child-BOM bundle (beta) lands here when enabled.</div>';
+            document.getElementById('conflictsViewer').innerHTML = '<div class="json-placeholder">Conflict summary appears here after a run.</div>';
+            document.getElementById('logsViewer').innerHTML = '<span class="log-empty">Waiting for processing to start…</span>';
             spdxData = null;
             document.getElementById('validate_spdx').checked = true;
             document.getElementById('strict_spdx_validation').checked = false;
             document.getElementById('recursive_bom').checked = false;
             document.getElementById('recursive_depth').value = 1;
-            
-            // Reset to complete tab
-            switchTab('complete');
+            // Reset to provenance tab without using event-target shortcut.
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab')[0].classList.add('active');
-            
-            // Reset use case dropdown
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('completeTab').classList.add('active');
+            currentTab = 'complete';
             useCaseInput.value = 'complete';
             useCaseLabelSpan.textContent = 'Complete BOM';
-            document.querySelectorAll('.usecase-option').forEach(function(o) {
-                o.classList.remove('selected');
-            });
-            document.querySelector('.usecase-option[data-value="complete"]').classList.add('selected');
+            document.querySelectorAll('.dropdown-option').forEach(o => o.classList.remove('selected'));
+            document.querySelector('.dropdown-option[data-value="complete"]').classList.add('selected');
             useCaseContainer.classList.remove('open');
+            // Reset Conflicts tab badge
+            const cb = document.getElementById('conflictsTabBtn');
+            cb.textContent = 'Conflicts';
+            cb.classList.remove('has-conflicts', 'no-conflicts');
         }
     </script>
 </body>
 </html>
-
