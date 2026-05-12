@@ -1,12 +1,30 @@
 # AIkaBoOM Documentation
 
-## Contents
+## Start here
 
-- [Field Resolution Strategies](./FIELD_STRATEGIES.md) — per-field reference for source priority, normalisation, and SPDX/CycloneDX export shape.
-- [SPDX 3.0.1 Field Reference](./SPDX_3.0.1_FIELD_REFERENCE.md) — verbatim Summary + Description blocks harvested from the [`spdx/spdx-3-model`](https://github.com/spdx/spdx-3-model) repo. Canonical text for the question-bank `description` slots.
+- **[Pipeline Walkthrough](./PIPELINE_WALKTHROUGH.md)** — the canonical
+  code-level guide. Traces a request from "user pastes link" through
+  ingestion → RAG → conflict detection → recursive walking → SPDX /
+  CycloneDX export, with a single per-field reference table and
+  file:line refs throughout. **Read this first if you want to know how
+  the tool actually works.**
+
+## Reference
+
+- [Field Resolution Strategies](./FIELD_STRATEGIES.md) — older per-field
+  table kept for historical context. The walkthrough above supersedes
+  this for active use.
+- [SPDX 3.0.1 Field Reference](./SPDX_3.0.1_FIELD_REFERENCE.md) —
+  verbatim Summary + Description blocks harvested from the
+  [`spdx/spdx-3-model`](https://github.com/spdx/spdx-3-model) repo.
+  Canonical text for the question-bank `description` slots.
+
+## Deployment & operations
+
 - [HuggingFace Spaces Deployment](./HF_SPACES.md)
 - [Local Embeddings Guide](./LOCAL_EMBEDDINGS.md)
-- [Migration Guide](./migration.md)
+- [Migration Guide](./migration.md) — moving from the pre-package
+  `Demo_UI.py` layout to the `src/aikaboom/` package.
 
 ## Quick Links
 
@@ -21,9 +39,9 @@ AIkaBoOM is a comprehensive solution for generating Bills of Materials for AI mo
 - **Dual Processing Modes**: RAG (Retrieval-Augmented Generation) and Direct LLM
 - **Multiple Sources**: GitHub, HuggingFace, arXiv
 - **SPDX 3.0.1**: Validated JSON-LD export (lightweight JSON Schema by default; optional SHACL strict pass)
-- **CycloneDX 1.7 (beta)**: ML-BOM export with the `modelCard` extension
-- **Recursive BOMs (beta)**: Walks the dependency tree of an AI BOM and emits per-child BOMs plus a single linked SPDX bundle
-- **Conflict Resolution**: Inter-source and intra-source conflicts are surfaced as triplets (`{value, source, conflict}`) on every field
+- **CycloneDX 1.6 (beta)**: ML-BOM export with the `modelCard` extension. (We emit 1.6 specifically because the `sbom-utility` validator's bundled schemas stop there — see the [README known-limitations](../README.md#known-limitations) entry.)
+- **Recursive BOMs (beta)**: Walks the dependency tree of an AI BOM and emits per-child BOMs plus a single linked SPDX bundle. Dataset BOMs walk `sourceInfo`. Off by default on every surface.
+- **Conflict Resolution**: Inter-source and intra-source conflicts are surfaced as triplets (`{value, source, conflict}`) on every field.
 
 ## Architecture Overview
 
