@@ -20,8 +20,6 @@
 
 - [HuggingFace Spaces Deployment](./HF_SPACES.md)
 - [Local Embeddings Guide](./LOCAL_EMBEDDINGS.md)
-- [Migration Guide](./migration.md) — moving from the pre-package
-  `Demo_UI.py` layout to the `src/aikaboom/` package.
 
 ## Quick Links
 
