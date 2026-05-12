@@ -120,6 +120,14 @@ def _extract_conflicts(metadata: dict) -> list:
        contradictions BETWEEN sources. Same grounding shape as (2).
     """
     from aikaboom.core.conflict_routing import HIGH_CONFIDENCE_THRESHOLD, _confidence_label
+    from aikaboom import get_direct_priority, get_rag_priority
+
+    bom_type = 'data' if 'dataset_id' in (metadata or {}) else 'ai'
+
+    def _priority_for(field_name, section):
+        if section == 'direct':
+            return get_direct_priority(field_name) or []
+        return get_rag_priority(field_name, bom_type) or []
 
     conflicts = []
     for section in ('direct_fields', 'rag_fields'):
@@ -131,13 +139,29 @@ def _extract_conflicts(metadata: dict) -> list:
                 continue
             section_label = section.replace('_fields', '')
             trace = triplet.get('trace') or {}
+            priority = _priority_for(field, section_label)
+            field_class = 'direct' if section_label == 'direct' else 'inferred'
 
-            # 1. Direct / intra triplet conflict (deterministic).
+            # 1. Direct-field conflict (deterministic). Only direct-field
+            # triplets carry a ``conflict`` shaped as ``{value, source,
+            # type}``. RAG triplets carry a ``conflict`` envelope shaped
+            # as ``{internal: ..., external: ...}`` even when nothing
+            # disagrees — those must NOT trigger a phantom row here. The
+            # presence of a ``type`` key (only direct conflicts have one)
+            # is the discriminator. Same fix class as the
+            # ``summarise_conflicts`` Mistral-27 bug.
             c = triplet.get('conflict')
-            if c and isinstance(c, dict):
+            if (
+                isinstance(c, dict)
+                and 'type' in c
+                and 'value' in c
+                and 'internal' not in c
+            ):
                 conflicts.append({
                     'field': field,
                     'section': section_label,
+                    'field_class': field_class,
+                    'priority': priority,
                     'kind': c.get('type') or 'inter',
                     'chosen_value': triplet.get('value'),
                     'chosen_source': triplet.get('source'),
@@ -148,6 +172,7 @@ def _extract_conflicts(metadata: dict) -> list:
                     'confidence': 'n/a',
                     'narrative': None,
                     'claims': trace.get('claims') or {},
+                    'sources': [],
                 })
 
             # 2. RAG auditor — internal (intra-source) LLM-detected.
@@ -158,6 +183,8 @@ def _extract_conflicts(metadata: dict) -> list:
                 conflicts.append({
                     'field': field,
                     'section': section_label,
+                    'field_class': field_class,
+                    'priority': priority,
                     'kind': 'rag-internal',
                     'chosen_value': triplet.get('value'),
                     'chosen_source': triplet.get('source'),
@@ -168,6 +195,7 @@ def _extract_conflicts(metadata: dict) -> list:
                     'confidence': _confidence_label(grounding),
                     'narrative': entry.get('narrative'),
                     'claims': trace.get('claims') or {},
+                    'sources': [src],
                 })
 
             # 3. RAG auditor — external (cross-source) LLM-detected.
@@ -179,6 +207,8 @@ def _extract_conflicts(metadata: dict) -> list:
                 conflicts.append({
                     'field': field,
                     'section': section_label,
+                    'field_class': field_class,
+                    'priority': priority,
                     'kind': 'rag-external',
                     'chosen_value': triplet.get('value'),
                     'chosen_source': triplet.get('source'),
@@ -189,6 +219,7 @@ def _extract_conflicts(metadata: dict) -> list:
                     'confidence': _confidence_label(grounding),
                     'narrative': entry.get('description'),
                     'claims': trace.get('claims') or {},
+                    'sources': list(sources),
                 })
     return conflicts
 
