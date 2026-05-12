@@ -119,6 +119,54 @@ class TestFlaskApp:
         response = client.get('/download/nonexistent_file_12345.json')
         assert response.status_code == 404
 
+    def test_process_normalises_full_hf_url_in_repo_id(self, client, monkeypatch):
+        """A user pastes the full HF URL into the repo_id field — the
+        ``/process`` route must normalise it to ``namespace/repo`` before
+        handing it to the processor, otherwise ``huggingface_hub`` raises
+        ``Repo id must be in the form 'repo_name' or 'namespace/repo_name'``
+        when the processor tries to call ``HfApi.model_info(<url>)``.
+        Regression for the 2026-05-12 user-reported bug.
+        """
+        import importlib
+
+        web_app_module = importlib.import_module("aikaboom.web.app")
+
+        recorded = {}
+
+        class CapturingProcessor:
+            use_case = "complete"
+
+            def process_ai_model(self, repo_id=None, arxiv_url=None, github_url=None):
+                recorded["repo_id"] = repo_id
+                return {
+                    "model_id": "mistral_model",
+                    "direct_fields": {"license": "Apache-2.0"},
+                    "rag_fields": {"model_name": "Mistral 7B"},
+                }
+
+        monkeypatch.setattr(
+            web_app_module,
+            "get_processor",
+            lambda **kwargs: CapturingProcessor(),
+        )
+
+        response = client.post(
+            "/process",
+            json={
+                "bom_type": "ai",
+                "mode": "rag",
+                # The bug repro: full URL in the repo_id slot.
+                "repo_id": "https://huggingface.co/mistralai/Mistral-7B-v0.1",
+                "skip_fallback": True,
+                "validate_spdx": False,
+            },
+            content_type="application/json",
+        )
+
+        assert response.status_code == 200, response.get_json()
+        # The processor must have seen the canonical form, not the URL.
+        assert recorded["repo_id"] == "mistralai/Mistral-7B-v0.1"
+
     def test_process_returns_spdx_validation(self, client, monkeypatch):
         """Successful /process responses include structured SPDX validation."""
         import importlib

@@ -196,6 +196,17 @@ def cmd_generate(args):
             print("Error: provide at least --repo, --arxiv, or --github", file=sys.stderr)
             sys.exit(1)
 
+        # Be lenient: users routinely pass the full HF URL to --repo.
+        # Normalise so downstream code only ever sees the canonical
+        # ``namespace/repo`` form. Mirrors the dataset path's existing
+        # ``hf_url`` normalisation in core/processors.py.
+        repo_id = args.repo
+        if repo_id and "huggingface.co" in repo_id:
+            from aikaboom.utils.metadata_fetcher import MetadataFetcher
+            normalised = MetadataFetcher.extract_repo_id_from_hf_url(repo_id)
+            if normalised:
+                repo_id = normalised
+
         processor = AIBOMProcessor(
             model=model,
             mode=args.mode,
@@ -204,7 +215,7 @@ def cmd_generate(args):
             questions_config=questions_config,
         )
         result = processor.process_ai_model(
-            repo_id=args.repo,
+            repo_id=repo_id,
             arxiv_url=args.arxiv,
             github_url=args.github,
         )

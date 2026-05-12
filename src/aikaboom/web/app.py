@@ -474,7 +474,18 @@ def process():
             repo_id = data.get('repo_id', '').strip() or None
             arxiv_url = data.get('arxiv_url', '').strip() or None
             github_url = data.get('github_url', '').strip() or None
-            
+
+            # Be lenient: users routinely paste the full HF URL into the
+            # repo_id field. Normalise so downstream code only ever sees the
+            # canonical ``namespace/repo`` form. (The dataset BOM path
+            # already does this in core/processors.py for hf_url; this
+            # mirrors that behaviour at the AI entry point.)
+            if repo_id and "huggingface.co" in repo_id:
+                from aikaboom.utils.metadata_fetcher import MetadataFetcher
+                normalised = MetadataFetcher.extract_repo_id_from_hf_url(repo_id)
+                if normalised:
+                    repo_id = normalised
+
             if not any([repo_id, arxiv_url, github_url]):
                 return jsonify({
                     'status': 'error',
