@@ -20,6 +20,10 @@ from typing import List, Optional, Tuple
 # below is a paid Llama 3.3 70B; users who want something else pass
 # ``--model`` explicitly. (Findings #6, #12.)
 PROVIDER_PRIORITY: List[Tuple[str, Optional[str], str]] = [
+    # ``huggingface`` is the demo-friendly provider: on the HF Space deploy
+    # each visitor signs in via OAuth and brings their own token (see
+    # ``aikaboom.web.hf_oauth``); self-hosters can set ``HF_TOKEN`` instead.
+    ("huggingface", "HF_TOKEN",          "meta-llama/Llama-3.3-70B-Instruct"),
     ("openrouter", "OPENROUTER_API_KEY", "meta-llama/llama-3.3-70b-instruct"),
     ("ollama",     "OLLAMA_BASE_URL",    "llama3:8b"),
     ("openai",     "OPENAI_API_KEY",     "gpt-4o"),

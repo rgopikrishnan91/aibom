@@ -596,10 +596,35 @@
                     </div>
                 </div>
 
+                <!-- HF OAuth banner (only rendered when running on an HF Space) -->
+                <div class="form-group" id="hf_auth_banner" style="display:none;padding:10px 12px;border:1px solid #ffd591;background:#fffbe6;border-radius:8px;">
+                    <div id="hf_auth_signed_out" style="display:none;">
+                        <strong>🤗 Sign in with Hugging Face</strong>
+                        <div style="font-size:0.9em;margin:4px 0 8px 0;">
+                            This demo calls Hugging Face Inference Providers on
+                            <em>your</em> account — no Space-owner API key is used.
+                            Free credits and usage land in your
+                            <a href="https://huggingface.co/settings/billing" target="_blank" rel="noopener">HF billing dashboard</a>.
+                        </div>
+                        <a href="/auth/login" style="display:inline-block;padding:6px 12px;background:#ff9d00;color:#000;border-radius:6px;text-decoration:none;font-weight:600;">Sign in with Hugging Face</a>
+                    </div>
+                    <div id="hf_auth_signed_in" style="display:none;">
+                        Signed in as <strong id="hf_auth_username">…</strong>
+                        — <a href="/auth/logout">sign out</a>
+                    </div>
+                </div>
+
                 <!-- LLM Provider Selection -->
                 <div class="form-group">
                     <label>🧠 LLM Provider</label>
                     <div class="mode-selector">
+                        <div class="mode-option">
+                            <input type="radio" name="llm_provider" id="provider_huggingface" value="huggingface">
+                            <label for="provider_huggingface">
+                                <span class="mode-icon">🤗</span>
+                                <span class="mode-label">Hugging Face</span>
+                            </label>
+                        </div>
                         <div class="mode-option">
                             <input type="radio" name="llm_provider" id="provider_openrouter" value="openrouter" checked>
                             <label for="provider_openrouter">
@@ -639,6 +664,25 @@
                            placeholder="e.g. openai/gpt-4o-mini"
                            style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:0.95em;box-sizing:border-box;display:none;">
                     <div class="url-hint" id="openrouter_model_hint">Click "Load model catalog" to fetch the live OpenRouter list.</div>
+                </div>
+
+                <div class="form-group" id="model_group_huggingface" style="display:none;">
+                    <label for="huggingface_model_select">🤖 Hugging Face Model</label>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+                        <button type="button" id="btn_load_hf_models" style="padding:6px 10px;border:1px solid #888;background:#f5f5f5;color:#333;border-radius:6px;cursor:pointer;font-size:0.85em;">📋 Load model catalog</button>
+                    </div>
+                    <select id="huggingface_model_select" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:0.95em;margin-bottom:6px;">
+                        <option value="meta-llama/Llama-3.3-70B-Instruct">meta-llama/Llama-3.3-70B-Instruct (default)</option>
+                        <option value="Qwen/Qwen2.5-72B-Instruct">Qwen/Qwen2.5-72B-Instruct</option>
+                        <option value="mistralai/Mistral-Small-24B-Instruct-2501">mistralai/Mistral-Small-24B-Instruct-2501</option>
+                        <option value="meta-llama/Llama-3.1-8B-Instruct">meta-llama/Llama-3.1-8B-Instruct</option>
+                        <option value="__custom__">Custom HF model ID...</option>
+                    </select>
+                    <input type="text" id="huggingface_model" name="huggingface_model"
+                           value="meta-llama/Llama-3.3-70B-Instruct"
+                           placeholder="e.g. meta-llama/Llama-3.3-70B-Instruct"
+                           style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:0.95em;box-sizing:border-box;display:none;">
+                    <div class="url-hint" id="huggingface_model_hint">Click "Load model catalog" to fetch models served by HF Inference Providers.</div>
                 </div>
 
                 <div class="form-group" id="model_group_openai" style="display:none;">
@@ -902,6 +946,7 @@
             document.getElementById('model_group_openrouter').style.display = provider === 'openrouter' ? 'block' : 'none';
             document.getElementById('model_group_openai').style.display = provider === 'openai' ? 'block' : 'none';
             document.getElementById('model_group_ollama').style.display = provider === 'ollama' ? 'block' : 'none';
+            document.getElementById('model_group_huggingface').style.display = provider === 'huggingface' ? 'block' : 'none';
         }
         document.querySelectorAll('input[name="llm_provider"]').forEach(function(r) {
             r.addEventListener('change', updateModelVisibility);
@@ -973,6 +1018,79 @@
             btnAll.addEventListener('click', loadModels);
         })();
 
+        // Hugging Face Inference Providers — model picker + auth banner
+        (function setupHuggingFacePicker() {
+            const select = document.getElementById('huggingface_model_select');
+            const hidden = document.getElementById('huggingface_model');
+            const hint = document.getElementById('huggingface_model_hint');
+            const btn = document.getElementById('btn_load_hf_models');
+
+            function setHint(msg, color) { hint.textContent = msg; hint.style.color = color || ''; }
+
+            function applySelectedModel() {
+                if (select.value === '__custom__') {
+                    hidden.style.display = '';
+                    setHint('Type any HF model id served by an inference provider.');
+                } else {
+                    hidden.value = select.value;
+                    hidden.style.display = 'none';
+                }
+            }
+            select.addEventListener('change', applySelectedModel);
+            applySelectedModel();
+
+            btn.addEventListener('click', async function() {
+                setHint('📋 Loading HF model catalog...', '#666');
+                try {
+                    const resp = await fetch('/models?provider=huggingface');
+                    const data = await resp.json();
+                    const models = data.models || [];
+                    if (!models.length) {
+                        setHint('No models returned from HuggingFace.', '#c0392b');
+                        return;
+                    }
+                    select.innerHTML = '';
+                    models.forEach(function(m) {
+                        const opt = document.createElement('option');
+                        opt.value = m.id;
+                        const dl = m.downloads ? ' (↓' + (m.downloads >= 1e6 ? (m.downloads/1e6).toFixed(1)+'M' : Math.round(m.downloads/1000)+'K') + ')' : '';
+                        opt.textContent = m.id + dl;
+                        select.appendChild(opt);
+                    });
+                    const customOpt = document.createElement('option');
+                    customOpt.value = '__custom__';
+                    customOpt.textContent = 'Custom HF model ID...';
+                    select.appendChild(customOpt);
+                    select.value = models[0].id;
+                    applySelectedModel();
+                    setHint('✓ Loaded ' + models.length + ' model(s) from HuggingFace.', '#1e8449');
+                } catch (err) {
+                    setHint('Could not load models: ' + err.message, '#c0392b');
+                }
+            });
+        })();
+
+        // HF OAuth banner: only show on the HF Space deploy (where /auth/status
+        // reports configured=true). Toggles between "Sign in" and "Signed in as".
+        (async function setupHfAuthBanner() {
+            try {
+                const resp = await fetch('/auth/status');
+                if (!resp.ok) return;
+                const s = await resp.json();
+                if (!s.configured) return;
+                document.getElementById('hf_auth_banner').style.display = 'block';
+                if (s.signed_in) {
+                    document.getElementById('hf_auth_signed_in').style.display = 'block';
+                    document.getElementById('hf_auth_username').textContent = s.username || '(signed in)';
+                } else {
+                    document.getElementById('hf_auth_signed_out').style.display = 'block';
+                }
+                // On the Space, default the provider radio to Hugging Face.
+                const hfRadio = document.getElementById('provider_huggingface');
+                if (hfRadio) { hfRadio.checked = true; updateModelVisibility(); }
+            } catch (_) { /* not running on a Space — leave banner hidden */ }
+        })();
+
         // Debugging: Ensure the script is loaded
         console.log("🚀 Script loaded successfully!");
         
@@ -1041,6 +1159,8 @@
                 selectedModel = document.getElementById('openrouter_model').value;
             } else if (selectedProvider === 'openai') {
                 selectedModel = document.getElementById('openai_model').value;
+            } else if (selectedProvider === 'huggingface') {
+                selectedModel = document.getElementById('huggingface_model').value;
             } else {
                 selectedModel = document.getElementById('ollama_model_input').value;
             }
@@ -1056,6 +1176,7 @@
                 model: selectedModel,
                 ollama_model: document.getElementById('ollama_model_input').value,
                 openrouter_model: document.getElementById('openrouter_model').value,
+                huggingface_model: document.getElementById('huggingface_model').value,
                 validate_spdx: document.getElementById('validate_spdx').checked,
                 strict_spdx_validation: document.getElementById('strict_spdx_validation').checked,
                 recursive_bom: document.getElementById('recursive_bom').checked,

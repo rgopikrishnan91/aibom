@@ -59,6 +59,26 @@ def create_llm(model: str, temperature: float = 0, llm_provider: str = "openai",
                 "X-Title": "BOM_Tools"
             }
         )
+    elif llm_provider == "huggingface":
+        # HF Inference Providers — OpenAI-compatible router fronting Together,
+        # Fireworks, Cerebras, Novita, etc. behind a single HF token. On the
+        # HF Space deploy the token is the visitor's own OAuth token (per
+        # request, via ``runtime_creds`` contextvar); self-hosted users set
+        # HF_TOKEN in env.
+        from aikaboom.utils.runtime_creds import get_hf_token
+        hf_base_url = os.getenv('HF_ROUTER_BASE_URL', 'https://router.huggingface.co/v1')
+        hf_token = get_hf_token()
+        if not hf_token:
+            raise ValueError(
+                "HuggingFace provider requires a token. Sign in with HF "
+                "on the Space, or set HF_TOKEN in environment."
+            )
+        return ChatOpenAI(
+            model=model,
+            temperature=temperature,
+            base_url=hf_base_url,
+            api_key=hf_token,
+        )
     else:
         # Default to OpenAI
         return ChatOpenAI(model=model, temperature=temperature)
