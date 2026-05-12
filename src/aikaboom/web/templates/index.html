@@ -7,49 +7,51 @@
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='aikaboom-logo.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,500;9..144,700;9..144,900&family=Geist:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@1,500&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* === Ink, Pine & Amber palette ============================== */
-            /* Punchier than the previous low-contrast ink-and-paper.
-               Body text uses near-black ink directly; "muted" is a darker
-               warm-brown so secondary copy stays readable. Production wears
-               pine green, beta wears amber. */
-            --ink:           #0a0e16;   /* near-black — body text           */
-            --ink-soft:      #1c2230;   /* dark panels (JSON, logs)         */
-            --ink-line:      #3a4150;   /* dark-panel borders               */
-            --paper:         #fbf7f0;   /* page canvas                      */
-            --paper-2:       #f1ead8;   /* secondary panel                  */
-            --paper-edge:    #d8cfba;   /* hairline rules — visible         */
-            --paper-soft:    #ece2c9;   /* hover / highlight                */
-            --paper-faint:   #8e8268;   /* placeholder / disabled           */
-            --paper-mute:    #5a4f3d;   /* secondary text — readable        */
+            /* === Conventional tech/research palette ===================== */
+            /* Cool neutral grays + a single indigo primary, the
+               combination most tool/docs sites converge on (Stripe,
+               GitHub, Linear, OpenAI playground). Beta features wear a
+               restrained orange so they remain distinct without being
+               loud. JSON viewers stay on a deep cool-ink panel. */
+            --ink:           #0d1117;   /* near-black — body text           */
+            --ink-soft:      #161b22;   /* dark panels (JSON, logs)         */
+            --ink-line:      #30363d;   /* dark-panel borders               */
 
-            /* Production / brand — pine green */
-            --primary:       #0a7c4f;
-            --primary-deep:  #075a39;
-            --primary-soft:  #cce4d6;
-            --primary-edge:  #5dad7c;
+            --paper:         #ffffff;   /* page canvas — pure white         */
+            --paper-2:       #f6f8fa;   /* secondary panel                  */
+            --paper-edge:    #d0d7de;   /* hairline rules                   */
+            --paper-soft:    #eaeef2;   /* hover / highlight                */
+            --paper-mute:    #57606a;   /* secondary text — readable        */
+            --paper-faint:   #8b949e;   /* placeholder / disabled           */
 
-            /* Beta — distinctive amber, never competes with primary */
-            --beta:          #c2410c;
-            --beta-soft:     #fde8d6;
-            --beta-edge:     #f4a45a;
+            /* Production / brand — indigo (the standard tech-tool accent) */
+            --primary:       #3451b2;
+            --primary-deep:  #233c87;
+            --primary-soft:  #e6ecff;
+            --primary-edge:  #93a8e8;
+
+            /* Beta — restrained orange, never competes with primary */
+            --beta:          #bc4c00;
+            --beta-soft:     #fff1e5;
+            --beta-edge:     #f0b079;
 
             /* Conflict band colors */
-            --conflict-high: #b91c1c;   /* red — grounding ≥ 0.7            */
-            --conflict-low:  #b45309;   /* amber — 0.1 ≤ g < 0.7            */
-            --conflict-det:  #1d4ed8;   /* blue — direct/intra              */
-            --conflict-sup:  #5b6471;   /* slate — suppressed (g < 0.1)     */
-            --conflict-none: #0a7c4f;   /* pine — all sources agree         */
+            --conflict-high: #cf222e;   /* red — grounding ≥ 0.7            */
+            --conflict-low:  #9a6700;   /* amber — 0.1 ≤ g < 0.7            */
+            --conflict-det:  #3451b2;   /* indigo — direct/intra (no LLM)   */
+            --conflict-sup:  #6e7781;   /* slate — suppressed (g < 0.1)     */
+            --conflict-none: #1a7f37;   /* green — all sources agree        */
 
-            --shadow-sm:  0 1px 2px rgba(13, 17, 23, 0.06);
-            --shadow:     0 6px 24px -10px rgba(13, 17, 23, 0.18);
-            --shadow-lg:  0 24px 60px -28px rgba(13, 17, 23, 0.28);
+            --shadow-sm:  0 1px 2px rgba(13, 17, 23, 0.04);
+            --shadow:     0 4px 16px -8px rgba(13, 17, 23, 0.10);
+            --shadow-lg:  0 16px 40px -20px rgba(13, 17, 23, 0.18);
 
-            --display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
-            --sans:    'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
-            --mono:    'JetBrains Mono', 'SF Mono', 'Menlo', monospace;
+            --sans:    'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+            --serif:   'IBM Plex Serif', Georgia, serif;       /* used sparingly */
+            --mono:    'IBM Plex Mono', 'SF Mono', 'Menlo', monospace;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -61,15 +63,9 @@
             background: var(--paper);
             color: var(--ink);
             min-height: 100vh;
-            font-feature-settings: 'ss01', 'cv11';
             -webkit-font-smoothing: antialiased;
             font-smoothing: antialiased;
             line-height: 1.5;
-            /* Subtle paper grain via SVG noise */
-            background-image:
-                radial-gradient(ellipse at top left, rgba(194, 65, 12, 0.04), transparent 50%),
-                radial-gradient(ellipse at bottom right, rgba(10, 135, 84, 0.04), transparent 60%),
-                url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85'/><feColorMatrix values='0 0 0 0 0.05 0 0 0 0 0.05 0 0 0 0 0.05 0 0 0 0.04 0'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
         }
 
         /* ========================================================== TOP BAR */
@@ -100,10 +96,10 @@
             display: block;
         }
         .brand-text {
-            font-family: var(--display);
-            font-weight: 900;
-            font-size: 30px;
-            letter-spacing: -0.025em;
+            font-family: var(--sans);
+            font-weight: 700;
+            font-size: 24px;
+            letter-spacing: -0.018em;
             line-height: 1;
             color: var(--ink);
         }
@@ -178,11 +174,11 @@
             margin-bottom: 10px;
         }
         .pane-title {
-            font-family: var(--display);
-            font-weight: 700;
-            font-size: 32px;
-            letter-spacing: -0.02em;
-            line-height: 1.05;
+            font-family: var(--sans);
+            font-weight: 600;
+            font-size: 26px;
+            letter-spacing: -0.018em;
+            line-height: 1.15;
             color: var(--ink);
             margin-bottom: 14px;
         }
@@ -428,12 +424,11 @@
             font-size: 12px;
         }
 
-        /* Beta-feature surfaces — distinctive amber visual treatment */
+        /* Beta-feature surfaces — restrained orange treatment */
         .beta-card {
-            border: 1px dashed var(--beta-edge);
-            background:
-                linear-gradient(180deg, var(--beta-soft) 0%, transparent 30%),
-                var(--paper);
+            border: 1px solid var(--beta-edge);
+            border-left: 3px solid var(--beta);
+            background: var(--paper);
             border-radius: 6px;
             padding: 16px 18px;
             position: relative;
@@ -673,28 +668,29 @@
             justify-content: center;
             text-align: center;
             padding: 60px 40px;
-            border: 1px dashed var(--paper-edge);
+            border: 1px solid var(--paper-edge);
             border-radius: 8px;
             background: var(--paper);
             color: var(--paper-mute);
             min-height: 380px;
+            box-shadow: var(--shadow-sm);
         }
         .result-pane.is-empty .result-empty { display: flex; }
         .result-pane.is-empty .tabs,
         .result-pane.is-empty .download-strip,
         .result-pane.is-empty .tab-content { display: none !important; }
         .result-empty .glyph {
-            font-family: var(--display);
-            font-weight: 700;
-            font-size: 64px;
+            font-family: var(--mono);
+            font-weight: 600;
+            font-size: 56px;
             line-height: 1;
             color: var(--paper-edge);
             margin-bottom: 22px;
         }
         .result-empty h3 {
-            font-family: var(--display);
-            font-weight: 700;
-            font-size: 24px;
+            font-family: var(--sans);
+            font-weight: 600;
+            font-size: 20px;
             color: var(--ink);
             letter-spacing: -0.015em;
             margin-bottom: 12px;
@@ -836,9 +832,9 @@
             min-height: 320px;
             padding: 40px;
             color: var(--paper-faint);
-            font-family: var(--display);
-            font-style: italic;
-            font-size: 16px;
+            font-family: var(--sans);
+            font-style: normal;
+            font-size: 14px;
             text-align: center;
             line-height: 1.6;
         }
@@ -895,10 +891,11 @@
             min-width: 80px;
         }
         .conflict-stat .num {
-            font-family: var(--display);
-            font-weight: 700;
-            font-size: 28px;
+            font-family: var(--mono);
+            font-weight: 600;
+            font-size: 26px;
             line-height: 1;
+            letter-spacing: -0.02em;
         }
         .conflict-stat .lbl {
             font-family: var(--mono);
@@ -1025,9 +1022,10 @@
             line-height: 1.55;
         }
         .conflict-claims .narrative {
-            font-family: var(--display);
+            font-family: var(--serif);
             font-style: italic;
             color: var(--ink);
+            font-size: 13px;
             margin-bottom: 8px;
             padding-bottom: 8px;
             border-bottom: 1px dashed var(--paper-edge);
@@ -1051,10 +1049,10 @@
         .conflicts-empty {
             padding: 50px 30px;
             text-align: center;
-            color: var(--primary-deep);
-            font-family: var(--display);
-            font-style: italic;
-            font-size: 18px;
+            color: var(--conflict-none);
+            font-family: var(--sans);
+            font-weight: 500;
+            font-size: 15px;
         }
         .conflicts-empty::before {
             content: '✓';
@@ -1211,7 +1209,7 @@
         .logs-viewer::-webkit-scrollbar { width: 10px; }
         .logs-viewer::-webkit-scrollbar-track { background: var(--ink); }
         .logs-viewer::-webkit-scrollbar-thumb { background: var(--ink-line); border-radius: 5px; border: 2px solid var(--ink); }
-        .logs-viewer .log-empty { color: var(--paper-faint); font-family: var(--display); font-style: italic; }
+        .logs-viewer .log-empty { color: var(--paper-faint); font-family: var(--mono); font-style: normal; }
 
         /* OpenRouter catalog row */
         .catalog-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
@@ -1242,11 +1240,12 @@
             margin-top: 30px;
             padding-top: 18px;
             border-top: 1px solid var(--paper-edge);
-            font-family: var(--display);
-            font-style: italic;
+            font-family: var(--mono);
+            font-style: normal;
             color: var(--paper-mute);
-            font-size: 13px;
+            font-size: 11.5px;
             text-align: center;
+            letter-spacing: 0.04em;
         }
         .brand-rule b { color: var(--ink); font-weight: 700; font-style: normal; }
     </style>
