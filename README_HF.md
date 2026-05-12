@@ -8,6 +8,11 @@ app_port: 7860
 pinned: false
 license: mit
 short_description: Build AI BOMs by aggregating, aligning, and resolving conflicting metadata.
+hf_oauth: true
+hf_oauth_scopes:
+  - openid
+  - profile
+  - inference-api
 ---
 
 # AIkaBoOM
@@ -17,18 +22,25 @@ conflicting metadata across the AI supply chain.
 
 ## How to use this Space
 
-1. Pick a BOM type: **AI** (model) or **Data** (dataset).
-2. Paste any combination of HuggingFace, GitHub, and arXiv links.
-3. Choose an LLM provider. For OpenRouter, click **📋 Load model
-   catalog** to fetch the live list from `/v1/models` and pick a paid
-   model id (e.g. `openai/gpt-4o-mini`, `meta-llama/llama-3.3-70b-instruct`).
-4. Optionally cap the number of trainedOn / testedOn / dependsOn child
-   packages emitted in the standalone SPDX via the **SPDX cap** input;
-   leave empty for unbounded.
+1. Click **Sign in with Hugging Face** at the top of the page. This Space
+   uses HF OAuth so every LLM call is billed against *your* HF account
+   and *your* free [inference credits](https://huggingface.co/docs/hub/rate-limits#billing-dashboard)
+   — the Space owner does not provide an API key.
+2. Pick a BOM type: **AI** (model) or **Data** (dataset).
+3. Paste any combination of HuggingFace, GitHub, and arXiv links.
+4. The provider defaults to **🤗 Hugging Face**. Click **📋 Load model
+   catalog** to pull the live list of models served by HF Inference
+   Providers (Together, Fireworks, Cerebras, Novita, …) and pick one,
+   or paste any served model id.
 5. Hit **Generate** and watch live logs in the **Logs** tab.
 6. Inspect the **Conflicts** tab (red badge if any disagreement was found),
    then download the **Provenance BOM**, **SPDX 3.0.1**, and
    **CycloneDX 1.6 beta** exports.
+
+On this public Space, recursive BOM walks are disabled and the SPDX
+relationship list is capped at 10 children — both fan out a lot of
+inference calls and would chew through a visitor's free credits very
+quickly. For unbounded runs, clone the repo and self-host (see below).
 
 If a link is missing, the **Link Fallback Agent** (Gemini) tries to find it.
 Disabled when `GEMINI_API_KEY` is not set in this Space's secrets.
@@ -52,20 +64,25 @@ HuggingFace's `cardData.base_model`, `cardData.datasets`, `model-index`,
 and repository tags (e.g. `dataset:squad`, `base_model:...`) so they
 participate in cross-source conflict detection.
 
-## Required configuration (Space secrets)
+## Required configuration
 
-Set at least one LLM provider key in **Settings → Variables and secrets**:
+**Nothing.** The HF OAuth path means visitors bring their own token —
+the Space needs no LLM secrets to demo. The Space owner can optionally
+set the following in **Settings → Variables and secrets** to enable
+extras:
 
-| Secret                | When you need it                                  |
-|-----------------------|---------------------------------------------------|
-| `OPENROUTER_API_KEY`  | Recommended. Single key for many hosted models.   |
-| `OPENAI_API_KEY`      | If you want to use OpenAI directly.               |
-| `OLLAMA_BASE_URL`     | If you point at a remote Ollama server.           |
-| `GITHUB_TOKEN`        | Optional. Higher GitHub API rate limit.           |
-| `HUGGINGFACE_TOKEN`   | Optional. Required for gated/private HF models.   |
-| `GEMINI_API_KEY`      | Optional. Enables the Link Fallback Agent.        |
+| Secret                | When you need it                                              |
+|-----------------------|---------------------------------------------------------------|
+| `GITHUB_TOKEN`        | Optional. Higher GitHub API rate limit for source fetches.    |
+| `GEMINI_API_KEY`      | Optional. Enables the Link Fallback Agent.                    |
+| `OPENROUTER_API_KEY`  | Optional. Exposes the OpenRouter provider as a fallback.      |
+| `OPENAI_API_KEY`      | Optional. Exposes the OpenAI provider as a fallback.          |
 
-These are exposed as environment variables inside the container at runtime.
+OAuth itself needs no manual setup: declaring `hf_oauth: true` in this
+README's frontmatter makes HF inject `OAUTH_CLIENT_ID`,
+`OAUTH_CLIENT_SECRET`, `OAUTH_SCOPES`, and `OPENID_PROVIDER_URL` into
+the container at runtime; the Flask blueprint in
+`src/aikaboom/web/hf_oauth.py` reads them.
 
 ## What runs inside this Space?
 
@@ -83,19 +100,21 @@ model.
 
 ## Choosing a model — how it works on this Space
 
-1. Click **📋 Load model catalog** in the OpenRouter section.
-2. The browser hits `/models?provider=openrouter` on this Space.
-3. The Space's backend fetches `https://openrouter.ai/api/v1/models`
-   (public, unauthenticated) and returns the full list, sorted by
-   context window.
-4. The dropdown populates. Pick one, click **Generate**.
+1. After signing in with Hugging Face, click **📋 Load model catalog**
+   in the Hugging Face section.
+2. The browser hits `/models?provider=huggingface` on this Space.
+3. The Space's backend fetches `https://huggingface.co/api/models`
+   filtered to `inference_provider=all&pipeline_tag=text-generation` —
+   i.e. chat-capable models served right now by at least one HF
+   Inference Provider (Together, Fireworks, Cerebras, Novita, etc.).
+4. The dropdown populates, sorted by downloads. Pick one, click **Generate**.
+5. The Space forwards the chat call to
+   `https://router.huggingface.co/v1/chat/completions` using your
+   OAuth access token — which means usage is metered against your HF
+   account.
 
-**Important:** running a model requires `OPENROUTER_API_KEY` set in the
-Space's secrets and a credited account — Phase 10 retired the free-tier
-path because rate-limit caps made it unusable for any non-trivial run.
-
-If the key is missing, the **Generate** call will surface a `401` error
-in the **Logs** tab.
+If you haven't signed in yet, the **Generate** call returns a `401` and
+the UI tells you to click **Sign in with Hugging Face**.
 
 The model list is cached for 1 hour in memory.
 

@@ -3,7 +3,7 @@ Unified Web Interface for BOM Generator
 Supports both AI Model BOM and Data BOM generation
 """
 
-from flask import Flask, render_template, request, jsonify, send_file, Response
+from flask import Flask, render_template, request, jsonify, send_file, Response, session
 from werkzeug.utils import secure_filename
 import os
 import io
@@ -55,6 +55,23 @@ _PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.
 app.config['UPLOAD_FOLDER'] = os.path.join(_PROJECT_ROOT, 'results')
 app.config['REPO_RESULTS_FOLDER'] = os.path.join(_PROJECT_ROOT, 'data', 'results')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
+
+# Sessions are required for the HF OAuth flow (token + state live in the
+# user's signed cookie, never on the server). HF Spaces injects
+# OAUTH_CLIENT_SECRET; reuse it so cookies stay valid across container
+# restarts on a given Space. Local dev gets a random per-process key.
+app.secret_key = (
+    os.getenv("SESSION_SECRET")
+    or os.getenv("OAUTH_CLIENT_SECRET")
+    or os.urandom(32)
+)
+
+from aikaboom.web.hf_oauth import hf_oauth_bp  # noqa: E402
+app.register_blueprint(hf_oauth_bp)
+
+# Flag used by /config and /process to lock down the demo deploy
+# (no recursive walk, no Gemini fallback, etc.).
+HF_SPACE_MODE = os.getenv("SPACE_ID") is not None or os.getenv("AIKABOOM_HF_SPACE") == "1"
 
 # Ensure results directories exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -216,9 +233,10 @@ def stream_logs():
                     headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
 
 
-def get_processor(bom_type: str, mode: str = "rag", llm_provider: str = "openai", 
+def get_processor(bom_type: str, mode: str = "rag", llm_provider: str = "openai",
                   model: str = "gpt-4o", ollama_model: str = "llama3:70b",
                   openrouter_model: str = "qwen/qwen-2.5-72b-instruct",
+                  huggingface_model: str = "meta-llama/Llama-3.3-70B-Instruct",
                   ollama_url: str = None, use_case: str = 'complete'):
     """Get or create a processor for the specified configuration"""
     from aikaboom.core.processors import AIBOMProcessor, DATABOMProcessor
@@ -236,12 +254,25 @@ def get_processor(bom_type: str, mode: str = "rag", llm_provider: str = "openai"
         model_to_use = ollama_model
     elif llm_provider == 'openrouter':
         model_to_use = openrouter_model
+    elif llm_provider == 'huggingface':
+        model_to_use = huggingface_model
     else:
         model_to_use = model
     
-    # Create a unique key for this configuration
-    cache_key = f"{bom_type}_{llm_provider}_{normalized_mode}_{model_to_use}_{normalized_use_case}"
-    
+    # Create a unique key for this configuration. For ``huggingface`` we
+    # also key by the per-request token so a fresh ChatOpenAI client is
+    # built with each visitor's own OAuth token — the cached LangChain
+    # client captures the api_key at construction time, so we cannot
+    # reuse one user's client for another user's request.
+    cache_suffix = ""
+    if llm_provider == "huggingface":
+        from aikaboom.utils.runtime_creds import get_hf_token
+        tok = get_hf_token() or ""
+        # Hash so we never write a raw token into a dict key / log line.
+        import hashlib
+        cache_suffix = "_" + hashlib.sha256(tok.encode()).hexdigest()[:12]
+    cache_key = f"{bom_type}_{llm_provider}_{normalized_mode}_{model_to_use}_{normalized_use_case}{cache_suffix}"
+
     if cache_key not in processors_cache:
         # Filter the question set per the use-case preset (shared helper —
         # CLI uses the same one).
@@ -381,15 +412,24 @@ def get_config():
     config = {
         'bom_types': ['ai', 'data'],
         'modes': ['rag', 'direct'],
-        'llm_providers': ['openai', 'ollama', 'openrouter'],
+        'llm_providers': ['huggingface', 'openai', 'ollama', 'openrouter'],
         'default_openai_models': ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-3.5-turbo'],
         'default_ollama_models': ['llama3:70b', 'llama3:8b', 'mixtral:8x7b', 'codellama:34b'],
         'default_openrouter_models': ['qwen/qwen-2.5-72b-instruct', 'meta-llama/llama-3.3-70b-instruct', 'mistralai/mistral-medium-3.1', 'openai/gpt-oss-120b', 'qwen/qwen3-coder'],
+        'default_huggingface_models': [
+            'meta-llama/Llama-3.3-70B-Instruct',
+            'Qwen/Qwen2.5-72B-Instruct',
+            'mistralai/Mistral-Small-24B-Instruct-2501',
+            'meta-llama/Llama-3.1-8B-Instruct',
+        ],
         'default_mode': 'rag',
-        'default_provider': detected_provider or 'openai',
+        # On the HF Space we want the demo default to be huggingface, even
+        # before the visitor signs in, so the picker shows the right options.
+        'default_provider': ('huggingface' if HF_SPACE_MODE else (detected_provider or 'openai')),
         'default_model': detected_model or 'gpt-4o',
         'use_cases': use_cases_info,
-        'default_use_case': 'complete'
+        'default_use_case': 'complete',
+        'hf_space_mode': HF_SPACE_MODE,
     }
     return jsonify(config)
 
@@ -408,6 +448,14 @@ def list_models_endpoint():
     """
     provider = request.args.get('provider', 'openrouter').lower()
     force_refresh = request.args.get('force_refresh', 'false').lower() == 'true'
+
+    if provider == 'huggingface':
+        from aikaboom.utils.huggingface_models import list_huggingface_models
+        try:
+            models = list_huggingface_models(force_refresh=force_refresh)
+            return jsonify({'provider': provider, 'models': models})
+        except Exception as exc:
+            return jsonify({'provider': provider, 'models': [], 'error': str(exc)}), 500
 
     if provider != 'openrouter':
         return jsonify({'provider': provider, 'models': []})
@@ -435,6 +483,22 @@ def process():
         model = data.get('model', 'gpt-4o').strip()
         ollama_model = data.get('ollama_model', 'llama3:70b').strip()
         openrouter_model = data.get('openrouter_model', 'qwen/qwen-2.5-72b-instruct').strip() or 'qwen/qwen-2.5-72b-instruct'
+        huggingface_model = data.get('huggingface_model', 'meta-llama/Llama-3.3-70B-Instruct').strip() or 'meta-llama/Llama-3.3-70B-Instruct'
+
+        # Bind the visitor's OAuth token (if any) to this request's
+        # contextvar so create_llm picks it up. Env-var HF_TOKEN remains a
+        # fallback for self-hosted deploys.
+        if llm_provider == 'huggingface':
+            from aikaboom.utils.runtime_creds import set_hf_token
+            visitor_token = session.get('hf_token')
+            if visitor_token:
+                set_hf_token(visitor_token)
+            elif not os.getenv('HF_TOKEN'):
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Sign in with Hugging Face to use the HF provider, '
+                               'or pick a different provider.'
+                }), 401
         ollama_url = data.get('ollama_url', '').strip() or None
         use_case = normalize_use_case(data.get('use_case', 'complete'), bom_type)
         validate_spdx = data.get('validate_spdx', True) is not False
@@ -466,8 +530,16 @@ def process():
         # Validate mode and provider
         if mode not in ['rag', 'direct']:
             mode = 'rag'
-        if llm_provider not in ['openai', 'ollama', 'openrouter']:
+        if llm_provider not in ['openai', 'ollama', 'openrouter', 'huggingface']:
             llm_provider = 'openai'
+
+        # Lock down the public demo Space: recursive walks fan out HF
+        # inference calls quickly enough to burn through a visitor's free
+        # credits, and the SPDX children cap protects against the same.
+        if HF_SPACE_MODE:
+            recursive_bom = False
+            if spdx_relationship_cap is None or spdx_relationship_cap > 10:
+                spdx_relationship_cap = 10
         
         if bom_type == 'ai':
             # AI BOM processing
@@ -542,6 +614,7 @@ def process():
                 model=model,
                 ollama_model=ollama_model,
                 openrouter_model=openrouter_model,
+                huggingface_model=huggingface_model,
                 ollama_url=ollama_url,
                 use_case=use_case
             )
@@ -668,6 +741,7 @@ def process():
                 model=model,
                 ollama_model=ollama_model,
                 openrouter_model=openrouter_model,
+                huggingface_model=huggingface_model,
                 ollama_url=ollama_url,
                 use_case=use_case
             )
