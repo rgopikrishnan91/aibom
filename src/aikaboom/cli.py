@@ -265,17 +265,25 @@ def cmd_generate(args):
     cs = result.get("conflict_summary") if isinstance(result, dict) else None
     if not cs:
         cs = summarise_conflicts(result)
-    if cs and cs.get("total"):
-        deterministic = cs["total"] - cs["high_confidence"] - cs["low_confidence"]
+    if cs and (cs.get("total") or cs.get("suppressed")):
+        # The summariser already separates real conflicts (counted in
+        # ``total``) from noise (``suppressed`` — grounding < 0.1, kept
+        # in the BOM trace but excluded from the headline). Surface both.
+        deterministic = cs.get("deterministic", 0)
+        if not deterministic and cs.get("total") is not None:
+            # Back-compat fallback if an older summariser ran.
+            deterministic = cs["total"] - cs.get("high_confidence", 0) - cs.get("low_confidence", 0)
         parts = []
-        if cs["high_confidence"]:
+        if cs.get("high_confidence"):
             parts.append(f"{cs['high_confidence']} high-confidence")
-        if cs["low_confidence"]:
+        if cs.get("low_confidence"):
             parts.append(f"{cs['low_confidence']} low-confidence")
         if deterministic:
             parts.append(f"{deterministic} deterministic")
         breakdown = f" ({', '.join(parts)})" if parts else ""
-        print(f"Conflicts: {cs['total']} total{breakdown}")
+        suppressed = cs.get("suppressed", 0)
+        suppressed_note = f"; {suppressed} suppressed (low grounding)" if suppressed else ""
+        print(f"Conflicts: {cs.get('total', 0)} total{breakdown}{suppressed_note}")
 
     bom_type = "ai" if args.type == "ai" else "data"
 

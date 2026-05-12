@@ -188,44 +188,104 @@ def test_score_grounding_zero_for_empty_inputs():
 # ---------------------------------------------------------------------------
 
 
-def test_summarise_conflicts_counts_all_three_classes():
+def test_summarise_conflicts_counts_real_yes_verdicts_only():
     """Direct triplet, RAG internal, and RAG external conflicts all
-    count toward total; only the RAG ones get split into high/low by
-    grounding."""
+    count, but the always-present RAG ``conflict`` envelope (which
+    contains the legacy ``{internal, external}`` strings even when
+    both are ``"No"``) must NOT count. External conflicts split into
+    high / low / suppressed by grounding; internal entries are
+    deterministic (no per-entry grounding score in production).
+    """
     from aikaboom.core.conflict_routing import summarise_conflicts
 
     md = {
         "direct_fields": {
             "license": {
                 "value": "MIT",
+                # Direct conflict shape: {value, source, type}.
                 "conflict": {"value": "Apache-2.0", "source": "github", "type": "inter"},
+            },
+            "suppliedBy": {
+                "value": "google",
+                "conflict": None,  # no conflict — must not count
             },
         },
         "rag_fields": {
             "domain": {
                 "value": "NLP",
+                # The always-present RAG envelope, both "No" — must NOT count.
+                "conflict": {"internal": "No", "external": "No"},
                 "trace": {
-                    "internal_conflicts": {
-                        "huggingface": {"narrative": "Yes: A vs B", "grounding": 0.85},
-                    },
+                    "internal_conflicts": {},
+                    "external_conflicts": [],
+                },
+            },
+            "metric": {
+                "value": "...",
+                "conflict": {"internal": "No", "external": "Yes: A vs C"},
+                "trace": {
+                    # Production shape: internal is Dict[source -> str].
+                    "internal_conflicts": {"huggingface": "Yes: \"a\" vs \"b\""},
                     "external_conflicts": [
-                        {"sources": ["hf", "arxiv"], "description": "Yes: ...", "grounding": 0.40},
+                        {"sources": ["hf", "arxiv"], "grounding": 0.40},   # low
+                        {"sources": ["hf", "github"], "grounding": 0.85},  # high
                     ],
                 },
             },
         },
     }
     s = summarise_conflicts(md)
-    assert s["total"] == 3
-    assert s["high_confidence"] == 1  # the 0.85 grounded one
-    assert s["low_confidence"] == 1  # the 0.40 grounded one
-    # 3 - 1 - 1 = 1 (the deterministic direct triplet).
+    # 1 direct (license) + 1 internal (huggingface) + 1 low (0.40) + 1 high (0.85) = 4.
+    # The "No"-envelope on `domain` and the `None` conflict on `suppliedBy`
+    # must NOT count.
+    assert s["total"] == 4
+    assert s["high_confidence"] == 1
+    assert s["low_confidence"] == 1
+    assert s["deterministic"] == 2  # 1 direct + 1 internal
+    assert s["suppressed"] == 0
+
+
+def test_summarise_conflicts_suppresses_low_grounding_external():
+    """External conflicts with grounding < SUPPRESS_GROUNDING_BELOW
+    move to ``suppressed`` and are excluded from ``total``. They stay
+    in the BOM trace block so consumers can still inspect them."""
+    from aikaboom.core.conflict_routing import (
+        summarise_conflicts,
+        SUPPRESS_GROUNDING_BELOW,
+    )
+
+    assert SUPPRESS_GROUNDING_BELOW == 0.1
+    md = {
+        "rag_fields": {
+            "x": {
+                "value": "v",
+                "trace": {
+                    "internal_conflicts": {},
+                    "external_conflicts": [
+                        {"grounding": 0.0},   # textbook noise — suppressed
+                        {"grounding": 0.05},  # below threshold — suppressed
+                        {"grounding": 0.1},   # at threshold — counted (low)
+                        {"grounding": 0.69},  # below high cutoff — counted (low)
+                        {"grounding": 0.7},   # at high cutoff — counted (high)
+                        {"grounding": 0.99},  # high
+                    ],
+                },
+            },
+        },
+    }
+    s = summarise_conflicts(md)
+    assert s["high_confidence"] == 2
+    assert s["low_confidence"] == 2
+    assert s["suppressed"] == 2
+    assert s["deterministic"] == 0
+    assert s["total"] == 4   # 2 high + 2 low + 0 deterministic; suppressed excluded
 
 
 def test_summarise_conflicts_handles_missing_grounding():
-    """When the auditor LLM returns a conflict but the embedding step
-    didn't run (legacy state), grounding may be missing — those still
-    count toward total but neither high nor low."""
+    """Without a grounding score, an external conflict counts as
+    deterministic (we can't classify it). Internal conflicts always
+    count as deterministic since the parser stores them as strings,
+    not dicts with grounding."""
     from aikaboom.core.conflict_routing import summarise_conflicts
 
     md = {
@@ -233,23 +293,127 @@ def test_summarise_conflicts_handles_missing_grounding():
             "x": {
                 "value": "v",
                 "trace": {
-                    "internal_conflicts": {"hf": {"narrative": "Yes: A vs B"}},
-                    "external_conflicts": [],
+                    # Production shape: string narrative, no grounding key.
+                    "internal_conflicts": {"hf": "Yes: A vs B"},
+                    "external_conflicts": [
+                        {"sources": ["a", "b"], "description": "Yes: ..."},  # no grounding
+                    ],
                 },
             },
         },
     }
     s = summarise_conflicts(md)
-    assert s["total"] == 1
+    assert s["total"] == 2  # both deterministic
     assert s["high_confidence"] == 0
     assert s["low_confidence"] == 0
+    assert s["deterministic"] == 2
+    assert s["suppressed"] == 0
 
 
 def test_summarise_conflicts_empty_metadata():
     from aikaboom.core.conflict_routing import summarise_conflicts
 
-    assert summarise_conflicts({}) == {"total": 0, "high_confidence": 0, "low_confidence": 0}
-    assert summarise_conflicts(None) == {"total": 0, "high_confidence": 0, "low_confidence": 0}
+    expected = {
+        "total": 0,
+        "high_confidence": 0,
+        "low_confidence": 0,
+        "deterministic": 0,
+        "suppressed": 0,
+    }
+    assert summarise_conflicts({}) == expected
+    assert summarise_conflicts(None) == expected
+
+
+def test_summarise_conflicts_user_mistral_regression():
+    """Regression for the 2026-05-12 user-reported UI confusion: the
+    Mistral BOM said ``total: 27`` because every RAG triplet's
+    always-present ``{internal: No, external: No}`` envelope was being
+    counted. Real conflicts in that BOM: 1 internal (typeOfModel) + 6
+    external, of which 3 had grounding == 0.0 (primaryPurpose × 2 +
+    metricDecisionThreshold). After this fix, ``total`` reflects only
+    the actual yes-verdicts and the noise band moves to ``suppressed``.
+    """
+    from aikaboom.core.conflict_routing import summarise_conflicts
+
+    md = {
+        "direct_fields": {
+            "license": {"value": "Apache-2.0", "conflict": None},
+        },
+        "rag_fields": {
+            # 19 populated RAG fields with the always-present "No" envelope.
+            **{
+                f"f{i}": {
+                    "value": "v",
+                    "conflict": {"internal": "No", "external": "No"},
+                    "trace": {"internal_conflicts": {}, "external_conflicts": []},
+                }
+                for i in range(19)
+            },
+            # 1 internal (typeOfModel) — string narrative, no grounding.
+            "typeOfModel": {
+                "value": "transformer",
+                "conflict": {"internal": "Yes: github — ...", "external": "No"},
+                "trace": {
+                    "internal_conflicts": {"github": "Yes: \"transformer\" vs \"Mamba\""},
+                    "external_conflicts": [],
+                },
+            },
+            # 6 external with the grounding scores from the user's BOM.
+            "primaryPurpose": {
+                "value": "model",
+                "conflict": {"internal": "No", "external": "Yes: ..."},
+                "trace": {
+                    "internal_conflicts": {},
+                    "external_conflicts": [
+                        {"grounding": 0.0},  # suppressed
+                        {"grounding": 0.0},  # suppressed
+                    ],
+                },
+            },
+            "modelLineage": {
+                "value": "...",
+                "conflict": {"internal": "No", "external": "Yes: ..."},
+                "trace": {
+                    "internal_conflicts": {},
+                    "external_conflicts": [{"grounding": 0.76}],  # high
+                },
+            },
+            "metricDecisionThreshold": {
+                "value": "noAssertion",
+                "conflict": {"internal": "No", "external": "Yes: ..."},
+                "trace": {
+                    "internal_conflicts": {},
+                    "external_conflicts": [{"grounding": 0.0}],  # suppressed
+                },
+            },
+            "standardCompliance": {
+                "value": "noAssertion",
+                "conflict": {"internal": "No", "external": "Yes: ..."},
+                "trace": {
+                    "internal_conflicts": {},
+                    "external_conflicts": [{"grounding": 0.69}],  # low
+                },
+            },
+            "autonomyType": {
+                "value": "noAssertion",
+                "conflict": {"internal": "No", "external": "Yes: ..."},
+                "trace": {
+                    "internal_conflicts": {},
+                    "external_conflicts": [{"grounding": 0.75}],  # high
+                },
+            },
+        },
+    }
+    s = summarise_conflicts(md)
+    # 2 high (modelLineage 0.76, autonomyType 0.75)
+    # 1 low  (standardCompliance 0.69)
+    # 1 deterministic (typeOfModel internal)
+    # 3 suppressed (primaryPurpose × 2 + metricDecisionThreshold)
+    assert s["high_confidence"] == 2
+    assert s["low_confidence"] == 1
+    assert s["deterministic"] == 1
+    assert s["suppressed"] == 3
+    assert s["total"] == 4   # was reported as 27 before the fix
 
 
 def test_confidence_label_threshold():

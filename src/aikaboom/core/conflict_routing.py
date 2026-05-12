@@ -72,6 +72,17 @@ _SILENT_MARKERS = {"no relevant information", "n/a", "none", ""}
 # HF Space, and CLI all agree on the cutoff.
 HIGH_CONFIDENCE_THRESHOLD = 0.7
 
+# Below this grounding the auditor's "Yes" verdict is treated as noise
+# (typically grounding == 0.0, meaning the LLM couldn't justify either
+# statement against the actual chunks). The conflict stays in the BOM
+# trace block — downstream consumers can still inspect it — but the
+# summary count excludes it from ``total`` so the headline number
+# reflects only conflicts a user should actually look at. The 2026-05-12
+# Mistral audit had three grounding=0.0 conflicts (primaryPurpose,
+# metricDecisionThreshold) that were textbook noise; suppressing them
+# moved the headline from "27 total" to a believable count.
+SUPPRESS_GROUNDING_BELOW = 0.1
+
 
 # Match `"<stmt 1>" vs "<stmt 2>"` (internal) or `A says "<stmt>" vs
 # B says "<stmt>"` (external). Captures the two quoted statements.
@@ -122,24 +133,52 @@ def _confidence_label(grounding):
 def summarise_conflicts(metadata):
     """Walk a BOM metadata dict and return a count summary.
 
-    Returns ``{"total": int, "high_confidence": int, "low_confidence": int}``.
-    Counts (a) every direct/rag triplet ``conflict`` entry as
-    ``n/a``-confidence (deterministic; no grounding score), and
-    (b) every RAG ``trace.internal_conflicts`` entry and
-    ``trace.external_conflicts`` entry, classified by their
-    ``grounding`` field against ``HIGH_CONFIDENCE_THRESHOLD``.
+    Returns::
 
-    Direct/intra triplet conflicts count toward ``total`` but split
-    into neither ``high_confidence`` nor ``low_confidence`` (they have
-    no LLM-judgement score). Display surfaces should report:
-    ``"N total (H high-confidence, L low-confidence)"`` and let the
-    remainder ``N - H - L`` represent the deterministic rest.
+        {
+            "total": int,           # high + low + deterministic (excl. suppressed)
+            "high_confidence": int, # external conflicts with grounding >= 0.7
+            "low_confidence": int,  # external conflicts with grounding in [0.1, 0.7)
+            "deterministic": int,   # internal conflicts + direct-field conflicts
+            "suppressed": int,      # external conflicts with grounding < 0.1
+        }
+
+    Counts only **actual conflict verdicts**. The 2026-05-12 Mistral
+    audit found that the previous accounting counted every RAG triplet's
+    ``conflict`` envelope (always present as ``{"internal": "No",
+    "external": "No"}``) as a conflict, inflating the headline from a
+    real 4 to a misleading 27. The fix:
+
+    1. **Direct fields** are counted only when ``conflict`` is a truthy
+       dict (the direct-field resolver sets it to ``None`` when no real
+       conflict exists, so this gate already worked correctly).
+    2. **RAG fields** are counted via the **trace block** only —
+       ``trace.internal_conflicts`` (only added when ``CONFLICT_WITHIN_<L>:
+       Yes``) and ``trace.external_conflicts`` (only appended when
+       ``CONFLICT_<A>_VS_<B>: Yes``). The triplet's outer ``conflict``
+       envelope is informational and is no longer counted.
+    3. External conflicts with grounding below ``SUPPRESS_GROUNDING_BELOW``
+       (typically grounding == 0.0 — the LLM couldn't justify the verdict
+       against the actual chunks) move to ``suppressed`` and are excluded
+       from ``total``. They stay in the BOM trace for inspection.
+
+    Display surfaces should report
+    ``"N total (H high, L low, D deterministic; S suppressed)"`` so users
+    can see both the honest headline count AND the noise band.
     """
-    total = 0
     high = 0
     low = 0
+    deterministic = 0
+    suppressed = 0
+
     if not isinstance(metadata, dict):
-        return {"total": 0, "high_confidence": 0, "low_confidence": 0}
+        return {
+            "total": 0,
+            "high_confidence": 0,
+            "low_confidence": 0,
+            "deterministic": 0,
+            "suppressed": 0,
+        }
 
     for section in ("direct_fields", "rag_fields"):
         fields = metadata.get(section, {})
@@ -148,29 +187,52 @@ def summarise_conflicts(metadata):
         for triplet in fields.values():
             if not isinstance(triplet, dict):
                 continue
-            if isinstance(triplet.get("conflict"), dict):
-                # Direct/intra triplet conflict — deterministic, n/a confidence.
-                total += 1
+
+            # Direct fields: ``conflict`` is None unless real, so a
+            # truthy dict here is an actual conflict. RAG fields carry an
+            # always-present ``{internal, external}`` envelope so this
+            # gate intentionally only fires for direct fields. We
+            # discriminate by the absence of a ``trace`` block (RAG
+            # triplets always have one) and by the conflict's shape
+            # (direct conflicts have ``value``/``source``/``type`` keys).
+            conflict = triplet.get("conflict")
+            if isinstance(conflict, dict):
+                is_direct_conflict = (
+                    "type" in conflict
+                    and "value" in conflict
+                    and "internal" not in conflict
+                )
+                if is_direct_conflict:
+                    deterministic += 1
+
             trace = triplet.get("trace") or {}
-            for entry in (trace.get("internal_conflicts") or {}).values():
-                total += 1
-                if isinstance(entry, dict):
-                    g = entry.get("grounding")
-                    if g is not None:
-                        if g >= HIGH_CONFIDENCE_THRESHOLD:
-                            high += 1
-                        else:
-                            low += 1
+            # Internal conflicts are stored as ``Dict[source -> str]`` and
+            # carry no per-entry grounding score (the auditor only emits
+            # one CONFLICT_WITHIN_<L> line per group). Treat as deterministic.
+            for _ in (trace.get("internal_conflicts") or {}).values():
+                deterministic += 1
+            # External conflicts are dicts with optional ``grounding``.
             for entry in (trace.get("external_conflicts") or []):
-                total += 1
-                if isinstance(entry, dict):
-                    g = entry.get("grounding")
-                    if g is not None:
-                        if g >= HIGH_CONFIDENCE_THRESHOLD:
-                            high += 1
-                        else:
-                            low += 1
-    return {"total": total, "high_confidence": high, "low_confidence": low}
+                if not isinstance(entry, dict):
+                    deterministic += 1
+                    continue
+                g = entry.get("grounding")
+                if g is None:
+                    deterministic += 1
+                elif g < SUPPRESS_GROUNDING_BELOW:
+                    suppressed += 1
+                elif g >= HIGH_CONFIDENCE_THRESHOLD:
+                    high += 1
+                else:
+                    low += 1
+
+    return {
+        "total": high + low + deterministic,
+        "high_confidence": high,
+        "low_confidence": low,
+        "deterministic": deterministic,
+        "suppressed": suppressed,
+    }
 
 
 def _parse_detector_output(text, group_to_source):

@@ -1318,17 +1318,27 @@
                     const conflictsViewer = document.getElementById('conflictsViewer');
                     const conflictsTabBtn = document.getElementById('conflictsTabBtn');
                     const conflicts = result.conflicts || [];
-                    const summary = result.conflict_summary || {total: 0, high_confidence: 0, low_confidence: 0};
-                    // Tab title: include high/low confidence breakdown so a glance
-                    // tells the user how many conflicts are well-grounded.
-                    const tabLabel = summary.total > 0
-                        ? `Conflicts (${summary.total} — ${summary.high_confidence} high, ${summary.low_confidence} low)`
+                    const summary = result.conflict_summary || {total: 0, high_confidence: 0, low_confidence: 0, deterministic: 0, suppressed: 0};
+                    // Tab title: high/low/deterministic split + a "+N suppressed"
+                    // tail so the user sees the honest count AND the noise band.
+                    // Suppressed = grounding < 0.1 (LLM couldn't ground the
+                    // verdict against the chunks) — kept in the BOM trace but
+                    // excluded from the headline.
+                    const supTail = summary.suppressed ? ` +${summary.suppressed} suppressed` : '';
+                    const tabLabel = (summary.total > 0 || summary.suppressed > 0)
+                        ? `Conflicts (${summary.total} — ${summary.high_confidence} high, ${summary.low_confidence} low${supTail})`
                         : `Conflicts (0)`;
                     conflictsTabBtn.textContent = tabLabel;
                     conflictsTabBtn.classList.remove('has-conflicts', 'no-conflicts');
                     conflictsTabBtn.classList.add(conflicts.length > 0 ? 'has-conflicts' : 'no-conflicts');
-                    if (conflicts.length > 0) {
-                        let html = `<div style="margin-bottom:12px;"><strong>⚠️ ${summary.total} conflict(s) detected</strong> &mdash; <span style="color:#27ae60;">${summary.high_confidence} high-confidence</span>, <span style="color:#e67e22;">${summary.low_confidence} low-confidence</span> (LLM-judged); the remainder are deterministic direct/intra triplet disagreements.</div>`;
+                    if (conflicts.length > 0 || summary.suppressed > 0) {
+                        const supBlurb = summary.suppressed
+                            ? ` <span style="color:#7f8c8d;">(+${summary.suppressed} suppressed below grounding 0.1 — see BOM trace)</span>`
+                            : '';
+                        const detBlurb = summary.deterministic
+                            ? `, <span style="color:#7f8c8d;">${summary.deterministic} deterministic</span> (direct/intra)`
+                            : '';
+                        let html = `<div style="margin-bottom:12px;"><strong>⚠️ ${summary.total} conflict(s) detected</strong> &mdash; <span style="color:#27ae60;">${summary.high_confidence} high-confidence</span>, <span style="color:#e67e22;">${summary.low_confidence} low-confidence</span> (LLM-judged)${detBlurb}${supBlurb}.</div>`;
                         html += '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
                         html += '<tr style="background:#f0f0f0;">'
                             + '<th style="text-align:left;padding:8px;border-bottom:2px solid #ddd;">Field</th>'
