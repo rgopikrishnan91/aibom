@@ -9,8 +9,40 @@
 """
 from __future__ import annotations
 
-from langchain_core.embeddings import FakeEmbeddings
+from langchain_core.embeddings import Embeddings, FakeEmbeddings
+import hashlib
 import pytest
+
+
+class _ContentHashEmbeddings(Embeddings):
+    """Deterministic content-aware embedder for grounding tests.
+
+    Maps each input string to a fixed-size vector derived from its
+    SHA-256 hash, so identical inputs (e.g. a verbatim quote vs a copy
+    of the same string in chunks) produce identical vectors and the
+    cosine score is exactly 1.0. Unrelated strings get near-orthogonal
+    vectors, so a hallucinated statement scores low. Avoids
+    ``FakeEmbeddings``'s per-call randomness which makes the order of
+    score_quote vs score_off undefined.
+    """
+
+    def __init__(self, size: int = 16):
+        self.size = size
+
+    def _vec(self, text: str):
+        digest = hashlib.sha256((text or "").encode("utf-8")).digest()
+        # Expand digest to ``size`` bytes by repetition; map to [-1, 1].
+        if self.size <= len(digest):
+            buf = digest[: self.size]
+        else:
+            buf = (digest * ((self.size // len(digest)) + 1))[: self.size]
+        return [(b / 127.5) - 1.0 for b in buf]
+
+    def embed_documents(self, texts):
+        return [self._vec(t) for t in texts]
+
+    def embed_query(self, text):
+        return self._vec(text)
 
 
 # ---------------------------------------------------------------------------
@@ -121,28 +153,30 @@ def test_extract_conflict_statements_falls_back_when_unmatched():
 
 
 def test_score_grounding_high_when_statement_is_quotable():
-    """A statement that's verbatim in chunks should score near 1.0."""
+    """A statement that's verbatim in chunks should score near 1.0.
+
+    Uses a deterministic content-hash embedder so identical strings
+    produce identical vectors (cosine = 1.0) and unrelated strings
+    produce near-orthogonal vectors (cosine ≈ 0).
+    """
     from aikaboom.core.agentic_rag import AgenticRAG
 
     rag = AgenticRAG.__new__(AgenticRAG)
-    # FakeEmbeddings returns deterministic vectors based on text content,
-    # but every distinct string gets a different vector. For a verbatim
-    # quote we won't get exactly 1.0 with FakeEmbeddings (it's
-    # content-agnostic), so we test the *relative* ordering: the score
-    # for an input string vs its own copy is the highest possible.
-    rag.embeddings = FakeEmbeddings(size=8)
+    rag.embeddings = _ContentHashEmbeddings(size=16)
     chunks = ["The model has 7B parameters and uses GQA.",
               "It was trained on a multilingual corpus."]
     score_quote = rag._score_grounding(["The model has 7B parameters and uses GQA."], chunks)
     score_off = rag._score_grounding(["completely unrelated text about cats"], chunks)
-    assert score_quote >= score_off  # quote grounds at least as well as random
+    # Verbatim quote grounds essentially perfectly; random text doesn't.
+    assert score_quote >= 0.99
+    assert score_off < score_quote
 
 
 def test_score_grounding_zero_for_empty_inputs():
     from aikaboom.core.agentic_rag import AgenticRAG
 
     rag = AgenticRAG.__new__(AgenticRAG)
-    rag.embeddings = FakeEmbeddings(size=4)
+    rag.embeddings = _ContentHashEmbeddings(size=8)
     assert rag._score_grounding([], ["chunk"]) == 0.0
     assert rag._score_grounding(["stmt"], []) == 0.0
     assert rag._score_grounding(["", "  "], ["chunk"]) == 0.0
