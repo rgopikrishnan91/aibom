@@ -7,42 +7,51 @@
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='aikaboom-logo.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,500;9..144,700;9..144,900&family=Geist:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@1,500&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* === Ink & Amber palette ===================================== */
-            --ink:           #0d1117;   /* deepest text + dark panels       */
-            --ink-soft:      #1f2430;   /* surface for code blocks          */
-            --ink-line:      #3a4150;   /* mono panel borders               */
-            --paper:         #fbf7f0;   /* page canvas — warm off-white     */
-            --paper-2:       #f3ece0;   /* secondary panel                  */
-            --paper-edge:    #e7dfd0;   /* hairline rules                   */
-            --paper-faint:   #b3a791;   /* placeholder / muted              */
-            --paper-mute:    #877964;   /* secondary text on paper          */
+            /* === Conventional tech/research palette ===================== */
+            /* Cool neutral grays + a single indigo primary, the
+               combination most tool/docs sites converge on (Stripe,
+               GitHub, Linear, OpenAI playground). Beta features wear a
+               restrained orange so they remain distinct without being
+               loud. JSON viewers stay on a deep cool-ink panel. */
+            --ink:           #0d1117;   /* near-black — body text           */
+            --ink-soft:      #161b22;   /* dark panels (JSON, logs)         */
+            --ink-line:      #30363d;   /* dark-panel borders               */
 
-            /* Brand & action colors */
-            --primary:       #0a8754;   /* deep teal — primary CTA          */
-            --primary-deep:  #08623c;
-            --primary-soft:  #d6ebde;
+            --paper:         #ffffff;   /* page canvas — pure white         */
+            --paper-2:       #f6f8fa;   /* secondary panel                  */
+            --paper-edge:    #d0d7de;   /* hairline rules                   */
+            --paper-soft:    #eaeef2;   /* hover / highlight                */
+            --paper-mute:    #57606a;   /* secondary text — readable        */
+            --paper-faint:   #8b949e;   /* placeholder / disabled           */
 
-            /* Beta — distinctive amber, never competes with primary */
-            --beta:          #c2410c;
-            --beta-soft:     #fde8d6;
-            --beta-edge:     #f4a45a;
+            /* Production / brand — indigo (the standard tech-tool accent) */
+            --primary:       #3451b2;
+            --primary-deep:  #233c87;
+            --primary-soft:  #e6ecff;
+            --primary-edge:  #93a8e8;
+
+            /* Beta — restrained orange, never competes with primary */
+            --beta:          #bc4c00;
+            --beta-soft:     #fff1e5;
+            --beta-edge:     #f0b079;
 
             /* Conflict band colors */
-            --conflict-high: #b91c1c;   /* red — grounding ≥ 0.7            */
-            --conflict-low:  #b45309;   /* amber — 0.1 ≤ g < 0.7            */
-            --conflict-det:  #1d4ed8;   /* blue — direct/intra              */
-            --conflict-sup:  #64748b;   /* slate — suppressed (g < 0.1)     */
+            --conflict-high: #cf222e;   /* red — grounding ≥ 0.7            */
+            --conflict-low:  #9a6700;   /* amber — 0.1 ≤ g < 0.7            */
+            --conflict-det:  #3451b2;   /* indigo — direct/intra (no LLM)   */
+            --conflict-sup:  #6e7781;   /* slate — suppressed (g < 0.1)     */
+            --conflict-none: #1a7f37;   /* green — all sources agree        */
 
-            --shadow-sm:  0 1px 2px rgba(13, 17, 23, 0.06);
-            --shadow:     0 6px 24px -10px rgba(13, 17, 23, 0.18);
-            --shadow-lg:  0 24px 60px -28px rgba(13, 17, 23, 0.28);
+            --shadow-sm:  0 1px 2px rgba(13, 17, 23, 0.04);
+            --shadow:     0 4px 16px -8px rgba(13, 17, 23, 0.10);
+            --shadow-lg:  0 16px 40px -20px rgba(13, 17, 23, 0.18);
 
-            --display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
-            --sans:    'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
-            --mono:    'JetBrains Mono', 'SF Mono', 'Menlo', monospace;
+            --sans:    'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+            --serif:   'IBM Plex Serif', Georgia, serif;       /* used sparingly */
+            --mono:    'IBM Plex Mono', 'SF Mono', 'Menlo', monospace;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -54,15 +63,9 @@
             background: var(--paper);
             color: var(--ink);
             min-height: 100vh;
-            font-feature-settings: 'ss01', 'cv11';
             -webkit-font-smoothing: antialiased;
             font-smoothing: antialiased;
             line-height: 1.5;
-            /* Subtle paper grain via SVG noise */
-            background-image:
-                radial-gradient(ellipse at top left, rgba(194, 65, 12, 0.04), transparent 50%),
-                radial-gradient(ellipse at bottom right, rgba(10, 135, 84, 0.04), transparent 60%),
-                url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85'/><feColorMatrix values='0 0 0 0 0.05 0 0 0 0 0.05 0 0 0 0 0.05 0 0 0 0.04 0'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
         }
 
         /* ========================================================== TOP BAR */
@@ -93,40 +96,42 @@
             display: block;
         }
         .brand-text {
-            font-family: var(--display);
-            font-weight: 900;
-            font-size: 28px;
-            letter-spacing: -0.02em;
+            font-family: var(--sans);
+            font-weight: 700;
+            font-size: 24px;
+            letter-spacing: -0.018em;
             line-height: 1;
+            color: var(--ink);
         }
         .brand-tag {
-            font-family: var(--display);
-            font-style: italic;
+            font-family: var(--sans);
             font-weight: 500;
-            font-size: 15px;
+            font-size: 14px;
             color: var(--paper-mute);
             margin-left: 18px;
             padding-left: 18px;
             border-left: 1px solid var(--paper-edge);
-            line-height: 1;
+            line-height: 1.3;
+            max-width: 38ch;
         }
-        .brand-tag b { color: var(--ink); font-style: normal; font-weight: 700; }
+        @media (max-width: 800px) { .brand-tag { display: none; } }
 
         .topbar-meta {
             display: flex;
             align-items: center;
-            gap: 18px;
+            gap: 14px;
             font-family: var(--mono);
             font-size: 12px;
             color: var(--paper-mute);
         }
         .topbar-meta a {
-            color: var(--paper-mute);
+            color: var(--ink);
             text-decoration: none;
-            border-bottom: 1px dotted var(--paper-edge);
-            transition: color .2s, border-color .2s;
+            border-bottom: 1px solid var(--paper-edge);
+            padding-bottom: 1px;
+            transition: color .15s, border-color .15s;
         }
-        .topbar-meta a:hover { color: var(--primary); border-color: var(--primary); }
+        .topbar-meta a:hover { color: var(--primary-deep); border-color: var(--primary); }
 
         /* ========================================================== LAYOUT */
 
@@ -161,33 +166,34 @@
 
         .pane-eyebrow {
             font-family: var(--mono);
-            font-size: 11px;
-            font-weight: 500;
+            font-size: 12px;
+            font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.14em;
-            color: var(--paper-mute);
-            margin-bottom: 8px;
+            letter-spacing: 0.16em;
+            color: var(--primary-deep);
+            margin-bottom: 10px;
         }
         .pane-title {
-            font-family: var(--display);
-            font-weight: 700;
-            font-size: 30px;
-            letter-spacing: -0.015em;
-            line-height: 1.05;
+            font-family: var(--sans);
+            font-weight: 600;
+            font-size: 26px;
+            letter-spacing: -0.018em;
+            line-height: 1.15;
             color: var(--ink);
             margin-bottom: 14px;
         }
         .pane-lead {
-            font-size: 14px;
+            font-size: 15px;
             color: var(--paper-mute);
             margin-bottom: 28px;
             max-width: 56ch;
+            line-height: 1.55;
         }
 
         /* Section divider with optional eyebrow */
         .section {
-            margin-top: 28px;
-            padding-top: 18px;
+            margin-top: 30px;
+            padding-top: 20px;
             border-top: 1px solid var(--paper-edge);
         }
         .section:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
@@ -196,15 +202,19 @@
             align-items: baseline;
             justify-content: space-between;
             gap: 12px;
-            margin-bottom: 14px;
+            margin-bottom: 16px;
         }
         .section-eyebrow {
             font-family: var(--mono);
-            font-size: 11px;
-            font-weight: 500;
+            font-size: 12.5px;
+            font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.12em;
-            color: var(--paper-mute);
+            letter-spacing: 0.14em;
+            color: var(--ink);
+        }
+        .section-eyebrow .num {
+            color: var(--primary);
+            margin-right: 4px;
         }
 
         /* ============================================================ FORM */
@@ -216,17 +226,17 @@
             margin-bottom: 18px;
         }
         .form-row label.field-label {
-            font-family: var(--mono);
-            font-size: 11px;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--paper-mute);
+            font-family: var(--sans);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--ink);
+            letter-spacing: 0;
+            text-transform: none;
         }
         .form-row .hint {
-            font-size: 12px;
+            font-size: 12.5px;
             color: var(--paper-mute);
-            font-style: italic;
+            font-style: normal;
             margin-top: 2px;
         }
         .form-row .hint code {
@@ -241,12 +251,12 @@
 
         input[type="text"], input[type="number"], select {
             width: 100%;
-            padding: 11px 13px;
-            border: 1px solid var(--paper-edge);
-            background: var(--paper);
+            padding: 12px 14px;
+            border: 1px solid #b9aa8b;
+            background: #ffffff;
             color: var(--ink);
             font-family: var(--mono);
-            font-size: 13px;
+            font-size: 14px;
             border-radius: 4px;
             transition: border-color .15s, box-shadow .15s, background .15s;
         }
@@ -414,12 +424,11 @@
             font-size: 12px;
         }
 
-        /* Beta-feature surfaces — distinctive amber visual treatment */
+        /* Beta-feature surfaces — restrained orange treatment */
         .beta-card {
-            border: 1px dashed var(--beta-edge);
-            background:
-                linear-gradient(180deg, var(--beta-soft) 0%, transparent 30%),
-                var(--paper);
+            border: 1px solid var(--beta-edge);
+            border-left: 3px solid var(--beta);
+            background: var(--paper);
             border-radius: 6px;
             padding: 16px 18px;
             position: relative;
@@ -628,6 +637,87 @@
             border-bottom-color: var(--primary);
         }
 
+        /* Production tabs get a small pine-green chip so production features
+           visually balance the amber beta features. Beta tabs already carry
+           a `.beta-tag` chip; production tabs get a `.prod-tag`. */
+        .tab .prod-tag {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            font-family: var(--mono);
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            padding: 2px 6px;
+            border-radius: 2px;
+            vertical-align: middle;
+            margin-left: 6px;
+            line-height: 1.4;
+            text-transform: uppercase;
+        }
+
+        /* Result pane splash (shown before the first run). When the
+           `.is-empty` class is on the result-pane, tabs/downloads/contents
+           are hidden and only the splash appears. After a successful run,
+           JS removes the class and reveals the tabbed interface. */
+        .result-empty {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 60px 40px;
+            border: 1px solid var(--paper-edge);
+            border-radius: 8px;
+            background: var(--paper);
+            color: var(--paper-mute);
+            min-height: 380px;
+            box-shadow: var(--shadow-sm);
+        }
+        .result-pane.is-empty .result-empty { display: flex; }
+        .result-pane.is-empty .tabs,
+        .result-pane.is-empty .download-strip,
+        .result-pane.is-empty .tab-content { display: none !important; }
+        .result-empty .glyph {
+            font-family: var(--mono);
+            font-weight: 600;
+            font-size: 56px;
+            line-height: 1;
+            color: var(--paper-edge);
+            margin-bottom: 22px;
+        }
+        .result-empty h3 {
+            font-family: var(--sans);
+            font-weight: 600;
+            font-size: 20px;
+            color: var(--ink);
+            letter-spacing: -0.015em;
+            margin-bottom: 12px;
+        }
+        .result-empty p {
+            font-size: 14.5px;
+            line-height: 1.55;
+            max-width: 42ch;
+            color: var(--paper-mute);
+        }
+        .result-empty .checks {
+            display: flex;
+            gap: 18px 26px;
+            margin-top: 28px;
+            flex-wrap: wrap;
+            justify-content: center;
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--paper-mute);
+        }
+        .result-empty .checks span::before {
+            content: '✓ ';
+            color: var(--primary);
+            font-weight: 700;
+            margin-right: 4px;
+        }
+
         .tab-content {
             display: none;
             flex: 1;
@@ -742,9 +832,9 @@
             min-height: 320px;
             padding: 40px;
             color: var(--paper-faint);
-            font-family: var(--display);
-            font-style: italic;
-            font-size: 16px;
+            font-family: var(--sans);
+            font-style: normal;
+            font-size: 14px;
             text-align: center;
             line-height: 1.6;
         }
@@ -801,10 +891,11 @@
             min-width: 80px;
         }
         .conflict-stat .num {
-            font-family: var(--display);
-            font-weight: 700;
-            font-size: 28px;
+            font-family: var(--mono);
+            font-weight: 600;
+            font-size: 26px;
             line-height: 1;
+            letter-spacing: -0.02em;
         }
         .conflict-stat .lbl {
             font-family: var(--mono);
@@ -931,9 +1022,10 @@
             line-height: 1.55;
         }
         .conflict-claims .narrative {
-            font-family: var(--display);
+            font-family: var(--serif);
             font-style: italic;
             color: var(--ink);
+            font-size: 13px;
             margin-bottom: 8px;
             padding-bottom: 8px;
             border-bottom: 1px dashed var(--paper-edge);
@@ -957,10 +1049,10 @@
         .conflicts-empty {
             padding: 50px 30px;
             text-align: center;
-            color: var(--primary-deep);
-            font-family: var(--display);
-            font-style: italic;
-            font-size: 18px;
+            color: var(--conflict-none);
+            font-family: var(--sans);
+            font-weight: 500;
+            font-size: 15px;
         }
         .conflicts-empty::before {
             content: '✓';
@@ -969,6 +1061,118 @@
             font-size: 32px;
             margin-bottom: 8px;
             color: var(--primary);
+        }
+
+        /* Field-class chip (direct from API vs LLM-inferred). */
+        .class-chip {
+            display: inline-block;
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 3px 8px;
+            border-radius: 3px;
+            cursor: help;
+        }
+        .class-chip.class-direct {
+            background: #dceee5;
+            color: var(--primary-deep);
+            border: 1px solid var(--primary-edge);
+        }
+        .class-chip.class-inferred {
+            background: #e8e6f5;
+            color: #4338ca;
+            border: 1px solid #c7c1ed;
+        }
+        .prio-chip {
+            display: inline-block;
+            font-family: var(--mono);
+            font-size: 10.5px;
+            color: var(--paper-mute);
+            background: var(--paper-2);
+            border: 1px solid var(--paper-edge);
+            padding: 3px 8px;
+            border-radius: 3px;
+            cursor: help;
+            line-height: 1.5;
+        }
+
+        /* Conflict-list band headers (high → low → direct/intra → suppressed). */
+        .conflict-band-head {
+            font-family: var(--mono);
+            font-size: 11.5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            padding: 14px 22px 8px;
+            border-bottom: 1px solid var(--paper-edge);
+            background: var(--paper-2);
+        }
+        .conflict-band-head.band-high { color: var(--conflict-high); }
+        .conflict-band-head.band-low  { color: var(--conflict-low); }
+        .conflict-band-head.band-det  { color: var(--conflict-det); }
+        .conflict-band-head.band-sup  { color: var(--conflict-sup); }
+
+        /* "Fields with no conflict" block at the bottom of the conflicts tab. */
+        .agreed-section {
+            margin-top: 4px;
+            border-top: 1px solid var(--paper-edge);
+            background: var(--paper);
+        }
+        .agreed-head {
+            font-family: var(--mono);
+            font-size: 11.5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--conflict-none);
+            padding: 14px 22px 10px;
+            background: var(--paper-2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .agreed-head::before {
+            content: '✓';
+            color: var(--primary);
+            font-weight: 700;
+        }
+        .agreed-count {
+            margin-left: auto;
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--paper-mute);
+            font-weight: 500;
+        }
+        .agreed-list { padding: 6px 0; }
+        .agreed-row {
+            display: grid;
+            grid-template-columns: minmax(180px, 1.2fr) minmax(140px, 1fr) minmax(280px, 3fr);
+            gap: 18px;
+            padding: 8px 22px;
+            font-size: 12.5px;
+            border-bottom: 1px solid var(--paper-edge);
+            align-items: baseline;
+        }
+        .agreed-row:last-child { border-bottom: none; }
+        .agreed-field {
+            font-family: var(--mono);
+            font-weight: 600;
+            color: var(--ink);
+        }
+        .agreed-source {
+            font-family: var(--mono);
+            font-size: 11.5px;
+            color: var(--paper-mute);
+        }
+        .agreed-value {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--ink);
+            line-height: 1.45;
+            word-break: break-word;
+            opacity: 0.9;
         }
 
         /* ============================================ SPDX VALIDATION BAR */
@@ -1005,7 +1209,7 @@
         .logs-viewer::-webkit-scrollbar { width: 10px; }
         .logs-viewer::-webkit-scrollbar-track { background: var(--ink); }
         .logs-viewer::-webkit-scrollbar-thumb { background: var(--ink-line); border-radius: 5px; border: 2px solid var(--ink); }
-        .logs-viewer .log-empty { color: var(--paper-faint); font-family: var(--display); font-style: italic; }
+        .logs-viewer .log-empty { color: var(--paper-faint); font-family: var(--mono); font-style: normal; }
 
         /* OpenRouter catalog row */
         .catalog-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
@@ -1036,11 +1240,12 @@
             margin-top: 30px;
             padding-top: 18px;
             border-top: 1px solid var(--paper-edge);
-            font-family: var(--display);
-            font-style: italic;
+            font-family: var(--mono);
+            font-style: normal;
             color: var(--paper-mute);
-            font-size: 13px;
+            font-size: 11.5px;
             text-align: center;
+            letter-spacing: 0.04em;
         }
         .brand-rule b { color: var(--ink); font-weight: 700; font-style: normal; }
     </style>
@@ -1053,7 +1258,7 @@
             <div>
                 <div class="brand-text">AIkaBoOM</div>
             </div>
-            <div class="brand-tag"><b>Aggregate.</b> <b>Align.</b> <b>Resolve.</b></div>
+            <div class="brand-tag">Automated, conflict-aware AI Bill-of-Materials generator.</div>
         </a>
         <div class="topbar-meta">
             <span>SPDX 3.0.1</span>
@@ -1070,16 +1275,17 @@
             <div class="pane-eyebrow">Generator</div>
             <h1 class="pane-title">Build a Bill of Materials.</h1>
             <p class="pane-lead">
-                Pull metadata from HuggingFace, GitHub, and arXiv. Resolve every
-                field as a triplet — <code style="font-family:var(--mono);font-size:12px;background:var(--paper-edge);padding:1px 4px;border-radius:3px;">{value, source, conflict}</code>
-                — then export to SPDX 3.0.1 or CycloneDX 1.6.
+                Aggregate metadata from HuggingFace, GitHub, and arXiv.
+                Each field resolves to a triplet —
+                <code style="font-family:var(--mono);font-size:12.5px;background:var(--paper-soft);padding:2px 6px;border-radius:3px;color:var(--ink);">{value, source, conflict}</code>
+                — then exports to SPDX 3.0.1 or CycloneDX 1.6.
             </p>
 
             <form id="processorForm">
                 <!-- ============================================ ARTIFACT -->
                 <div class="section">
                     <div class="section-head">
-                        <span class="section-eyebrow">01 · Artifact</span>
+                        <span class="section-eyebrow"><span class="num">01</span>Artifact</span>
                     </div>
 
                     <div class="form-row">
@@ -1128,7 +1334,7 @@
                 <!-- ============================================== ENGINE -->
                 <div class="section">
                     <div class="section-head">
-                        <span class="section-eyebrow">02 · Engine</span>
+                        <span class="section-eyebrow"><span class="num">02</span>Engine</span>
                     </div>
 
                     <div class="form-row">
@@ -1219,7 +1425,7 @@
                 <!-- ========================================== VALIDATION -->
                 <div class="section">
                     <div class="section-head">
-                        <span class="section-eyebrow">03 · Validation</span>
+                        <span class="section-eyebrow"><span class="num">03</span>Validation</span>
                     </div>
 
                     <div class="form-row">
@@ -1240,7 +1446,7 @@
                 <!-- ================================================ BETA -->
                 <div class="section">
                     <div class="section-head">
-                        <span class="section-eyebrow">04 · Beta exports</span>
+                        <span class="section-eyebrow"><span class="num">04</span>Beta exports</span>
                     </div>
 
                     <div class="beta-card">
@@ -1297,11 +1503,29 @@
         </section>
 
         <!-- ================================================== RESULT PANE -->
-        <section class="result-pane">
+        <section class="result-pane is-empty" id="resultPane">
             <div class="result-head">
                 <div>
                     <div class="pane-eyebrow">Output</div>
                     <h2 class="pane-title">Generated BOM</h2>
+                </div>
+            </div>
+
+            <!-- Splash shown before the first run; removed from view by JS
+                 once the first BOM lands. -->
+            <div class="result-empty" id="resultEmpty">
+                <div class="glyph">{ }</div>
+                <h3>Ready when you are.</h3>
+                <p>
+                    Fill in the form on the left and run <em>Generate BOM</em>.
+                    The provenance BOM, conflicts, SPDX 3.0.1 export and live
+                    logs will appear here.
+                </p>
+                <div class="checks">
+                    <span>Provenance BOM</span>
+                    <span>SPDX 3.0.1</span>
+                    <span>CycloneDX 1.6</span>
+                    <span>Conflict audit</span>
                 </div>
             </div>
 
@@ -1325,53 +1549,32 @@
 
             <div id="completeTab" class="tab-content active">
                 <div class="json-shell">
-                    <div id="jsonViewerComplete" class="json-viewer">
-                        <div class="json-placeholder">
-                            The provenance BOM lands here.<br>
-                            Every field carries <em>value · source · conflict</em>.
-                        </div>
-                    </div>
+                    <div id="jsonViewerComplete" class="json-viewer"></div>
                 </div>
             </div>
 
             <div id="conflictsTab" class="tab-content">
                 <div class="conflicts-shell">
-                    <div id="conflictsViewer">
-                        <div class="json-placeholder">
-                            Conflict summary appears here after a run.
-                        </div>
-                    </div>
+                    <div id="conflictsViewer"></div>
                 </div>
             </div>
 
             <div id="spdxTab" class="tab-content">
                 <div id="spdxValidationStatus" class="spdx-status"></div>
                 <div class="json-shell">
-                    <div id="jsonViewerSPDX" class="json-viewer">
-                        <div class="json-placeholder">
-                            SPDX 3.0.1 JSON-LD export lands here.
-                        </div>
-                    </div>
+                    <div id="jsonViewerSPDX" class="json-viewer"></div>
                 </div>
             </div>
 
             <div id="cyclonedxTab" class="tab-content">
                 <div class="json-shell">
-                    <div id="jsonViewerCDX" class="json-viewer">
-                        <div class="json-placeholder">
-                            CycloneDX 1.6 ML-BOM (beta) lands here.
-                        </div>
-                    </div>
+                    <div id="jsonViewerCDX" class="json-viewer"></div>
                 </div>
             </div>
 
             <div id="recursiveTab" class="tab-content">
                 <div class="json-shell">
-                    <div id="jsonViewerRecursive" class="json-viewer">
-                        <div class="json-placeholder">
-                            Recursive child-BOM bundle (beta) lands here when enabled.
-                        </div>
-                    </div>
+                    <div id="jsonViewerRecursive" class="json-viewer"></div>
                 </div>
             </div>
 
@@ -1768,9 +1971,11 @@
                     }
 
                     // ---- conflicts ----------------------------------------------
-                    renderConflicts(result.conflicts || [], result.conflict_summary || {});
+                    renderConflicts(result.conflicts || [], result.conflict_summary || {}, result.metadata || {});
 
                     downloadButtons.style.display = 'flex';
+                    // Reveal tabs + content; remove the first-run splash.
+                    document.getElementById('resultPane').classList.remove('is-empty');
                 } else {
                     showStatus('error', `Error: ${escapeHtml(result.message || 'unknown')}`);
                 }
@@ -1784,7 +1989,15 @@
         });
 
         // ===== conflicts renderer ================================================
-        function renderConflicts(conflicts, summary) {
+        // Render order: high-confidence conflicts → low → direct/intra →
+        // suppressed → fields where every source agreed. Source-letter
+        // labels in the auditor narrative (``A says ... vs B says ...``)
+        // are rewritten to actual source names using the GLOBAL letter→source
+        // map derived from ``claims`` keys (huggingface→A, arxiv→B,
+        // github→C — same order as `_build_groups` in the backend).
+        const BAND_ORDER = { high: 1, low: 2, det: 3, sup: 4 };
+
+        function renderConflicts(conflicts, summary, metadata) {
             const conflictsViewer = document.getElementById('conflictsViewer');
             const conflictsTabBtn = document.getElementById('conflictsTabBtn');
             summary = Object.assign(
@@ -1792,7 +2005,7 @@
                 summary || {}
             );
 
-            // Tab label
+            // Tab label — honest count + suppressed tail.
             const supTail = summary.suppressed ? ` +${summary.suppressed} suppressed` : '';
             const tabLabel = (summary.total > 0 || summary.suppressed > 0)
                 ? `Conflicts (${summary.total} — ${summary.high_confidence} high, ${summary.low_confidence} low${supTail})`
@@ -1801,64 +2014,64 @@
             conflictsTabBtn.classList.remove('has-conflicts', 'no-conflicts');
             conflictsTabBtn.classList.add(conflicts.length > 0 ? 'has-conflicts' : 'no-conflicts');
 
-            if (conflicts.length === 0 && summary.suppressed === 0) {
-                conflictsViewer.innerHTML = '<div class="conflicts-empty">No conflicts detected — all sources agree.</div>';
-                return;
-            }
+            // Group multiple conflict entries on the same field into a single
+            // row (one field = one row, even if the auditor flagged several
+            // pairwise disagreements like A_VS_B + A_VS_C). The displayed band
+            // is the most-severe band across the field's entries.
+            const grouped = groupConflictsByField(conflicts);
+
+            // Stable sort: high → low → det → sup → field name.
+            grouped.sort((a, b) => {
+                const ba = BAND_ORDER[a.band] || 99;
+                const bb = BAND_ORDER[b.band] || 99;
+                if (ba !== bb) return ba - bb;
+                return (a.field || '').localeCompare(b.field || '');
+            });
 
             // Summary band
             let html = '<div class="conflicts-summary">';
             html += statCard('total',       summary.total, 'is-total');
             if (summary.high_confidence) html += statCard('high', summary.high_confidence, 'is-high');
             if (summary.low_confidence)  html += statCard('low',  summary.low_confidence,  'is-low');
-            if (summary.deterministic)   html += statCard('deterministic', summary.deterministic, 'is-det');
+            if (summary.deterministic)   html += statCard('direct/intra', summary.deterministic, 'is-det');
             if (summary.suppressed)      html += statCard('suppressed', summary.suppressed, 'is-sup');
             html += '</div>';
 
-            // Conflict rows
-            html += '<div class="conflict-list">';
-            conflicts.forEach(c => {
-                const band = bandFor(c);
-                const confPill = pillFor(c);
-                const claims = c.claims || {};
-                const claimItems = Object.entries(claims)
-                    .filter(([, v]) => v != null && v !== '')
-                    .map(([src, claim]) =>
-                        `<div class="claim"><span class="src">${escapeHtml(src)}</span>${escapeHtml(String(claim))}</div>`
-                    ).join('');
-                const narrative = c.narrative
-                    ? `<div class="narrative">${escapeHtml(String(c.narrative))}</div>`
-                    : '';
+            // Conflict rows, grouped under band headers.
+            const fieldsWithConflict = new Set(grouped.map(g => `${g.section}::${g.field}`));
 
-                let kindLabel = c.kind || (c.conflict_type === 'intra' ? 'intra-source' : 'inter-source');
+            if (grouped.length === 0 && summary.suppressed === 0) {
+                html += '<div class="conflicts-empty">No conflicts detected — every queried source agreed on every field.</div>';
+            } else {
+                let lastBand = null;
+                html += '<div class="conflict-list">';
+                grouped.forEach(g => {
+                    if (g.band !== lastBand) {
+                        html += bandHeader(g.band);
+                        lastBand = g.band;
+                    }
+                    html += conflictRowGrouped(g);
+                });
+                html += '</div>';
+            }
 
-                html += `<div class="conflict-row band-${band}">
-                    <div>
-                        <div class="conflict-field">${escapeHtml(c.field || '?')}</div>
-                        <div class="conflict-section">${escapeHtml(c.section || '')}</div>
-                    </div>
-                    <div>
-                        <div class="conflict-cell-label">Chosen value</div>
-                        <div class="conflict-value">${escapeHtml(String(c.chosen_value ?? '—'))}</div>
-                        <div class="conflict-source">from ${escapeHtml(String(c.chosen_source || '?'))}</div>
-                    </div>
-                    <div>
-                        <div class="conflict-cell-label">Conflicting value</div>
-                        ${
-                            c.conflict_value
-                                ? `<div class="conflict-value is-conflict">${escapeHtml(String(c.conflict_value))}</div>
-                                   <div class="conflict-source">from ${escapeHtml(String(c.conflict_source || '?'))}</div>`
-                                : `<div class="conflict-source">${escapeHtml(String(c.conflict_source || '—'))}</div>`
-                        }
-                    </div>
-                    <div class="conflict-meta">
-                        ${confPill}
-                        <span class="kind-tag">${escapeHtml(kindLabel)}</span>
-                    </div>
-                    ${narrative || claimItems ? `<div class="conflict-claims">${narrative}${claimItems}</div>` : ''}
-                </div>`;
-            });
-            html += '</div>';
+            // Bottom section: list every populated field where all sources
+            // agreed (i.e. NOT in the conflict list). Gives a complete
+            // audit picture, not just the disagreements.
+            const agreed = collectAgreedFields(metadata, fieldsWithConflict);
+            if (agreed.length > 0) {
+                html += '<div class="agreed-section">';
+                html += `<div class="agreed-head">Fields with no conflict <span class="agreed-count">${agreed.length}</span></div>`;
+                html += '<div class="agreed-list">';
+                agreed.forEach(f => {
+                    html += `<div class="agreed-row">
+                        <div class="agreed-field">${escapeHtml(f.field)}</div>
+                        <div class="agreed-source">${escapeHtml(f.source || '—')}</div>
+                        <div class="agreed-value" title="${escapeHtml(String(f.value))}">${escapeHtml(truncate(String(f.value), 120))}</div>
+                    </div>`;
+                });
+                html += '</div></div>';
+            }
 
             conflictsViewer.innerHTML = html;
         }
@@ -1869,19 +2082,188 @@
                 <span class="lbl">${label}</span>
             </div>`;
         }
+
         function bandFor(c) {
             if (c.confidence === 'high') return 'high';
             if (c.confidence === 'low')  return 'low';
             if (c.confidence === 'suppressed' || (typeof c.grounding === 'number' && c.grounding < 0.1)) return 'sup';
             return 'det';
         }
+
+        function bandHeader(band) {
+            const titles = {
+                high: 'High-confidence conflicts',
+                low:  'Low-confidence conflicts',
+                det:  'Direct & intra-source conflicts (no LLM grounding)',
+                sup:  'Suppressed (grounding below 0.1 — kept in BOM trace, excluded from headline)',
+            };
+            return `<div class="conflict-band-head band-${band}">${titles[band] || band}</div>`;
+        }
+
         function pillFor(c) {
             const g = (typeof c.grounding === 'number') ? c.grounding.toFixed(2) : null;
             const tier = c.confidence;
             if (tier === 'high')       return `<span class="conf-pill high">high${g ? `<span class="grounding">${g}</span>` : ''}</span>`;
             if (tier === 'low')        return `<span class="conf-pill low">low${g ? `<span class="grounding">${g}</span>` : ''}</span>`;
             if (tier === 'suppressed') return `<span class="conf-pill sup">suppressed${g ? `<span class="grounding">${g}</span>` : ''}</span>`;
-            return `<span class="conf-pill det">deterministic</span>`;
+            // No grounding score — direct field or intra-source.
+            return `<span class="conf-pill det">direct/intra</span>`;
+        }
+
+        // Build the global letter→source map from the order of `claims`
+        // keys. The backend's `_build_groups` populates `claims` in
+        // source-priority order (huggingface→A, arxiv→B, github→C, etc.),
+        // so the same order applies to every conflict on this field.
+        function letterMapFromClaims(claims) {
+            const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+            const out = {};
+            const keys = Object.keys(claims || {});
+            keys.forEach((src, i) => {
+                if (i < letters.length) out[letters[i]] = src;
+            });
+            return out;
+        }
+
+        // Replace the auditor's anonymous group letters with actual source
+        // names. ``letterMap`` is `{A: 'huggingface', B: 'arxiv', ...}`.
+        function rewriteNarrative(text, letterMap) {
+            if (!text || !letterMap) return text || '';
+            let out = String(text);
+            Object.entries(letterMap).forEach(([letter, src]) => {
+                out = out.replace(new RegExp(`\\b${letter}\\s+says\\b`, 'g'), `${src} says`);
+                out = out.replace(new RegExp(`(^|[\\s;,(])${letter}(?=[\\s.,;:)])`, 'g'), `$1${src}`);
+            });
+            return out;
+        }
+
+        // Collapse multiple conflict entries on the same field into one
+        // grouped record. The grouped record carries: the most-severe
+        // band, all narratives joined, all sources involved, the chosen
+        // value, the field-class, and the priority list.
+        function groupConflictsByField(conflicts) {
+            const map = new Map();
+            for (const c of conflicts) {
+                const key = `${c.section}::${c.field}`;
+                if (!map.has(key)) {
+                    map.set(key, {
+                        field: c.field,
+                        section: c.section,
+                        field_class: c.field_class || (c.section === 'direct' ? 'direct' : 'inferred'),
+                        priority: c.priority || [],
+                        chosen_value: c.chosen_value,
+                        chosen_source: c.chosen_source,
+                        claims: c.claims || {},
+                        entries: [],
+                    });
+                }
+                map.get(key).entries.push(c);
+            }
+            // Compute the field's most-severe band.
+            const result = [];
+            for (const g of map.values()) {
+                let best = 'sup';
+                for (const e of g.entries) {
+                    const b = bandFor(e);
+                    if (BAND_ORDER[b] < BAND_ORDER[best]) best = b;
+                }
+                g.band = best;
+                result.push(g);
+            }
+            return result;
+        }
+
+        function conflictRowGrouped(g) {
+            const letterMap = letterMapFromClaims(g.claims);
+
+            // One pill per entry (so HF-vs-GitHub at low and arxiv-vs-GitHub
+            // at low render as two side-by-side pills).
+            const pills = g.entries.map(e => pillFor(e)).join(' ');
+
+            // Combine narratives — rewrite letters to source names first.
+            const narrativeBlocks = g.entries
+                .map(e => rewriteNarrative(e.narrative, letterMap))
+                .filter(Boolean)
+                .map(t => `<div class="narrative">${escapeHtml(t)}</div>`)
+                .join('');
+
+            // Per-source claims (the verbatim per-group quotes).
+            const claimItems = Object.entries(g.claims)
+                .filter(([, v]) => v != null && v !== '')
+                .map(([src, claim]) =>
+                    `<div class="claim"><span class="src">${escapeHtml(src)}</span>${escapeHtml(String(claim))}</div>`
+                ).join('');
+
+            // Sources actually involved in conflict (deduped).
+            const involvedSet = new Set();
+            g.entries.forEach(e => (e.sources || []).forEach(s => involvedSet.add(s)));
+            const involved = Array.from(involvedSet);
+            const conflictingCell = involved.length > 0
+                ? involved.map(s => `<div class="conflict-source">${escapeHtml(s)}</div>`).join('')
+                : '<div class="conflict-source">—</div>';
+
+            // Field class chip (direct from API vs LLM-inferred).
+            const classChip = g.field_class === 'direct'
+                ? '<span class="class-chip class-direct" title="Read directly from the HuggingFace / GitHub API">direct field</span>'
+                : '<span class="class-chip class-inferred" title="Extracted by the LLM via RAG over README + arXiv text">inferred (RAG)</span>';
+
+            // Priority order chip.
+            const prioChip = (g.priority && g.priority.length)
+                ? `<span class="prio-chip" title="Source priority used to break ties">priority: ${g.priority.map(escapeHtml).join(' › ')}</span>`
+                : '';
+
+            return `<div class="conflict-row band-${g.band}">
+                <div>
+                    <div class="conflict-field">${escapeHtml(g.field || '?')}</div>
+                    <div class="conflict-section">${classChip}</div>
+                    ${prioChip ? `<div style="margin-top:6px;">${prioChip}</div>` : ''}
+                </div>
+                <div>
+                    <div class="conflict-cell-label">Chosen value</div>
+                    <div class="conflict-value">${escapeHtml(String(g.chosen_value ?? '—'))}</div>
+                    <div class="conflict-source">from ${escapeHtml(String(g.chosen_source || '?'))}</div>
+                </div>
+                <div>
+                    <div class="conflict-cell-label">Conflicting source(s)</div>
+                    ${conflictingCell}
+                </div>
+                <div class="conflict-meta">
+                    ${pills}
+                </div>
+                ${narrativeBlocks || claimItems ? `<div class="conflict-claims">${narrativeBlocks}${claimItems}</div>` : ''}
+            </div>`;
+        }
+
+        // Walk the BOM and collect every populated field where no conflict
+        // was flagged. ``fieldsWithConflict`` is the set of `section::field`
+        // keys we already rendered above, so we don't double-list them.
+        function collectAgreedFields(metadata, fieldsWithConflict) {
+            const agreed = [];
+            if (!metadata) return agreed;
+            ['direct_fields', 'rag_fields'].forEach(section => {
+                const fields = metadata[section] || {};
+                Object.entries(fields).forEach(([name, triplet]) => {
+                    if (!triplet || typeof triplet !== 'object') return;
+                    const sectionLabel = section.replace('_fields', '');
+                    if (fieldsWithConflict.has(`${sectionLabel}::${name}`)) return;
+                    const v = triplet.value;
+                    if (v == null) return;
+                    const text = String(v).trim().toLowerCase();
+                    if (!text || text === 'noassertion' || text === 'not found' || text === 'none.') return;
+                    agreed.push({
+                        field: name,
+                        section: sectionLabel,
+                        value: v,
+                        source: triplet.source,
+                    });
+                });
+            });
+            agreed.sort((a, b) => a.field.localeCompare(b.field));
+            return agreed;
+        }
+
+        function truncate(s, n) {
+            if (s.length <= n) return s;
+            return s.slice(0, n - 1) + '…';
         }
 
         // ===== misc helpers ======================================================
@@ -1990,11 +2372,14 @@
             downloadButtons.style.display = 'none';
             [downloadComplete, downloadSPDX, downloadCDX, downloadRecursive, downloadLinked].forEach(b => b.style.display = 'none');
             spdxValidationStatus.style.display = 'none';
-            jsonViewerComplete.innerHTML  = '<div class="json-placeholder">The provenance BOM lands here.<br>Every field carries <em>value · source · conflict</em>.</div>';
-            jsonViewerSPDX.innerHTML      = '<div class="json-placeholder">SPDX 3.0.1 JSON-LD export lands here.</div>';
-            jsonViewerCDX.innerHTML       = '<div class="json-placeholder">CycloneDX 1.6 ML-BOM (beta) lands here.</div>';
-            jsonViewerRecursive.innerHTML = '<div class="json-placeholder">Recursive child-BOM bundle (beta) lands here when enabled.</div>';
-            document.getElementById('conflictsViewer').innerHTML = '<div class="json-placeholder">Conflict summary appears here after a run.</div>';
+            // Restore the first-run splash; clear all viewers so a re-run
+            // doesn't briefly show stale data.
+            document.getElementById('resultPane').classList.add('is-empty');
+            jsonViewerComplete.innerHTML  = '';
+            jsonViewerSPDX.innerHTML      = '';
+            jsonViewerCDX.innerHTML       = '';
+            jsonViewerRecursive.innerHTML = '';
+            document.getElementById('conflictsViewer').innerHTML = '';
             document.getElementById('logsViewer').innerHTML = '<span class="log-empty">Waiting for processing to start…</span>';
             spdxData = null;
             document.getElementById('validate_spdx').checked = true;
