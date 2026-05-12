@@ -77,3 +77,9 @@ results_200nodes/
 # Test-run BOM outputs, paid-rerun logs, content caches, and ad-hoc
 # experiment artefacts. Large, regenerable, would inflate the repo.
 test_outputs/
+
+# Local agent / assistant tooling artefacts (Claude Code, OpenAI Codex,
+# Cursor, etc.). These are per-developer machine state, not project code.
+.claude/
+AGENTS.md
+CLAUDE.md
