@@ -43,8 +43,9 @@ class TestNewAIQuestions:
 
     def test_priorities_match_doc(self):
         ai = _question_priorities("FIXED_QUESTIONS_AI")
-        # docs/FIELD_STRATEGIES.md says license: HF > GH > arXiv;
-        # primaryPurpose: HF > arXiv > GH.
+        # config/source_priority.json says license: HF > GH > arXiv;
+        # primaryPurpose: HF > arXiv > GH. See
+        # docs/PIPELINE_WALKTHROUGH.md#6-field-reference-table.
         assert ai["license"]["priority"] == ["huggingface", "github", "arxiv"]
         assert ai["primaryPurpose"]["priority"] == ["huggingface", "arxiv", "github"]
 
@@ -68,7 +69,8 @@ class TestNewDatasetQuestions:
 
     def test_priorities_match_doc(self):
         data = _question_priorities("FIXED_QUESTIONS_DATA")
-        # docs/FIELD_STRATEGIES.md priorities for the new dataset entries
+        # config/source_priority.json priorities for the dataset entries.
+        # See docs/PIPELINE_WALKTHROUGH.md#6-field-reference-table.
         assert data["license"]["priority"] == ["huggingface", "github", "arxiv"]
         assert data["primaryPurpose"]["priority"] == ["huggingface", "arxiv", "github"]
         assert data["datasetAvailability"]["priority"] == ["huggingface", "github", "arxiv"]

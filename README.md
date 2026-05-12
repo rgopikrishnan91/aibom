@@ -26,10 +26,17 @@ AIkaBoOM extracts metadata from **HuggingFace**, **GitHub**, and **arXiv**, uses
 
 ```bash
 git clone https://github.com/rgopikrishnan91/aikaboom && cd aikaboom
+python -m venv .venv && source .venv/bin/activate   # macOS / Linux
+# Windows: python -m venv .venv && .venv\Scripts\activate
 pip install -e .
 cp .env.example .env   # add a provider key (OpenRouter / OpenAI / Ollama)
 python run.py           # opens http://localhost:5000
 ```
+
+> Requires **Python 3.9+**. On modern Debian / Ubuntu the venv step is
+> mandatory — system Python blocks `pip install` outside a virtual
+> environment (PEP 668). Conda works too:
+> `conda create -n aikaboom python=3.11 -y && conda activate aikaboom`.
 
 No API keys at all? Use Ollama for fully local processing:
 
@@ -57,6 +64,13 @@ ollama serve && ollama pull llama3:8b
 2. **Extract** structured fields with an LLM, either via RAG (chunk + retrieve + generate) or direct prompting.
 3. **Detect conflicts** between sources (majority voting, license similarity).
 4. **Output** a JSON BOM with triplet fields, SPDX 3.0.1 JSON-LD, and optional beta CycloneDX / recursive child BOM exports.
+
+> 📖 **Want the full code-level walkthrough?** See
+> **[docs/PIPELINE_WALKTHROUGH.md](docs/PIPELINE_WALKTHROUGH.md)** — a
+> single canonical doc that traces a request from "user pastes link" to
+> the final SPDX export, with a per-field reference table (sources,
+> priority, what's extracted, how conflicts work, SPDX target) and
+> file:line refs into the code at every step.
 
 ## Usage
 
@@ -282,7 +296,12 @@ the difference is intentional and documented here.
 
 ## Conflict Detection and Value Selection
 
-A field-by-field reference of how each AI and Dataset BOM property is resolved (sources, priority, normalisation, conflict criterion, SPDX/CycloneDX export shape) lives in [docs/FIELD_STRATEGIES.md](docs/FIELD_STRATEGIES.md).
+A field-by-field reference of how each AI and Dataset BOM property is
+resolved (sources, priority, normalisation, conflict criterion,
+SPDX/CycloneDX export shape) lives in
+[`docs/PIPELINE_WALKTHROUGH.md`](docs/PIPELINE_WALKTHROUGH.md#6-field-reference-table) —
+the canonical code-level walkthrough also covers ingestion, the RAG
+workflow, recursive walking, and validation in one place.
 
 ### Editing RAG question prompts
 
@@ -533,9 +552,15 @@ done.
 ## Testing
 
 ```bash
-PYTHONPATH=src pytest                     # 280+ tests
-PYTHONPATH=src pytest --cov=aikaboom --cov-report=html
+pytest tests/                              # 720+ tests, ~3 min
+pytest tests/ --cov=aikaboom --cov-report=html
 ```
+
+A fresh clone with no API keys runs the suite green
+(`pytest` will report 720+ passed, 2 skipped). The 2 skipped tests are
+real-LLM integration tests gated behind `AIKABOOM_RUN_LLM_TESTS=1` (and
+an `OPENROUTER_API_KEY`) because their answer-content assertions are
+inherently nondeterministic.
 
 ## Troubleshooting
 
