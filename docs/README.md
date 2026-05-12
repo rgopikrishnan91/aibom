@@ -11,9 +11,6 @@
 
 ## Reference
 
-- [Field Resolution Strategies](./FIELD_STRATEGIES.md) — older per-field
-  table kept for historical context. The walkthrough above supersedes
-  this for active use.
 - [SPDX 3.0.1 Field Reference](./SPDX_3.0.1_FIELD_REFERENCE.md) —
   verbatim Summary + Description blocks harvested from the
   [`spdx/spdx-3-model`](https://github.com/spdx/spdx-3-model) repo.

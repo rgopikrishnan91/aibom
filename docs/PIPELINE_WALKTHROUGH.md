@@ -664,7 +664,6 @@ regenerate locally with
 - **High-level usage:** [README.md](../README.md)
 - **Quickstart:** [QUICKSTART.md](../QUICKSTART.md)
 - **Per-field SPDX 3.0.1 spec text:** [SPDX_3.0.1_FIELD_REFERENCE.md](./SPDX_3.0.1_FIELD_REFERENCE.md)
-- **Pre-Phase-12 field resolution tables (older):** [FIELD_STRATEGIES.md](./FIELD_STRATEGIES.md)
 - **Local embeddings details:** [LOCAL_EMBEDDINGS.md](./LOCAL_EMBEDDINGS.md)
 - **HF Spaces deployment:** [HF_SPACES.md](./HF_SPACES.md)
 - **Known limitations:** [README.md#known-limitations](../README.md#known-limitations)

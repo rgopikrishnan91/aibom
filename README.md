@@ -302,8 +302,6 @@ SPDX/CycloneDX export shape) lives in
 [`docs/PIPELINE_WALKTHROUGH.md`](docs/PIPELINE_WALKTHROUGH.md#6-field-reference-table) —
 the canonical code-level walkthrough also covers ingestion, the RAG
 workflow, recursive walking, and validation in one place.
-[`docs/FIELD_STRATEGIES.md`](docs/FIELD_STRATEGIES.md) is the older
-table kept for historical context.
 
 ### Editing RAG question prompts
 

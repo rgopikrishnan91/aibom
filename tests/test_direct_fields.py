@@ -1,5 +1,5 @@
-"""Direct-pipeline tests covering the agreed strategies in
-docs/FIELD_STRATEGIES.md.
+"""Direct-pipeline tests covering the resolution strategies described in
+docs/PIPELINE_WALKTHROUGH.md (§5 + §6).
 
 Each test feeds synthetic HF/GH source dicts through
 ``SourceHandler.get_field_conflict_with_priority`` /
