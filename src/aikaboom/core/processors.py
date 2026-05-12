@@ -18,12 +18,25 @@ from aikaboom.utils.metadata_fetcher import MetadataFetcher
 from aikaboom.core.source_handler import SourceHandler
 from aikaboom.core.internal_conflict import check_license_intra_source
 from aikaboom.utils.source_priority import get_direct_priority
+from aikaboom.utils.sail_version_extractor import extract_version_from_repo_id
+from aikaboom.utils.supplier_alias import default_alias_index
 from aikaboom.utils.normalise import (
     normalize_license,
     normalize_org,
     normalize_url,
     normalize_version,
 )
+
+
+def _normalize_supplier(value):
+    """Phase 12: canonicalise via SupplierAliasIndex so cross-platform org
+    handles (``Qwen`` ↔ ``QwenLM``, ``cais`` ↔ ``hendrycks``, etc.) collapse
+    to one identity. Falls through to ``normalize_org`` for unknown handles.
+    """
+    if value is None or value == "":
+        return value
+    canonical = default_alias_index().canonicalize(str(value))
+    return canonical if canonical else normalize_org(value)
 
 
 def _clean_value(value):
@@ -150,6 +163,8 @@ def _build_triplet_payload(mapping, conflict_suffix='_conflict', source_suffix=N
             continue
         if source_suffix and key.endswith(source_suffix):
             continue
+        if key.endswith("_alternates"):
+            continue
         # Trace propagation keys are stored alongside the field but
         # are not themselves promoted to triplets.
         if any(key.endswith(suf) for suf in _TRACE_SUFFIXES):
@@ -165,6 +180,11 @@ def _build_triplet_payload(mapping, conflict_suffix='_conflict', source_suffix=N
             "source": source_value,
             "conflict": _parse_conflict_string(raw_conflict),
         }
+        alternates = mapping.get(f"{key}_alternates")
+        if isinstance(alternates, dict) and len(alternates) > 1:
+            # Only attach when more than one source contributed; a single-source
+            # value adds nothing the triplet doesn't already carry.
+            triplet["alternates"] = {k: _clean_value(v) for k, v in alternates.items()}
         trace = _build_trace_block(mapping, key)
         if trace is not None:
             triplet["trace"] = trace
@@ -323,31 +343,62 @@ class AIBOMProcessor:
         direct_metadata = {}
         named_sources = {"huggingface": huggingface_metadata, "github": github_metadata}
 
-        # releaseTime: pick the most recent date across sources, but flag a
-        # conflict when the gap is wider than the agreed 7-day window.
-        direct_metadata["releaseTime"], direct_metadata["releaseTime_source"], direct_metadata["releaseTime_conflicts"] = (
-            SourceHandler.get_date_field_with_window_conflict(
-                "releaseTime", named_sources, mode="latest", window_days=7,
+        # Phase 12: SAIL name-derived packageVersion as a first-class source.
+        # `mistralai/Mistral-7B-v0.1` -> `7B-v0.1` beats the HF git SHA prefix
+        # for human readability; falls through to the existing cascade when
+        # the model name carries no size/version/variant signal.
+        hf_repo_id = (huggingface_metadata or {}).get("name")
+        sail_version = extract_version_from_repo_id(hf_repo_id) if hf_repo_id else None
+        if sail_version:
+            named_sources["huggingface_name"] = {"packageVersion": sail_version}
+
+        # Phase 12 / Finding #34: releaseTime and downloadLocation describe
+        # *different artefacts* on HF (the model checkpoint) and GitHub (the
+        # code repository). Their values will systematically diverge — that's
+        # not a conflict, it's two answers to two questions. Use the
+        # per-platform resolver: pick the priority winner as the canonical
+        # value and expose every non-empty per-source value as an alternate.
+        direct_metadata["releaseTime"], direct_metadata["releaseTime_source"], direct_metadata["releaseTime_alternates"] = (
+            SourceHandler.get_field_per_platform(
+                "releaseTime", named_sources, priority=get_direct_priority("releaseTime"),
             )
         )
+        direct_metadata["releaseTime_conflicts"] = None
+
+        # Phase 12 / Finding #34: route suppliedBy through the alias index so
+        # known cross-platform identities (HF `Qwen` ↔ GitHub `QwenLM`,
+        # `cais` ↔ `hendrycks`, etc.) collapse to one canonical handle and
+        # don't show up as conflicts. Tier 3 (Jaro-Winkler) catches typo /
+        # prefix-shared variants the curated seed doesn't cover.
         direct_metadata["suppliedBy"], direct_metadata["suppliedBy_source"], direct_metadata["suppliedBy_conflicts"] = SourceHandler.get_field_conflict_with_priority(
             "suppliedBy", named_sources,
             priority=get_direct_priority("suppliedBy"),
-            normaliser=normalize_org,
+            normaliser=_normalize_supplier,
         )
         # The AI metadata inspectors emit this key as ``downloadLocation``
         # (metadata_fetcher.py:120, 213); the data inspector uses
         # ``software_downloadLocation``. Match the AI emission key here.
-        direct_metadata["downloadLocation"], direct_metadata["downloadLocation_source"], direct_metadata["downloadLocation_conflicts"] = SourceHandler.get_field_conflict_with_priority(
-            "downloadLocation", named_sources,
-            priority=get_direct_priority("downloadLocation"),
-            normaliser=normalize_url,
+        direct_metadata["downloadLocation"], direct_metadata["downloadLocation_source"], direct_metadata["downloadLocation_alternates"] = (
+            SourceHandler.get_field_per_platform(
+                "downloadLocation", named_sources, priority=get_direct_priority("downloadLocation"),
+            )
         )
-        direct_metadata["packageVersion"], direct_metadata["packageVersion_source"], direct_metadata["packageVersion_conflicts"] = SourceHandler.get_field_conflict_with_priority(
-            "packageVersion", named_sources,
-            priority=get_direct_priority("packageVersion"),
-            normaliser=normalize_version,
-        )
+        direct_metadata["downloadLocation_conflicts"] = None
+        # packageVersion: short-circuit on SAIL name-derived version when present.
+        # HF emits a git-SHA prefix and GH emits a release tag — those describe
+        # repository state, not the model release the user reads off the card.
+        # Treating them as alternative claims to "7B-v0.1" produces noise, not
+        # signal, so we suppress the cascade when SAIL has a value.
+        if sail_version:
+            direct_metadata["packageVersion"] = sail_version
+            direct_metadata["packageVersion_source"] = "huggingface_name"
+            direct_metadata["packageVersion_conflicts"] = None
+        else:
+            direct_metadata["packageVersion"], direct_metadata["packageVersion_source"], direct_metadata["packageVersion_conflicts"] = SourceHandler.get_field_conflict_with_priority(
+                "packageVersion", named_sources,
+                priority=get_direct_priority("packageVersion"),
+                normaliser=normalize_version,
+            )
         # license: HF cardData.license + GitHub repo license API both emit a
         # ``license`` key from the inspectors. Resolve here so exporters read
         # ``direct.license`` directly instead of round-tripping the value
@@ -660,38 +711,46 @@ class DATABOMProcessor:
         direct_metadata = {}
         named_sources = {"huggingface": huggingface_metadata, "github": github_metadata}
 
-        # builtTime: pick the earliest "first created" date, flag a conflict
-        # when sources differ by more than 7 days.
-        direct_metadata["builtTime"], direct_metadata["builtTime_source"], direct_metadata["builtTime_conflicts"] = (
-            SourceHandler.get_date_field_with_window_conflict(
-                "builtTime", named_sources, mode="earliest", window_days=7,
+        # Phase 12 / Finding #34: builtTime, releaseTime, downloadLocation, and
+        # contentIdentifier describe *different artefacts* on HF (the dataset)
+        # and GitHub (the supporting code repo). Their values diverge for
+        # structural reasons — that's not a conflict. Per-platform resolver:
+        # pick priority winner, expose every per-source value as an alternate.
+        direct_metadata["builtTime"], direct_metadata["builtTime_source"], direct_metadata["builtTime_alternates"] = (
+            SourceHandler.get_field_per_platform(
+                "builtTime", named_sources, priority=get_direct_priority("builtTime"),
             )
         )
+        direct_metadata["builtTime_conflicts"] = None
 
+        # Phase 12 / Finding #34: alias-aware supplier resolution for datasets
+        # (mirrors the AI BOM suppliedBy path).
         direct_metadata["originatedBy"], direct_metadata["originatedBy_source"], direct_metadata["originatedBy_conflicts"] = SourceHandler.get_field_conflict_with_priority(
             "originatedBy", named_sources,
             priority=get_direct_priority("originatedBy"),
-            normaliser=normalize_org,
+            normaliser=_normalize_supplier,
         )
 
-        # releaseTime: most-recent activity date, with the same 7-day window.
-        direct_metadata["releaseTime"], direct_metadata["releaseTime_source"], direct_metadata["releaseTime_conflicts"] = (
-            SourceHandler.get_date_field_with_window_conflict(
-                "releaseTime", named_sources, mode="latest", window_days=7,
+        direct_metadata["releaseTime"], direct_metadata["releaseTime_source"], direct_metadata["releaseTime_alternates"] = (
+            SourceHandler.get_field_per_platform(
+                "releaseTime", named_sources, priority=get_direct_priority("releaseTime"),
             )
         )
+        direct_metadata["releaseTime_conflicts"] = None
 
-        direct_metadata["downloadLocation"], direct_metadata["downloadLocation_source"], direct_metadata["downloadLocation_conflicts"] = SourceHandler.get_field_conflict_with_priority(
-            "software_downloadLocation", named_sources,
-            priority=get_direct_priority("downloadLocation"),
-            normaliser=normalize_url,
+        direct_metadata["downloadLocation"], direct_metadata["downloadLocation_source"], direct_metadata["downloadLocation_alternates"] = (
+            SourceHandler.get_field_per_platform(
+                "software_downloadLocation", named_sources, priority=get_direct_priority("downloadLocation"),
+            )
         )
+        direct_metadata["downloadLocation_conflicts"] = None
 
-        # contentIdentifier: dataset content hash. GH > HF per the spec.
-        direct_metadata["contentIdentifier"], direct_metadata["contentIdentifier_source"], direct_metadata["contentIdentifier_conflicts"] = SourceHandler.get_field_conflict_with_priority(
-            "contentIdentifier", named_sources,
-            priority=get_direct_priority("contentIdentifier"),
+        direct_metadata["contentIdentifier"], direct_metadata["contentIdentifier_source"], direct_metadata["contentIdentifier_alternates"] = (
+            SourceHandler.get_field_per_platform(
+                "contentIdentifier", named_sources, priority=get_direct_priority("contentIdentifier"),
+            )
         )
+        direct_metadata["contentIdentifier_conflicts"] = None
 
         # license: HF dataset cards expose ``cardData.license``; resolve it
         # via the direct path so exporters don't need a RAG fallback.

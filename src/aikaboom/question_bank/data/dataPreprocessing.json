@@ -7,31 +7,35 @@
   "description": "A free-form text that describes the various preprocessing steps\nthat were applied to the raw data to create the dataset.\n\nExamples include standardization, normalization, deduplication, tokenization, and removal of tokens.",
   "post_process": null,
   "retrieval": {
-    "hypothetical_passage": "Raw HTML pages were stripped with trafilatura, lower-cased, and split into sentences with spaCy. We deduplicated near-duplicates using MinHash LSH at a Jaccard threshold of 0.8, removing roughly 18% of the corpus. Documents shorter than 50 tokens or with a perplexity above 1500 under a KenLM 5-gram model were discarded. Text was tokenized with the GPT-2 BPE tokenizer; sequences longer than 1024 tokens were chunked with 128-token overlap before training.",
+    "hypothetical_passage": "After collection, the data was processed through several preprocessing steps. The collected questions were split into a few-shot development set, a validation set, a test set, and a training set. We applied deduplication, normalization, and tokenization. Annotations were injected into the training examples. We split the items into specific partitions of dev, validation, and test. The full dataset was created first and a subset then underwent a second round of curation. We filtered out documents that didn't meet quality thresholds. Manual review and inter-annotator agreement were applied. We split the questions into three sets: a few-shot development set, a validation set, a test set.",
     "bm25_terms": [
+      "split into",
+      "we split",
+      "questions were split",
+      "training set",
+      "test set",
+      "development set",
+      "validation set",
+      "few-shot",
+      "annotations were injected",
+      "injected into",
       "preprocessing",
+      "second round",
+      "underwent",
       "deduplication",
-      "MinHash",
       "tokenization",
-      "BPE",
-      "SentencePiece",
-      "normalization",
-      "lower-cased",
-      "language detection",
-      "fastText",
-      "perplexity filter",
-      "KenLM",
-      "removed duplicates",
-      "cleaned",
-      "trafilatura",
-      "spaCy",
-      "filtered out",
-      "chunking"
+      "we filtered",
+      "we removed",
+      "manually reviewed",
+      "we applied",
+      "we processed",
+      "items were split",
+      "three sets"
     ]
   },
   "extraction": {
     "instruction": "Extract every preprocessing step applied to the raw data to produce the released dataset, in the order they were applied when stated.",
     "field_spec": "SPDX property `dataset_dataPreprocessing`. Free-form text (xsd:string), single value listing steps. Typical steps: standardization, normalization, deduplication, tokenization, filtering, chunking, language ID, PII scrubbing.",
-    "output_guidance": "Preserve numeric thresholds (e.g., 'min length 50 tokens', 'Jaccard 0.8') and tool names verbatim. If preprocessing is split between an upstream corpus and this release, mark which steps belong to each. Return noAssertion if the card only describes raw collection without any cleaning or transformation step."
+    "output_guidance": "Look for any processing applied to the data after collection: splitting into train/dev/test/few-shot, filtering, deduplication, tokenization, lowercasing, normalization, language ID, PII scrubbing, annotation injection, manual review, second-round curation, etc. The split definitions and annotation steps count as preprocessing even when not under a literal '## Preprocessing' header. Preserve numeric thresholds and tool names verbatim. Return noAssertion only when the context describes only raw collection with no subsequent processing of any kind."
   }
 }

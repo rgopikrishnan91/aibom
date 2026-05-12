@@ -50,6 +50,7 @@ dependencies = [
     "pyshacl>=0.30.0",
     "jsonschema>=4.0.0",
     "rank_bm25>=0.2.2",
+    "jellyfish>=1.0.0",
 ]
 
 [project.optional-dependencies]

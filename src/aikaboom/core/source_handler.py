@@ -201,6 +201,45 @@ class SourceHandler:
         return chosen_value, chosen_source, conflict
 
     @staticmethod
+    def get_field_per_platform(key, sources_by_name, priority=None):
+        """Resolve an artefact-platform field: pick priority winner, expose
+        every non-empty per-source value as an alternate, never flag a
+        cross-platform disagreement as a conflict.
+
+        Use this for fields where HF and GitHub *describe different
+        artefacts* (the model checkpoint vs. the supporting code repo)
+        rather than offering competing claims about the same artefact —
+        ``downloadLocation``, ``contentIdentifier``, ``releaseTime``. The
+        disagreement is structural, not informational, so the BOM should
+        preserve both values as alternates rather than emit a noisy
+        "conflict" record. See Finding #34.
+
+        Returns:
+            ``(value, source, alternates)`` where ``alternates`` is a
+            ``{source_name: value}`` dict containing every non-empty
+            per-source value (including the chosen one).
+        """
+        priority = priority or []
+        alternates = {}
+        for name, src in sources_by_name.items():
+            if not isinstance(src, dict):
+                continue
+            val = src.get(key)
+            if val is None or val == "":
+                continue
+            alternates[name] = val
+
+        if not alternates:
+            return None, None, {}
+
+        # Pick first priority match; fall back to dict-iteration order.
+        for name in priority:
+            if name in alternates:
+                return alternates[name], name, alternates
+        first_name = next(iter(alternates))
+        return alternates[first_name], first_name, alternates
+
+    @staticmethod
     def get_field_conflict_with_priority(key, sources_by_name, priority=None, fuzzy=False, fuzzy_threshold=0.5, normaliser=None):
         """Reorder named sources by ``priority`` and delegate to
         :meth:`get_field_conflict`.

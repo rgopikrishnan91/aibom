@@ -222,17 +222,38 @@ def _parse_detector_output(text, group_to_source):
             internal_conflicts[src] = narrative or "Yes"
 
     letters = list(group_to_source.keys())
+    # Match ``Yes (confidence=0.95): …`` and capture the confidence value.
+    _confidence_re = re.compile(
+        r'^\s*yes\s*\(\s*confidence\s*=\s*([0-9]*\.?[0-9]+)\s*\)\s*:?\s*',
+        re.IGNORECASE,
+    )
     for i, a in enumerate(letters):
         for b in letters[i + 1 :]:
             raw = find_line(f"CONFLICT_{a}_VS_{b}")
             if raw is None:
                 continue
-            if raw.lower().lstrip().startswith("yes"):
+            if not raw.lower().lstrip().startswith("yes"):
+                continue
+            confidence = None
+            m = _confidence_re.match(raw)
+            if m:
+                try:
+                    confidence = max(0.0, min(1.0, float(m.group(1))))
+                except ValueError:
+                    confidence = None
+                narrative = raw[m.end():].strip()
+            else:
+                # Backwards-compat: prompts that haven't been refreshed still
+                # emit ``Yes: …`` without a confidence value. Strip just the
+                # ``Yes`` prefix.
                 narrative = re.sub(r'^\s*yes\s*:?\s*', '', raw, flags=re.I).strip()
-                external_conflicts.append({
-                    "sources": [group_to_source[a], group_to_source[b]],
-                    "description": narrative or "Yes",
-                })
+            entry = {
+                "sources": [group_to_source[a], group_to_source[b]],
+                "description": narrative or "Yes",
+            }
+            if confidence is not None:
+                entry["contradiction_score"] = confidence
+            external_conflicts.append(entry)
 
     return source_claims, internal_conflicts, external_conflicts
 
