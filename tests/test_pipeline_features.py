@@ -18,7 +18,9 @@ class _StubRagProcessor:
     def __init__(self, results):
         self._results = results
 
-    def process_ai_model(self, repo_id, arxiv_url, github_url, huggingface_url):
+    def process_ai_model(self, repo_id, arxiv_url, github_url, huggingface_url, **kwargs):
+        # ``**kwargs`` absorbs newer keyword args like ``structured_chunks``
+        # that the real RAG processor takes; the stub doesn't need them.
         return list(self._results)
 
 
@@ -28,9 +30,25 @@ def _make_ai_processor(rag_results, direct_metadata, github_readme="", hf_readme
     processor.questions_config = {"license": {"question": "What is the license?"}}
     processor.processor = _StubRagProcessor(rag_results)
     processor.generate_model_id = lambda repo_id, github_url: "owner_model"
-    processor.fetch_direct_metadata = lambda github_url, hf_repo_id=None: dict(direct_metadata)
     processor._fetch_github_readme = lambda github_url: github_readme
     processor._fetch_hf_readme = lambda hf_repo_id: hf_readme
+    # ``process_ai_model`` consults ``self.github_client`` directly on a
+    # separate code path from ``_fetch_github_readme`` (for repo-level
+    # metadata enrichment). The stub is in test-only territory so leaving
+    # it ``None`` keeps that branch a no-op.
+    processor.github_client = None
+    processor.hf_api = None
+    # Stub the source-fetch + direct-resolve pair. The processor now uses
+    # ``_fetch_source_objects`` and ``_resolve_direct_fields_ai`` (the older
+    # ``fetch_direct_metadata`` was retired). The stub returns the raw
+    # direct-metadata dict the test wants ``_build_triplet_payload`` to see.
+    processor._fetch_source_objects = lambda *args, **kwargs: (None, {}, None, {})
+    processor._build_structured_chunks = lambda *args, **kwargs: {}
+    processor._resolve_direct_fields_ai = (
+        lambda hf_metadata, gh_metadata, named_readmes=None: dict(direct_metadata)
+    )
+    # Legacy stub kept in case any branch still falls back to it.
+    processor.fetch_direct_metadata = lambda github_url, hf_repo_id=None: dict(direct_metadata)
     return processor
 
 
@@ -154,23 +172,20 @@ def test_json_output_is_triplet_based_and_serializable():
     json.dumps(result)
 
 
-def test_internal_domain_conflict_same_source():
+def test_internal_domain_conflict_within_one_source():
     """
     Scenario
     --------
-    Both chunks come from the SAME source (huggingface) but describe different
-    domains — Chunk 1: "computer vision", Chunk 2: "natural language processing".
-    This is an intra-source (internal) conflict: the same model card is
-    inconsistent about what domain the model targets.
+    Two sources contribute chunks. ``huggingface`` contradicts itself
+    (Chunk A1: "computer vision" vs Chunk A2: "NLP"); ``arxiv`` is
+    consistent. The Phase 12 group-anonymized auditor emits
+    ``CONFLICT_WITHIN_A: Yes: ...``; the legacy ``internal_conflict``
+    string the BOM still surfaces should start with "Yes".
 
-    Question used: FIXED_QUESTIONS_AI['domain']
-        "What is the domain in which the AI package can be used?"
-        priority: ['arxiv', 'huggingface', 'github']
-
-    The stub OpenRouter (meta-llama/llama-3.3-70b-instruct) returns the
-    pre-formatted conflict-detection output, then an answer.  We call:
-        1. _detect_conflicts  → state["internal_conflict"] starts with "Yes"
-        2. _generate_answer_node → state["answer"] is populated
+    Note: in Phase 12 the auditor only runs an LLM call when there are
+    2+ source groups (otherwise there's no consensus to compute, and a
+    single-source intra-document check is skipped to cut cost and FPs).
+    So the test deliberately mixes huggingface + arxiv chunks.
     """
     docs = [
         Document(
@@ -187,20 +202,28 @@ def test_internal_domain_conflict_same_source():
             ),
             metadata={"source": "huggingface"},
         ),
+        Document(
+            page_content=(
+                "The model handles natural language processing tasks "
+                "for text classification."
+            ),
+            metadata={"source": "arxiv"},
+        ),
     ]
 
-    # --- Call 1: conflict-detection response (what OpenRouter would return) ---
+    # Phase 12 format: per-group CLAIM, CONFLICT_WITHIN_<L>, CONFLICT_A_VS_B.
+    # priority is ['arxiv', 'huggingface', 'github'] so arxiv→A, huggingface→B.
     conflict_response = (
-        "INTERNAL_CONFLICT: Yes: huggingface — "
-        'Chunk 1 says "computer vision" vs Chunk 2 says "natural language processing"\n'
-        "EXTERNAL_CONFLICT: No"
+        'CLAIM_A: Natural language processing.\n'
+        'CLAIM_B: Inconsistent — computer vision and NLP.\n'
+        'CONFLICT_WITHIN_A: No\n'
+        'CONFLICT_WITHIN_B: Yes: "computer vision" vs "natural language processing"\n'
+        'CONFLICT_A_VS_B: No'
     )
-    # --- Call 2: answer-generation response ---
     answer_response = "ANSWER: Computer vision and natural language processing"
 
     rag = _make_rag(_SequentialLLM(conflict_response, answer_response))
 
-    # Step 1 – run conflict detection
     state = rag._detect_conflicts(_base_state(docs))
 
     assert state["internal_conflict"].startswith("Yes"), (
@@ -208,9 +231,7 @@ def test_internal_domain_conflict_same_source():
     )
     assert state["external_conflict"] == "No"
 
-    # Step 2 – run answer generation (no source filtering since conflict is internal)
     state = rag._generate_answer_node(state)
-
     assert state["answer"] == "Computer vision and natural language processing"
 
 
@@ -250,10 +271,15 @@ def test_external_domain_conflict_arxiv_wins():
         ),
     ]
 
+    # Phase 12 format: CLAIM_<L> / CONFLICT_WITHIN_<L> / CONFLICT_<A>_VS_<B>.
+    # arxiv → group A, huggingface → group B (per source_order priority).
     conflict_response = (
-        "INTERNAL_CONFLICT: No\n"
-        'EXTERNAL_CONFLICT: Yes: arxiv (Chunk 1) says "speech recognition" '
-        'while huggingface (Chunk 2) says "audio classification"'
+        'CLAIM_A: Speech recognition.\n'
+        'CLAIM_B: Audio classification.\n'
+        'CONFLICT_WITHIN_A: No\n'
+        'CONFLICT_WITHIN_B: No\n'
+        'CONFLICT_A_VS_B: Yes (confidence=0.9): A says "speech recognition" '
+        'vs B says "audio classification"'
     )
     answer_response = "ANSWER: Speech recognition"
 

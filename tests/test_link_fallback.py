@@ -8,8 +8,14 @@ from aikaboom.utils.link_fallback import LinkFallbackFinder
 class TestLinkFallbackFinder:
     """Tests for LinkFallbackFinder"""
     
-    def test_initialization_without_api_key(self):
-        """Test that initialization without API key creates disabled client"""
+    def test_initialization_without_api_key(self, monkeypatch):
+        """Test that initialization without API key creates disabled client.
+
+        ``LinkFallbackFinder`` falls back to ``GEMINI_API_KEY`` from the
+        environment when ``api_key`` is unset; the developer's ``.env`` may
+        have a real key set, so strip it for this test.
+        """
+        monkeypatch.delenv("GEMINI_API_KEY", raising=False)
         finder = LinkFallbackFinder(api_key=None)
         assert finder.client is None
     

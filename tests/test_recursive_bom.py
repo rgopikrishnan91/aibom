@@ -65,10 +65,34 @@ def test_depth_zero_returns_no_targets():
     assert out["deepest_level_reached"] == 0
 
 
-def test_non_ai_bom_returns_no_targets():
-    targets, audit = discover_recursive_targets({"rag_fields": {}}, bom_type="data")
+def test_unsupported_bom_type_returns_no_targets():
+    targets, audit = discover_recursive_targets({"rag_fields": {}}, bom_type="other")
     assert targets == []
-    assert audit["reason"].startswith("recursion only")
+    assert "not supported" in audit["reason"]
+
+
+def test_data_bom_walks_sourceinfo_into_dependson_children():
+    """Dataset BOMs derive child seeds from ``sourceInfo`` (upstream
+    datasets), filtering out arXiv/paper-style references which are not
+    walkable as BOMs."""
+    metadata = {
+        "dataset_id": "child_dataset",
+        "rag_metadata": {
+            "sourceInfo": _clean_triplet([
+                "Common Crawl",
+                "WebText",
+                "arXiv:1910.10683",   # paper ref — must be filtered
+                "2110.14168",          # bare arxiv ID — must be filtered
+                "https://example.com/foo",  # URL — must be filtered
+            ]),
+        },
+    }
+    targets, audit = discover_recursive_targets(metadata, bom_type="data")
+    target_names = sorted(t["target"] for t in targets)
+    assert target_names == ["Common Crawl", "WebText"]
+    assert all(t["relationship_type"] == "dependsOn" for t in targets)
+    assert all(t["bom_type"] == "data" for t in targets)
+    assert audit["skipped_due_to_conflict"] == []
 
 
 def test_default_depth_is_one_level():
