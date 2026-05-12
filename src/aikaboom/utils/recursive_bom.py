@@ -37,6 +37,34 @@ AI_RELATIONSHIP_FIELDS = {
     "modelLineage": ("ai", "dependsOn"),
 }
 
+# Dataset BOMs walk their upstream lineage via ``sourceInfo`` (which captures
+# parent / aggregated-from / derived-from datasets — see
+# question_bank/data/sourceInfo.json). The relationship maps to SPDX
+# ``dependsOn`` because a derived dataset depends on its upstream sources.
+DATA_RELATIONSHIP_FIELDS = {
+    "sourceInfo": ("data", "dependsOn"),
+}
+
+
+def _is_walkable_target(text: str) -> bool:
+    """Filter out values that look like paper/URL references rather than
+    walkable dataset/model identifiers.
+
+    sourceInfo commonly mixes dataset names with arXiv paper refs
+    (``arXiv:2108.07732``) and bare DOIs/IDs (``2108.07732``); those
+    should not become child BOMs because they are not retrievable by the
+    same enrichment pipeline.
+    """
+    t = text.strip().lower()
+    if not t:
+        return False
+    if t.startswith(("arxiv:", "arxiv.org", "doi:", "http://", "https://")):
+        return False
+    # Bare arXiv-style IDs like "2108.07732" or "2108.07732v2".
+    if re.fullmatch(r"\d{4}\.\d{4,5}(v\d+)?", t):
+        return False
+    return True
+
 
 EnrichFn = Callable[[Dict[str, Any]], Optional[Dict[str, Any]]]
 
@@ -135,19 +163,32 @@ def discover_recursive_targets(
     because the parent BOM reported a conflict on that relationship.
     """
     audit: Dict[str, Any] = {"skipped_due_to_conflict": [], "considered": []}
-    if bom_type != "ai":
-        audit["reason"] = "recursion only supported for AI BOMs"
+    if bom_type == "ai":
+        relationship_map = AI_RELATIONSHIP_FIELDS
+    elif bom_type == "data":
+        relationship_map = DATA_RELATIONSHIP_FIELDS
+    else:
+        audit["reason"] = f"recursion not supported for bom_type={bom_type!r}"
         return [], audit
 
-    rag_fields = metadata.get("rag_fields") or {}
+    # Dataset BOMs surface their RAG fields under ``rag_metadata`` (legacy
+    # processor key) or ``rag_fields`` (modern key); accept both.
+    rag_fields = metadata.get("rag_fields") or metadata.get("rag_metadata") or {}
     # Prefer ``repo_id`` (canonical ``owner/name`` form) over ``model_id``
     # (filename-safe slug ``owner_name``). modelLineage triplets surface in
     # canonical form, so the self-loop visit-key comparison fails when the
-    # parent is recorded under the slug.
-    parent_id = metadata.get("repo_id") or metadata.get("model_id") or "parent-bom"
+    # parent is recorded under the slug. For datasets, the analogous keys
+    # are ``hf_url`` / ``dataset_id``.
+    parent_id = (
+        metadata.get("repo_id")
+        or metadata.get("model_id")
+        or metadata.get("dataset_id")
+        or metadata.get("hf_url")
+        or "parent-bom"
+    )
     targets: List[Dict[str, Any]] = []
 
-    for field, (child_bom_type, relationship_type) in AI_RELATIONSHIP_FIELDS.items():
+    for field, (child_bom_type, relationship_type) in relationship_map.items():
         triplet = rag_fields.get(field)
         audit["considered"].append(field)
 
@@ -162,6 +203,8 @@ def discover_recursive_targets(
             continue
 
         for target in _split_targets(triplet, parent_identifier=parent_id):
+            if not _is_walkable_target(target):
+                continue
             targets.append({
                 "source_field": field,
                 "relationship_type": relationship_type,
@@ -290,8 +333,15 @@ def generate_recursive_boms(
     # Prefer ``repo_id`` (canonical ``owner/name`` form) over ``model_id``
     # (filename-safe slug ``owner_name``). modelLineage triplets surface in
     # canonical form, so the self-loop visit-key comparison fails when the
-    # parent is recorded under the slug.
-    parent_id = metadata.get("repo_id") or metadata.get("model_id") or "parent-bom"
+    # parent is recorded under the slug. Datasets surface under
+    # ``dataset_id`` / ``hf_url``.
+    parent_id = (
+        metadata.get("repo_id")
+        or metadata.get("model_id")
+        or metadata.get("dataset_id")
+        or metadata.get("hf_url")
+        or "parent-bom"
+    )
     visited: Set[Tuple[str, str]] = {_visit_key(bom_type, parent_id)}
 
     generated: List[Dict[str, Any]] = []
@@ -300,8 +350,8 @@ def generate_recursive_boms(
 
     # Frontier of (parent_metadata, parent_target_label, parent_bom_type, current_depth)
     frontier: List[Tuple[Dict[str, Any], str, str, int]] = []
-    if max_depth > 0 and bom_type == "ai":
-        frontier.append((metadata, parent_id, "ai", 0))
+    if max_depth > 0 and bom_type in ("ai", "data"):
+        frontier.append((metadata, parent_id, bom_type, 0))
 
     tree_exhausted = True
 

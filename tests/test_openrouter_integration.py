@@ -35,11 +35,22 @@ except ImportError:
 from aikaboom.core.agentic_rag import AgenticRAG, AgentState, create_llm, FIXED_QUESTIONS_AI
 
 # ---------------------------------------------------------------------------
-# Skip the whole module if no API key is available
+# Skip the whole module unless explicitly opted in.
+#
+# These tests hit the real OpenRouter API and the live HuggingFace model card
+# for ``bert-base-uncased``. They assert that the LLM-generated answer mentions
+# NLP-related keywords, which is inherently nondeterministic — the same
+# prompt can return "noAssertion" or a thorough description on different runs.
+# A fresh clone should NOT see these fail, so they are opt-in via the explicit
+# ``AIKABOOM_RUN_LLM_TESTS=1`` env var (in addition to needing an API key).
 # ---------------------------------------------------------------------------
 pytestmark = pytest.mark.skipif(
-    not (os.getenv("OPENROUTER_API_KEY") or os.getenv("My_OPENROUTER_API_KEY")),
-    reason="OPENROUTER_API_KEY not set — skipping OpenRouter integration tests",
+    os.getenv("AIKABOOM_RUN_LLM_TESTS") != "1"
+    or not (os.getenv("OPENROUTER_API_KEY") or os.getenv("My_OPENROUTER_API_KEY")),
+    reason=(
+        "Set AIKABOOM_RUN_LLM_TESTS=1 and OPENROUTER_API_KEY to run "
+        "real-LLM integration tests (opt-in — answers are nondeterministic)."
+    ),
 )
 
 # ---------------------------------------------------------------------------

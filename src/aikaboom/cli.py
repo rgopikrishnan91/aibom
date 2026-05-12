@@ -20,7 +20,14 @@ import sys
 
 from dotenv import load_dotenv
 
-load_dotenv()
+# ``load_dotenv()`` walks up from this file's directory to find the nearest
+# ``.env`` — convenient for users running ``python -m aikaboom.cli`` from any
+# subdirectory of the repo, but it makes hermetic subprocess tests difficult
+# because the developer's real ``.env`` always wins. The ``BOM_SKIP_DOTENV=1``
+# env var lets test runners disable that load explicitly so unit tests can
+# assert behaviour with a clean provider-credentials environment.
+if os.environ.get("BOM_SKIP_DOTENV", "").lower() not in ("1", "true", "yes"):
+    load_dotenv()
 
 
 # Provider -> (env var, default model) mapping for auto-detection.

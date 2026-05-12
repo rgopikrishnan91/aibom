@@ -121,21 +121,56 @@ def test_extract_conflict_statements_falls_back_when_unmatched():
 
 
 def test_score_grounding_high_when_statement_is_quotable():
-    """A statement that's verbatim in chunks should score near 1.0."""
+    """A statement that's verbatim in chunks should score higher than an
+    unrelated statement.
+
+    ``FakeEmbeddings`` from langchain is content-agnostic — every distinct
+    string gets a random vector regardless of content — so it can't tell
+    "verbatim quote" from "unrelated text" by similarity. We use a tiny
+    deterministic stub that maps strings to one-hot vectors over a fixed
+    vocabulary so a verbatim quote literally maps to the same vector as
+    its source chunk.
+    """
     from aikaboom.core.agentic_rag import AgenticRAG
 
+    class _DeterministicEmbeddings:
+        """Bag-of-words one-hot embeddings; identical strings → identical vectors."""
+        def __init__(self):
+            self._vocab: dict = {}
+
+        def _vec(self, text: str):
+            import numpy as np
+            tokens = text.lower().split()
+            for t in tokens:
+                self._vocab.setdefault(t, len(self._vocab))
+            v = np.zeros(max(64, len(self._vocab) * 2))
+            for t in tokens:
+                v[self._vocab[t]] += 1.0
+            norm = np.linalg.norm(v)
+            return (v / norm if norm else v).tolist()
+
+        def embed_documents(self, texts):
+            return [self._vec(t) for t in texts]
+
+        def embed_query(self, text):
+            return self._vec(text)
+
     rag = AgenticRAG.__new__(AgenticRAG)
-    # FakeEmbeddings returns deterministic vectors based on text content,
-    # but every distinct string gets a different vector. For a verbatim
-    # quote we won't get exactly 1.0 with FakeEmbeddings (it's
-    # content-agnostic), so we test the *relative* ordering: the score
-    # for an input string vs its own copy is the highest possible.
-    rag.embeddings = FakeEmbeddings(size=8)
-    chunks = ["The model has 7B parameters and uses GQA.",
-              "It was trained on a multilingual corpus."]
-    score_quote = rag._score_grounding(["The model has 7B parameters and uses GQA."], chunks)
-    score_off = rag._score_grounding(["completely unrelated text about cats"], chunks)
-    assert score_quote >= score_off  # quote grounds at least as well as random
+    rag.embeddings = _DeterministicEmbeddings()
+    chunks = [
+        "The model has 7B parameters and uses GQA.",
+        "It was trained on a multilingual corpus.",
+    ]
+    score_quote = rag._score_grounding(
+        ["The model has 7B parameters and uses GQA."], chunks
+    )
+    score_off = rag._score_grounding(
+        ["completely unrelated text about cats"], chunks
+    )
+    assert score_quote > score_off, (
+        f"Verbatim quote should ground higher than unrelated text: "
+        f"quote={score_quote!r}, off={score_off!r}"
+    )
 
 
 def test_score_grounding_zero_for_empty_inputs():

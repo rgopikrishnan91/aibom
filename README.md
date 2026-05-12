@@ -262,6 +262,23 @@ the difference is intentional and documented here.
   colloquial cardData strings like `"Apache 2.0"` or `"GPLv3"` on
   its own, so a real swap would have to layer them on top of the
   current alias table rather than replace it.
+- **Recursive walker conflict-gate is field-level, not claim-level.**
+  When `--recursive-bom` walks `trainedOnDatasets` /
+  `testedOnDatasets` / `modelLineage` / `sourceInfo`, it skips a
+  field if the conflict detector flagged *any* contradiction in the
+  retrieved chunks — even when the conflict is about an unrelated
+  fact and the field's own value is unanimous across sources. Real
+  case from the 2026-05-12 golden-set run: qwen's `modelLineage`
+  was unanimously `Qwen/Qwen2.5-7B`, but the walker skipped it
+  because the detector noted a side-disagreement about context
+  length (`128K tokens` vs `131,072 tokens` — actually the same
+  number) in the same chunks. Net effect: fewer recursive children
+  than the data supports, especially on densely-described models.
+  A claim-level fix would require the conflict detector to populate
+  `statement_a`/`statement_b` reliably (the Phase 12B trace block
+  is partially wired today) plus a similarity check in
+  `recursive_bom._conflict_of` so only conflicts that actually
+  disagree about the candidate target value gate the walk.
 
 ## Conflict Detection and Value Selection
 
