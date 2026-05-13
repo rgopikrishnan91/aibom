@@ -682,60 +682,152 @@
            JS removes the class and reveals the tabbed interface. */
         .result-empty {
             display: none;
-            flex: 1;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             text-align: center;
-            padding: 60px 40px;
+            padding: 28px 32px 30px;
             border: 1px solid var(--paper-edge);
             border-radius: 8px;
             background: var(--paper);
             color: var(--paper-mute);
-            min-height: 380px;
             box-shadow: var(--shadow-sm);
         }
         .result-pane.is-empty .result-empty { display: flex; }
         .result-pane.is-empty .tabs,
         .result-pane.is-empty .download-strip,
         .result-pane.is-empty .tab-content { display: none !important; }
-        .result-empty .glyph {
-            font-family: var(--mono);
-            font-weight: 600;
-            font-size: 56px;
-            line-height: 1;
-            color: var(--paper-edge);
-            margin-bottom: 22px;
+        .splash-brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
         }
-        .result-empty h3 {
+        .splash-brand img {
+            height: 56px;
+            width: auto;
+            display: block;
+        }
+        .splash-wordmark {
+            font-family: var(--sans);
+            font-weight: 700;
+            font-size: 22px;
+            letter-spacing: -0.02em;
+            color: var(--ink);
+        }
+        .splash-wordmark .lo { color: var(--ink); }
+        .splash-wordmark .hi { color: var(--primary); }
+        .splash-tagline {
+            font-family: var(--sans);
+            font-size: 13.5px;
+            color: var(--paper-mute);
+            line-height: 1.45;
+            max-width: 52ch;
+        }
+        .splash-tagline strong { color: var(--ink); font-weight: 600; }
+        .splash-sub {
+            font-family: var(--mono);
+            font-size: 10.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--paper-faint);
+            margin-top: 4px;
+        }
+        .splash-steps {
+            display: flex;
+            align-items: stretch;
+            justify-content: center;
+            gap: 8px;
+            margin: 22px 0 14px;
+            width: 100%;
+            max-width: 640px;
+        }
+        .splash-step {
+            flex: 1 1 0;
+            min-width: 0;
+            padding: 14px 12px 12px;
+            border: 1px solid var(--paper-edge);
+            border-radius: 6px;
+            background: var(--paper-2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            position: relative;
+        }
+        .splash-step .num {
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            color: var(--primary);
+            background: var(--primary-soft);
+            border: 1px solid var(--primary-edge);
+            border-radius: 3px;
+            padding: 2px 8px;
+            line-height: 1.2;
+        }
+        .splash-step h4 {
             font-family: var(--sans);
             font-weight: 600;
-            font-size: 20px;
+            font-size: 14px;
             color: var(--ink);
-            letter-spacing: -0.015em;
-            margin-bottom: 12px;
+            margin: 2px 0 0;
+            letter-spacing: -0.005em;
         }
-        .result-empty p {
-            font-size: 14.5px;
-            line-height: 1.55;
-            max-width: 42ch;
-            color: var(--paper-mute);
-        }
-        .result-empty .checks {
-            display: flex;
-            gap: 18px 26px;
-            margin-top: 28px;
-            flex-wrap: wrap;
-            justify-content: center;
+        .splash-step .where {
             font-family: var(--mono);
-            font-size: 12px;
+            font-size: 11px;
             color: var(--paper-mute);
+            margin-top: 2px;
+            line-height: 1.4;
         }
-        .result-empty .checks span::before {
+        .splash-step .where em {
+            color: var(--primary);
+            font-style: normal;
+            font-weight: 500;
+        }
+        .splash-arrow {
+            flex: 0 0 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-edge);
+        }
+        .splash-arrow svg { display: block; }
+        .splash-returns {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--paper-mute);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 14px;
+            justify-content: center;
+            margin-top: 6px;
+        }
+        .splash-returns b {
+            color: var(--paper-faint);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-right: 4px;
+        }
+        .splash-returns span::before {
             content: '✓ ';
             color: var(--primary);
             font-weight: 700;
-            margin-right: 4px;
+        }
+        .splash-hint {
+            font-family: var(--sans);
+            font-size: 12.5px;
+            color: var(--paper-mute);
+            margin-top: 14px;
+            line-height: 1.5;
+        }
+        .splash-hint em {
+            color: var(--primary);
+            font-style: normal;
+            font-weight: 600;
         }
 
         .tab-content {
@@ -1712,10 +1804,145 @@
         .pipeline-shell {
             display: flex;
             flex-direction: column;
-            gap: 18px;
+            gap: 14px;
             flex: 1;
             min-height: 0;
         }
+
+        /* Header strip: AIkaBoOM logo + subject (model/dataset being processed) */
+        .pipeline-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 10px 16px;
+            border: 1px solid var(--paper-edge);
+            border-radius: 6px;
+            background: var(--paper);
+        }
+        .pipeline-header-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .pipeline-header-brand img { height: 28px; width: auto; display: block; }
+        .pipeline-header-brand .wm {
+            font-family: var(--sans);
+            font-weight: 700;
+            font-size: 16px;
+            letter-spacing: -0.02em;
+            color: var(--ink);
+        }
+        .pipeline-header-brand .wm .hi { color: var(--primary); }
+        .pipeline-header-subject {
+            font-family: var(--mono);
+            font-size: 12.5px;
+            color: var(--paper-mute);
+            text-align: right;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .pipeline-header-subject .label {
+            color: var(--paper-faint);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 11px;
+        }
+        .pipeline-header-subject .dot-sep { color: var(--paper-edge); margin: 0 6px; }
+        .pipeline-header-subject .subject {
+            color: var(--ink);
+            font-weight: 600;
+        }
+
+        /* Stage 0 — Link Fallback Agent */
+        .pipeline-stage0 {
+            border: 1px solid var(--paper-edge);
+            border-radius: 6px;
+            background: var(--paper-2);
+            padding: 12px 16px;
+        }
+        .pipeline-stage0[hidden] { display: none; }
+        .pipeline-stage0.is-done {
+            background: var(--paper);
+            padding: 10px 16px;
+        }
+        .pipeline-stage0 .stage-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .pipeline-stage0.is-done .stage-head { margin-bottom: 0; }
+        .pipeline-stage0 .stage-title {
+            font-family: var(--sans);
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--ink);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .pipeline-stage0 .stage-title .badge {
+            font-family: var(--mono);
+            font-size: 10.5px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--primary);
+            background: var(--primary-soft);
+            border: 1px solid var(--primary-edge);
+            border-radius: 3px;
+            padding: 2px 6px;
+        }
+        .pipeline-stage0 .stage-status {
+            font-family: var(--mono);
+            font-size: 11.5px;
+            color: var(--paper-mute);
+        }
+        .pipeline-stage0.is-done .stage-status { color: var(--conflict-none); font-weight: 600; }
+        .pipeline-stage0 .stage0-sources {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 14px;
+            font-family: var(--mono);
+            font-size: 12px;
+        }
+        .pipeline-stage0.is-done .stage0-sources { display: none; }
+        .pipeline-stage0 .stage0-src {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 10px;
+            border: 1px solid var(--paper-edge);
+            border-radius: 4px;
+            background: var(--paper);
+        }
+        .pipeline-stage0 .stage0-src .src-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--paper-edge);
+            flex-shrink: 0;
+        }
+        .pipeline-stage0 .stage0-src[data-state="searching"] .src-dot {
+            background: #f3a73f;
+            animation: pp-pulse 1.2s ease-in-out infinite;
+        }
+        .pipeline-stage0 .stage0-src[data-state="found"]    .src-dot { background: var(--conflict-none); }
+        .pipeline-stage0 .stage0-src[data-state="provided"] .src-dot { background: var(--primary); }
+        .pipeline-stage0 .stage0-src[data-state="missing"]  .src-dot { background: var(--paper-mute); }
+        .pipeline-stage0 .stage0-src .src-label { color: var(--ink); font-weight: 500; }
+        .pipeline-stage0 .stage0-src .src-state {
+            color: var(--paper-faint);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .pipeline-stage0 .stage0-src[data-state="found"]    .src-state { color: var(--conflict-none); }
+        .pipeline-stage0 .stage0-src[data-state="provided"] .src-state { color: var(--primary); }
+        .pipeline-stage0 .stage0-src[data-state="missing"]  .src-state { color: var(--paper-mute); }
+        .pipeline-stage0 .stage0-src[data-state="searching"] .src-state { color: #d18814; }
+
+        /* Stage 1 — Per-field RAG progress strip */
         .pipeline-progress {
             display: flex;
             align-items: center;
@@ -1725,8 +1952,15 @@
             background: var(--paper-2);
             border-radius: 6px;
             font-family: var(--mono);
-            font-size: 11.5px;
+            font-size: 12.5px;
             color: var(--paper-mute);
+        }
+        .pipeline-progress .stage-label {
+            font-weight: 600;
+            color: var(--ink);
+            text-transform: none;
+            letter-spacing: 0;
+            font-size: 12.5px;
         }
         .pipeline-progress .bar {
             flex: 1;
@@ -1764,65 +1998,89 @@
             display: flex;
             gap: 18px;
             align-items: stretch;
-            padding: 18px 14px 22px;
+            padding: 22px 18px 26px;
             border: 1px solid var(--paper-edge);
             background: var(--paper);
             border-radius: 6px;
             overflow-x: auto;
         }
-        .pipeline-legend {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-around;
-            padding: 32px 12px 18px 6px;
-            border-right: 1px dashed var(--paper-edge);
-            flex-shrink: 0;
-            min-width: 110px;
-        }
-        .pipeline-legend > div {
-            font-family: var(--mono);
-            font-size: 10.5px;
-            font-weight: 600;
-            color: var(--paper-mute);
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            text-align: right;
-            line-height: 1;
-            padding: 18px 0;
-            position: relative;
-        }
-        .pipeline-legend > div::after {
-            content: '→';
-            position: absolute;
-            right: -6px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--paper-faint);
-            font-size: 11px;
-        }
         .pipeline-rows {
             display: flex;
             flex-direction: column;
-            gap: 22px;
+            gap: 32px;
             flex: 1;
             min-width: 0;
         }
+        /* Each snake-row holds its own legend on one side + the field
+           columns on the other. Legend flips to the right on .reverse rows
+           so it reads naturally from where the dots end. */
         .pipeline-row {
             display: flex;
             align-items: stretch;
-            gap: 4px;
+            gap: 14px;
             position: relative;
         }
         .pipeline-row.reverse {
             flex-direction: row-reverse;
         }
-        /* Snake connector line behind each row, sitting at field-name height. */
-        .pipeline-row::before {
+        .pipeline-row-legend {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            gap: 12px;
+            padding-top: 26px;  /* aligns first label with first dot row */
+            flex: 0 0 auto;
+            min-width: 88px;
+        }
+        .pipeline-row-legend > div {
+            font-family: var(--mono);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--paper-mute);
+            line-height: 1.2;
+            height: 18px;        /* matches dot height for vertical alignment */
+            display: flex;
+            align-items: center;
+        }
+        .pipeline-row:not(.reverse) .pipeline-row-legend {
+            text-align: right;
+            justify-content: flex-start;
+        }
+        .pipeline-row:not(.reverse) .pipeline-row-legend > div {
+            justify-content: flex-end;
+        }
+        .pipeline-row:not(.reverse) .pipeline-row-legend > div::after {
+            content: ' →';
+            color: var(--paper-faint);
+            margin-left: 4px;
+        }
+        .pipeline-row.reverse .pipeline-row-legend > div {
+            justify-content: flex-start;
+        }
+        .pipeline-row.reverse .pipeline-row-legend > div::before {
+            content: '← ';
+            color: var(--paper-faint);
+            margin-right: 4px;
+        }
+        .pipeline-row-fields {
+            display: flex;
+            flex: 1 1 auto;
+            min-width: 0;
+            gap: 8px;
+            position: relative;
+        }
+        /* Reversed snake-row: also flip the fields-wrapper so the field
+           sequence visually winds right-to-left — true snake flow. */
+        .pipeline-row.reverse .pipeline-row-fields {
+            flex-direction: row-reverse;
+        }
+        /* Connector line runs across the field block, behind the field names. */
+        .pipeline-row-fields::before {
             content: '';
             position: absolute;
             left: 0;
             right: 0;
-            top: 11px;
+            bottom: 6px;
             height: 2px;
             background: var(--paper-edge);
             z-index: 0;
@@ -1831,16 +2089,16 @@
             flex: 1 1 0;
             min-width: 0;
             display: flex;
-            flex-direction: column;
+            flex-direction: column-reverse;  /* dots on top, name underneath the connector */
             align-items: center;
-            gap: 6px;
-            padding: 0 2px;
+            gap: 10px;
+            padding: 0 4px;
             position: relative;
             z-index: 1;
         }
         .pipeline-field .field-name {
             font-family: var(--mono);
-            font-size: 10.5px;
+            font-size: 12px;
             font-weight: 500;
             color: var(--paper-mute);
             white-space: nowrap;
@@ -1848,7 +2106,7 @@
             text-overflow: ellipsis;
             max-width: 100%;
             background: var(--paper);
-            padding: 0 4px;
+            padding: 2px 6px;
             transition: color .15s, font-weight .15s;
         }
         .pipeline-field.is-active .field-name { color: var(--primary); }
@@ -1857,12 +2115,12 @@
         .pipeline-dots {
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            margin-top: 4px;
+            gap: 12px;
+            margin-top: 0;
         }
         .pipeline-dot {
-            width: 14px;
-            height: 14px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
             border: 2px solid var(--paper-edge);
             background: var(--paper);
@@ -2376,20 +2634,64 @@
             </div>
 
             <!-- Splash shown before the first run; removed from view by JS
-                 once the first BOM lands. -->
+                 once the first BOM lands. Compact horizontal layout so the
+                 whole thing fits in a single viewport without scrolling. -->
             <div class="result-empty" id="resultEmpty">
-                <div class="glyph">{ }</div>
-                <h3>Ready when you are.</h3>
-                <p>
-                    Fill in the form on the left and run <em>Generate BOM</em>.
-                    The provenance BOM, conflicts, SPDX 3.0.1 export and live
-                    logs will appear here.
-                </p>
-                <div class="checks">
+                <div class="splash-brand">
+                    <img src="{{ url_for('static', filename='aikaboom-logo.png') }}" alt="AIkaBoOM logo">
+                    <div class="splash-wordmark"><span class="lo">AIka</span><span class="hi">BoOM</span></div>
+                    <div class="splash-tagline">
+                        Provenance <strong>BOMs</strong> for AI models &amp; datasets — with live conflict auditing.
+                    </div>
+                    <div class="splash-sub">SPDX 3.0.1 · CycloneDX 1.6 · RAG-traced fields</div>
+                </div>
+
+                <div class="splash-steps">
+                    <div class="splash-step">
+                        <div class="num">01</div>
+                        <h4>Pick a BOM type</h4>
+                        <div class="where"><em>AI Model</em> or <em>Data</em><br>top of the form</div>
+                    </div>
+
+                    <div class="splash-arrow" aria-hidden="true">
+                        <!-- Hand-drawn arrow #1: slight wobble + arrowhead -->
+                        <svg width="38" height="36" viewBox="0 0 38 36" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 18 C 9 15, 16 22, 24 16 S 32 19, 33 18" />
+                            <path d="M28 13 L 33 18 L 27.5 22.5" />
+                        </svg>
+                    </div>
+
+                    <div class="splash-step">
+                        <div class="num">02</div>
+                        <h4>Drop a link or ID</h4>
+                        <div class="where"><em>HF</em> · <em>arXiv</em> · <em>GitHub</em><br>any one will do</div>
+                    </div>
+
+                    <div class="splash-arrow" aria-hidden="true">
+                        <!-- Hand-drawn arrow #2: gentle down-up curve -->
+                        <svg width="38" height="36" viewBox="0 0 38 36" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 20 C 11 24, 18 12, 25 16 S 30 19, 33 18" />
+                            <path d="M28 13 L 33 18 L 27.5 22.5" />
+                        </svg>
+                    </div>
+
+                    <div class="splash-step">
+                        <div class="num">03</div>
+                        <h4>Hit Generate BOM</h4>
+                        <div class="where">indigo button<br>bottom of the form</div>
+                    </div>
+                </div>
+
+                <div class="splash-returns">
+                    <b>Returns</b>
                     <span>Provenance BOM</span>
                     <span>SPDX 3.0.1</span>
                     <span>CycloneDX 1.6</span>
-                    <span>Conflict audit</span>
+                    <span>Conflicts audit</span>
+                    <span>History</span>
+                </div>
+                <div class="splash-hint">
+                    Watch fields fill in live in the <em>Pipeline</em> tab while it runs.
                 </div>
             </div>
 
@@ -2415,7 +2717,54 @@
 
             <div id="pipelineTab" class="tab-content">
                 <div class="pipeline-shell">
+                    <!-- Header: logo + AIkaBoOM wordmark on the left, subject
+                         (model_id or dataset_id) on the right. Stays pinned
+                         throughout the run. -->
+                    <div class="pipeline-header" id="pipelineHeader">
+                        <div class="pipeline-header-brand">
+                            <img src="{{ url_for('static', filename='aikaboom-logo.png') }}" alt="AIkaBoOM">
+                            <span class="wm"><span class="lo">AIka</span><span class="hi">BoOM</span></span>
+                        </div>
+                        <div class="pipeline-header-subject" id="pipelineHeaderSubject">
+                            <span class="label">Generating BOM</span>
+                            <span class="dot-sep">·</span>
+                            <span class="subject" id="pipelineSubject">—</span>
+                        </div>
+                    </div>
+
+                    <!-- Stage 0: Link Fallback Agent. Hidden until a
+                         fallback.start event arrives; collapses to a one-line
+                         tick on fallback.done. -->
+                    <div class="pipeline-stage0" id="pipelineStage0" hidden>
+                        <div class="stage-head">
+                            <div class="stage-title">
+                                <span class="badge">Stage 0</span>
+                                Link Fallback
+                            </div>
+                            <div class="stage-status" id="stage0Status">searching…</div>
+                        </div>
+                        <div class="stage0-sources" id="stage0Sources">
+                            <div class="stage0-src" data-src="huggingface">
+                                <span class="src-dot"></span>
+                                <span class="src-label">HuggingFace</span>
+                                <span class="src-state" data-state="pending">pending</span>
+                            </div>
+                            <div class="stage0-src" data-src="arxiv">
+                                <span class="src-dot"></span>
+                                <span class="src-label">arXiv</span>
+                                <span class="src-state" data-state="pending">pending</span>
+                            </div>
+                            <div class="stage0-src" data-src="github">
+                                <span class="src-dot"></span>
+                                <span class="src-label">GitHub</span>
+                                <span class="src-state" data-state="pending">pending</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stage 1: Per-field RAG progress strip. -->
                     <div class="pipeline-progress" id="pipelineProgress">
+                        <span class="stage-label">Stage 1 — Per-field RAG</span>
                         <span class="state-dot"></span>
                         <span class="count" id="pipelineCount">0 / 0 fields</span>
                         <div class="bar"><span id="pipelineBar"></span></div>
@@ -2423,11 +2772,6 @@
                     </div>
 
                     <div class="pipeline-board" id="pipelineBoard">
-                        <div class="pipeline-legend">
-                            <div>Retrieve</div>
-                            <div>Reconcile</div>
-                            <div>Resolve</div>
-                        </div>
                         <div class="pipeline-rows" id="pipelineRows">
                             <div class="pipeline-empty">
                                 <div class="glyph">{ }</div>
@@ -2850,11 +3194,29 @@
             }
 
             try {
+                // Reset the Pipeline UI now (rather than later, after /find_links)
+                // so Stage 0 (Link Fallback) can render while the search is
+                // running. The SSE stream opens further down — Stage 0 doesn't
+                // need it; we drive it from the /find_links response directly.
+                Pipeline.reset();
+
                 const hasAllLinks = formData.arxiv_url && formData.github_url &&
                     (selectedBomType === 'ai' ? formData.repo_id : formData.hf_repo_id);
 
+                // Translate the source keys the backend uses into the dot
+                // names the Stage 0 card expects.
+                const SRC = { hf: 'huggingface', arxiv: 'arxiv', github: 'github' };
+
                 if (!hasAllLinks) {
                     showStatus('processing', '<span class="spinner"></span>Searching for missing links…');
+                    // Tell the Pipeline tab which sources we're about to look
+                    // up so Stage 0 lights them as "searching".
+                    const missing = [];
+                    if (!(selectedBomType === 'ai' ? formData.repo_id : formData.hf_repo_id)) missing.push('huggingface');
+                    if (!formData.arxiv_url)  missing.push('arxiv');
+                    if (!formData.github_url) missing.push('github');
+                    Pipeline.handleEvent({event: 'fallback.start', sources: missing});
+
                     try {
                         const linkResp = await fetch('/find_links', {
                             method: 'POST',
@@ -2865,17 +3227,39 @@
                         if (linkResult.status === 'success' || linkResult.status === 'skipped') {
                             applyFoundLinks(linkResult);
                             formData.skip_fallback = true;
+
+                            // Mark each searched source found/missing on Stage 0.
+                            const ls = linkResult.link_status || {};
+                            missing.forEach(src => {
+                                let found = false;
+                                if (src === 'huggingface') found = !!(ls.hf_found || linkResult.hf_repo_id);
+                                if (src === 'arxiv')       found = !!(ls.arxiv_found || linkResult.arxiv_url);
+                                if (src === 'github')      found = !!(ls.github_found || linkResult.github_url);
+                                Pipeline.handleEvent({event: 'fallback.source.checked', source: src, found});
+                            });
+                            const foundCount = missing.filter(src => {
+                                if (src === 'huggingface') return !!(ls.hf_found || linkResult.hf_repo_id);
+                                if (src === 'arxiv')       return !!(ls.arxiv_found || linkResult.arxiv_url);
+                                if (src === 'github')      return !!(ls.github_found || linkResult.github_url);
+                                return false;
+                            }).length;
+                            Pipeline.handleEvent({
+                                event: 'fallback.done',
+                                found_count: foundCount,
+                                total_count: missing.length,
+                            });
+
                             let linkNote = '';
                             if (linkResult.status === 'skipped' && linkResult.reason === 'no_gemini_key') {
                                 linkNote = 'Link Fallback Agent inactive — set <code>GEMINI_API_KEY</code> to enable auto-discovery. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Get a free key →</a><br>';
                             } else if (linkResult.status === 'skipped' && linkResult.reason === 'genai_not_installed') {
                                 linkNote = 'Link Fallback Agent unavailable — <code>google-genai</code> package not installed.<br>';
                             } else if (linkResult.status === 'success') {
-                                const ls = linkResult.link_status || {};
+                                const ls2 = linkResult.link_status || {};
                                 const found = [];
-                                if (ls.hf_found)     found.push('HuggingFace');
-                                if (ls.arxiv_found)  found.push('arXiv');
-                                if (ls.github_found) found.push('GitHub');
+                                if (ls2.hf_found)     found.push('HuggingFace');
+                                if (ls2.arxiv_found)  found.push('arXiv');
+                                if (ls2.github_found) found.push('GitHub');
                                 const notFound = (linkResult.not_found || []).map(n =>
                                     n === 'huggingface' ? 'HuggingFace' : n === 'arxiv' ? 'arXiv' : 'GitHub'
                                 );
@@ -2886,18 +3270,22 @@
                         }
                     } catch (linkErr) {
                         console.warn('Link search failed, continuing:', linkErr);
+                        Pipeline.handleEvent({event: 'fallback.done', found_count: 0, total_count: missing.length});
                         showStatus('processing', `<span class="spinner"></span>Generating ${bomTypeLabel} BOM…`);
                     }
                 } else {
                     formData.skip_fallback = true;
+                    // All three links provided up front — Stage 0 is unnecessary.
+                    Pipeline.handleEvent({event: 'fallback.skipped', reason: 'all links provided'});
                     showStatus('processing', `<span class="spinner"></span>Generating ${bomTypeLabel} BOM via ${selectedMode.toUpperCase()} (${USE_CASE_LABELS[selectedUseCase]}). This typically takes a few minutes.`);
                 }
 
                 // live log stream — also feeds the Pipeline tab via structured
                 // [[BOM_EVENT]]<json> lines emitted by aikaboom.core.agentic_rag.
+                // Note: Pipeline.reset() already ran above (before /find_links)
+                // so Stage 0 could render during link discovery.
                 const logsViewer = document.getElementById('logsViewer');
                 logsViewer.innerHTML = '';
-                Pipeline.reset();
                 if (window._logSource) window._logSource.close();
                 window._logSource = new EventSource('/logs');
                 window._logSource.onmessage = e => {
@@ -3567,6 +3955,18 @@
                 document.getElementById('pipelineProgress').classList.remove('is-done');
                 document.getElementById('pipelineExpand').classList.remove('is-open');
                 document.getElementById('pipelineActions').classList.remove('is-shown');
+                const subjectEl = document.getElementById('pipelineSubject');
+                if (subjectEl) subjectEl.textContent = '—';
+                const stage0 = document.getElementById('pipelineStage0');
+                if (stage0) {
+                    stage0.hidden = true;
+                    stage0.classList.remove('is-done');
+                    stage0.querySelectorAll('.stage0-src').forEach(el => {
+                        el.setAttribute('data-state', 'pending');
+                        const stateEl = el.querySelector('.src-state');
+                        if (stateEl) stateEl.textContent = 'pending';
+                    });
+                }
                 const btn = document.getElementById('pipelineTabBtn');
                 if (btn) btn.style.display = 'none';
             }
@@ -3580,15 +3980,28 @@
                     if (slice.length === 0) continue;
                     const row = document.createElement('div');
                     row.className = 'pipeline-row' + (r % 2 === 1 ? ' reverse' : '');
+
+                    // Per-row legend so every snake-row carries its own
+                    // Retrieve / Reconcile / Resolve labels. Flipped to the
+                    // right (via flex direction) for reversed rows.
+                    const legend = document.createElement('div');
+                    legend.className = 'pipeline-row-legend';
+                    STAGES.forEach(stage => {
+                        const lbl = document.createElement('div');
+                        lbl.textContent = STAGE_LABELS[stage];
+                        legend.appendChild(lbl);
+                    });
+                    row.appendChild(legend);
+
+                    // Fields wrapper holds the connector line + the columns.
+                    const fieldsEl = document.createElement('div');
+                    fieldsEl.className = 'pipeline-row-fields';
                     slice.forEach(field => {
                         const col = document.createElement('div');
                         col.className = 'pipeline-field';
                         col.dataset.field = field;
                         col.title = field;
-                        const name = document.createElement('div');
-                        name.className = 'field-name';
-                        name.textContent = field;
-                        col.appendChild(name);
+
                         const dots = document.createElement('div');
                         dots.className = 'pipeline-dots';
                         STAGES.forEach(stage => {
@@ -3601,10 +4014,23 @@
                             dots.appendChild(d);
                         });
                         col.appendChild(dots);
-                        row.appendChild(col);
+
+                        const name = document.createElement('div');
+                        name.className = 'field-name';
+                        name.textContent = field;
+                        col.appendChild(name);
+
+                        fieldsEl.appendChild(col);
                     });
+                    row.appendChild(fieldsEl);
+
                     rowsEl.appendChild(row);
                 }
+            }
+
+            function setSubject(itemId) {
+                const el = document.getElementById('pipelineSubject');
+                if (el) el.textContent = itemId || '—';
             }
 
             function startElapsedTimer() {
@@ -3770,6 +4196,7 @@
                         pipelineT0 = Date.now();
                         fields.forEach(ensureField);
                         build();
+                        setSubject(evt.item_id);
                         updateProgress();
                         startElapsedTimer();
                         document.getElementById('pipelineProgress').classList.remove('is-done');
@@ -3779,6 +4206,66 @@
                         const pane = document.getElementById('resultPane');
                         if (pane) pane.classList.remove('is-empty');
                         switchTabByName('pipeline');
+                        break;
+                    }
+                    case 'fallback.start': {
+                        const stage0 = document.getElementById('pipelineStage0');
+                        if (!stage0) break;
+                        stage0.hidden = false;
+                        stage0.classList.remove('is-done');
+                        document.getElementById('stage0Status').textContent = 'searching…';
+                        // Reset source states. Providers listed in evt.sources
+                        // are 'searching'; any not listed (because they were
+                        // already supplied) get 'provided'.
+                        const searching = new Set(evt.sources || ['huggingface', 'arxiv', 'github']);
+                        ['huggingface', 'arxiv', 'github'].forEach(src => {
+                            const el = stage0.querySelector(`.stage0-src[data-src="${src}"]`);
+                            if (!el) return;
+                            const state = searching.has(src) ? 'searching' : 'provided';
+                            el.setAttribute('data-state', state);
+                            const stateEl = el.querySelector('.src-state');
+                            if (stateEl) stateEl.textContent = state;
+                        });
+                        // Show pipeline tab now so the user sees Stage 0 live.
+                        const btn = document.getElementById('pipelineTabBtn');
+                        if (btn) btn.style.display = '';
+                        const pane = document.getElementById('resultPane');
+                        if (pane) pane.classList.remove('is-empty');
+                        switchTabByName('pipeline');
+                        break;
+                    }
+                    case 'fallback.source.checked': {
+                        const stage0 = document.getElementById('pipelineStage0');
+                        if (!stage0 || !evt.source) break;
+                        const el = stage0.querySelector(`.stage0-src[data-src="${evt.source}"]`);
+                        if (!el) break;
+                        const newState = evt.found ? 'found' : 'missing';
+                        el.setAttribute('data-state', newState);
+                        const stateEl = el.querySelector('.src-state');
+                        if (stateEl) stateEl.textContent = newState;
+                        break;
+                    }
+                    case 'fallback.done': {
+                        const stage0 = document.getElementById('pipelineStage0');
+                        if (!stage0) break;
+                        const found = evt.found_count || 0;
+                        const total = evt.total_count || 3;
+                        const statusEl = document.getElementById('stage0Status');
+                        if (statusEl) {
+                            statusEl.textContent = `✓ done · ${found}/${total} links resolved`;
+                        }
+                        stage0.classList.add('is-done');
+                        break;
+                    }
+                    case 'fallback.skipped': {
+                        const stage0 = document.getElementById('pipelineStage0');
+                        if (!stage0) break;
+                        stage0.hidden = false;
+                        stage0.classList.add('is-done');
+                        const statusEl = document.getElementById('stage0Status');
+                        if (statusEl) {
+                            statusEl.textContent = `⊘ skipped — ${evt.reason || 'all links provided'}`;
+                        }
                         break;
                     }
                     case 'field.start': {
