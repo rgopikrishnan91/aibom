@@ -2209,6 +2209,182 @@
             box-shadow: 0 0 0 3px var(--primary-soft), 0 0 0 4px var(--primary);
         }
 
+        /* Stage 2 — Recursive Children
+           Card sits below the Stage 1 timeline. Hidden by default; revealed
+           on recursive.start. Children are chips grouped by depth. */
+        .pipeline-stage2 {
+            border: 1px solid var(--paper-edge);
+            border-radius: 6px;
+            background: var(--paper-2);
+            padding: 12px 16px;
+        }
+        .pipeline-stage2[hidden] { display: none; }
+        .pipeline-stage2 .stage-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .pipeline-stage2 .stage-title {
+            font-family: var(--sans);
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--ink);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .pipeline-stage2 .stage-title .badge {
+            font-family: var(--mono);
+            font-size: 10.5px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--primary);
+            background: var(--primary-soft);
+            border: 1px solid var(--primary-edge);
+            border-radius: 3px;
+            padding: 2px 6px;
+        }
+        .pipeline-stage2 .stage-title .meta {
+            color: var(--paper-faint);
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 400;
+        }
+        .pipeline-stage2 .stage-status {
+            font-family: var(--mono);
+            font-size: 11.5px;
+            color: var(--paper-mute);
+        }
+        .pipeline-stage2.is-done .stage-status { color: var(--conflict-none); font-weight: 600; }
+        .pipeline-stage2 .stage2-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 18px;
+            margin-bottom: 8px;
+            font-family: var(--mono);
+            font-size: 11.5px;
+            color: var(--paper-mute);
+        }
+        .pipeline-stage2 .stage2-summary .stat {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .pipeline-stage2 .stage2-summary .stat .num {
+            color: var(--ink);
+            font-weight: 600;
+        }
+        .pipeline-stage2 .stage2-summary .stat.done .num { color: var(--conflict-none); }
+        .pipeline-stage2 .stage2-summary .stat.running .num { color: #d18814; }
+        .pipeline-stage2 .stage2-summary .stat.skipped .num { color: var(--paper-mute); }
+        .pipeline-stage2 .stage2-summary .stat.error .num { color: var(--conflict-high); }
+
+        .pipeline-stage2 .stage2-depths {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .pipeline-stage2 .stage2-depth {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .pipeline-stage2 .stage2-depth-label {
+            font-family: var(--mono);
+            font-size: 10.5px;
+            font-weight: 600;
+            color: var(--paper-faint);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .pipeline-stage2 .stage2-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 8px;
+        }
+        .stage2-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 10px 5px 8px;
+            border: 1px solid var(--paper-edge);
+            border-radius: 4px;
+            background: var(--paper);
+            font-family: var(--mono);
+            font-size: 11.5px;
+            color: var(--paper-mute);
+            transition: background .12s, border-color .12s, color .12s;
+            max-width: 100%;
+        }
+        .stage2-chip .icon {
+            width: 14px;
+            height: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 9px;
+            font-weight: 700;
+            line-height: 1;
+            color: var(--paper);
+            background: var(--paper-edge);
+            flex-shrink: 0;
+        }
+        .stage2-chip .target {
+            color: var(--ink);
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 28ch;
+        }
+        .stage2-chip .rel {
+            color: var(--paper-faint);
+            font-size: 10.5px;
+            font-style: italic;
+            flex-shrink: 0;
+        }
+        .stage2-chip .rel::before { content: '↳ '; }
+        /* State variants */
+        .stage2-chip[data-state="pending"] .icon { background: var(--paper-edge); }
+        .stage2-chip[data-state="pending"] .icon::before { content: '○'; color: var(--paper-edge); }
+        .stage2-chip[data-state="running"] {
+            border-color: #d18814;
+            background: #fff7e9;
+        }
+        .stage2-chip[data-state="running"] .icon {
+            background: #f3a73f;
+            animation: pp-pulse 1.2s ease-in-out infinite;
+        }
+        .stage2-chip[data-state="running"] .icon::before { content: '◐'; }
+        .stage2-chip[data-state="done"] {
+            border-color: #117a2c;
+            background: #ecfdf3;
+        }
+        .stage2-chip[data-state="done"] .icon { background: var(--conflict-none); }
+        .stage2-chip[data-state="done"] .icon::before { content: '✓'; }
+        .stage2-chip[data-state="error"] {
+            border-color: #a01018;
+            background: #fff1f3;
+        }
+        .stage2-chip[data-state="error"] .icon { background: var(--conflict-high); }
+        .stage2-chip[data-state="error"] .icon::before { content: '✗'; }
+        .stage2-chip[data-state="skipped"] {
+            opacity: 0.7;
+            background: var(--paper-2);
+        }
+        .stage2-chip[data-state="skipped"] .icon { background: var(--paper-mute); }
+        .stage2-chip[data-state="skipped"] .icon::before { content: '⊘'; }
+        .stage2-chip[data-state="skipped"] .reason {
+            color: var(--paper-mute);
+            font-size: 10.5px;
+            font-style: italic;
+        }
+
         .pipeline-expand {
             display: none;
             padding: 14px 16px;
@@ -2838,6 +3014,23 @@
                                 Waiting for the run to start…
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Stage 2: Recursive Children (only shown when the
+                         recursive walker emits its first event). Chips are
+                         grouped by depth; each carries a target id, the
+                         relationship that surfaced it, and a state icon. -->
+                    <div class="pipeline-stage2" id="pipelineStage2" hidden>
+                        <div class="stage-head">
+                            <div class="stage-title">
+                                <span class="badge">Stage 2</span>
+                                Recursive Children
+                                <span class="meta" id="stage2Meta"></span>
+                            </div>
+                            <div class="stage-status" id="stage2Status">walking the dependency tree…</div>
+                        </div>
+                        <div class="stage2-summary" id="stage2Summary"></div>
+                        <div class="stage2-depths" id="stage2Depths"></div>
                     </div>
 
                     <div class="pipeline-expand" id="pipelineExpand">
@@ -4017,6 +4210,8 @@
                 document.getElementById('pipelineActions').classList.remove('is-shown');
                 const subjectEl = document.getElementById('pipelineSubject');
                 if (subjectEl) subjectEl.textContent = '—';
+                // Stage 2 (recursive children) — has its own controller; clear it too.
+                if (typeof Stage2 !== 'undefined' && Stage2.reset) Stage2.reset();
                 const stage0 = document.getElementById('pipelineStage0');
                 if (stage0) {
                     stage0.hidden = true;
@@ -4378,10 +4573,203 @@
                         document.getElementById('pipelineActions').classList.add('is-shown');
                         break;
                     }
+                    case 'recursive.start':
+                    case 'recursive.target.discovered':
+                    case 'recursive.child.start':
+                    case 'recursive.child.done':
+                    case 'recursive.child.skipped':
+                    case 'recursive.done': {
+                        Stage2.handle(evt);
+                        break;
+                    }
                 }
             }
 
             return { reset, handleEvent, closeExpand };
+        })();
+
+        // ===== Stage 2 — Recursive Children controller =========================
+        // Listens for recursive.* events and maintains a depth-grouped ribbon
+        // of chips under the Stage 1 timeline. Card stays hidden until the
+        // walker emits its first event so non-recursive runs aren't cluttered.
+        const Stage2 = (function () {
+            // Keyed by `${depth}::${target}::${bom_type}` so the same target
+            // surfacing under multiple parents at different depths gets
+            // distinct chips.
+            const children = new Map();  // key → {target, bom_type, relationship_type, depth, parent, state, reason}
+
+            function reset() {
+                children.clear();
+                const card = document.getElementById('pipelineStage2');
+                if (!card) return;
+                card.hidden = true;
+                card.classList.remove('is-done');
+                document.getElementById('stage2Meta').textContent = '';
+                document.getElementById('stage2Status').textContent = 'walking the dependency tree…';
+                document.getElementById('stage2Summary').innerHTML = '';
+                document.getElementById('stage2Depths').innerHTML = '';
+            }
+
+            function _key(evt) {
+                return `${evt.depth || 1}::${evt.target}::${evt.bom_type || 'ai'}`;
+            }
+
+            function _ensureChild(evt, state) {
+                const k = _key(evt);
+                let entry = children.get(k);
+                if (!entry) {
+                    entry = {
+                        key: k,
+                        target: evt.target,
+                        bom_type: evt.bom_type || 'ai',
+                        relationship_type: evt.relationship_type || '',
+                        depth: evt.depth || 1,
+                        parent: evt.parent || '',
+                        state: state || 'pending',
+                        reason: evt.reason || '',
+                    };
+                    children.set(k, entry);
+                } else if (state) {
+                    entry.state = state;
+                }
+                if (evt.reason) entry.reason = evt.reason;
+                return entry;
+            }
+
+            function _reveal() {
+                const card = document.getElementById('pipelineStage2');
+                if (card) card.hidden = false;
+            }
+
+            function handle(evt) {
+                switch (evt.event) {
+                    case 'recursive.start': {
+                        children.clear();
+                        _reveal();
+                        const card = document.getElementById('pipelineStage2');
+                        if (card) card.classList.remove('is-done');
+                        const meta = [];
+                        if (evt.max_depth) meta.push(evt.max_depth >= 9000 ? 'depth: exhaust' : `max depth: ${evt.max_depth}`);
+                        if (evt.safety_cap) meta.push(`safety cap: ${evt.safety_cap}`);
+                        document.getElementById('stage2Meta').textContent = meta.join(' · ');
+                        document.getElementById('stage2Status').textContent = 'walking the dependency tree…';
+                        render();
+                        break;
+                    }
+                    case 'recursive.target.discovered': {
+                        _reveal();
+                        _ensureChild(evt, 'pending');
+                        render();
+                        break;
+                    }
+                    case 'recursive.child.start': {
+                        _reveal();
+                        _ensureChild(evt, 'running');
+                        render();
+                        break;
+                    }
+                    case 'recursive.child.done': {
+                        _reveal();
+                        const entry = _ensureChild(evt, evt.error ? 'error' : 'done');
+                        if (evt.error) entry.reason = evt.error;
+                        render();
+                        break;
+                    }
+                    case 'recursive.child.skipped': {
+                        _reveal();
+                        _ensureChild(evt, 'skipped');
+                        render();
+                        break;
+                    }
+                    case 'recursive.done': {
+                        const card = document.getElementById('pipelineStage2');
+                        if (!card) break;
+                        card.classList.add('is-done');
+                        const counts = _counts();
+                        const parts = [`✓ ${counts.done} done`];
+                        if (counts.error)   parts.push(`${counts.error} failed`);
+                        if (counts.skipped) parts.push(`${counts.skipped} skipped`);
+                        document.getElementById('stage2Status').textContent = parts.join(' · ');
+                        render();
+                        break;
+                    }
+                }
+            }
+
+            function _counts() {
+                const c = { pending: 0, running: 0, done: 0, error: 0, skipped: 0 };
+                for (const v of children.values()) c[v.state] = (c[v.state] || 0) + 1;
+                return c;
+            }
+
+            function render() {
+                if (children.size === 0) return;
+                const summary = document.getElementById('stage2Summary');
+                const depths = document.getElementById('stage2Depths');
+                if (!summary || !depths) return;
+
+                // Summary row
+                const c = _counts();
+                const stat = (k, label, kls) => `<span class="stat ${kls}"><span class="num">${c[k]}</span> ${label}</span>`;
+                summary.innerHTML = [
+                    stat('done',    'done',    'done'),
+                    c.running ? stat('running', 'running', 'running') : '',
+                    c.pending ? stat('pending', 'pending', 'pending') : '',
+                    c.skipped ? stat('skipped', 'skipped', 'skipped') : '',
+                    c.error   ? stat('error',   'failed',  'error')   : '',
+                ].filter(Boolean).join('');
+
+                // Depth-grouped chips
+                const byDepth = new Map();
+                for (const v of children.values()) {
+                    if (!byDepth.has(v.depth)) byDepth.set(v.depth, []);
+                    byDepth.get(v.depth).push(v);
+                }
+                const sortedDepths = Array.from(byDepth.keys()).sort((a, b) => a - b);
+                depths.innerHTML = '';
+                for (const d of sortedDepths) {
+                    const block = document.createElement('div');
+                    block.className = 'stage2-depth';
+                    block.dataset.depth = String(d);
+                    const label = document.createElement('div');
+                    label.className = 'stage2-depth-label';
+                    label.textContent = `Depth ${d}`;
+                    block.appendChild(label);
+                    const chips = document.createElement('div');
+                    chips.className = 'stage2-chips';
+                    // Stable order: done first, then running, then pending, then skipped/error
+                    const order = { running: 0, done: 1, pending: 2, skipped: 3, error: 4 };
+                    const sorted = byDepth.get(d).slice().sort(
+                        (a, b) => (order[a.state] - order[b.state]) || a.target.localeCompare(b.target)
+                    );
+                    for (const entry of sorted) chips.appendChild(_chip(entry));
+                    block.appendChild(chips);
+                    depths.appendChild(block);
+                }
+            }
+
+            function _chip(entry) {
+                const el = document.createElement('span');
+                el.className = 'stage2-chip';
+                el.dataset.state = entry.state;
+                el.dataset.target = entry.target;
+                el.dataset.depth = String(entry.depth);
+                el.title = `${entry.target}` +
+                    (entry.relationship_type ? ` (${entry.relationship_type})` : '') +
+                    (entry.parent ? `\nparent: ${entry.parent}` : '') +
+                    (entry.reason ? `\nreason: ${entry.reason}` : '');
+                const icon = document.createElement('span'); icon.className = 'icon'; el.appendChild(icon);
+                const tgt  = document.createElement('span'); tgt.className = 'target'; tgt.textContent = entry.target; el.appendChild(tgt);
+                if (entry.relationship_type) {
+                    const rel = document.createElement('span'); rel.className = 'rel'; rel.textContent = entry.relationship_type; el.appendChild(rel);
+                }
+                if (entry.state === 'skipped' && entry.reason) {
+                    const r = document.createElement('span'); r.className = 'reason'; r.textContent = `(${entry.reason})`; el.appendChild(r);
+                }
+                return el;
+            }
+
+            return { reset, handle };
         })();
 
         // ===== History tab controller =========================================

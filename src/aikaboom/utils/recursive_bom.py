@@ -28,7 +28,10 @@ from __future__ import annotations
 
 import re
 import sys
+import time
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple
+
+from aikaboom.utils.pipeline_events import emit as _emit_event
 
 
 AI_RELATIONSHIP_FIELDS = {
@@ -355,6 +358,18 @@ def generate_recursive_boms(
 
     tree_exhausted = True
 
+    # Signal the start of the recursive walk so the web UI can reveal the
+    # Stage 2 card. The exact frontier size isn't known yet — children
+    # appear via target.discovered events as parents complete.
+    _recursive_t0 = time.time()
+    _emit_event({
+        "event": "recursive.start",
+        "parent": parent_id,
+        "bom_type": bom_type,
+        "max_depth": max_depth,
+        "safety_cap": safety_cap,
+    })
+
     while frontier:
         parent_meta, parent_label, parent_bom_type, depth = frontier.pop(0)
         if depth >= max_depth:
@@ -369,6 +384,15 @@ def generate_recursive_boms(
         targets, audit = discover_recursive_targets(parent_meta, bom_type=parent_bom_type)
         for skip in audit.get("skipped_due_to_conflict", []):
             skipped.append({**skip, "parent": parent_label, "depth": depth + 1})
+            _emit_event({
+                "event": "recursive.child.skipped",
+                "target": skip.get("field") or skip.get("target") or "unknown",
+                "bom_type": skip.get("bom_type"),
+                "relationship_type": skip.get("relationship_type"),
+                "parent": parent_label,
+                "depth": depth + 1,
+                "reason": skip.get("reason") or "conflict",
+            })
 
         for t in targets:
             if len(generated) >= safety_cap:
@@ -384,6 +408,15 @@ def generate_recursive_boms(
                     "parent": parent_label,
                     "depth": depth + 1,
                 })
+                _emit_event({
+                    "event": "recursive.child.skipped",
+                    "target": t["target"],
+                    "bom_type": t["bom_type"],
+                    "relationship_type": t["relationship_type"],
+                    "parent": parent_label,
+                    "depth": depth + 1,
+                    "reason": "safety-cap-reached",
+                })
                 continue
             key = _visit_key(t["bom_type"], t["target"])
             if key in visited:
@@ -394,9 +427,39 @@ def generate_recursive_boms(
                     "parent": parent_label,
                     "depth": depth + 1,
                 })
+                _emit_event({
+                    "event": "recursive.child.skipped",
+                    "target": t["target"],
+                    "bom_type": t["bom_type"],
+                    "relationship_type": t["relationship_type"],
+                    "parent": parent_label,
+                    "depth": depth + 1,
+                    "reason": "duplicate",
+                })
                 continue
             visited.add(key)
             t_with_parent = {**t, "parent": parent_label}
+
+            # Tell the UI a new child is queued and about to start. We emit
+            # discovered + start back-to-back since each target moves
+            # immediately into enrichment in this BFS loop.
+            _emit_event({
+                "event": "recursive.target.discovered",
+                "target": t["target"],
+                "bom_type": t["bom_type"],
+                "relationship_type": t["relationship_type"],
+                "parent": parent_label,
+                "depth": depth + 1,
+            })
+            _emit_event({
+                "event": "recursive.child.start",
+                "target": t["target"],
+                "bom_type": t["bom_type"],
+                "relationship_type": t["relationship_type"],
+                "parent": parent_label,
+                "depth": depth + 1,
+            })
+            _child_t0 = time.time()
 
             enriched = False
             enrichment_error: Optional[str] = None
@@ -422,11 +485,33 @@ def generate_recursive_boms(
             )
             generated.append(node)
 
+            _emit_event({
+                "event": "recursive.child.done",
+                "target": t["target"],
+                "bom_type": t["bom_type"],
+                "relationship_type": t["relationship_type"],
+                "parent": parent_label,
+                "depth": depth + 1,
+                "enriched": enriched,
+                "error": enrichment_error,
+                "duration_ms": int((time.time() - _child_t0) * 1000),
+            })
+
             # Only AI children carry relationship fields worth descending into.
             if t["bom_type"] == "ai":
                 frontier.append((child_metadata, t["target"], "ai", depth + 1))
 
     deepest = max((n["depth"] for n in generated), default=0)
+    _emit_event({
+        "event": "recursive.done",
+        "parent": parent_id,
+        "duration_ms": int((time.time() - _recursive_t0) * 1000),
+        "generated_count": len(generated),
+        "skipped_count": len(skipped),
+        "duplicate_count": len(duplicates),
+        "deepest_level_reached": deepest,
+        "tree_exhausted": tree_exhausted,
+    })
     return {
         "beta": True,
         "enabled": True,
