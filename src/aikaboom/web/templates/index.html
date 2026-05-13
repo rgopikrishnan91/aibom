@@ -639,6 +639,23 @@
             color: var(--primary-deep);
             border-bottom-color: var(--primary);
         }
+        /* SPDX tab — this is the headline output of an SPDX tool, so
+           it stays indigo whether the user has activated it or not, to
+           balance the orange BETA chips on neighbouring tabs. */
+        .tab.is-standard {
+            color: var(--primary-deep);
+            font-weight: 600;
+        }
+        .tab.is-standard.active {
+            color: var(--primary-deep);
+            border-bottom-color: var(--primary);
+        }
+        .tab.is-standard:hover { color: var(--primary-deep); }
+        .tab.is-standard .prod-tag {
+            font-size: 8.5px;
+            padding: 1.5px 5px;
+            margin-left: 4px;
+        }
 
         /* Production tabs get a small pine-green chip so production features
            visually balance the amber beta features. Beta tabs already carry
@@ -777,6 +794,34 @@
             color: var(--paper);
         }
         .download-btn:hover::before { opacity: 1; }
+
+        /* Headline download — the SPDX 3.0.1 export. This is the
+           tool's *raison d'être*, so it gets the filled-indigo treatment
+           that visually outweighs the orange BETA buttons next to it. */
+        .download-btn.is-primary {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 1px 0 var(--primary-deep), 0 2px 6px rgba(52, 81, 178, 0.18);
+            font-weight: 600;
+        }
+        .download-btn.is-primary::before { opacity: 0.95; }
+        .download-btn.is-primary:hover {
+            background: var(--primary-deep);
+            border-color: var(--primary-deep);
+            color: white;
+        }
+        .download-btn.is-primary::after {
+            content: 'STANDARD';
+            font-size: 8.5px;
+            letter-spacing: 0.14em;
+            padding: 1px 5px;
+            background: rgba(255, 255, 255, 0.18);
+            color: white;
+            border-radius: 2px;
+            margin-left: 4px;
+        }
+
         .download-btn.is-beta {
             border-color: var(--beta-edge);
             color: var(--beta);
@@ -1388,6 +1433,23 @@
             background: var(--primary-soft);
             color: var(--primary-deep);
             border-color: var(--primary-edge);
+            font-weight: 600;
+        }
+        .src-tag.src-silent {
+            background: repeating-linear-gradient(
+                45deg,
+                var(--paper-2),
+                var(--paper-2) 4px,
+                var(--paper) 4px,
+                var(--paper) 7px
+            );
+            color: var(--paper-mute);
+            border-style: dashed;
+            border-color: var(--paper-edge);
+        }
+        .src-tag.src-silent .src-mark {
+            margin-left: 2px;
+            color: var(--paper-faint);
             font-weight: 600;
         }
         .src-tag.src-empty {
@@ -2335,7 +2397,7 @@
                 <button class="tab" id="pipelineTabBtn" onclick="switchTab(event, 'pipeline')" title="Per-field generation progress" style="display:none;">Pipeline</button>
                 <button class="tab active" onclick="switchTab(event, 'complete')" title="Source-traced fields with conflict detection">BOM with Provenance</button>
                 <button class="tab" id="conflictsTabBtn" onclick="switchTab(event, 'conflicts')" title="Detected source disagreements, classified by grounding">Conflicts</button>
-                <button class="tab" onclick="switchTab(event, 'spdx')" title="Standards-compliant SPDX 3.0.1 export">SPDX 3.0.1</button>
+                <button class="tab is-standard" onclick="switchTab(event, 'spdx')" title="Standards-compliant SPDX 3.0.1 export">SPDX 3.0.1 <span class="prod-tag">Standard</span></button>
                 <button class="tab" onclick="switchTab(event, 'cyclonedx')" title="CycloneDX 1.6 Beta — ML-BOM export">CycloneDX 1.6 <span class="beta-tag">Beta</span></button>
                 <button class="tab" onclick="switchTab(event, 'recursive')" title="Recursive Beta — child BOM seed exports">Recursive <span class="beta-tag">Beta</span></button>
                 <button class="tab" onclick="switchTab(event, 'logs')" title="Live server processing log">Logs</button>
@@ -2345,7 +2407,7 @@
             <div class="download-strip" id="downloadButtons">
                 <span class="download-strip-label">Download</span>
                 <a id="downloadComplete" href="#" class="download-btn" target="_blank">Download Provenance BOM</a>
-                <a id="downloadSPDX" href="#" class="download-btn" target="_blank">Download SPDX 3.0.1</a>
+                <a id="downloadSPDX" href="#" class="download-btn is-primary" target="_blank">Download SPDX 3.0.1</a>
                 <a id="downloadCDX" href="#" class="download-btn is-beta" target="_blank">Download CycloneDX 1.6 Beta</a>
                 <a id="downloadRecursive" href="#" class="download-btn is-beta" target="_blank">Download Recursive BOM Beta</a>
                 <a id="downloadLinked" href="#" class="download-btn is-beta" target="_blank">Download Linked SPDX Beta</a>
@@ -3187,25 +3249,42 @@
             }).join('');
         }
 
+        // Compute the set of sources that were consulted but had no
+        // claim recorded (``trace.claims[src]`` is null/empty/whitespace).
+        // These are "silent" — distinguished from sources that genuinely
+        // agreed, so the eye doesn't read a neutral chip as "silent
+        // agreement" when the source actually said nothing.
+        function silentSourcesFromClaims(claims) {
+            const out = new Set();
+            Object.entries(claims || {}).forEach(([src, v]) => {
+                if (v === null || v === undefined) { out.add(src); return; }
+                if (typeof v === 'string' && v.trim() === '') { out.add(src); return; }
+            });
+            return out;
+        }
+
         // Render the "Sources considered" cell — list every source that
-        // contributed a claim for this field, in source-priority order
+        // was consulted for this field, in source-priority order
         // (huggingface → arxiv → github by default). Each chip is tagged
         // with its routing fate:
         //   • src-in-conflict — sat on one side of an LLM-flagged disagreement
+        //   • src-silent      — consulted but recorded no claim (null)
         //   • src-consensus   — passed the consensus router (post-filter
-        //                       winners — these are the chunks used to
-        //                       answer the field's question)
-        //   • src-considered  — was consulted but neither conflicting nor
-        //                       picked (e.g. agreed, but lower priority)
-        function renderSourcesConsidered(considered, selected, conflictParticipants) {
+        //                       winners — its chunks were used to answer)
+        //   • src-considered  — consulted, spoke, neither conflicting nor
+        //                       the consensus winner (e.g. agreed but lower
+        //                       priority)
+        function renderSourcesConsidered(considered, selected, conflictParticipants, silentSet) {
             const list = (considered || []).slice();
             if (!list.length) return '<span class="src-tag src-empty">none recorded</span>';
-            const conflictSet  = new Set(conflictParticipants || []);
-            const selectedSet  = new Set(selected || []);
+            const conflictSet = new Set(conflictParticipants || []);
+            const selectedS   = new Set(selected || []);
+            const silent      = silentSet || new Set();
             return list.map(s => {
-                if (conflictSet.has(s))      return `<span class="src-tag src-in-conflict" title="Flagged as a conflict participant by the auditor">${escapeHtml(s)}</span>`;
-                if (selectedSet.has(s))      return `<span class="src-tag src-consensus" title="Survived the consensus router — its chunks were used to answer">${escapeHtml(s)} ✓</span>`;
-                return `<span class="src-tag" title="Consulted, no disagreement flagged">${escapeHtml(s)}</span>`;
+                if (conflictSet.has(s)) return `<span class="src-tag src-in-conflict" title="Flagged as a conflict participant by the auditor">${escapeHtml(s)}</span>`;
+                if (silent.has(s))      return `<span class="src-tag src-silent" title="Consulted but recorded no claim for this field">${escapeHtml(s)} <span class="src-mark">∅</span></span>`;
+                if (selectedS.has(s))   return `<span class="src-tag src-consensus" title="Survived the consensus router — its chunks were used to answer">${escapeHtml(s)} ✓</span>`;
+                return `<span class="src-tag" title="Consulted; agreed with the consensus">${escapeHtml(s)}</span>`;
             }).join(' ');
         }
 
@@ -3234,7 +3313,8 @@
                 ? `<span class="prio-chip" title="Source priority used to break ties">priority: ${g.priority.map(escapeHtml).join(' › ')}</span>`
                 : '';
 
-            const sourcesConsidered = renderSourcesConsidered(g.sources_considered, g.selected_sources, involved);
+            const silentSet = silentSourcesFromClaims(g.claims);
+            const sourcesConsidered = renderSourcesConsidered(g.sources_considered, g.selected_sources, involved, silentSet);
             const legendHint = (kind === 'internal')
                 ? 'Red chip = source that contradicted itself.'
                 : (kind === 'direct'
@@ -3343,6 +3423,20 @@
                     }
                 });
             });
+            // Compute the silent set BEFORE the null-filter above stripped
+            // those entries — a source is silent if every evidence path
+            // recorded a null/empty claim for it. A speaker on either
+            // evidence path counts as a speaker overall.
+            const speakerSet = new Set(Object.keys(mergedClaims));
+            const silentSet = new Set();
+            f.evidence.forEach(e => {
+                Object.entries(e.claims || {}).forEach(([src, c]) => {
+                    if ((c === null || c === undefined || (typeof c === 'string' && c.trim() === ''))
+                        && !speakerSet.has(src)) {
+                        silentSet.add(src);
+                    }
+                });
+            });
 
             const valueText = primary.value;
             const lowered = String(valueText).trim().toLowerCase();
@@ -3356,7 +3450,7 @@
                 ? '<span class="agreed-notassert">not asserted</span>'
                 : '';
 
-            const sourcesHtml = renderSourcesConsidered(Array.from(consideredSet), Array.from(selectedSet), []);
+            const sourcesHtml = renderSourcesConsidered(Array.from(consideredSet), Array.from(selectedSet), [], silentSet);
             const claimsHtml = renderClaimsBlock(mergedClaims, primary.source);
 
             return `<div class="agreed-row">
