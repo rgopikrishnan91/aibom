@@ -912,6 +912,21 @@
         .conflict-stat.is-sup .num { color: var(--conflict-sup); }
         .conflict-stat.is-sup { opacity: 0.7; }
 
+        /* How-to-read legend explaining the four conflict kinds. */
+        .conflicts-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 12px 22px;
+            background: var(--paper);
+            border-bottom: 1px solid var(--paper-edge);
+            font-family: var(--mono);
+            font-size: 11.5px;
+            line-height: 1.5;
+            color: var(--paper-mute);
+        }
+        .conflicts-legend b { color: var(--ink); font-weight: 600; }
+
         .conflict-list { padding: 8px 0; }
         .conflict-row {
             display: grid;
@@ -935,6 +950,8 @@
         .conflict-row.band-det::before   { background: var(--conflict-det); }
         .conflict-row.band-sup::before   { background: var(--conflict-sup); opacity: 0.5; }
         .conflict-row.band-sup           { background: rgba(100, 116, 139, 0.04); opacity: 0.85; }
+        .conflict-row.kind-suppressed    { background: rgba(100, 116, 139, 0.04); opacity: 0.9; }
+        .conflict-row .cell { min-width: 0; }
 
         .conflict-field {
             font-family: var(--mono);
@@ -1037,13 +1054,80 @@
             margin-bottom: 4px;
         }
         .conflict-claims .claim:last-child { margin-bottom: 0; }
+        .conflict-claims .claim {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 10px;
+            align-items: baseline;
+        }
         .conflict-claims .claim .src {
             color: var(--paper-mute);
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.06em;
             font-size: 10px;
-            margin-right: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .conflict-claims .claim .claim-text {
+            color: var(--ink);
+            word-break: break-word;
+        }
+        .conflict-claims .claim-winner {
+            display: inline-block;
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 700;
+            margin-left: 2px;
+        }
+        .conflict-claims .claims-section-label {
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--paper-mute);
+            margin: 6px 0 4px;
+        }
+        .conflict-claims .claims-section-label:first-child { margin-top: 0; }
+
+        /* Source-tag chips used in "Sources considered" cells. */
+        .src-row { display: flex; flex-wrap: wrap; gap: 4px; }
+        .src-tag {
+            display: inline-block;
+            font-family: var(--mono);
+            font-size: 10.5px;
+            padding: 2px 8px;
+            border-radius: 3px;
+            background: var(--paper-2);
+            color: var(--ink);
+            border: 1px solid var(--paper-edge);
+            line-height: 1.5;
+        }
+        .src-tag.src-in-conflict {
+            background: #fcecec;
+            color: var(--conflict-high);
+            border-color: rgba(207, 34, 46, 0.25);
+            font-weight: 600;
+        }
+        .src-tag.src-consensus {
+            background: var(--primary-soft);
+            color: var(--primary-deep);
+            border-color: var(--primary-edge);
+            font-weight: 600;
+        }
+        .src-tag.src-empty {
+            color: var(--paper-mute);
+            font-style: italic;
+        }
+        .src-hint {
+            font-family: var(--mono);
+            font-size: 10.5px;
+            color: var(--paper-mute);
+            margin-top: 8px;
+            line-height: 1.4;
+            font-style: italic;
         }
 
         .conflicts-empty {
@@ -1098,7 +1182,8 @@
             line-height: 1.5;
         }
 
-        /* Conflict-list band headers (high → low → direct/intra → suppressed). */
+        /* Conflict-list section headers (one per kind: cross-source,
+           within-source, direct-field, suppressed). */
         .conflict-band-head {
             font-family: var(--mono);
             font-size: 11.5px;
@@ -1108,11 +1193,34 @@
             padding: 14px 22px 8px;
             border-bottom: 1px solid var(--paper-edge);
             background: var(--paper-2);
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
         }
-        .conflict-band-head.band-high { color: var(--conflict-high); }
-        .conflict-band-head.band-low  { color: var(--conflict-low); }
-        .conflict-band-head.band-det  { color: var(--conflict-det); }
-        .conflict-band-head.band-sup  { color: var(--conflict-sup); }
+        .conflict-band-head .band-title { color: inherit; }
+        .conflict-band-head .band-count {
+            font-size: 10.5px;
+            font-weight: 500;
+            color: var(--paper-mute);
+            padding: 1px 7px;
+            border: 1px solid var(--paper-edge);
+            border-radius: 10px;
+            background: var(--paper);
+        }
+        .conflict-band-head .band-hint {
+            font-size: 10.5px;
+            font-weight: 400;
+            color: var(--paper-mute);
+            text-transform: none;
+            letter-spacing: 0.02em;
+            margin-left: auto;
+            text-align: right;
+            max-width: 60%;
+        }
+        .conflict-band-head.band-external   { color: var(--conflict-high); }
+        .conflict-band-head.band-internal   { color: var(--conflict-low); }
+        .conflict-band-head.band-direct     { color: var(--conflict-det); }
+        .conflict-band-head.band-suppressed { color: var(--conflict-sup); }
 
         /* "Fields with no conflict" block at the bottom of the conflicts tab. */
         .agreed-section {
@@ -1130,13 +1238,20 @@
             padding: 14px 22px 10px;
             background: var(--paper-2);
             display: flex;
-            align-items: center;
-            gap: 10px;
+            align-items: baseline;
+            gap: 12px;
         }
         .agreed-head::before {
             content: '✓';
             color: var(--primary);
             font-weight: 700;
+        }
+        .agreed-head .agreed-hint {
+            font-size: 10.5px;
+            font-weight: 400;
+            color: var(--paper-mute);
+            text-transform: none;
+            letter-spacing: 0.02em;
         }
         .agreed-count {
             margin-left: auto;
@@ -1144,35 +1259,44 @@
             font-size: 11px;
             color: var(--paper-mute);
             font-weight: 500;
+            padding: 1px 7px;
+            border: 1px solid var(--paper-edge);
+            border-radius: 10px;
+            background: var(--paper);
         }
         .agreed-list { padding: 6px 0; }
         .agreed-row {
             display: grid;
-            grid-template-columns: minmax(180px, 1.2fr) minmax(140px, 1fr) minmax(280px, 3fr);
-            gap: 18px;
-            padding: 8px 22px;
-            font-size: 12.5px;
+            grid-template-columns: minmax(160px, 1fr) minmax(200px, 1.5fr) minmax(200px, 1.5fr) auto;
+            gap: 22px;
+            padding: 14px 22px;
             border-bottom: 1px solid var(--paper-edge);
-            align-items: baseline;
+            align-items: start;
         }
         .agreed-row:last-child { border-bottom: none; }
-        .agreed-field {
-            font-family: var(--mono);
-            font-weight: 600;
-            color: var(--ink);
-        }
-        .agreed-source {
-            font-family: var(--mono);
-            font-size: 11.5px;
+        .agreed-row .cell { min-width: 0; }
+        .conflict-value.is-notasserted {
             color: var(--paper-mute);
+            font-style: italic;
         }
-        .agreed-value {
+        .agreed-notassert {
+            display: inline-block;
             font-family: var(--mono);
-            font-size: 12px;
-            color: var(--ink);
-            line-height: 1.45;
-            word-break: break-word;
-            opacity: 0.9;
+            font-size: 9.5px;
+            font-weight: 600;
+            color: var(--paper-mute);
+            background: var(--paper-2);
+            border: 1px solid var(--paper-edge);
+            padding: 1px 6px;
+            border-radius: 3px;
+            margin-left: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .conf-pill.agreed-pill {
+            background: var(--primary-soft);
+            color: var(--primary-deep);
+            border: 1px solid var(--primary-edge);
         }
 
         /* ============================================ SPDX VALIDATION BAR */
@@ -1989,13 +2113,19 @@
         });
 
         // ===== conflicts renderer ================================================
-        // Render order: high-confidence conflicts → low → direct/intra →
-        // suppressed → fields where every source agreed. Source-letter
-        // labels in the auditor narrative (``A says ... vs B says ...``)
-        // are rewritten to actual source names using the GLOBAL letter→source
-        // map derived from ``claims`` keys (huggingface→A, arxiv→B,
-        // github→C — same order as `_build_groups` in the backend).
-        const BAND_ORDER = { high: 1, low: 2, det: 3, sup: 4 };
+        // Layout: stats → grouped conflict sections (cross-source, within-source,
+        // direct-field, suppressed) → "fields where every source agreed".
+        // Each row surfaces the chosen value, the sources actually considered
+        // (selected_sources from the BOM trace), and the verbatim per-source
+        // claims so the user can see *what every source said* without
+        // hunting through the JSON tab.
+        //
+        // The auditor narrative refers to sources by anonymous letters
+        // (``A says ... vs B says ...``). The letter→source map comes from
+        // the order of ``claims`` keys, which the backend populates in
+        // source-priority order (huggingface→A, arxiv→B, github→C, ...).
+        const KIND_ORDER  = { external: 1, internal: 2, direct: 3, suppressed: 4 };
+        const BAND_ORDER  = { high: 1, low: 2, det: 3, sup: 4 };
 
         function renderConflicts(conflicts, summary, metadata) {
             const conflictsViewer = document.getElementById('conflictsViewer');
@@ -2014,62 +2144,90 @@
             conflictsTabBtn.classList.remove('has-conflicts', 'no-conflicts');
             conflictsTabBtn.classList.add(conflicts.length > 0 ? 'has-conflicts' : 'no-conflicts');
 
-            // Group multiple conflict entries on the same field into a single
-            // row (one field = one row, even if the auditor flagged several
-            // pairwise disagreements like A_VS_B + A_VS_C). The displayed band
-            // is the most-severe band across the field's entries.
+            // One row per field. Each row carries every conflict verdict
+            // that landed on the field — could be A-vs-B + A-vs-C (two
+            // external entries), or external + internal mixed.
             const grouped = groupConflictsByField(conflicts);
 
-            // Stable sort: high → low → det → sup → field name.
-            grouped.sort((a, b) => {
-                const ba = BAND_ORDER[a.band] || 99;
-                const bb = BAND_ORDER[b.band] || 99;
-                if (ba !== bb) return ba - bb;
-                return (a.field || '').localeCompare(b.field || '');
+            // Bucket rows by KIND. A field with both cross-source AND
+            // within-source conflicts shows up in both buckets — same row
+            // template, different verdicts visible inside it. (Rare in
+            // practice but the data model allows it, so the UI handles it.)
+            const buckets = { external: [], internal: [], direct: [], suppressed: [] };
+            grouped.forEach(g => {
+                g.entries.forEach(e => {
+                    const k = kindFor(e);
+                    if (!buckets[k].some(x => x.key === g.key)) {
+                        buckets[k].push(g);
+                    }
+                });
+            });
+            Object.values(buckets).forEach(rows => {
+                rows.sort((a, b) => {
+                    const ba = BAND_ORDER[a.band] || 99;
+                    const bb = BAND_ORDER[b.band] || 99;
+                    if (ba !== bb) return ba - bb;
+                    return (a.field || '').localeCompare(b.field || '');
+                });
             });
 
-            // Summary band
+            // ----- header stats -----
             let html = '<div class="conflicts-summary">';
-            html += statCard('total',       summary.total, 'is-total');
-            if (summary.high_confidence) html += statCard('high', summary.high_confidence, 'is-high');
-            if (summary.low_confidence)  html += statCard('low',  summary.low_confidence,  'is-low');
+            html += statCard('total',          summary.total, 'is-total');
+            if (summary.high_confidence) html += statCard('high-conf',  summary.high_confidence, 'is-high');
+            if (summary.low_confidence)  html += statCard('low-conf',   summary.low_confidence,  'is-low');
             if (summary.deterministic)   html += statCard('direct/intra', summary.deterministic, 'is-det');
             if (summary.suppressed)      html += statCard('suppressed', summary.suppressed, 'is-sup');
             html += '</div>';
 
-            // Conflict rows, grouped under band headers.
-            const fieldsWithConflict = new Set(grouped.map(g => `${g.section}::${g.field}`));
+            // ----- legend / how-to-read -----
+            html += `<div class="conflicts-legend">
+                <span><b>Cross-source</b> — sources disagreed with each other.</span>
+                <span><b>Within-source</b> — one source contradicted itself across passages.</span>
+                <span><b>Direct-field</b> — deterministic mismatch from the host's API (no LLM grounding).</span>
+                <span><b>Suppressed</b> — grounding &lt; 0.1; kept in the BOM trace but excluded from the headline count.</span>
+            </div>`;
 
-            if (grouped.length === 0 && summary.suppressed === 0) {
+            const fieldsWithConflict = new Set(grouped.map(g => g.key));
+
+            // ----- conflict sections -----
+            const sectionTitles = {
+                external:   ['Cross-source conflicts',   'Different sources reported different values for the same field.'],
+                internal:   ['Within-source conflicts',  'A single source contradicted itself across passages.'],
+                direct:     ['Direct-field conflicts',   'Mismatched values returned by deterministic source APIs.'],
+                suppressed: ['Suppressed conflicts',     'Grounding below 0.1 — kept in the BOM trace, excluded from the headline count.'],
+            };
+
+            const anyConflict = grouped.length > 0;
+            if (!anyConflict && summary.suppressed === 0) {
                 html += '<div class="conflicts-empty">No conflicts detected — every queried source agreed on every field.</div>';
             } else {
-                let lastBand = null;
                 html += '<div class="conflict-list">';
-                grouped.forEach(g => {
-                    if (g.band !== lastBand) {
-                        html += bandHeader(g.band);
-                        lastBand = g.band;
-                    }
-                    html += conflictRowGrouped(g);
+                Object.keys(sectionTitles).forEach(kind => {
+                    const rows = buckets[kind];
+                    if (!rows.length) return;
+                    const [title, hint] = sectionTitles[kind];
+                    html += `<div class="conflict-band-head band-${kind}">
+                        <span class="band-title">${title}</span>
+                        <span class="band-count">${rows.length}</span>
+                        <span class="band-hint">${hint}</span>
+                    </div>`;
+                    rows.forEach(g => { html += conflictRowGrouped(g, kind); });
                 });
                 html += '</div>';
             }
 
-            // Bottom section: list every populated field where all sources
-            // agreed (i.e. NOT in the conflict list). Gives a complete
-            // audit picture, not just the disagreements.
+            // ----- agreed fields -----
             const agreed = collectAgreedFields(metadata, fieldsWithConflict);
             if (agreed.length > 0) {
                 html += '<div class="agreed-section">';
-                html += `<div class="agreed-head">Fields with no conflict <span class="agreed-count">${agreed.length}</span></div>`;
+                html += `<div class="agreed-head">
+                    <span>Fields with no conflict</span>
+                    <span class="agreed-hint">All consulted sources agreed (or only one source spoke). The per-source claims show what each one said.</span>
+                    <span class="agreed-count">${agreed.length}</span>
+                </div>`;
                 html += '<div class="agreed-list">';
-                agreed.forEach(f => {
-                    html += `<div class="agreed-row">
-                        <div class="agreed-field">${escapeHtml(f.field)}</div>
-                        <div class="agreed-source">${escapeHtml(f.source || '—')}</div>
-                        <div class="agreed-value" title="${escapeHtml(String(f.value))}">${escapeHtml(truncate(String(f.value), 120))}</div>
-                    </div>`;
-                });
+                agreed.forEach(f => { html += agreedRow(f); });
                 html += '</div></div>';
             }
 
@@ -2083,6 +2241,9 @@
             </div>`;
         }
 
+        // Per-entry band (high/low/det/sup) — used to colour pills and to
+        // sort rows within a kind section. ``kindFor`` is the orthogonal
+        // dimension (cross-source / within-source / direct / suppressed).
         function bandFor(c) {
             if (c.confidence === 'high') return 'high';
             if (c.confidence === 'low')  return 'low';
@@ -2090,14 +2251,11 @@
             return 'det';
         }
 
-        function bandHeader(band) {
-            const titles = {
-                high: 'High-confidence conflicts',
-                low:  'Low-confidence conflicts',
-                det:  'Direct & intra-source conflicts (no LLM grounding)',
-                sup:  'Suppressed (grounding below 0.1 — kept in BOM trace, excluded from headline)',
-            };
-            return `<div class="conflict-band-head band-${band}">${titles[band] || band}</div>`;
+        function kindFor(c) {
+            if (typeof c.grounding === 'number' && c.grounding < 0.1) return 'suppressed';
+            if (c.kind === 'rag-external') return 'external';
+            if (c.kind === 'rag-internal') return 'internal';
+            return 'direct';
         }
 
         function pillFor(c) {
@@ -2106,26 +2264,17 @@
             if (tier === 'high')       return `<span class="conf-pill high">high${g ? `<span class="grounding">${g}</span>` : ''}</span>`;
             if (tier === 'low')        return `<span class="conf-pill low">low${g ? `<span class="grounding">${g}</span>` : ''}</span>`;
             if (tier === 'suppressed') return `<span class="conf-pill sup">suppressed${g ? `<span class="grounding">${g}</span>` : ''}</span>`;
-            // No grounding score — direct field or intra-source.
-            return `<span class="conf-pill det">direct/intra</span>`;
+            return `<span class="conf-pill det">no grounding</span>`;
         }
 
-        // Build the global letter→source map from the order of `claims`
-        // keys. The backend's `_build_groups` populates `claims` in
-        // source-priority order (huggingface→A, arxiv→B, github→C, etc.),
-        // so the same order applies to every conflict on this field.
         function letterMapFromClaims(claims) {
             const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
             const out = {};
             const keys = Object.keys(claims || {});
-            keys.forEach((src, i) => {
-                if (i < letters.length) out[letters[i]] = src;
-            });
+            keys.forEach((src, i) => { if (i < letters.length) out[letters[i]] = src; });
             return out;
         }
 
-        // Replace the auditor's anonymous group letters with actual source
-        // names. ``letterMap`` is `{A: 'huggingface', B: 'arxiv', ...}`.
         function rewriteNarrative(text, letterMap) {
             if (!text || !letterMap) return text || '';
             let out = String(text);
@@ -2136,16 +2285,13 @@
             return out;
         }
 
-        // Collapse multiple conflict entries on the same field into one
-        // grouped record. The grouped record carries: the most-severe
-        // band, all narratives joined, all sources involved, the chosen
-        // value, the field-class, and the priority list.
         function groupConflictsByField(conflicts) {
             const map = new Map();
             for (const c of conflicts) {
                 const key = `${c.section}::${c.field}`;
                 if (!map.has(key)) {
                     map.set(key, {
+                        key,
                         field: c.field,
                         section: c.section,
                         field_class: c.field_class || (c.section === 'direct' ? 'direct' : 'inferred'),
@@ -2153,12 +2299,13 @@
                         chosen_value: c.chosen_value,
                         chosen_source: c.chosen_source,
                         claims: c.claims || {},
+                        sources_considered: c.sources_considered || Object.keys(c.claims || {}),
+                        selected_sources: c.selected_sources || [],
                         entries: [],
                     });
                 }
                 map.get(key).entries.push(c);
             }
-            // Compute the field's most-severe band.
             const result = [];
             for (const g of map.values()) {
                 let best = 'sup';
@@ -2172,93 +2319,217 @@
             return result;
         }
 
-        function conflictRowGrouped(g) {
+        // Render a multi-source claims block (used in BOTH conflict rows
+        // and agreed-field rows). Marks the chosen source so the user can
+        // see at a glance which claim won.
+        function renderClaimsBlock(claims, chosenSource) {
+            const entries = Object.entries(claims || {})
+                .filter(([, v]) => v != null && v !== '');
+            if (!entries.length) return '';
+            const chosen = String(chosenSource || '').split(',').map(s => s.trim());
+            return entries.map(([src, claim]) => {
+                const winner = chosen.includes(src) ? '<span class="claim-winner" title="This source supplied the chosen value">✓</span>' : '';
+                return `<div class="claim">
+                    <span class="src">${escapeHtml(src)}${winner}</span>
+                    <span class="claim-text">${escapeHtml(String(claim))}</span>
+                </div>`;
+            }).join('');
+        }
+
+        // Render the "Sources considered" cell — list every source that
+        // contributed a claim for this field, in source-priority order
+        // (huggingface → arxiv → github by default). Each chip is tagged
+        // with its routing fate:
+        //   • src-in-conflict — sat on one side of an LLM-flagged disagreement
+        //   • src-consensus   — passed the consensus router (post-filter
+        //                       winners — these are the chunks used to
+        //                       answer the field's question)
+        //   • src-considered  — was consulted but neither conflicting nor
+        //                       picked (e.g. agreed, but lower priority)
+        function renderSourcesConsidered(considered, selected, conflictParticipants) {
+            const list = (considered || []).slice();
+            if (!list.length) return '<span class="src-tag src-empty">none recorded</span>';
+            const conflictSet  = new Set(conflictParticipants || []);
+            const selectedSet  = new Set(selected || []);
+            return list.map(s => {
+                if (conflictSet.has(s))      return `<span class="src-tag src-in-conflict" title="Flagged as a conflict participant by the auditor">${escapeHtml(s)}</span>`;
+                if (selectedSet.has(s))      return `<span class="src-tag src-consensus" title="Survived the consensus router — its chunks were used to answer">${escapeHtml(s)} ✓</span>`;
+                return `<span class="src-tag" title="Consulted, no disagreement flagged">${escapeHtml(s)}</span>`;
+            }).join(' ');
+        }
+
+        function conflictRowGrouped(g, kind) {
             const letterMap = letterMapFromClaims(g.claims);
 
-            // One pill per entry (so HF-vs-GitHub at low and arxiv-vs-GitHub
-            // at low render as two side-by-side pills).
             const pills = g.entries.map(e => pillFor(e)).join(' ');
 
-            // Combine narratives — rewrite letters to source names first.
             const narrativeBlocks = g.entries
                 .map(e => rewriteNarrative(e.narrative, letterMap))
                 .filter(Boolean)
                 .map(t => `<div class="narrative">${escapeHtml(t)}</div>`)
                 .join('');
 
-            // Per-source claims (the verbatim per-group quotes).
-            const claimItems = Object.entries(g.claims)
-                .filter(([, v]) => v != null && v !== '')
-                .map(([src, claim]) =>
-                    `<div class="claim"><span class="src">${escapeHtml(src)}</span>${escapeHtml(String(claim))}</div>`
-                ).join('');
+            const claimItems = renderClaimsBlock(g.claims, g.chosen_source);
 
-            // Sources actually involved in conflict (deduped).
             const involvedSet = new Set();
             g.entries.forEach(e => (e.sources || []).forEach(s => involvedSet.add(s)));
             const involved = Array.from(involvedSet);
-            const conflictingCell = involved.length > 0
-                ? involved.map(s => `<div class="conflict-source">${escapeHtml(s)}</div>`).join('')
-                : '<div class="conflict-source">—</div>';
 
-            // Field class chip (direct from API vs LLM-inferred).
             const classChip = g.field_class === 'direct'
                 ? '<span class="class-chip class-direct" title="Read directly from the HuggingFace / GitHub API">direct field</span>'
                 : '<span class="class-chip class-inferred" title="Extracted by the LLM via RAG over README + arXiv text">inferred (RAG)</span>';
 
-            // Priority order chip.
             const prioChip = (g.priority && g.priority.length)
                 ? `<span class="prio-chip" title="Source priority used to break ties">priority: ${g.priority.map(escapeHtml).join(' › ')}</span>`
                 : '';
 
-            return `<div class="conflict-row band-${g.band}">
-                <div>
+            const sourcesConsidered = renderSourcesConsidered(g.sources_considered, g.selected_sources, involved);
+            const legendHint = (kind === 'internal')
+                ? 'Red chip = source that contradicted itself.'
+                : (kind === 'direct'
+                    ? 'Red chip = source whose direct-API value mismatched.'
+                    : 'Red chip = source on either side of the disagreement; green ✓ = survived consensus.');
+
+            return `<div class="conflict-row band-${g.band} kind-${kind}">
+                <div class="cell cell-field">
                     <div class="conflict-field">${escapeHtml(g.field || '?')}</div>
                     <div class="conflict-section">${classChip}</div>
                     ${prioChip ? `<div style="margin-top:6px;">${prioChip}</div>` : ''}
                 </div>
-                <div>
+                <div class="cell cell-chosen">
                     <div class="conflict-cell-label">Chosen value</div>
                     <div class="conflict-value">${escapeHtml(String(g.chosen_value ?? '—'))}</div>
                     <div class="conflict-source">from ${escapeHtml(String(g.chosen_source || '?'))}</div>
                 </div>
-                <div>
-                    <div class="conflict-cell-label">Conflicting source(s)</div>
-                    ${conflictingCell}
+                <div class="cell cell-sources">
+                    <div class="conflict-cell-label">Sources considered</div>
+                    <div class="src-row">${sourcesConsidered}</div>
+                    <div class="src-hint">${legendHint}</div>
                 </div>
-                <div class="conflict-meta">
+                <div class="cell conflict-meta">
                     ${pills}
                 </div>
-                ${narrativeBlocks || claimItems ? `<div class="conflict-claims">${narrativeBlocks}${claimItems}</div>` : ''}
+                ${narrativeBlocks || claimItems ? `<div class="conflict-claims">
+                    ${narrativeBlocks ? `<div class="claims-section-label">Auditor narrative</div>${narrativeBlocks}` : ''}
+                    ${claimItems ? `<div class="claims-section-label">What each source said</div>${claimItems}` : ''}
+                </div>` : ''}
             </div>`;
         }
 
-        // Walk the BOM and collect every populated field where no conflict
-        // was flagged. ``fieldsWithConflict`` is the set of `section::field`
-        // keys we already rendered above, so we don't double-list them.
+        // Walk the BOM and collect every populated field with no live
+        // conflict verdict. Same field appearing in both ``direct_fields``
+        // and ``rag_fields`` (e.g. ``license`` — direct from the HF API
+        // tag *and* re-derived via RAG over the README) is merged into
+        // ONE row showing both evidence paths, so it doesn't read as a
+        // mysterious duplicate.
+        //
+        // ``noAssertion`` / "not found" values are kept in the list and
+        // tagged ``not asserted`` so the user can see every queried
+        // field, including the ones where no source had anything to
+        // say. Filtering them out hid useful audit information.
         function collectAgreedFields(metadata, fieldsWithConflict) {
-            const agreed = [];
-            if (!metadata) return agreed;
+            if (!metadata) return [];
+            const byField = new Map();
             ['direct_fields', 'rag_fields'].forEach(section => {
                 const fields = metadata[section] || {};
                 Object.entries(fields).forEach(([name, triplet]) => {
                     if (!triplet || typeof triplet !== 'object') return;
                     const sectionLabel = section.replace('_fields', '');
                     if (fieldsWithConflict.has(`${sectionLabel}::${name}`)) return;
-                    const v = triplet.value;
-                    if (v == null) return;
-                    const text = String(v).trim().toLowerCase();
-                    if (!text || text === 'noassertion' || text === 'not found' || text === 'none.') return;
-                    agreed.push({
-                        field: name,
+                    if (triplet.value == null) return;
+
+                    const trace = triplet.trace || {};
+                    const claimKeys = Object.keys(trace.claims || {});
+                    const entry = {
                         section: sectionLabel,
-                        value: v,
+                        value: triplet.value,
                         source: triplet.source,
-                    });
+                        claims: trace.claims || {},
+                        sources_considered: claimKeys.length
+                            ? claimKeys
+                            : (triplet.source ? String(triplet.source).split(',').map(s => s.trim()) : []),
+                        selected_sources:
+                            trace.selected_sources
+                            || (triplet.source ? String(triplet.source).split(',').map(s => s.trim()) : []),
+                    };
+                    if (!byField.has(name)) byField.set(name, { field: name, evidence: [] });
+                    byField.get(name).evidence.push(entry);
                 });
             });
-            agreed.sort((a, b) => a.field.localeCompare(b.field));
-            return agreed;
+            const merged = Array.from(byField.values());
+            merged.sort((a, b) => a.field.localeCompare(b.field));
+            return merged;
+        }
+
+        // Render one agreed-field row. Shows the chosen value, every
+        // source consulted, every claim made — same shape as the conflict
+        // rows so the eye can compare them. When a field appears in both
+        // ``direct_fields`` and ``rag_fields`` (license being the canonical
+        // example), the row carries two evidence chips and a merged claims
+        // block so the duplication is legible instead of confusing.
+        function agreedRow(f) {
+            // Pick the primary evidence (direct wins if present — that's
+            // the deterministic path); the other becomes a secondary tag.
+            const direct = f.evidence.find(e => e.section === 'direct');
+            const rag    = f.evidence.find(e => e.section === 'rag');
+            const primary = direct || rag;
+            const consideredSet = new Set();
+            const selectedSet   = new Set();
+            f.evidence.forEach(e => {
+                (e.sources_considered || []).forEach(s => s && consideredSet.add(s));
+                (e.selected_sources   || []).forEach(s => s && selectedSet.add(s));
+            });
+            // Merge claims from every evidence path so the row shows the
+            // full picture even when both direct and RAG ran.
+            const mergedClaims = {};
+            f.evidence.forEach(e => {
+                Object.entries(e.claims || {}).forEach(([src, c]) => {
+                    if (!c) return;
+                    if (mergedClaims[src] && mergedClaims[src] !== c) {
+                        mergedClaims[src] = mergedClaims[src] + '  ⏤  ' + c;
+                    } else {
+                        mergedClaims[src] = c;
+                    }
+                });
+            });
+
+            const valueText = primary.value;
+            const lowered = String(valueText).trim().toLowerCase();
+            const notAsserted = !lowered || lowered === 'noassertion' || lowered === 'not found' || lowered === 'none.' || lowered === 'n/a';
+
+            const classChips = [];
+            if (direct) classChips.push('<span class="class-chip class-direct" title="Read directly from the HuggingFace / GitHub API">direct field</span>');
+            if (rag)    classChips.push('<span class="class-chip class-inferred" title="Extracted by the LLM via RAG over README + arXiv text">inferred (RAG)</span>');
+
+            const notAssertedTag = notAsserted
+                ? '<span class="agreed-notassert">not asserted</span>'
+                : '';
+
+            const sourcesHtml = renderSourcesConsidered(Array.from(consideredSet), Array.from(selectedSet), []);
+            const claimsHtml = renderClaimsBlock(mergedClaims, primary.source);
+
+            return `<div class="agreed-row">
+                <div class="cell cell-field">
+                    <div class="conflict-field">${escapeHtml(f.field)}</div>
+                    <div class="conflict-section">${classChips.join(' ')}</div>
+                </div>
+                <div class="cell cell-chosen">
+                    <div class="conflict-cell-label">Chosen value ${notAssertedTag}</div>
+                    <div class="conflict-value ${notAsserted ? 'is-notasserted' : ''}">${escapeHtml(truncate(String(valueText), 240))}</div>
+                    <div class="conflict-source">from ${escapeHtml(String(primary.source || '?'))}</div>
+                </div>
+                <div class="cell cell-sources">
+                    <div class="conflict-cell-label">Sources considered</div>
+                    <div class="src-row">${sourcesHtml}</div>
+                </div>
+                <div class="cell conflict-meta">
+                    <span class="conf-pill agreed-pill" title="Every consulted source agreed (or only one spoke)">agreed</span>
+                </div>
+                ${claimsHtml ? `<div class="conflict-claims">
+                    <div class="claims-section-label">What each source said</div>
+                    ${claimsHtml}
+                </div>` : ''}
+            </div>`;
         }
 
         function truncate(s, n) {
