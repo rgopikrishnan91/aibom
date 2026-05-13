@@ -256,6 +256,56 @@ def test_ai_bom_required_excludes_export_only_fields(page):
     assert "spdxId"   not in keys, "spdxId is export-only, should not be in Required"
 
 
+def test_ai_bom_name_resolves_via_rag_when_extracted(page):
+    """Spec field `name` is resolved via the validator's fallback chain
+    (rag_fields.model_name → repo_id → model_id). When RAG extracted it,
+    the row should show the rag value plain (no `from …` annotation)."""
+    page.evaluate(
+        "(d) => renderBOM(d, document.getElementById('flatViewerComplete'))",
+        AI_BOM_SAMPLE,
+    )
+    keys = page.eval_on_selector_all(
+        "#flatViewerComplete .bom-group:has(.bom-group-title:text('Required')) .flat-row .flat-key",
+        "els => els.map(e => e.textContent.trim())",
+    )
+    assert "name" in keys, f"expected `name` row in Required, got {keys!r}"
+    name_val = page.eval_on_selector(
+        "#flatViewerComplete .bom-group .flat-row:has(.flat-key:text('name')) .flat-val",
+        "el => el.textContent.trim()",
+    )
+    assert "Mistral 7B" in name_val, f"expected RAG-extracted name, got {name_val!r}"
+    # AI_BOM_SAMPLE has rag_fields.model_name set, so we should NOT see a
+    # "(from …)" annotation — that only shows up when falling back.
+    assert "(from" not in name_val
+
+
+def test_ai_bom_name_falls_back_to_repo_id_when_rag_missing(page):
+    """When RAG didn't extract a model_name, the `name` row should fall
+    back to repo_id (with a small "(from repo_id)" annotation)."""
+    no_rag = {
+        "repo_id": "mistralai/Mistral-7B-v0.1",
+        "model_id": "mistralai_Mistral-7B-v0.1",
+        "direct_fields": {"license": "Apache-2.0"},
+        "rag_fields": {},  # nothing RAG-extracted
+    }
+    page.evaluate(
+        "(d) => renderBOM(d, document.getElementById('flatViewerComplete'))",
+        no_rag,
+    )
+    name_val = page.eval_on_selector(
+        "#flatViewerComplete .bom-group .flat-row:has(.flat-key:text('name')) .flat-val",
+        "el => el.textContent.trim()",
+    )
+    assert "mistralai/Mistral-7B-v0.1" in name_val, f"got {name_val!r}"
+    assert "(from repo_id)" in name_val
+    # The row should NOT be marked is-missing (it's satisfied by fallback)
+    missing = page.eval_on_selector_all(
+        "#flatViewerComplete .bom-group .flat-row.is-missing .flat-key",
+        "els => els.map(e => e.textContent.trim())",
+    )
+    assert "name" not in missing
+
+
 def test_ai_bom_required_meta_count_reflects_presence(page):
     page.evaluate(
         "(d) => renderBOM(d, document.getElementById('flatViewerComplete'))",
@@ -264,9 +314,9 @@ def test_ai_bom_required_meta_count_reflects_presence(page):
     meta = page.locator(
         "#flatViewerComplete .bom-group:has(.bom-group-title:text('Required')) .bom-group-meta"
     ).first.inner_text()
-    # Direct (3: license, suppliedBy, packageVersion) + RAG (1: model_name) = 4 of 7 present
-    # (buildTime / spdxId are tool-export-only and excluded from the
-    # Provenance Required set by design — see comment in REQUIRED_AI_FIELDS.)
+    # name (rag.model_name) + license + suppliedBy + packageVersion = 4 of 7
+    # Required set is 6 spec fields + 1 synthetic `name` row = 7 total.
+    # (buildTime / spdxId are tool-export-only and excluded by design.)
     assert "4 of 7 present" in meta
 
 
