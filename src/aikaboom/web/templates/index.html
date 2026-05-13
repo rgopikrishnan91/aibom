@@ -8,6 +8,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@1,500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/cytoscape@3.30.0/dist/cytoscape.min.js"></script>
+    <script src="https://unpkg.com/dagre@0.8.5/dist/dagre.min.js"></script>
+    <script src="https://unpkg.com/cytoscape-dagre@2.5.0/cytoscape-dagre.js"></script>
     <style>
         :root {
             /* === Conventional tech/research palette ===================== */
@@ -864,6 +867,260 @@
         .json-content { margin-left: 20px; display: block; }
         .json-line { display: block; padding: 1px 0; }
 
+        /* ====================================================== BOM SHELL */
+        /* Light-theme name/value view used for AI/Data/SPDX/CycloneDX tabs.
+           Sits inside .bom-shell which also hosts the visual/raw toggle.
+           Same component is reused inside the recursive side panel. */
+
+        .bom-shell {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            border: 1px solid var(--paper-edge);
+            border-radius: 6px;
+            background: var(--paper);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+        .bom-shell-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--paper-2);
+            border-bottom: 1px solid var(--paper-edge);
+            font-family: var(--sans);
+            font-size: 12.5px;
+            color: var(--paper-mute);
+        }
+        .view-toggle {
+            display: inline-flex;
+            border: 1px solid var(--paper-edge);
+            border-radius: 4px;
+            overflow: hidden;
+            background: var(--paper);
+        }
+        .view-toggle button {
+            border: none;
+            background: transparent;
+            padding: 4px 12px;
+            font-family: var(--sans);
+            font-size: 12px;
+            color: var(--paper-mute);
+            cursor: pointer;
+        }
+        .view-toggle button.is-active {
+            background: var(--primary);
+            color: #fff;
+        }
+        .bom-shell-body {
+            flex: 1;
+            overflow: auto;
+            min-height: 0;
+        }
+        .bom-shell-body.is-raw {
+            background: var(--ink);
+            padding: 0;
+        }
+        .bom-shell-body.is-raw .json-viewer {
+            padding: 18px 20px;
+        }
+
+        .flat-bom {
+            font-family: var(--sans);
+            font-size: 13.5px;
+            color: var(--ink);
+            padding: 4px 0;
+        }
+        .flat-row {
+            display: grid;
+            grid-template-columns: minmax(160px, 220px) 1fr;
+            align-items: baseline;
+            gap: 16px;
+            padding: 7px 22px;
+            border-bottom: 1px solid var(--paper-soft);
+        }
+        .flat-row:last-child { border-bottom: none; }
+        .flat-row.is-expandable { cursor: pointer; }
+        .flat-row.is-expandable:hover { background: var(--paper-2); }
+        .flat-key {
+            font-family: var(--mono);
+            font-size: 12.5px;
+            color: var(--paper-mute);
+            word-break: break-word;
+        }
+        .flat-val {
+            color: var(--ink);
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+        .flat-val.is-empty { color: var(--paper-faint); font-style: italic; }
+        .flat-val.is-null  { color: var(--paper-faint); font-style: italic; }
+        .flat-val.is-bool  { color: var(--primary-deep); font-weight: 500; }
+        .flat-val.is-num   { color: var(--primary-deep); font-weight: 500; font-family: var(--mono); }
+        .flat-val.is-url a { color: var(--primary); text-decoration: none; }
+        .flat-val.is-url a:hover { text-decoration: underline; }
+        .flat-expand {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--paper-mute);
+            font-size: 12.5px;
+        }
+        .flat-expand .flat-caret {
+            display: inline-block;
+            width: 10px;
+            color: var(--primary);
+            transition: transform .12s;
+        }
+        .flat-row.is-open > .flat-expand .flat-caret { transform: rotate(90deg); }
+        .flat-summary {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--paper-mute);
+        }
+        .flat-body {
+            display: none;
+            grid-column: 1 / -1;
+            margin: 6px 0 0 0;
+            border-left: 2px solid var(--primary-edge);
+            background: var(--paper-2);
+        }
+        .flat-row.is-open > .flat-body { display: block; }
+
+        /* ============================================== RECURSIVE GRAPH */
+
+        .recursive-shell {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            border: 1px solid var(--paper-edge);
+            border-radius: 6px;
+            background: var(--paper);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+        .recursive-body {
+            flex: 1;
+            display: flex;
+            min-height: 0;
+            position: relative;
+        }
+        .graph-canvas {
+            flex: 1;
+            min-height: 420px;
+            background:
+                radial-gradient(circle at 1px 1px, var(--paper-soft) 1px, transparent 0)
+                0 0 / 22px 22px,
+                var(--paper);
+            position: relative;
+        }
+        .graph-legend {
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            display: flex;
+            gap: 12px;
+            font-family: var(--sans);
+            font-size: 11.5px;
+            color: var(--paper-mute);
+            background: rgba(255, 255, 255, 0.88);
+            padding: 6px 10px;
+            border: 1px solid var(--paper-edge);
+            border-radius: 4px;
+            pointer-events: none;
+            z-index: 2;
+        }
+        .graph-legend span { display: inline-flex; align-items: center; gap: 5px; }
+        .graph-legend i {
+            display: inline-block;
+            width: 18px;
+            height: 0;
+            border-top: 2px solid var(--primary);
+        }
+        .graph-legend i.is-tested  { border-top-color: #1a7f37; }
+        .graph-legend i.is-depends { border-top-color: var(--paper-mute); border-top-style: dashed; }
+        .graph-empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 420px;
+            padding: 40px;
+            font-family: var(--sans);
+            font-size: 14px;
+            color: var(--paper-faint);
+            text-align: center;
+        }
+
+        .side-panel {
+            width: 0;
+            flex: 0 0 auto;
+            border-left: 1px solid var(--paper-edge);
+            background: var(--paper);
+            display: flex;
+            flex-direction: column;
+            transition: width .18s ease;
+            overflow: hidden;
+        }
+        .side-panel.is-open { width: 420px; }
+        @media (max-width: 1100px) {
+            .side-panel.is-open { width: 340px; }
+        }
+        .side-panel-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--paper-edge);
+            background: var(--paper-2);
+        }
+        .side-panel-title {
+            font-family: var(--sans);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--ink);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .side-panel-meta {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--paper-mute);
+            margin-top: 2px;
+        }
+        .side-panel-close {
+            border: none;
+            background: transparent;
+            font-size: 18px;
+            line-height: 1;
+            color: var(--paper-mute);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .side-panel-close:hover { background: var(--paper-soft); color: var(--ink); }
+        .side-panel-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-bottom: 1px solid var(--paper-edge);
+            font-family: var(--sans);
+            font-size: 12px;
+            color: var(--paper-mute);
+        }
+        .side-panel-body {
+            flex: 1;
+            overflow: auto;
+            min-height: 0;
+        }
+        .side-panel-body.is-raw { background: var(--ink); }
+        .side-panel-body.is-raw .json-viewer { padding: 14px 16px; }
+
         /* ====================================================== CONFLICTS */
 
         .conflicts-shell {
@@ -912,6 +1169,21 @@
         .conflict-stat.is-sup .num { color: var(--conflict-sup); }
         .conflict-stat.is-sup { opacity: 0.7; }
 
+        /* How-to-read legend explaining the four conflict kinds. */
+        .conflicts-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 12px 22px;
+            background: var(--paper);
+            border-bottom: 1px solid var(--paper-edge);
+            font-family: var(--mono);
+            font-size: 11.5px;
+            line-height: 1.5;
+            color: var(--paper-mute);
+        }
+        .conflicts-legend b { color: var(--ink); font-weight: 600; }
+
         .conflict-list { padding: 8px 0; }
         .conflict-row {
             display: grid;
@@ -935,6 +1207,8 @@
         .conflict-row.band-det::before   { background: var(--conflict-det); }
         .conflict-row.band-sup::before   { background: var(--conflict-sup); opacity: 0.5; }
         .conflict-row.band-sup           { background: rgba(100, 116, 139, 0.04); opacity: 0.85; }
+        .conflict-row.kind-suppressed    { background: rgba(100, 116, 139, 0.04); opacity: 0.9; }
+        .conflict-row .cell { min-width: 0; }
 
         .conflict-field {
             font-family: var(--mono);
@@ -1037,13 +1311,81 @@
             margin-bottom: 4px;
         }
         .conflict-claims .claim:last-child { margin-bottom: 0; }
+        .conflict-claims .claim {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 10px;
+            align-items: baseline;
+        }
         .conflict-claims .claim .src {
             color: var(--paper-mute);
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.06em;
             font-size: 10px;
-            margin-right: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .conflict-claims .claim .claim-text {
+            color: var(--ink);
+            word-break: break-word;
+        }
+        .conflict-claims .claim-winner {
+            display: inline-block;
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 700;
+            margin-left: 2px;
+        }
+        .conflict-claims .claims-section-label {
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--paper-mute);
+            margin: 6px 0 4px;
+        }
+        .conflict-claims .claims-section-label:first-child { margin-top: 0; }
+
+        /* Source-tag chips used in both "Sources considered" and
+           "Sources in disagreement" cells. */
+        .src-row { display: flex; flex-wrap: wrap; gap: 4px; }
+        .src-tag {
+            display: inline-block;
+            font-family: var(--mono);
+            font-size: 10.5px;
+            padding: 2px 8px;
+            border-radius: 3px;
+            background: var(--paper-2);
+            color: var(--ink);
+            border: 1px solid var(--paper-edge);
+            line-height: 1.5;
+        }
+        .src-tag.src-in-conflict {
+            background: #fcecec;
+            color: var(--conflict-high);
+            border-color: rgba(207, 34, 46, 0.25);
+            font-weight: 600;
+        }
+        .src-tag.src-consensus {
+            background: var(--primary-soft);
+            color: var(--primary-deep);
+            border-color: var(--primary-edge);
+            font-weight: 600;
+        }
+        .src-tag.src-empty {
+            color: var(--paper-mute);
+            font-style: italic;
+        }
+        .src-hint {
+            font-family: var(--mono);
+            font-size: 10.5px;
+            color: var(--paper-mute);
+            margin-top: 8px;
+            line-height: 1.4;
+            font-style: italic;
         }
 
         .conflicts-empty {
@@ -1098,7 +1440,8 @@
             line-height: 1.5;
         }
 
-        /* Conflict-list band headers (high → low → direct/intra → suppressed). */
+        /* Conflict-list section headers (one per kind: cross-source,
+           within-source, direct-field, suppressed). */
         .conflict-band-head {
             font-family: var(--mono);
             font-size: 11.5px;
@@ -1108,11 +1451,34 @@
             padding: 14px 22px 8px;
             border-bottom: 1px solid var(--paper-edge);
             background: var(--paper-2);
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
         }
-        .conflict-band-head.band-high { color: var(--conflict-high); }
-        .conflict-band-head.band-low  { color: var(--conflict-low); }
-        .conflict-band-head.band-det  { color: var(--conflict-det); }
-        .conflict-band-head.band-sup  { color: var(--conflict-sup); }
+        .conflict-band-head .band-title { color: inherit; }
+        .conflict-band-head .band-count {
+            font-size: 10.5px;
+            font-weight: 500;
+            color: var(--paper-mute);
+            padding: 1px 7px;
+            border: 1px solid var(--paper-edge);
+            border-radius: 10px;
+            background: var(--paper);
+        }
+        .conflict-band-head .band-hint {
+            font-size: 10.5px;
+            font-weight: 400;
+            color: var(--paper-mute);
+            text-transform: none;
+            letter-spacing: 0.02em;
+            margin-left: auto;
+            text-align: right;
+            max-width: 60%;
+        }
+        .conflict-band-head.band-external   { color: var(--conflict-high); }
+        .conflict-band-head.band-internal   { color: var(--conflict-low); }
+        .conflict-band-head.band-direct     { color: var(--conflict-det); }
+        .conflict-band-head.band-suppressed { color: var(--conflict-sup); }
 
         /* "Fields with no conflict" block at the bottom of the conflicts tab. */
         .agreed-section {
@@ -1130,13 +1496,20 @@
             padding: 14px 22px 10px;
             background: var(--paper-2);
             display: flex;
-            align-items: center;
-            gap: 10px;
+            align-items: baseline;
+            gap: 12px;
         }
         .agreed-head::before {
             content: '✓';
             color: var(--primary);
             font-weight: 700;
+        }
+        .agreed-head .agreed-hint {
+            font-size: 10.5px;
+            font-weight: 400;
+            color: var(--paper-mute);
+            text-transform: none;
+            letter-spacing: 0.02em;
         }
         .agreed-count {
             margin-left: auto;
@@ -1144,35 +1517,44 @@
             font-size: 11px;
             color: var(--paper-mute);
             font-weight: 500;
+            padding: 1px 7px;
+            border: 1px solid var(--paper-edge);
+            border-radius: 10px;
+            background: var(--paper);
         }
         .agreed-list { padding: 6px 0; }
         .agreed-row {
             display: grid;
-            grid-template-columns: minmax(180px, 1.2fr) minmax(140px, 1fr) minmax(280px, 3fr);
-            gap: 18px;
-            padding: 8px 22px;
-            font-size: 12.5px;
+            grid-template-columns: minmax(160px, 1fr) minmax(200px, 1.5fr) minmax(200px, 1.5fr) auto;
+            gap: 22px;
+            padding: 14px 22px;
             border-bottom: 1px solid var(--paper-edge);
-            align-items: baseline;
+            align-items: start;
         }
         .agreed-row:last-child { border-bottom: none; }
-        .agreed-field {
-            font-family: var(--mono);
-            font-weight: 600;
-            color: var(--ink);
-        }
-        .agreed-source {
-            font-family: var(--mono);
-            font-size: 11.5px;
+        .agreed-row .cell { min-width: 0; }
+        .conflict-value.is-notasserted {
             color: var(--paper-mute);
+            font-style: italic;
         }
-        .agreed-value {
+        .agreed-notassert {
+            display: inline-block;
             font-family: var(--mono);
-            font-size: 12px;
-            color: var(--ink);
-            line-height: 1.45;
-            word-break: break-word;
-            opacity: 0.9;
+            font-size: 9.5px;
+            font-weight: 600;
+            color: var(--paper-mute);
+            background: var(--paper-2);
+            border: 1px solid var(--paper-edge);
+            padding: 1px 6px;
+            border-radius: 3px;
+            margin-left: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .conf-pill.agreed-pill {
+            background: var(--primary-soft);
+            color: var(--primary-deep);
+            border: 1px solid var(--primary-edge);
         }
 
         /* ============================================ SPDX VALIDATION BAR */
@@ -1248,6 +1630,411 @@
             letter-spacing: 0.04em;
         }
         .brand-rule b { color: var(--ink); font-weight: 700; font-style: normal; }
+
+        /* ============================================== PIPELINE TAB ====== */
+        .pipeline-shell {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            flex: 1;
+            min-height: 0;
+        }
+        .pipeline-progress {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            border: 1px solid var(--paper-edge);
+            background: var(--paper-2);
+            border-radius: 6px;
+            font-family: var(--mono);
+            font-size: 11.5px;
+            color: var(--paper-mute);
+        }
+        .pipeline-progress .bar {
+            flex: 1;
+            height: 6px;
+            background: var(--paper-soft);
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+        .pipeline-progress .bar > span {
+            display: block;
+            height: 100%;
+            width: 0;
+            background: var(--primary);
+            transition: width .4s ease;
+        }
+        .pipeline-progress.is-done .bar > span { background: var(--conflict-none); }
+        .pipeline-progress .count { font-weight: 600; color: var(--ink); }
+        .pipeline-progress .elapsed { color: var(--paper-faint); }
+        .pipeline-progress .state-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--primary);
+            animation: pp-pulse 1.4s ease-in-out infinite;
+        }
+        .pipeline-progress.is-done .state-dot {
+            background: var(--conflict-none);
+            animation: none;
+        }
+        @keyframes pp-pulse {
+            0%, 100% { opacity: 0.35; transform: scale(0.9); }
+            50%      { opacity: 1;    transform: scale(1.1); }
+        }
+
+        .pipeline-board {
+            display: flex;
+            gap: 18px;
+            align-items: stretch;
+            padding: 18px 14px 22px;
+            border: 1px solid var(--paper-edge);
+            background: var(--paper);
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        .pipeline-legend {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            padding: 32px 12px 18px 6px;
+            border-right: 1px dashed var(--paper-edge);
+            flex-shrink: 0;
+            min-width: 110px;
+        }
+        .pipeline-legend > div {
+            font-family: var(--mono);
+            font-size: 10.5px;
+            font-weight: 600;
+            color: var(--paper-mute);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            text-align: right;
+            line-height: 1;
+            padding: 18px 0;
+            position: relative;
+        }
+        .pipeline-legend > div::after {
+            content: '→';
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--paper-faint);
+            font-size: 11px;
+        }
+        .pipeline-rows {
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+            flex: 1;
+            min-width: 0;
+        }
+        .pipeline-row {
+            display: flex;
+            align-items: stretch;
+            gap: 4px;
+            position: relative;
+        }
+        .pipeline-row.reverse {
+            flex-direction: row-reverse;
+        }
+        /* Snake connector line behind each row, sitting at field-name height. */
+        .pipeline-row::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 11px;
+            height: 2px;
+            background: var(--paper-edge);
+            z-index: 0;
+        }
+        .pipeline-field {
+            flex: 1 1 0;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 0 2px;
+            position: relative;
+            z-index: 1;
+        }
+        .pipeline-field .field-name {
+            font-family: var(--mono);
+            font-size: 10.5px;
+            font-weight: 500;
+            color: var(--paper-mute);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+            background: var(--paper);
+            padding: 0 4px;
+            transition: color .15s, font-weight .15s;
+        }
+        .pipeline-field.is-active .field-name { color: var(--primary); }
+        .pipeline-field.is-done   .field-name { color: var(--conflict-none); font-weight: 600; }
+        .pipeline-field.is-error  .field-name { color: var(--conflict-high); font-weight: 600; }
+        .pipeline-dots {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 4px;
+        }
+        .pipeline-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid var(--paper-edge);
+            background: var(--paper);
+            cursor: pointer;
+            transition: background .15s, border-color .15s, transform .15s, box-shadow .15s;
+            position: relative;
+        }
+        .pipeline-dot:hover {
+            transform: scale(1.15);
+            box-shadow: 0 0 0 3px var(--paper-soft);
+        }
+        .pipeline-dot.is-running {
+            background: #f3a73f;
+            border-color: #d18814;
+            animation: pp-pulse 1.2s ease-in-out infinite;
+        }
+        .pipeline-dot.is-done {
+            background: var(--conflict-none);
+            border-color: #117a2c;
+        }
+        .pipeline-dot.is-error {
+            background: var(--conflict-high);
+            border-color: #a01018;
+        }
+        .pipeline-dot.is-selected {
+            box-shadow: 0 0 0 3px var(--primary-soft), 0 0 0 4px var(--primary);
+        }
+
+        .pipeline-expand {
+            display: none;
+            padding: 14px 16px;
+            border: 1px solid var(--paper-edge);
+            background: var(--paper-2);
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--ink);
+        }
+        .pipeline-expand.is-open { display: block; }
+        .pipeline-expand .head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--paper-edge);
+        }
+        .pipeline-expand .head .title {
+            font-family: var(--mono);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .pipeline-expand .head .title em {
+            color: var(--paper-mute);
+            font-style: normal;
+            font-weight: 500;
+            margin: 0 8px;
+        }
+        .pipeline-expand .close-x {
+            background: none;
+            border: none;
+            color: var(--paper-mute);
+            cursor: pointer;
+            font-family: var(--mono);
+            font-size: 14px;
+            padding: 0 6px;
+        }
+        .pipeline-expand .close-x:hover { color: var(--ink); }
+        .pipeline-expand .body {
+            font-family: var(--mono);
+            font-size: 12px;
+            line-height: 1.7;
+            color: var(--paper-mute);
+        }
+        .pipeline-expand .body .row { display: block; margin: 2px 0; }
+        .pipeline-expand .body .label {
+            display: inline-block;
+            min-width: 170px;
+            color: var(--paper-faint);
+        }
+        .pipeline-expand .body .val { color: var(--ink); }
+        .pipeline-expand .body .val.muted { color: var(--paper-mute); }
+        .pipeline-expand .status-line {
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px dashed var(--paper-edge);
+            font-family: var(--mono);
+            font-size: 11.5px;
+        }
+        .pipeline-expand .status-line.done  { color: var(--conflict-none); }
+        .pipeline-expand .status-line.run   { color: #d18814; }
+        .pipeline-expand .status-line.err   { color: var(--conflict-high); }
+        .pipeline-expand .status-line.pend  { color: var(--paper-faint); }
+
+        .pipeline-actions {
+            display: none;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+        .pipeline-actions.is-shown { display: flex; }
+        .pipeline-actions .btn-mini {
+            background: var(--paper);
+            border: 1px solid var(--paper-edge);
+            padding: 8px 14px;
+            font-family: var(--mono);
+            font-size: 11.5px;
+            font-weight: 500;
+            color: var(--ink);
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background .15s, border-color .15s;
+        }
+        .pipeline-actions .btn-mini:hover {
+            background: var(--paper-soft);
+            border-color: var(--paper-mute);
+        }
+        .pipeline-actions .btn-mini.primary {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .pipeline-actions .btn-mini.primary:hover {
+            background: var(--primary-deep);
+            border-color: var(--primary-deep);
+        }
+        .pipeline-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--paper-mute);
+            font-family: var(--mono);
+            font-size: 13px;
+        }
+        .pipeline-empty .glyph {
+            font-size: 32px;
+            color: var(--paper-edge);
+            margin-bottom: 10px;
+        }
+
+        /* ============================================== HISTORY TAB ====== */
+        .history-shell {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+            min-height: 0;
+        }
+        .history-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 2px;
+        }
+        .history-title {
+            font-family: var(--mono);
+            font-size: 11.5px;
+            color: var(--paper-mute);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .history-title span { color: var(--ink); font-weight: 600; }
+        .history-table-wrap {
+            border: 1px solid var(--paper-edge);
+            border-radius: 6px;
+            background: var(--paper);
+            overflow: auto;
+            flex: 1;
+        }
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .history-table thead th {
+            position: sticky;
+            top: 0;
+            background: var(--paper-2);
+            text-align: left;
+            font-family: var(--mono);
+            font-size: 10.5px;
+            font-weight: 600;
+            color: var(--paper-mute);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--paper-edge);
+            white-space: nowrap;
+        }
+        .history-table tbody td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--paper-soft);
+            vertical-align: middle;
+        }
+        .history-table tbody tr {
+            cursor: pointer;
+            transition: background .12s;
+        }
+        .history-table tbody tr:hover { background: var(--paper-soft); }
+        .history-table tbody tr.is-active { background: var(--primary-soft); }
+        .history-table tbody tr.history-empty { cursor: default; }
+        .history-table tbody tr.history-empty:hover { background: var(--paper); }
+        .history-table tbody tr.history-empty td {
+            text-align: center;
+            color: var(--paper-mute);
+            padding: 40px 12px;
+            font-family: var(--mono);
+            font-size: 12px;
+        }
+        .history-table .col-when { font-family: var(--mono); font-size: 11.5px; color: var(--paper-mute); white-space: nowrap; }
+        .history-table .col-subj { font-weight: 500; color: var(--ink); word-break: break-word; max-width: 320px; }
+        .history-table .col-type { font-family: var(--mono); font-size: 11.5px; }
+        .history-table .col-type .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            border-radius: 2px;
+            border: 1px solid;
+        }
+        .history-table .col-type .badge.ai   { color: var(--primary); border-color: var(--primary-edge); background: var(--primary-soft); }
+        .history-table .col-type .badge.data { color: var(--beta); border-color: var(--beta-edge); background: var(--beta-soft); }
+        .history-table .col-hash {
+            font-family: var(--mono);
+            font-size: 11.5px;
+            color: var(--paper-faint);
+        }
+        .history-table .col-actions { white-space: nowrap; }
+        .history-table .col-actions a {
+            display: inline-block;
+            margin-right: 6px;
+            padding: 3px 7px;
+            font-family: var(--mono);
+            font-size: 10.5px;
+            font-weight: 500;
+            color: var(--paper-mute);
+            border: 1px solid var(--paper-edge);
+            border-radius: 3px;
+            text-decoration: none;
+            background: var(--paper);
+            transition: color .12s, border-color .12s, background .12s;
+        }
+        .history-table .col-actions a:hover {
+            color: var(--ink);
+            border-color: var(--paper-mute);
+            background: var(--paper-2);
+        }
     </style>
 </head>
 <body>
@@ -1530,12 +2317,14 @@
             </div>
 
             <div class="tabs">
+                <button class="tab" id="pipelineTabBtn" onclick="switchTab(event, 'pipeline')" title="Per-field generation progress" style="display:none;">Pipeline</button>
                 <button class="tab active" onclick="switchTab(event, 'complete')" title="Source-traced fields with conflict detection">BOM with Provenance</button>
                 <button class="tab" id="conflictsTabBtn" onclick="switchTab(event, 'conflicts')" title="Detected source disagreements, classified by grounding">Conflicts</button>
                 <button class="tab" onclick="switchTab(event, 'spdx')" title="Standards-compliant SPDX 3.0.1 export">SPDX 3.0.1</button>
                 <button class="tab" onclick="switchTab(event, 'cyclonedx')" title="CycloneDX 1.6 Beta — ML-BOM export">CycloneDX 1.6 <span class="beta-tag">Beta</span></button>
                 <button class="tab" onclick="switchTab(event, 'recursive')" title="Recursive Beta — child BOM seed exports">Recursive <span class="beta-tag">Beta</span></button>
                 <button class="tab" onclick="switchTab(event, 'logs')" title="Live server processing log">Logs</button>
+                <button class="tab" onclick="switchTab(event, 'history')" title="Previously generated BOMs — click a row to reload it">History</button>
             </div>
 
             <div class="download-strip" id="downloadButtons">
@@ -1547,9 +2336,62 @@
                 <a id="downloadLinked" href="#" class="download-btn is-beta" target="_blank">Download Linked SPDX Beta</a>
             </div>
 
+            <div id="pipelineTab" class="tab-content">
+                <div class="pipeline-shell">
+                    <div class="pipeline-progress" id="pipelineProgress">
+                        <span class="state-dot"></span>
+                        <span class="count" id="pipelineCount">0 / 0 fields</span>
+                        <div class="bar"><span id="pipelineBar"></span></div>
+                        <span class="elapsed" id="pipelineElapsed">—</span>
+                    </div>
+
+                    <div class="pipeline-board" id="pipelineBoard">
+                        <div class="pipeline-legend">
+                            <div>Retrieve</div>
+                            <div>Reconcile</div>
+                            <div>Resolve</div>
+                        </div>
+                        <div class="pipeline-rows" id="pipelineRows">
+                            <div class="pipeline-empty">
+                                <div class="glyph">{ }</div>
+                                Waiting for the run to start…
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pipeline-expand" id="pipelineExpand">
+                        <div class="head">
+                            <div class="title"><span id="pxField">—</span><em>›</em><span id="pxStage">—</span></div>
+                            <button type="button" class="close-x" onclick="Pipeline.closeExpand()">✕</button>
+                        </div>
+                        <div class="body" id="pxBody"></div>
+                        <div class="status-line" id="pxStatus"></div>
+                    </div>
+
+                    <div class="pipeline-actions" id="pipelineActions">
+                        <button type="button" class="btn-mini primary" onclick="switchTabByName('complete')">View BOM</button>
+                        <button type="button" class="btn-mini" onclick="switchTabByName('conflicts')">View Conflicts</button>
+                        <button type="button" class="btn-mini" onclick="switchTabByName('spdx')">View SPDX</button>
+                        <button type="button" class="btn-mini" onclick="switchTabByName('cyclonedx')">View CycloneDX</button>
+                        <button type="button" class="btn-mini" onclick="switchTabByName('logs')">View Logs</button>
+                    </div>
+                </div>
+            </div>
+
             <div id="completeTab" class="tab-content active">
-                <div class="json-shell">
-                    <div id="jsonViewerComplete" class="json-viewer"></div>
+                <div class="bom-shell" data-bom-shell="complete">
+                    <div class="bom-shell-toolbar">
+                        <div class="view-toggle" role="tablist">
+                            <button type="button" class="is-active" data-view="visual">Visual</button>
+                            <button type="button" data-view="raw">Raw JSON</button>
+                        </div>
+                    </div>
+                    <div class="bom-shell-body" data-view-pane="visual">
+                        <div id="flatViewerComplete" class="flat-bom"></div>
+                    </div>
+                    <div class="bom-shell-body is-raw" data-view-pane="raw" style="display:none;">
+                        <div id="jsonViewerComplete" class="json-viewer"></div>
+                    </div>
                 </div>
             </div>
 
@@ -1561,26 +2403,120 @@
 
             <div id="spdxTab" class="tab-content">
                 <div id="spdxValidationStatus" class="spdx-status"></div>
-                <div class="json-shell">
-                    <div id="jsonViewerSPDX" class="json-viewer"></div>
+                <div class="bom-shell" data-bom-shell="spdx">
+                    <div class="bom-shell-toolbar">
+                        <div class="view-toggle" role="tablist">
+                            <button type="button" class="is-active" data-view="visual">Visual</button>
+                            <button type="button" data-view="raw">Raw JSON</button>
+                        </div>
+                    </div>
+                    <div class="bom-shell-body" data-view-pane="visual">
+                        <div id="flatViewerSPDX" class="flat-bom"></div>
+                    </div>
+                    <div class="bom-shell-body is-raw" data-view-pane="raw" style="display:none;">
+                        <div id="jsonViewerSPDX" class="json-viewer"></div>
+                    </div>
                 </div>
             </div>
 
             <div id="cyclonedxTab" class="tab-content">
-                <div class="json-shell">
-                    <div id="jsonViewerCDX" class="json-viewer"></div>
+                <div class="bom-shell" data-bom-shell="cdx">
+                    <div class="bom-shell-toolbar">
+                        <div class="view-toggle" role="tablist">
+                            <button type="button" class="is-active" data-view="visual">Visual</button>
+                            <button type="button" data-view="raw">Raw JSON</button>
+                        </div>
+                    </div>
+                    <div class="bom-shell-body" data-view-pane="visual">
+                        <div id="flatViewerCDX" class="flat-bom"></div>
+                    </div>
+                    <div class="bom-shell-body is-raw" data-view-pane="raw" style="display:none;">
+                        <div id="jsonViewerCDX" class="json-viewer"></div>
+                    </div>
                 </div>
             </div>
 
             <div id="recursiveTab" class="tab-content">
-                <div class="json-shell">
-                    <div id="jsonViewerRecursive" class="json-viewer"></div>
+                <div class="bom-shell" data-bom-shell="recursive">
+                    <div class="bom-shell-toolbar">
+                        <div class="view-toggle" role="tablist">
+                            <button type="button" class="is-active" data-view="visual">Graph</button>
+                            <button type="button" data-view="raw">Raw JSON</button>
+                        </div>
+                        <div style="flex:1"></div>
+                        <span style="font-size:11.5px;">Click a box to see that BOM's fields.</span>
+                    </div>
+                    <div class="bom-shell-body" data-view-pane="visual" style="display:flex;flex-direction:column;">
+                        <div class="recursive-body">
+                            <div id="graphCanvas" class="graph-canvas">
+                                <div class="graph-legend">
+                                    <span><i></i> trainedOn</span>
+                                    <span><i class="is-tested"></i> testedOn</span>
+                                    <span><i class="is-depends"></i> dependsOn</span>
+                                </div>
+                                <div id="graphEmpty" class="graph-empty">Recursive BOM beta was not enabled for this run.</div>
+                            </div>
+                            <aside id="sidePanel" class="side-panel" aria-hidden="true">
+                                <div class="side-panel-header">
+                                    <div style="min-width:0;flex:1;">
+                                        <div id="sidePanelTitle" class="side-panel-title">—</div>
+                                        <div id="sidePanelMeta" class="side-panel-meta"></div>
+                                    </div>
+                                    <button type="button" class="side-panel-close" id="sidePanelClose" aria-label="Close">×</button>
+                                </div>
+                                <div class="side-panel-toolbar">
+                                    <div class="view-toggle">
+                                        <button type="button" class="is-active" data-side-view="visual">Visual</button>
+                                        <button type="button" data-side-view="raw">Raw JSON</button>
+                                    </div>
+                                </div>
+                                <div class="side-panel-body" id="sidePanelVisual" data-side-pane="visual">
+                                    <div id="sidePanelFlat" class="flat-bom"></div>
+                                </div>
+                                <div class="side-panel-body is-raw" id="sidePanelRaw" data-side-pane="raw" style="display:none;">
+                                    <div id="sidePanelJson" class="json-viewer"></div>
+                                </div>
+                            </aside>
+                        </div>
+                    </div>
+                    <div class="bom-shell-body is-raw" data-view-pane="raw" style="display:none;">
+                        <div id="jsonViewerRecursive" class="json-viewer"></div>
+                    </div>
                 </div>
             </div>
 
             <div id="logsTab" class="tab-content">
                 <div id="logsViewer" class="logs-viewer">
                     <span class="log-empty">Waiting for processing to start…</span>
+                </div>
+            </div>
+
+            <div id="historyTab" class="tab-content">
+                <div class="history-shell">
+                    <div class="history-head">
+                        <div class="history-title">
+                            <span id="historyCount">—</span> previously generated BOMs
+                        </div>
+                        <button type="button" class="btn-mini" onclick="History.load()" title="Refresh from bom-history/index.json">Refresh</button>
+                    </div>
+                    <div class="history-table-wrap">
+                        <table class="history-table" id="historyTable">
+                            <thead>
+                                <tr>
+                                    <th class="col-when">When</th>
+                                    <th class="col-subj">Subject</th>
+                                    <th class="col-type">Type</th>
+                                    <th class="col-hash">Hash</th>
+                                    <th class="col-actions">Downloads</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyBody">
+                                <tr class="history-empty">
+                                    <td colspan="5">No runs yet — generate a BOM and it will appear here.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </section>
@@ -1594,6 +2530,9 @@
         const jsonViewerSPDX       = document.getElementById('jsonViewerSPDX');
         const jsonViewerCDX        = document.getElementById('jsonViewerCDX');
         const jsonViewerRecursive  = document.getElementById('jsonViewerRecursive');
+        const flatViewerComplete   = document.getElementById('flatViewerComplete');
+        const flatViewerSPDX       = document.getElementById('flatViewerSPDX');
+        const flatViewerCDX        = document.getElementById('flatViewerCDX');
         const processBtn           = document.getElementById('processBtn');
         const downloadButtons      = document.getElementById('downloadButtons');
         const downloadComplete     = document.getElementById('downloadComplete');
@@ -1853,14 +2792,26 @@
                     showStatus('processing', `<span class="spinner"></span>Generating ${bomTypeLabel} BOM via ${selectedMode.toUpperCase()} (${USE_CASE_LABELS[selectedUseCase]}). This typically takes a few minutes.`);
                 }
 
-                // live log stream
+                // live log stream — also feeds the Pipeline tab via structured
+                // [[BOM_EVENT]]<json> lines emitted by aikaboom.core.agentic_rag.
                 const logsViewer = document.getElementById('logsViewer');
                 logsViewer.innerHTML = '';
+                Pipeline.reset();
                 if (window._logSource) window._logSource.close();
                 window._logSource = new EventSource('/logs');
                 window._logSource.onmessage = e => {
+                    const raw = e.data || '';
+                    if (raw.startsWith('[[BOM_EVENT]]')) {
+                        try {
+                            const evt = JSON.parse(raw.slice('[[BOM_EVENT]]'.length));
+                            Pipeline.handleEvent(evt);
+                        } catch (err) {
+                            console.warn('bad pipeline event', err, raw);
+                        }
+                        return;
+                    }
                     const line = document.createElement('div');
-                    line.textContent = e.data;
+                    line.textContent = raw;
                     logsViewer.appendChild(line);
                     logsViewer.scrollTop = logsViewer.scrollHeight;
                 };
@@ -1918,6 +2869,7 @@
                     showStatus('success', statusMessage);
 
                     // ---- viewers + downloads ------------------------------------
+                    renderFlatBOM(result.metadata, flatViewerComplete);
                     displayJSON(result.metadata, jsonViewerComplete);
                     downloadComplete.href = result.download_url;
                     downloadComplete.style.display = 'inline-flex';
@@ -1929,6 +2881,7 @@
                         downloadSPDX.href = result.spdx_download_url;
                         downloadSPDX.style.display = 'inline-flex';
                         spdxData = result.spdx_data;
+                        renderFlatBOM(spdxData, flatViewerSPDX);
                         displayJSON(spdxData, jsonViewerSPDX);
                         renderSpdxValidation(result.spdx_validation);
                     } else {
@@ -1936,6 +2889,7 @@
                         const errMsg = result.spdx_error
                             ? `SPDX conversion failed: ${escapeHtml(result.spdx_error)}`
                             : 'SPDX output not available.';
+                        flatViewerSPDX.innerHTML = `<div class="json-placeholder">${errMsg}</div>`;
                         jsonViewerSPDX.innerHTML = `<div class="json-placeholder">${errMsg}</div>`;
                         renderSpdxValidation(result.spdx_validation);
                     }
@@ -1943,16 +2897,19 @@
                     if (result.cyclonedx_download_url && result.cyclonedx_data) {
                         downloadCDX.href = result.cyclonedx_download_url;
                         downloadCDX.style.display = 'inline-flex';
+                        renderFlatBOM(result.cyclonedx_data, flatViewerCDX);
                         displayJSON(result.cyclonedx_data, jsonViewerCDX);
                     } else {
                         downloadCDX.style.display = 'none';
                         const cdxErr = result.cyclonedx_error
                             ? `CycloneDX conversion failed: ${escapeHtml(result.cyclonedx_error)}`
                             : 'CycloneDX output not available.';
+                        flatViewerCDX.innerHTML = `<div class="json-placeholder">${cdxErr}</div>`;
                         jsonViewerCDX.innerHTML = `<div class="json-placeholder">${cdxErr}</div>`;
                     }
 
                     if (result.recursive_bom && result.recursive_bom.enabled) {
+                        renderRecursiveGraph(result.recursive_bom, result.metadata, result.bom_type);
                         displayJSON(result.recursive_bom, jsonViewerRecursive);
                         if (result.recursive_bom_download_url) {
                             downloadRecursive.href = result.recursive_bom_download_url;
@@ -1967,6 +2924,7 @@
                     } else {
                         downloadRecursive.style.display = 'none';
                         downloadLinked.style.display = 'none';
+                        renderRecursiveGraph(result.recursive_bom, result.metadata, result.bom_type);
                         jsonViewerRecursive.innerHTML = '<div class="json-placeholder">Recursive BOM beta was not enabled for this run.</div>';
                     }
 
@@ -1976,6 +2934,7 @@
                     downloadButtons.style.display = 'flex';
                     // Reveal tabs + content; remove the first-run splash.
                     document.getElementById('resultPane').classList.remove('is-empty');
+                    if (result.history) History.upsert(result.history);
                 } else {
                     showStatus('error', `Error: ${escapeHtml(result.message || 'unknown')}`);
                 }
@@ -1989,13 +2948,19 @@
         });
 
         // ===== conflicts renderer ================================================
-        // Render order: high-confidence conflicts → low → direct/intra →
-        // suppressed → fields where every source agreed. Source-letter
-        // labels in the auditor narrative (``A says ... vs B says ...``)
-        // are rewritten to actual source names using the GLOBAL letter→source
-        // map derived from ``claims`` keys (huggingface→A, arxiv→B,
-        // github→C — same order as `_build_groups` in the backend).
-        const BAND_ORDER = { high: 1, low: 2, det: 3, sup: 4 };
+        // Layout: stats → grouped conflict sections (cross-source, within-source,
+        // direct-field, suppressed) → "fields where every source agreed".
+        // Each row surfaces the chosen value, the sources actually considered
+        // (selected_sources from the BOM trace), and the verbatim per-source
+        // claims so the user can see *what every source said* without
+        // hunting through the JSON tab.
+        //
+        // The auditor narrative refers to sources by anonymous letters
+        // (``A says ... vs B says ...``). The letter→source map comes from
+        // the order of ``claims`` keys, which the backend populates in
+        // source-priority order (huggingface→A, arxiv→B, github→C, ...).
+        const KIND_ORDER  = { external: 1, internal: 2, direct: 3, suppressed: 4 };
+        const BAND_ORDER  = { high: 1, low: 2, det: 3, sup: 4 };
 
         function renderConflicts(conflicts, summary, metadata) {
             const conflictsViewer = document.getElementById('conflictsViewer');
@@ -2014,62 +2979,90 @@
             conflictsTabBtn.classList.remove('has-conflicts', 'no-conflicts');
             conflictsTabBtn.classList.add(conflicts.length > 0 ? 'has-conflicts' : 'no-conflicts');
 
-            // Group multiple conflict entries on the same field into a single
-            // row (one field = one row, even if the auditor flagged several
-            // pairwise disagreements like A_VS_B + A_VS_C). The displayed band
-            // is the most-severe band across the field's entries.
+            // One row per field. Each row carries every conflict verdict
+            // that landed on the field — could be A-vs-B + A-vs-C (two
+            // external entries), or external + internal mixed.
             const grouped = groupConflictsByField(conflicts);
 
-            // Stable sort: high → low → det → sup → field name.
-            grouped.sort((a, b) => {
-                const ba = BAND_ORDER[a.band] || 99;
-                const bb = BAND_ORDER[b.band] || 99;
-                if (ba !== bb) return ba - bb;
-                return (a.field || '').localeCompare(b.field || '');
+            // Bucket rows by KIND. A field with both cross-source AND
+            // within-source conflicts shows up in both buckets — same row
+            // template, different verdicts visible inside it. (Rare in
+            // practice but the data model allows it, so the UI handles it.)
+            const buckets = { external: [], internal: [], direct: [], suppressed: [] };
+            grouped.forEach(g => {
+                g.entries.forEach(e => {
+                    const k = kindFor(e);
+                    if (!buckets[k].some(x => x.key === g.key)) {
+                        buckets[k].push(g);
+                    }
+                });
+            });
+            Object.values(buckets).forEach(rows => {
+                rows.sort((a, b) => {
+                    const ba = BAND_ORDER[a.band] || 99;
+                    const bb = BAND_ORDER[b.band] || 99;
+                    if (ba !== bb) return ba - bb;
+                    return (a.field || '').localeCompare(b.field || '');
+                });
             });
 
-            // Summary band
+            // ----- header stats -----
             let html = '<div class="conflicts-summary">';
-            html += statCard('total',       summary.total, 'is-total');
-            if (summary.high_confidence) html += statCard('high', summary.high_confidence, 'is-high');
-            if (summary.low_confidence)  html += statCard('low',  summary.low_confidence,  'is-low');
+            html += statCard('total',          summary.total, 'is-total');
+            if (summary.high_confidence) html += statCard('high-conf',  summary.high_confidence, 'is-high');
+            if (summary.low_confidence)  html += statCard('low-conf',   summary.low_confidence,  'is-low');
             if (summary.deterministic)   html += statCard('direct/intra', summary.deterministic, 'is-det');
             if (summary.suppressed)      html += statCard('suppressed', summary.suppressed, 'is-sup');
             html += '</div>';
 
-            // Conflict rows, grouped under band headers.
-            const fieldsWithConflict = new Set(grouped.map(g => `${g.section}::${g.field}`));
+            // ----- legend / how-to-read -----
+            html += `<div class="conflicts-legend">
+                <span><b>Cross-source</b> — sources disagreed with each other.</span>
+                <span><b>Within-source</b> — one source contradicted itself across passages.</span>
+                <span><b>Direct-field</b> — deterministic mismatch from the host's API (no LLM grounding).</span>
+                <span><b>Suppressed</b> — grounding &lt; 0.1; kept in the BOM trace but excluded from the headline count.</span>
+            </div>`;
 
-            if (grouped.length === 0 && summary.suppressed === 0) {
+            const fieldsWithConflict = new Set(grouped.map(g => g.key));
+
+            // ----- conflict sections -----
+            const sectionTitles = {
+                external:   ['Cross-source conflicts',   'Different sources reported different values for the same field.'],
+                internal:   ['Within-source conflicts',  'A single source contradicted itself across passages.'],
+                direct:     ['Direct-field conflicts',   'Mismatched values returned by deterministic source APIs.'],
+                suppressed: ['Suppressed conflicts',     'Grounding below 0.1 — kept in the BOM trace, excluded from the headline count.'],
+            };
+
+            const anyConflict = grouped.length > 0;
+            if (!anyConflict && summary.suppressed === 0) {
                 html += '<div class="conflicts-empty">No conflicts detected — every queried source agreed on every field.</div>';
             } else {
-                let lastBand = null;
                 html += '<div class="conflict-list">';
-                grouped.forEach(g => {
-                    if (g.band !== lastBand) {
-                        html += bandHeader(g.band);
-                        lastBand = g.band;
-                    }
-                    html += conflictRowGrouped(g);
+                Object.keys(sectionTitles).forEach(kind => {
+                    const rows = buckets[kind];
+                    if (!rows.length) return;
+                    const [title, hint] = sectionTitles[kind];
+                    html += `<div class="conflict-band-head band-${kind}">
+                        <span class="band-title">${title}</span>
+                        <span class="band-count">${rows.length}</span>
+                        <span class="band-hint">${hint}</span>
+                    </div>`;
+                    rows.forEach(g => { html += conflictRowGrouped(g, kind); });
                 });
                 html += '</div>';
             }
 
-            // Bottom section: list every populated field where all sources
-            // agreed (i.e. NOT in the conflict list). Gives a complete
-            // audit picture, not just the disagreements.
+            // ----- agreed fields -----
             const agreed = collectAgreedFields(metadata, fieldsWithConflict);
             if (agreed.length > 0) {
                 html += '<div class="agreed-section">';
-                html += `<div class="agreed-head">Fields with no conflict <span class="agreed-count">${agreed.length}</span></div>`;
+                html += `<div class="agreed-head">
+                    <span>Fields with no conflict</span>
+                    <span class="agreed-hint">All consulted sources agreed (or only one source spoke). The per-source claims show what each one said.</span>
+                    <span class="agreed-count">${agreed.length}</span>
+                </div>`;
                 html += '<div class="agreed-list">';
-                agreed.forEach(f => {
-                    html += `<div class="agreed-row">
-                        <div class="agreed-field">${escapeHtml(f.field)}</div>
-                        <div class="agreed-source">${escapeHtml(f.source || '—')}</div>
-                        <div class="agreed-value" title="${escapeHtml(String(f.value))}">${escapeHtml(truncate(String(f.value), 120))}</div>
-                    </div>`;
-                });
+                agreed.forEach(f => { html += agreedRow(f); });
                 html += '</div></div>';
             }
 
@@ -2083,6 +3076,9 @@
             </div>`;
         }
 
+        // Per-entry band (high/low/det/sup) — used to colour pills and to
+        // sort rows within a kind section. ``kindFor`` is the orthogonal
+        // dimension (cross-source / within-source / direct / suppressed).
         function bandFor(c) {
             if (c.confidence === 'high') return 'high';
             if (c.confidence === 'low')  return 'low';
@@ -2090,14 +3086,11 @@
             return 'det';
         }
 
-        function bandHeader(band) {
-            const titles = {
-                high: 'High-confidence conflicts',
-                low:  'Low-confidence conflicts',
-                det:  'Direct & intra-source conflicts (no LLM grounding)',
-                sup:  'Suppressed (grounding below 0.1 — kept in BOM trace, excluded from headline)',
-            };
-            return `<div class="conflict-band-head band-${band}">${titles[band] || band}</div>`;
+        function kindFor(c) {
+            if (typeof c.grounding === 'number' && c.grounding < 0.1) return 'suppressed';
+            if (c.kind === 'rag-external') return 'external';
+            if (c.kind === 'rag-internal') return 'internal';
+            return 'direct';
         }
 
         function pillFor(c) {
@@ -2106,26 +3099,17 @@
             if (tier === 'high')       return `<span class="conf-pill high">high${g ? `<span class="grounding">${g}</span>` : ''}</span>`;
             if (tier === 'low')        return `<span class="conf-pill low">low${g ? `<span class="grounding">${g}</span>` : ''}</span>`;
             if (tier === 'suppressed') return `<span class="conf-pill sup">suppressed${g ? `<span class="grounding">${g}</span>` : ''}</span>`;
-            // No grounding score — direct field or intra-source.
-            return `<span class="conf-pill det">direct/intra</span>`;
+            return `<span class="conf-pill det">no grounding</span>`;
         }
 
-        // Build the global letter→source map from the order of `claims`
-        // keys. The backend's `_build_groups` populates `claims` in
-        // source-priority order (huggingface→A, arxiv→B, github→C, etc.),
-        // so the same order applies to every conflict on this field.
         function letterMapFromClaims(claims) {
             const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
             const out = {};
             const keys = Object.keys(claims || {});
-            keys.forEach((src, i) => {
-                if (i < letters.length) out[letters[i]] = src;
-            });
+            keys.forEach((src, i) => { if (i < letters.length) out[letters[i]] = src; });
             return out;
         }
 
-        // Replace the auditor's anonymous group letters with actual source
-        // names. ``letterMap`` is `{A: 'huggingface', B: 'arxiv', ...}`.
         function rewriteNarrative(text, letterMap) {
             if (!text || !letterMap) return text || '';
             let out = String(text);
@@ -2136,16 +3120,13 @@
             return out;
         }
 
-        // Collapse multiple conflict entries on the same field into one
-        // grouped record. The grouped record carries: the most-severe
-        // band, all narratives joined, all sources involved, the chosen
-        // value, the field-class, and the priority list.
         function groupConflictsByField(conflicts) {
             const map = new Map();
             for (const c of conflicts) {
                 const key = `${c.section}::${c.field}`;
                 if (!map.has(key)) {
                     map.set(key, {
+                        key,
                         field: c.field,
                         section: c.section,
                         field_class: c.field_class || (c.section === 'direct' ? 'direct' : 'inferred'),
@@ -2153,12 +3134,13 @@
                         chosen_value: c.chosen_value,
                         chosen_source: c.chosen_source,
                         claims: c.claims || {},
+                        sources_considered: c.sources_considered || Object.keys(c.claims || {}),
+                        selected_sources: c.selected_sources || [],
                         entries: [],
                     });
                 }
                 map.get(key).entries.push(c);
             }
-            // Compute the field's most-severe band.
             const result = [];
             for (const g of map.values()) {
                 let best = 'sup';
@@ -2172,93 +3154,217 @@
             return result;
         }
 
-        function conflictRowGrouped(g) {
+        // Render a multi-source claims block (used in BOTH conflict rows
+        // and agreed-field rows). Marks the chosen source so the user can
+        // see at a glance which claim won.
+        function renderClaimsBlock(claims, chosenSource) {
+            const entries = Object.entries(claims || {})
+                .filter(([, v]) => v != null && v !== '');
+            if (!entries.length) return '';
+            const chosen = String(chosenSource || '').split(',').map(s => s.trim());
+            return entries.map(([src, claim]) => {
+                const winner = chosen.includes(src) ? '<span class="claim-winner" title="This source supplied the chosen value">✓</span>' : '';
+                return `<div class="claim">
+                    <span class="src">${escapeHtml(src)}${winner}</span>
+                    <span class="claim-text">${escapeHtml(String(claim))}</span>
+                </div>`;
+            }).join('');
+        }
+
+        // Render the "Sources considered" cell — list every source that
+        // contributed a claim for this field, in source-priority order
+        // (huggingface → arxiv → github by default). Each chip is tagged
+        // with its routing fate:
+        //   • src-in-conflict — sat on one side of an LLM-flagged disagreement
+        //   • src-consensus   — passed the consensus router (post-filter
+        //                       winners — these are the chunks used to
+        //                       answer the field's question)
+        //   • src-considered  — was consulted but neither conflicting nor
+        //                       picked (e.g. agreed, but lower priority)
+        function renderSourcesConsidered(considered, selected, conflictParticipants) {
+            const list = (considered || []).slice();
+            if (!list.length) return '<span class="src-tag src-empty">none recorded</span>';
+            const conflictSet  = new Set(conflictParticipants || []);
+            const selectedSet  = new Set(selected || []);
+            return list.map(s => {
+                if (conflictSet.has(s))      return `<span class="src-tag src-in-conflict" title="Flagged as a conflict participant by the auditor">${escapeHtml(s)}</span>`;
+                if (selectedSet.has(s))      return `<span class="src-tag src-consensus" title="Survived the consensus router — its chunks were used to answer">${escapeHtml(s)} ✓</span>`;
+                return `<span class="src-tag" title="Consulted, no disagreement flagged">${escapeHtml(s)}</span>`;
+            }).join(' ');
+        }
+
+        function conflictRowGrouped(g, kind) {
             const letterMap = letterMapFromClaims(g.claims);
 
-            // One pill per entry (so HF-vs-GitHub at low and arxiv-vs-GitHub
-            // at low render as two side-by-side pills).
             const pills = g.entries.map(e => pillFor(e)).join(' ');
 
-            // Combine narratives — rewrite letters to source names first.
             const narrativeBlocks = g.entries
                 .map(e => rewriteNarrative(e.narrative, letterMap))
                 .filter(Boolean)
                 .map(t => `<div class="narrative">${escapeHtml(t)}</div>`)
                 .join('');
 
-            // Per-source claims (the verbatim per-group quotes).
-            const claimItems = Object.entries(g.claims)
-                .filter(([, v]) => v != null && v !== '')
-                .map(([src, claim]) =>
-                    `<div class="claim"><span class="src">${escapeHtml(src)}</span>${escapeHtml(String(claim))}</div>`
-                ).join('');
+            const claimItems = renderClaimsBlock(g.claims, g.chosen_source);
 
-            // Sources actually involved in conflict (deduped).
             const involvedSet = new Set();
             g.entries.forEach(e => (e.sources || []).forEach(s => involvedSet.add(s)));
             const involved = Array.from(involvedSet);
-            const conflictingCell = involved.length > 0
-                ? involved.map(s => `<div class="conflict-source">${escapeHtml(s)}</div>`).join('')
-                : '<div class="conflict-source">—</div>';
 
-            // Field class chip (direct from API vs LLM-inferred).
             const classChip = g.field_class === 'direct'
                 ? '<span class="class-chip class-direct" title="Read directly from the HuggingFace / GitHub API">direct field</span>'
                 : '<span class="class-chip class-inferred" title="Extracted by the LLM via RAG over README + arXiv text">inferred (RAG)</span>';
 
-            // Priority order chip.
             const prioChip = (g.priority && g.priority.length)
                 ? `<span class="prio-chip" title="Source priority used to break ties">priority: ${g.priority.map(escapeHtml).join(' › ')}</span>`
                 : '';
 
-            return `<div class="conflict-row band-${g.band}">
-                <div>
+            const sourcesConsidered = renderSourcesConsidered(g.sources_considered, g.selected_sources, involved);
+            const legendHint = (kind === 'internal')
+                ? 'Red chip = source that contradicted itself.'
+                : (kind === 'direct'
+                    ? 'Red chip = source whose direct-API value mismatched.'
+                    : 'Red chip = source on either side of the disagreement; green ✓ = survived consensus.');
+
+            return `<div class="conflict-row band-${g.band} kind-${kind}">
+                <div class="cell cell-field">
                     <div class="conflict-field">${escapeHtml(g.field || '?')}</div>
                     <div class="conflict-section">${classChip}</div>
                     ${prioChip ? `<div style="margin-top:6px;">${prioChip}</div>` : ''}
                 </div>
-                <div>
+                <div class="cell cell-chosen">
                     <div class="conflict-cell-label">Chosen value</div>
                     <div class="conflict-value">${escapeHtml(String(g.chosen_value ?? '—'))}</div>
                     <div class="conflict-source">from ${escapeHtml(String(g.chosen_source || '?'))}</div>
                 </div>
-                <div>
-                    <div class="conflict-cell-label">Conflicting source(s)</div>
-                    ${conflictingCell}
+                <div class="cell cell-sources">
+                    <div class="conflict-cell-label">Sources considered</div>
+                    <div class="src-row">${sourcesConsidered}</div>
+                    <div class="src-hint">${legendHint}</div>
                 </div>
-                <div class="conflict-meta">
+                <div class="cell conflict-meta">
                     ${pills}
                 </div>
-                ${narrativeBlocks || claimItems ? `<div class="conflict-claims">${narrativeBlocks}${claimItems}</div>` : ''}
+                ${narrativeBlocks || claimItems ? `<div class="conflict-claims">
+                    ${narrativeBlocks ? `<div class="claims-section-label">Auditor narrative</div>${narrativeBlocks}` : ''}
+                    ${claimItems ? `<div class="claims-section-label">What each source said</div>${claimItems}` : ''}
+                </div>` : ''}
             </div>`;
         }
 
-        // Walk the BOM and collect every populated field where no conflict
-        // was flagged. ``fieldsWithConflict`` is the set of `section::field`
-        // keys we already rendered above, so we don't double-list them.
+        // Walk the BOM and collect every populated field with no live
+        // conflict verdict. Same field appearing in both ``direct_fields``
+        // and ``rag_fields`` (e.g. ``license`` — direct from the HF API
+        // tag *and* re-derived via RAG over the README) is merged into
+        // ONE row showing both evidence paths, so it doesn't read as a
+        // mysterious duplicate.
+        //
+        // ``noAssertion`` / "not found" values are kept in the list and
+        // tagged ``not asserted`` so the user can see every queried
+        // field, including the ones where no source had anything to
+        // say. Filtering them out hid useful audit information.
         function collectAgreedFields(metadata, fieldsWithConflict) {
-            const agreed = [];
-            if (!metadata) return agreed;
+            if (!metadata) return [];
+            const byField = new Map();
             ['direct_fields', 'rag_fields'].forEach(section => {
                 const fields = metadata[section] || {};
                 Object.entries(fields).forEach(([name, triplet]) => {
                     if (!triplet || typeof triplet !== 'object') return;
                     const sectionLabel = section.replace('_fields', '');
                     if (fieldsWithConflict.has(`${sectionLabel}::${name}`)) return;
-                    const v = triplet.value;
-                    if (v == null) return;
-                    const text = String(v).trim().toLowerCase();
-                    if (!text || text === 'noassertion' || text === 'not found' || text === 'none.') return;
-                    agreed.push({
-                        field: name,
+                    if (triplet.value == null) return;
+
+                    const trace = triplet.trace || {};
+                    const claimKeys = Object.keys(trace.claims || {});
+                    const entry = {
                         section: sectionLabel,
-                        value: v,
+                        value: triplet.value,
                         source: triplet.source,
-                    });
+                        claims: trace.claims || {},
+                        sources_considered: claimKeys.length
+                            ? claimKeys
+                            : (triplet.source ? String(triplet.source).split(',').map(s => s.trim()) : []),
+                        selected_sources:
+                            trace.selected_sources
+                            || (triplet.source ? String(triplet.source).split(',').map(s => s.trim()) : []),
+                    };
+                    if (!byField.has(name)) byField.set(name, { field: name, evidence: [] });
+                    byField.get(name).evidence.push(entry);
                 });
             });
-            agreed.sort((a, b) => a.field.localeCompare(b.field));
-            return agreed;
+            const merged = Array.from(byField.values());
+            merged.sort((a, b) => a.field.localeCompare(b.field));
+            return merged;
+        }
+
+        // Render one agreed-field row. Shows the chosen value, every
+        // source consulted, every claim made — same shape as the conflict
+        // rows so the eye can compare them. When a field appears in both
+        // ``direct_fields`` and ``rag_fields`` (license being the canonical
+        // example), the row carries two evidence chips and a merged claims
+        // block so the duplication is legible instead of confusing.
+        function agreedRow(f) {
+            // Pick the primary evidence (direct wins if present — that's
+            // the deterministic path); the other becomes a secondary tag.
+            const direct = f.evidence.find(e => e.section === 'direct');
+            const rag    = f.evidence.find(e => e.section === 'rag');
+            const primary = direct || rag;
+            const consideredSet = new Set();
+            const selectedSet   = new Set();
+            f.evidence.forEach(e => {
+                (e.sources_considered || []).forEach(s => s && consideredSet.add(s));
+                (e.selected_sources   || []).forEach(s => s && selectedSet.add(s));
+            });
+            // Merge claims from every evidence path so the row shows the
+            // full picture even when both direct and RAG ran.
+            const mergedClaims = {};
+            f.evidence.forEach(e => {
+                Object.entries(e.claims || {}).forEach(([src, c]) => {
+                    if (!c) return;
+                    if (mergedClaims[src] && mergedClaims[src] !== c) {
+                        mergedClaims[src] = mergedClaims[src] + '  ⏤  ' + c;
+                    } else {
+                        mergedClaims[src] = c;
+                    }
+                });
+            });
+
+            const valueText = primary.value;
+            const lowered = String(valueText).trim().toLowerCase();
+            const notAsserted = !lowered || lowered === 'noassertion' || lowered === 'not found' || lowered === 'none.' || lowered === 'n/a';
+
+            const classChips = [];
+            if (direct) classChips.push('<span class="class-chip class-direct" title="Read directly from the HuggingFace / GitHub API">direct field</span>');
+            if (rag)    classChips.push('<span class="class-chip class-inferred" title="Extracted by the LLM via RAG over README + arXiv text">inferred (RAG)</span>');
+
+            const notAssertedTag = notAsserted
+                ? '<span class="agreed-notassert">not asserted</span>'
+                : '';
+
+            const sourcesHtml = renderSourcesConsidered(Array.from(consideredSet), Array.from(selectedSet), []);
+            const claimsHtml = renderClaimsBlock(mergedClaims, primary.source);
+
+            return `<div class="agreed-row">
+                <div class="cell cell-field">
+                    <div class="conflict-field">${escapeHtml(f.field)}</div>
+                    <div class="conflict-section">${classChips.join(' ')}</div>
+                </div>
+                <div class="cell cell-chosen">
+                    <div class="conflict-cell-label">Chosen value ${notAssertedTag}</div>
+                    <div class="conflict-value ${notAsserted ? 'is-notasserted' : ''}">${escapeHtml(truncate(String(valueText), 240))}</div>
+                    <div class="conflict-source">from ${escapeHtml(String(primary.source || '?'))}</div>
+                </div>
+                <div class="cell cell-sources">
+                    <div class="conflict-cell-label">Sources considered</div>
+                    <div class="src-row">${sourcesHtml}</div>
+                </div>
+                <div class="cell conflict-meta">
+                    <span class="conf-pill agreed-pill" title="Every consulted source agreed (or only one spoke)">agreed</span>
+                </div>
+                ${claimsHtml ? `<div class="conflict-claims">
+                    <div class="claims-section-label">What each source said</div>
+                    ${claimsHtml}
+                </div>` : ''}
+            </div>`;
         }
 
         function truncate(s, n) {
@@ -2276,6 +3382,548 @@
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.getElementById(tabName + 'Tab').classList.add('active');
         }
+
+        // Programmatic version (no click event) used by Pipeline action buttons.
+        function switchTabByName(tabName) {
+            const btn = document.querySelector(`.tab[onclick*="'${tabName}'"]`);
+            if (!btn) return;
+            currentTab = tabName;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            const panel = document.getElementById(tabName + 'Tab');
+            if (panel) panel.classList.add('active');
+        }
+
+        // ===== Pipeline tab controller ==========================================
+        // Consumes structured events emitted by the backend's BOM-generation
+        // pipeline (see agentic_rag._emit_event). Each field column carries 3
+        // dots — retrieve / reconcile / resolve — that light up as their
+        // stage progresses. Clicking a dot opens an inline expand card under
+        // the timeline showing that stage's buffered data.
+        const Pipeline = (function () {
+            const STAGES = ['retrieve', 'reconcile', 'resolve'];
+            const STAGE_LABELS = { retrieve: 'Retrieve', reconcile: 'Reconcile', resolve: 'Resolve' };
+            const ROWS = 3;
+
+            let fields = [];
+            let state = {};
+            let fieldDone = {};
+            let fieldError = {};
+            let total = 0;
+            let completed = 0;
+            let pipelineT0 = null;
+            let elapsedTimer = null;
+            let openSelection = null;
+
+            function reset() {
+                fields = [];
+                state = {};
+                fieldDone = {};
+                fieldError = {};
+                total = 0;
+                completed = 0;
+                pipelineT0 = null;
+                if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
+                openSelection = null;
+                document.getElementById('pipelineRows').innerHTML =
+                    '<div class="pipeline-empty"><div class="glyph">{ }</div>Waiting for the run to start…</div>';
+                document.getElementById('pipelineCount').textContent = '0 / 0 fields';
+                document.getElementById('pipelineBar').style.width = '0%';
+                document.getElementById('pipelineElapsed').textContent = '—';
+                document.getElementById('pipelineProgress').classList.remove('is-done');
+                document.getElementById('pipelineExpand').classList.remove('is-open');
+                document.getElementById('pipelineActions').classList.remove('is-shown');
+                const btn = document.getElementById('pipelineTabBtn');
+                if (btn) btn.style.display = 'none';
+            }
+
+            function build() {
+                const rowsEl = document.getElementById('pipelineRows');
+                rowsEl.innerHTML = '';
+                const perRow = Math.ceil(fields.length / ROWS);
+                for (let r = 0; r < ROWS; r++) {
+                    const slice = fields.slice(r * perRow, (r + 1) * perRow);
+                    if (slice.length === 0) continue;
+                    const row = document.createElement('div');
+                    row.className = 'pipeline-row' + (r % 2 === 1 ? ' reverse' : '');
+                    slice.forEach(field => {
+                        const col = document.createElement('div');
+                        col.className = 'pipeline-field';
+                        col.dataset.field = field;
+                        col.title = field;
+                        const name = document.createElement('div');
+                        name.className = 'field-name';
+                        name.textContent = field;
+                        col.appendChild(name);
+                        const dots = document.createElement('div');
+                        dots.className = 'pipeline-dots';
+                        STAGES.forEach(stage => {
+                            const d = document.createElement('div');
+                            d.className = 'pipeline-dot';
+                            d.dataset.field = field;
+                            d.dataset.stage = stage;
+                            d.title = `${field} · ${STAGE_LABELS[stage]}`;
+                            d.addEventListener('click', () => openExpand(field, stage));
+                            dots.appendChild(d);
+                        });
+                        col.appendChild(dots);
+                        row.appendChild(col);
+                    });
+                    rowsEl.appendChild(row);
+                }
+            }
+
+            function startElapsedTimer() {
+                if (elapsedTimer) clearInterval(elapsedTimer);
+                elapsedTimer = setInterval(() => {
+                    if (!pipelineT0) return;
+                    const sec = Math.floor((Date.now() - pipelineT0) / 1000);
+                    document.getElementById('pipelineElapsed').textContent = formatDuration(sec * 1000);
+                }, 1000);
+            }
+
+            function formatDuration(ms) {
+                const s = Math.floor(ms / 1000);
+                if (s < 60) return `${s}s`;
+                const m = Math.floor(s / 60), rem = s % 60;
+                return `${m}m ${rem.toString().padStart(2, '0')}s`;
+            }
+
+            function dotEl(field, stage) {
+                return document.querySelector(`.pipeline-dot[data-field="${CSS.escape(field)}"][data-stage="${stage}"]`);
+            }
+            function fieldCol(field) {
+                return document.querySelector(`.pipeline-field[data-field="${CSS.escape(field)}"]`);
+            }
+
+            function ensureField(field) {
+                if (!state[field]) state[field] = {};
+                STAGES.forEach(s => { if (!state[field][s]) state[field][s] = { status: 'pending' }; });
+            }
+
+            function setStageStatus(field, stage, status, extra) {
+                ensureField(field);
+                Object.assign(state[field][stage], { status }, extra || {});
+                const d = dotEl(field, stage);
+                if (d) {
+                    d.classList.remove('is-running', 'is-done', 'is-error');
+                    if (status === 'running') d.classList.add('is-running');
+                    else if (status === 'done') d.classList.add('is-done');
+                    else if (status === 'error') d.classList.add('is-error');
+                }
+                if (openSelection && openSelection.field === field && openSelection.stage === stage) {
+                    renderExpandBody(field, stage);
+                }
+            }
+
+            function markFieldComplete(field, isError) {
+                const col = fieldCol(field);
+                if (col) {
+                    col.classList.remove('is-active');
+                    if (isError) col.classList.add('is-error'); else col.classList.add('is-done');
+                }
+                if (!fieldDone[field]) {
+                    fieldDone[field] = true;
+                    completed += 1;
+                    updateProgress();
+                }
+            }
+
+            function updateProgress() {
+                document.getElementById('pipelineCount').textContent =
+                    `${completed} / ${total} field${total === 1 ? '' : 's'}`;
+                const pct = total ? Math.min(100, (completed / total) * 100) : 0;
+                document.getElementById('pipelineBar').style.width = pct + '%';
+            }
+
+            function openExpand(field, stage) {
+                openSelection = { field, stage };
+                document.querySelectorAll('.pipeline-dot.is-selected').forEach(d => d.classList.remove('is-selected'));
+                const d = dotEl(field, stage); if (d) d.classList.add('is-selected');
+                document.getElementById('pxField').textContent = field;
+                document.getElementById('pxStage').textContent = STAGE_LABELS[stage];
+                renderExpandBody(field, stage);
+                document.getElementById('pipelineExpand').classList.add('is-open');
+            }
+
+            function closeExpand() {
+                document.getElementById('pipelineExpand').classList.remove('is-open');
+                document.querySelectorAll('.pipeline-dot.is-selected').forEach(d => d.classList.remove('is-selected'));
+                openSelection = null;
+            }
+
+            function renderExpandBody(field, stage) {
+                const slot = state[field] && state[field][stage] || { status: 'pending' };
+                const body = document.getElementById('pxBody');
+                const statusLine = document.getElementById('pxStatus');
+                body.innerHTML = '';
+
+                const rows = [];
+                const data = slot.data || {};
+                if (stage === 'retrieve') {
+                    if (data.chunks_per_source) {
+                        rows.push(['chunks per source (top-10)',
+                            Object.entries(data.chunks_per_source).map(([s, n]) => `${s}: ${n}`).join(' · ') || '(none)']);
+                    }
+                    if (data.chunks_per_source_internal) {
+                        rows.push(['chunks per source (full pool)',
+                            Object.entries(data.chunks_per_source_internal).map(([s, n]) => `${s}: ${n}`).join(' · ') || '(none)']);
+                    }
+                    if (data.sources_used) rows.push(['sources used', (data.sources_used || []).join(', ') || '(none)']);
+                    if (data.total_chunks !== undefined) rows.push(['total chunks collected', String(data.total_chunks)]);
+                } else if (stage === 'reconcile') {
+                    if (data.skipped) {
+                        rows.push(['skipped', String(data.skipped)]);
+                        if (data.reason) rows.push(['reason', String(data.reason)]);
+                        if (data.sources) rows.push(['sources seen', (data.sources || []).join(', ')]);
+                    } else {
+                        rows.push(['internal conflicts',
+                            (data.internal_conflicts && data.internal_conflicts.length)
+                                ? data.internal_conflicts.join(', ') : 'none']);
+                        rows.push(['external conflicts',
+                            (data.external_conflicts && data.external_conflicts.length)
+                                ? data.external_conflicts.map(p => Array.isArray(p) ? p.join(' vs ') : String(p)).join(' · ')
+                                : 'none']);
+                    }
+                } else if (stage === 'resolve') {
+                    if (data.no_documents) rows.push(['no documents', 'answered from priors']);
+                    if (data.answer_preview) rows.push(['answer', data.answer_preview]);
+                    if (data.selected_sources && data.selected_sources.length) {
+                        rows.push(['routed sources', (data.selected_sources || []).join(', ')]);
+                    }
+                }
+
+                if (rows.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.className = 'row';
+                    empty.innerHTML = '<span class="val muted">No data buffered yet — this stage hasn\'t finished.</span>';
+                    body.appendChild(empty);
+                } else {
+                    rows.forEach(([k, v]) => {
+                        const r = document.createElement('div');
+                        r.className = 'row';
+                        r.innerHTML = `<span class="label">${escapeHtml(k)}</span><span class="val">${escapeHtml(v)}</span>`;
+                        body.appendChild(r);
+                    });
+                }
+
+                statusLine.classList.remove('done', 'run', 'err', 'pend');
+                if (slot.status === 'done') {
+                    statusLine.classList.add('done');
+                    statusLine.textContent = `✓ done${slot.duration ? ` · ${slot.duration}ms` : ''}`;
+                } else if (slot.status === 'running') {
+                    statusLine.classList.add('run');
+                    statusLine.textContent = '◐ running…';
+                } else if (slot.status === 'error') {
+                    statusLine.classList.add('err');
+                    statusLine.textContent = `✗ ${slot.error || 'failed'}`;
+                } else {
+                    statusLine.classList.add('pend');
+                    statusLine.textContent = 'pending';
+                }
+            }
+
+            function handleEvent(evt) {
+                if (!evt || !evt.event) return;
+                switch (evt.event) {
+                    case 'pipeline.start': {
+                        fields = (evt.fields || []).slice();
+                        total = evt.total || fields.length;
+                        completed = 0;
+                        state = {};
+                        fieldDone = {};
+                        fieldError = {};
+                        pipelineT0 = Date.now();
+                        fields.forEach(ensureField);
+                        build();
+                        updateProgress();
+                        startElapsedTimer();
+                        document.getElementById('pipelineProgress').classList.remove('is-done');
+                        document.getElementById('pipelineActions').classList.remove('is-shown');
+                        const btn = document.getElementById('pipelineTabBtn');
+                        if (btn) btn.style.display = '';
+                        const pane = document.getElementById('resultPane');
+                        if (pane) pane.classList.remove('is-empty');
+                        switchTabByName('pipeline');
+                        break;
+                    }
+                    case 'field.start': {
+                        const f = evt.field; if (!f) break;
+                        ensureField(f);
+                        const col = fieldCol(f);
+                        if (col) col.classList.add('is-active');
+                        break;
+                    }
+                    case 'stage.start': {
+                        if (evt.field && evt.stage) setStageStatus(evt.field, evt.stage, 'running', { t0: Date.now() });
+                        break;
+                    }
+                    case 'stage.done': {
+                        if (evt.field && evt.stage) setStageStatus(evt.field, evt.stage, 'done', {
+                            data: evt.data || {},
+                            duration: evt.duration_ms,
+                        });
+                        break;
+                    }
+                    case 'field.done': {
+                        if (evt.field) {
+                            STAGES.forEach(s => {
+                                if (state[evt.field] && state[evt.field][s].status === 'pending') {
+                                    setStageStatus(evt.field, s, 'done', { data: evt.data || {} });
+                                }
+                            });
+                            markFieldComplete(evt.field, false);
+                        }
+                        break;
+                    }
+                    case 'field.error': {
+                        if (evt.field) {
+                            fieldError[evt.field] = evt.error || 'failed';
+                            STAGES.forEach(s => {
+                                const slot = (state[evt.field] || {})[s] || {};
+                                if (slot.status === 'running' || slot.status === 'pending') {
+                                    setStageStatus(evt.field, s, 'error', { error: evt.error });
+                                }
+                            });
+                            markFieldComplete(evt.field, true);
+                        }
+                        break;
+                    }
+                    case 'pipeline.done': {
+                        if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
+                        const ms = evt.duration_ms || (pipelineT0 ? Date.now() - pipelineT0 : 0);
+                        document.getElementById('pipelineElapsed').textContent = formatDuration(ms);
+                        document.getElementById('pipelineProgress').classList.add('is-done');
+                        document.getElementById('pipelineActions').classList.add('is-shown');
+                        break;
+                    }
+                }
+            }
+
+            return { reset, handleEvent, closeExpand };
+        })();
+
+        // ===== History tab controller =========================================
+        // Lists previously generated BOMs from /history. Clicking a row hydrates
+        // the BOM/SPDX/CycloneDX/Conflicts viewers from the saved artifact files
+        // and switches to the BOM tab — same UX as a fresh run finishing.
+        const History = (function () {
+            let rows = [];
+            let activeHash = null;
+
+            async function load() {
+                try {
+                    const resp = await fetch('/history');
+                    const data = await resp.json();
+                    rows = Array.isArray(data.rows) ? data.rows : [];
+                    render();
+                } catch (e) {
+                    console.warn('history load failed', e);
+                }
+            }
+
+            function upsert(row) {
+                if (!row || !row.hash) return;
+                rows = rows.filter(r => r.hash !== row.hash);
+                rows.unshift(row);
+                render();
+            }
+
+            function render() {
+                const body = document.getElementById('historyBody');
+                const count = document.getElementById('historyCount');
+                if (!body) return;
+                count.textContent = String(rows.length);
+                if (rows.length === 0) {
+                    body.innerHTML = '<tr class="history-empty"><td colspan="5">No runs yet — generate a BOM and it will appear here.</td></tr>';
+                    return;
+                }
+                body.innerHTML = '';
+                rows.forEach(r => {
+                    const tr = document.createElement('tr');
+                    if (r.hash === activeHash) tr.classList.add('is-active');
+                    tr.addEventListener('click', (ev) => {
+                        if (ev.target.tagName === 'A') return;  // download click — let it bubble
+                        loadInto(r.hash);
+                    });
+
+                    const when = document.createElement('td');
+                    when.className = 'col-when';
+                    when.textContent = formatWhen(r.created_at);
+                    tr.appendChild(when);
+
+                    const subj = document.createElement('td');
+                    subj.className = 'col-subj';
+                    subj.textContent = r.subject || '(unknown)';
+                    subj.title = r.subject || '';
+                    tr.appendChild(subj);
+
+                    const type = document.createElement('td');
+                    type.className = 'col-type';
+                    const badge = document.createElement('span');
+                    badge.className = 'badge ' + (r.bom_type === 'data' ? 'data' : 'ai');
+                    badge.textContent = r.bom_type === 'data' ? 'Data' : 'AI';
+                    type.appendChild(badge);
+                    tr.appendChild(type);
+
+                    const hash = document.createElement('td');
+                    hash.className = 'col-hash';
+                    hash.textContent = r.hash || '';
+                    tr.appendChild(hash);
+
+                    const actions = document.createElement('td');
+                    actions.className = 'col-actions';
+                    const arts = r.artifacts || {};
+                    [
+                        ['bom', 'BOM'],
+                        ['spdx', 'SPDX'],
+                        ['cyclonedx', 'CDX'],
+                        ['recursive', 'Recursive'],
+                        ['linked', 'Linked'],
+                    ].forEach(([key, label]) => {
+                        if (!arts[key]) return;
+                        const a = document.createElement('a');
+                        a.href = `/history/${encodeURIComponent(r.hash)}/${encodeURIComponent(key)}`;
+                        a.textContent = label;
+                        a.title = `Download ${label}`;
+                        a.addEventListener('click', e => e.stopPropagation());
+                        actions.appendChild(a);
+                    });
+                    tr.appendChild(actions);
+
+                    body.appendChild(tr);
+                });
+            }
+
+            function formatWhen(iso) {
+                if (!iso) return '—';
+                const d = new Date(iso);
+                if (isNaN(d.getTime())) return iso;
+                const pad = n => String(n).padStart(2, '0');
+                return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            }
+
+            async function loadInto(hash) {
+                if (!hash) return;
+                activeHash = hash;
+                try {
+                    const resp = await fetch(`/history/${encodeURIComponent(hash)}`);
+                    if (!resp.ok) {
+                        showStatus('error', `Couldn't load that run (HTTP ${resp.status}).`);
+                        return;
+                    }
+                    const payload = await resp.json();
+                    const data = payload.data || {};
+                    const row = payload.row || {};
+
+                    if (data.bom) {
+                        displayJSON(data.bom, jsonViewerComplete);
+                        // Refresh conflict viewer too — uses the BOM's embedded conflicts.
+                        try {
+                            // _extract_conflicts equivalent lives server-side; for history
+                            // rehydration we walk the BOM client-side using the same shape
+                            // the live render uses.
+                            const conflicts = extractClientConflicts(data.bom);
+                            renderConflicts(conflicts, data.bom.conflict_summary || {}, data.bom);
+                        } catch (e) {
+                            console.warn('conflict rehydration failed', e);
+                        }
+                    }
+                    if (data.spdx) {
+                        displayJSON(data.spdx, jsonViewerSPDX);
+                        spdxData = data.spdx;
+                        if (spdxValidationStatus) spdxValidationStatus.style.display = 'none';
+                    }
+                    if (data.cyclonedx) displayJSON(data.cyclonedx, jsonViewerCDX);
+                    if (data.recursive) displayJSON(data.recursive, jsonViewerRecursive);
+
+                    // Wire downloads to the history endpoints so they survive a re-run.
+                    const arts = row.artifacts || {};
+                    const linkOrHide = (el, key) => {
+                        if (!el) return;
+                        if (arts[key]) { el.href = `/history/${encodeURIComponent(hash)}/${encodeURIComponent(key)}`; el.style.display = 'inline-flex'; }
+                        else { el.style.display = 'none'; }
+                    };
+                    linkOrHide(downloadComplete,  'bom');
+                    linkOrHide(downloadSPDX,      'spdx');
+                    linkOrHide(downloadCDX,       'cyclonedx');
+                    linkOrHide(downloadRecursive, 'recursive');
+                    linkOrHide(downloadLinked,    'linked');
+                    if (downloadButtons) downloadButtons.style.display = 'flex';
+
+                    const pane = document.getElementById('resultPane');
+                    if (pane) pane.classList.remove('is-empty');
+                    render();  // update is-active highlight
+                    showStatus('success', `Loaded <strong>${escapeHtml(row.subject || hash)}</strong> from history.`);
+                    switchTabByName('complete');
+                } catch (e) {
+                    showStatus('error', `History load failed: ${escapeHtml(e.message)}`);
+                }
+            }
+
+            // Client-side reimplementation of the Python _extract_conflicts so
+            // history rehydration doesn't need a separate server call. Kept
+            // narrow — only the fields the conflicts viewer reads.
+            function extractClientConflicts(metadata) {
+                const out = [];
+                const bomType = metadata && metadata.dataset_id ? 'data' : 'ai';
+                ['direct_fields', 'rag_fields'].forEach(section => {
+                    const fields = (metadata || {})[section] || {};
+                    if (!fields || typeof fields !== 'object') return;
+                    const sectionLabel = section.replace('_fields', '');
+                    Object.entries(fields).forEach(([field, triplet]) => {
+                        if (!triplet || typeof triplet !== 'object') return;
+                        const trace = triplet.trace || {};
+                        const fieldClass = sectionLabel === 'direct' ? 'direct' : 'inferred';
+                        const c = triplet.conflict;
+                        if (c && typeof c === 'object' && 'type' in c && 'value' in c && !('internal' in c)) {
+                            out.push({
+                                field, section: sectionLabel, field_class: fieldClass,
+                                kind: c.type || 'inter',
+                                chosen_value: triplet.value, chosen_source: triplet.source,
+                                conflict_value: c.value, conflict_source: c.source, conflict_type: c.type,
+                                grounding: null, confidence: 'n/a', narrative: null,
+                                claims: trace.claims || {}, sources: [], priority: [],
+                            });
+                        }
+                        Object.entries(trace.internal_conflicts || {}).forEach(([src, entry]) => {
+                            const e = (entry && typeof entry === 'object') ? entry : { narrative: String(entry) };
+                            out.push({
+                                field, section: sectionLabel, field_class: fieldClass,
+                                kind: 'rag-internal', chosen_value: triplet.value, chosen_source: triplet.source,
+                                conflict_value: null, conflict_source: src, conflict_type: 'rag-internal',
+                                grounding: e.grounding, confidence: gradeConfidence(e.grounding),
+                                narrative: e.narrative, claims: trace.claims || {}, sources: [src], priority: [],
+                            });
+                        });
+                        (trace.external_conflicts || []).forEach(entry => {
+                            if (!entry || typeof entry !== 'object') return;
+                            const sources = entry.sources || [];
+                            out.push({
+                                field, section: sectionLabel, field_class: fieldClass,
+                                kind: 'rag-external', chosen_value: triplet.value, chosen_source: triplet.source,
+                                conflict_value: null, conflict_source: sources.join(' vs ') || null, conflict_type: 'rag-external',
+                                grounding: entry.grounding, confidence: gradeConfidence(entry.grounding),
+                                narrative: entry.description, claims: trace.claims || {}, sources: Array.from(sources), priority: [],
+                            });
+                        });
+                    });
+                });
+                return out;
+            }
+            function gradeConfidence(g) {
+                if (g === null || g === undefined) return 'n/a';
+                if (g >= 0.7) return 'high';
+                if (g < 0.1)  return 'suppressed';
+                return 'low';
+            }
+
+            return { load, loadInto, upsert };
+        })();
+
+        // Refresh history on first page load.
+        window.addEventListener('DOMContentLoaded', () => { History.load(); });
 
         function showStatus(type, message) {
             statusDiv.className = `status ${type}`;
@@ -2366,6 +4014,401 @@
             element.textContent = parent.classList.contains('collapsed') ? '▶' : '▼';
         }
 
+        // ===== Flat name/value BOM renderer =====================================
+        // Renders any BOM-shaped object as a list of "key  value" rows. Nested
+        // objects/arrays become click-to-expand rows; leaves render plain (no
+        // JSON quoting). Used by every BOM tab's "Visual" view and the
+        // recursive side panel.
+
+        const URL_LIKE = /^https?:\/\/\S+$/i;
+
+        function renderFlatBOM(data, targetEl) {
+            targetEl.innerHTML = '';
+            if (data === null || data === undefined) {
+                targetEl.innerHTML = '<div class="json-placeholder">No data to display.</div>';
+                return;
+            }
+            if (typeof data !== 'object') {
+                const row = document.createElement('div');
+                row.className = 'flat-row';
+                row.innerHTML = `<div class="flat-key">value</div><div class="flat-val">${escapeHtml(String(data))}</div>`;
+                targetEl.appendChild(row);
+                return;
+            }
+            const entries = entriesOf(data);
+            if (entries.length === 0) {
+                targetEl.innerHTML = '<div class="json-placeholder">(empty)</div>';
+                return;
+            }
+            entries.forEach(([key, value]) => {
+                targetEl.appendChild(buildFlatRow(key, value));
+            });
+        }
+
+        function entriesOf(value) {
+            if (Array.isArray(value)) {
+                return value.map((v, i) => [String(i), v]);
+            }
+            return Object.entries(value);
+        }
+
+        function buildFlatRow(key, value) {
+            const row = document.createElement('div');
+            row.className = 'flat-row';
+            const keyEl = document.createElement('div');
+            keyEl.className = 'flat-key';
+            keyEl.textContent = key;
+            row.appendChild(keyEl);
+
+            if (value === null || value === undefined) {
+                const v = document.createElement('div');
+                v.className = 'flat-val is-null';
+                v.textContent = '—';
+                row.appendChild(v);
+                return row;
+            }
+            if (typeof value === 'boolean') {
+                const v = document.createElement('div');
+                v.className = 'flat-val is-bool';
+                v.textContent = String(value);
+                row.appendChild(v);
+                return row;
+            }
+            if (typeof value === 'number') {
+                const v = document.createElement('div');
+                v.className = 'flat-val is-num';
+                v.textContent = String(value);
+                row.appendChild(v);
+                return row;
+            }
+            if (typeof value === 'string') {
+                const v = document.createElement('div');
+                if (value === '') {
+                    v.className = 'flat-val is-empty';
+                    v.textContent = '(empty string)';
+                } else if (URL_LIKE.test(value.trim())) {
+                    v.className = 'flat-val is-url';
+                    const a = document.createElement('a');
+                    a.href = value.trim();
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer';
+                    a.textContent = value;
+                    v.appendChild(a);
+                } else {
+                    v.className = 'flat-val';
+                    v.textContent = value;
+                }
+                row.appendChild(v);
+                return row;
+            }
+
+            // object or array — expandable
+            const isArr = Array.isArray(value);
+            const childCount = isArr ? value.length : Object.keys(value).length;
+            const expand = document.createElement('div');
+            expand.className = 'flat-expand';
+            if (childCount === 0) {
+                expand.innerHTML = `<span class="flat-summary">${isArr ? '(empty list)' : '(no fields)'}</span>`;
+                row.appendChild(expand);
+                return row;
+            }
+            row.classList.add('is-expandable');
+            const label = isArr
+                ? `${childCount} item${childCount === 1 ? '' : 's'}`
+                : `${childCount} field${childCount === 1 ? '' : 's'}`;
+            expand.innerHTML = `<span class="flat-caret">▸</span><span class="flat-summary">${label}</span>`;
+            row.appendChild(expand);
+
+            const body = document.createElement('div');
+            body.className = 'flat-body';
+            row.appendChild(body);
+            let built = false;
+            row.addEventListener('click', (e) => {
+                // Only the closest expandable row should toggle, so nested
+                // expandable rows don't bubble up and toggle their ancestor.
+                if (e.target.closest('.flat-row') !== row) return;
+                if (!built) {
+                    entriesOf(value).forEach(([k, v]) => body.appendChild(buildFlatRow(k, v)));
+                    built = true;
+                }
+                row.classList.toggle('is-open');
+                e.stopPropagation();
+            });
+            return row;
+        }
+
+        // ===== Visual / Raw JSON view toggle ====================================
+        // Wires .view-toggle buttons inside .bom-shell-toolbar so each tab can
+        // flip between the flat renderer and the raw JSON viewer. Idempotent.
+        function wireViewToggles() {
+            document.querySelectorAll('.bom-shell').forEach(shell => {
+                if (shell.dataset.toggleWired === '1') return;
+                const buttons = shell.querySelectorAll(':scope > .bom-shell-toolbar .view-toggle button');
+                const panes   = shell.querySelectorAll(':scope > .bom-shell-body');
+                buttons.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const target = btn.dataset.view;
+                        buttons.forEach(b => b.classList.toggle('is-active', b === btn));
+                        panes.forEach(p => {
+                            p.style.display = (p.dataset.viewPane === target) ? '' : 'none';
+                        });
+                        // Cytoscape needs a resize hint when the recursive tab's
+                        // graph pane is shown after being hidden.
+                        if (target === 'visual' && recursiveCy && shell.dataset.bomShell === 'recursive') {
+                            setTimeout(() => { try { recursiveCy.resize(); recursiveCy.fit(undefined, 24); } catch (e) {} }, 30);
+                        }
+                    });
+                });
+                shell.dataset.toggleWired = '1';
+            });
+        }
+
+        // ===== Recursive graph (Cytoscape + dagre) ==============================
+
+        let recursiveCy = null;          // active Cytoscape instance
+        let recursiveNodeBoms = {};      // node id -> { title, meta, data }
+
+        function rootNodeId(bomType, parentName) {
+            return `${bomType || 'ai'}:${String(parentName || '').toLowerCase()}`;
+        }
+
+        function renderRecursiveGraph(recursiveBom, parentMetadata, parentBomType) {
+            const canvas = document.getElementById('graphCanvas');
+            const emptyEl = document.getElementById('graphEmpty');
+            recursiveNodeBoms = {};
+            closeSidePanel();
+
+            if (recursiveCy) {
+                try { recursiveCy.destroy(); } catch (e) { /* ignore */ }
+                recursiveCy = null;
+            }
+
+            if (!recursiveBom || !recursiveBom.enabled) {
+                emptyEl.style.display = '';
+                emptyEl.textContent = 'Recursive BOM beta was not enabled for this run.';
+                return;
+            }
+            const generated = Array.isArray(recursiveBom.generated) ? recursiveBom.generated : [];
+
+            const parentLabel =
+                (parentMetadata && (parentMetadata.repo_id || parentMetadata.model_id || parentMetadata.dataset_id || parentMetadata.hf_url)) ||
+                'parent-bom';
+            const rootId = rootNodeId(parentBomType, parentLabel);
+            const nodes = [{
+                data: { id: rootId, label: parentLabel, kind: parentBomType, depth: 0, isRoot: 'true' },
+            }];
+            recursiveNodeBoms[rootId] = {
+                title: parentLabel,
+                meta:  `${(parentBomType || 'ai').toUpperCase()} BOM • root`,
+                data:  parentMetadata || {},
+            };
+
+            const edges = [];
+            const seenNodes = new Set([rootId]);
+
+            generated.forEach((child, idx) => {
+                const childId = rootNodeId(child.bom_type, child.target);
+                if (!seenNodes.has(childId)) {
+                    nodes.push({
+                        data: {
+                            id: childId,
+                            label: child.target,
+                            kind: child.bom_type,
+                            depth: child.depth,
+                            isRoot: 'false',
+                        },
+                    });
+                    seenNodes.add(childId);
+                }
+                // Recursive walker only descends through AI BOMs, so the parent
+                // reference always resolves to an AI node — either the root or
+                // a previously-seen AI child with the same name.
+                const parentKey = rootNodeId('ai', child.parent);
+                const fromId = seenNodes.has(parentKey) ? parentKey : rootId;
+                edges.push({
+                    data: {
+                        id: `e${idx}`,
+                        source: fromId,
+                        target: childId,
+                        label:  child.relationship_type || 'dependsOn',
+                        rtype:  child.relationship_type || 'dependsOn',
+                    },
+                });
+                recursiveNodeBoms[childId] = {
+                    title: child.target,
+                    meta:  `${(child.bom_type || 'ai').toUpperCase()} BOM • depth ${child.depth} • ${child.relationship_type || ''}`.trim(),
+                    data:  child.metadata || child.spdx_data || child,
+                };
+            });
+
+            if (generated.length === 0) {
+                emptyEl.style.display = '';
+                emptyEl.textContent = 'Recursive walker ran but found no walkable dependencies in this BOM.';
+                return;
+            }
+            emptyEl.style.display = 'none';
+
+            recursiveCy = cytoscape({
+                container: canvas,
+                elements: { nodes, edges },
+                wheelSensitivity: 0.2,
+                style: [
+                    {
+                        selector: 'node',
+                        style: {
+                            'shape': 'round-rectangle',
+                            'background-color': '#ffffff',
+                            'border-color': '#d0d7de',
+                            'border-width': 1,
+                            'label': 'data(label)',
+                            'color': '#0d1117',
+                            'font-family': "'IBM Plex Sans', system-ui, sans-serif",
+                            'font-size': 12,
+                            'font-weight': 500,
+                            'text-valign': 'center',
+                            'text-halign': 'center',
+                            'text-wrap': 'wrap',
+                            'text-max-width': '150px',
+                            'padding': '10px',
+                            'width': 'label',
+                            'height': 'label',
+                            'min-width': '90px',
+                            'min-height': '30px',
+                        },
+                    },
+                    {
+                        selector: 'node[isRoot = "true"]',
+                        style: {
+                            'background-color': '#e6ecff',
+                            'border-color': '#3451b2',
+                            'border-width': 1.5,
+                            'font-weight': 600,
+                        },
+                    },
+                    {
+                        selector: 'node[kind = "data"]',
+                        style: {
+                            'background-color': '#fff1e5',
+                            'border-color': '#f0b079',
+                            'color': '#5a2900',
+                        },
+                    },
+                    {
+                        selector: 'node:selected',
+                        style: {
+                            'border-width': 2,
+                            'border-color': '#3451b2',
+                            'background-color': '#dde6ff',
+                        },
+                    },
+                    {
+                        selector: 'edge',
+                        style: {
+                            'curve-style': 'bezier',
+                            'target-arrow-shape': 'triangle',
+                            'line-color': '#3451b2',
+                            'target-arrow-color': '#3451b2',
+                            'width': 1.5,
+                            'label': 'data(label)',
+                            'font-family': "'IBM Plex Mono', monospace",
+                            'font-size': 10,
+                            'color': '#57606a',
+                            'text-background-color': '#ffffff',
+                            'text-background-opacity': 1,
+                            'text-background-padding': '2px',
+                            'text-rotation': 'autorotate',
+                        },
+                    },
+                    {
+                        selector: 'edge[rtype = "testedOn"]',
+                        style: { 'line-color': '#1a7f37', 'target-arrow-color': '#1a7f37' },
+                    },
+                    {
+                        selector: 'edge[rtype = "dependsOn"]',
+                        style: {
+                            'line-color': '#6e7781',
+                            'target-arrow-color': '#6e7781',
+                            'line-style': 'dashed',
+                        },
+                    },
+                ],
+                layout: {
+                    name: 'dagre',
+                    rankDir: 'TB',
+                    nodeSep: 40,
+                    rankSep: 70,
+                    edgeSep: 18,
+                    fit: true,
+                    padding: 24,
+                },
+            });
+
+            recursiveCy.on('tap', 'node', (evt) => {
+                const id = evt.target.id();
+                const info = recursiveNodeBoms[id];
+                if (!info) return;
+                openSidePanel(info);
+            });
+            recursiveCy.on('tap', (evt) => {
+                if (evt.target === recursiveCy) closeSidePanel();
+            });
+
+            // Re-fit once the recursive tab is actually visible (Cytoscape sizes
+            // to 0 when its container is display:none at construction time).
+            setTimeout(() => {
+                try { recursiveCy.resize(); recursiveCy.fit(undefined, 24); } catch (e) { /* ignore */ }
+            }, 80);
+        }
+
+        // ===== Side panel (recursive graph) =====================================
+
+        function openSidePanel(info) {
+            const panel = document.getElementById('sidePanel');
+            document.getElementById('sidePanelTitle').textContent = info.title || 'BOM';
+            document.getElementById('sidePanelMeta').textContent  = info.meta  || '';
+            renderFlatBOM(info.data, document.getElementById('sidePanelFlat'));
+            displayJSON(info.data, document.getElementById('sidePanelJson'));
+            document.querySelectorAll('#sidePanel .view-toggle button').forEach(b => {
+                b.classList.toggle('is-active', b.dataset.sideView === 'visual');
+            });
+            document.getElementById('sidePanelVisual').style.display = '';
+            document.getElementById('sidePanelRaw').style.display = 'none';
+            panel.classList.add('is-open');
+            panel.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeSidePanel() {
+            const panel = document.getElementById('sidePanel');
+            if (!panel) return;
+            panel.classList.remove('is-open');
+            panel.setAttribute('aria-hidden', 'true');
+        }
+
+        function wireSidePanel() {
+            const closeBtn = document.getElementById('sidePanelClose');
+            if (closeBtn && !closeBtn.dataset.wired) {
+                closeBtn.addEventListener('click', closeSidePanel);
+                closeBtn.dataset.wired = '1';
+            }
+            document.querySelectorAll('#sidePanel .view-toggle button').forEach(btn => {
+                if (btn.dataset.wired) return;
+                btn.addEventListener('click', () => {
+                    const target = btn.dataset.sideView;
+                    document.querySelectorAll('#sidePanel .view-toggle button').forEach(b => {
+                        b.classList.toggle('is-active', b === btn);
+                    });
+                    document.getElementById('sidePanelVisual').style.display = (target === 'visual') ? '' : 'none';
+                    document.getElementById('sidePanelRaw').style.display    = (target === 'raw')    ? '' : 'none';
+                });
+                btn.dataset.wired = '1';
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            wireViewToggles();
+            wireSidePanel();
+        });
+
         function resetForm() {
             form.reset();
             statusDiv.style.display = 'none';
@@ -2379,6 +4422,20 @@
             jsonViewerSPDX.innerHTML      = '';
             jsonViewerCDX.innerHTML       = '';
             jsonViewerRecursive.innerHTML = '';
+            flatViewerComplete.innerHTML  = '';
+            flatViewerSPDX.innerHTML      = '';
+            flatViewerCDX.innerHTML       = '';
+            if (recursiveCy) {
+                try { recursiveCy.destroy(); } catch (e) { /* ignore */ }
+                recursiveCy = null;
+            }
+            recursiveNodeBoms = {};
+            const graphEmpty = document.getElementById('graphEmpty');
+            if (graphEmpty) {
+                graphEmpty.style.display = '';
+                graphEmpty.textContent = 'Recursive BOM beta was not enabled for this run.';
+            }
+            closeSidePanel();
             document.getElementById('conflictsViewer').innerHTML = '';
             document.getElementById('logsViewer').innerHTML = '<span class="log-empty">Waiting for processing to start…</span>';
             spdxData = null;

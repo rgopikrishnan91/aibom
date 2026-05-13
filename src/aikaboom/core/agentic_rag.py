@@ -4,6 +4,7 @@ Modified to retrieve top 6 chunks globally and detect conflicts between sources
 """
 
 import os
+import json
 import time
 import concurrent.futures
 from typing import Any, TypedDict, List, Dict, Tuple, Optional
@@ -18,6 +19,22 @@ from .prompt import (
     prompt_direct_llm,
     format_chunks_for_answer,
 )
+
+# Structured pipeline events for the web UI. Flipped on by app.py at startup
+# so the CLI stays free of [[BOM_EVENT]] noise. Each emit is best-effort and
+# never raises into the pipeline.
+EMIT_PIPELINE_EVENTS = False
+BOM_EVENT_PREFIX = "[[BOM_EVENT]]"
+
+
+def _emit_event(payload: dict) -> None:
+    if not EMIT_PIPELINE_EVENTS:
+        return
+    try:
+        payload.setdefault("ts", time.time())
+        print(f"{BOM_EVENT_PREFIX}{json.dumps(payload, default=str)}", flush=True)
+    except Exception:
+        pass
 
 # Create LLM instance based on provider
 def create_llm(model: str, temperature: float = 0, llm_provider: str = "openai", ollama_base_url: str = None):
@@ -602,6 +619,23 @@ class AgenticRAG:
         backwards compat with ``processors.py:_parse_conflict_string``.
         """
         documents = state.get("documents", [])
+        _stage_field = state.get("question_type", "unknown")
+        _stage_t0 = time.time()
+        _emit_event({"event": "stage.start", "field": _stage_field, "stage": "reconcile"})
+
+        def _done(result_state, extra_data=None):
+            _emit_event({
+                "event": "stage.done",
+                "field": _stage_field,
+                "stage": "reconcile",
+                "duration_ms": int((time.time() - _stage_t0) * 1000),
+                "data": extra_data or {
+                    "internal_conflicts": list((result_state.get("internal_conflicts") or {}).keys()),
+                    "external_conflicts": [c.get("sources") for c in (result_state.get("external_conflicts") or [])],
+                },
+            })
+            return result_state
+
         empty_trace = {
             "source_claims": {},
             "internal_conflicts": {},
@@ -610,7 +644,7 @@ class AgenticRAG:
             "external_conflict": "No",
         }
         if not documents:
-            return {**state, **empty_trace}
+            return _done({**state, **empty_trace}, extra_data={"skipped": "no_documents"})
 
         question_type = state.get("question_type", "unknown")
         question_config = self.questions.get(question_type, FIXED_QUESTIONS.get(question_type, {}))
@@ -625,14 +659,14 @@ class AgenticRAG:
         # answer-generation pass downstream.
         if len(group_to_source) <= 1:
             source_claims = {src: None for src in group_to_source.values()}
-            return {
+            return _done({
                 **state,
                 "source_claims": source_claims,
                 "internal_conflicts": {},
                 "external_conflicts": [],
                 "internal_conflict": "No",
                 "external_conflict": "No",
-            }
+            }, extra_data={"skipped": "single_source", "sources": list(group_to_source.values())})
 
         prompt = prompt_detect_conflicts(parts["field_spec"], group_chunks)
         try:
@@ -649,14 +683,14 @@ class AgenticRAG:
                 else:
                     print(f"  ⚠️  Conflict detection skipped (prompt too large): {err_str[:120]}")
                 source_claims = {src: None for src in group_to_source.values()}
-                return {
+                return _done({
                     **state,
                     "source_claims": source_claims,
                     "internal_conflicts": {},
                     "external_conflicts": [],
                     "internal_conflict": "No",
                     "external_conflict": "No",
-                }
+                }, extra_data={"skipped": "llm_unavailable", "reason": err_str[:120]})
             raise
 
         source_claims, raw_internal_conflicts, raw_external_conflicts = _parse_detector_output(
@@ -731,14 +765,14 @@ class AgenticRAG:
         print(f"  ⚠️  External conflicts: "
               f"{[c['sources'] for c in external_conflicts] or 'No'}")
 
-        return {
+        return _done({
             **state,
             "source_claims": source_claims,
             "internal_conflicts": internal_conflicts,
             "external_conflicts": external_conflicts,
             "internal_conflict": internal_str,
             "external_conflict": external_str,
-        }
+        })
 
     def _score_grounding(self, statements, chunks):
         """Cosine-similarity grounding score for a set of statements
@@ -803,10 +837,20 @@ class AgenticRAG:
         field_name = question_type
         parts = _extraction_parts(question_config)
 
+        _stage_t0 = time.time()
+        _emit_event({"event": "stage.start", "field": question_type, "stage": "resolve"})
+
         if not documents:
             prompt = prompt_no_documents(field_name, parts["instruction"])
             response = _invoke_with_retry(self.llm.invoke, prompt)
             answer = self._extract_field(response.content, "ANSWER") or response.content.strip()
+            _emit_event({
+                "event": "stage.done",
+                "field": question_type,
+                "stage": "resolve",
+                "duration_ms": int((time.time() - _stage_t0) * 1000),
+                "data": {"answer_preview": (answer or "")[:180], "selected_sources": [], "no_documents": True},
+            })
             return {**state, "answer": answer, "selected_sources": []}
 
         # Consensus-based routing: drop self-contradicting sources, keep
@@ -860,6 +904,16 @@ class AgenticRAG:
                 raise
 
         print(f"  💡 Answer: {answer[:150]}...")
+        _emit_event({
+            "event": "stage.done",
+            "field": question_type,
+            "stage": "resolve",
+            "duration_ms": int((time.time() - _stage_t0) * 1000),
+            "data": {
+                "answer_preview": (answer or "")[:180],
+                "selected_sources": list(selected_sources or []),
+            },
+        })
         return {**state, "answer": answer, "selected_sources": selected_sources}
 
     def _normalize_markdown(self, content: str, source: str) -> str:
@@ -1236,6 +1290,10 @@ class AgenticRAG:
 
         print(f"\n  📊 Available sources: {available_sources}")
 
+        _stage_field = state.get("question_type", "unknown")
+        _stage_t0 = time.time()
+        _emit_event({"event": "stage.start", "field": _stage_field, "stage": "retrieve"})
+
         question_type, _, _ = self.get_question_priority(question)
         question_config = self.questions.get(question_type, FIXED_QUESTIONS.get(question_type, {}))
         dense_q = _dense_query(question_config)
@@ -1352,9 +1410,22 @@ class AgenticRAG:
         print(f"\n  📦 Chunks per source for internal conflict check:")
         for source, docs in chunks_by_source.items():
             print(f"    {source}: {len(docs)} chunks")
-        
+
+        _emit_event({
+            "event": "stage.done",
+            "field": question_type,
+            "stage": "retrieve",
+            "duration_ms": int((time.time() - _stage_t0) * 1000),
+            "data": {
+                "chunks_per_source": dict(source_counts),
+                "chunks_per_source_internal": {s: len(d) for s, d in chunks_by_source.items()},
+                "total_chunks": len(all_chunks_with_scores),
+                "sources_used": list(sources_used),
+            },
+        })
+
         return {
-            **state, 
+            **state,
             "documents": selected_documents,
             "sources_used": sources_used,
             "source_priority": available_sources,  # Not used for retrieval anymore
@@ -1477,11 +1548,40 @@ class AgenticRAG:
                 "internal_conflict": "No",
                 "external_conflict": "No",
             }
-            result = _invoke_with_retry(self.workflow.invoke, initial_state)
+            _emit_event({"event": "field.start", "field": question_type})
+            _field_t0 = time.time()
+            try:
+                result = _invoke_with_retry(self.workflow.invoke, initial_state)
+            except Exception as e:
+                _emit_event({
+                    "event": "field.error",
+                    "field": question_type,
+                    "duration_ms": int((time.time() - _field_t0) * 1000),
+                    "error": str(e)[:240],
+                })
+                raise
+            _emit_event({
+                "event": "field.done",
+                "field": question_type,
+                "duration_ms": int((time.time() - _field_t0) * 1000),
+                "data": {
+                    "answer_preview": (result.get("answer") or "")[:180],
+                    "sources_used": list(result.get("sources_used") or []),
+                },
+            })
             return question_type, question, result
 
         ordered_items = list(self.questions.items())
         qa_results_map = {}
+
+        _emit_event({
+            "event": "pipeline.start",
+            "item_id": item_id,
+            "item_type": item_type,
+            "fields": [qt for qt, _ in ordered_items],
+            "total": len(ordered_items),
+        })
+        _pipeline_t0 = time.time()
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_PARALLEL_QUESTIONS) as executor:
             future_to_qt = {
@@ -1516,6 +1616,12 @@ class AgenticRAG:
 
         # Reassemble in original question order
         results = [qa_results_map[qt] for qt, _ in ordered_items if qt in qa_results_map]
+        _emit_event({
+            "event": "pipeline.done",
+            "item_id": item_id,
+            "duration_ms": int((time.time() - _pipeline_t0) * 1000),
+            "completed_fields": [qt for qt in qa_results_map.keys()],
+        })
         return results
 
 
