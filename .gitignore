@@ -44,6 +44,7 @@ ENV/
 
 # Results and Output
 results/
+bom-history/
 *.log
 *.pot
 *.mo
