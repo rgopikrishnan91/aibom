@@ -4818,11 +4818,15 @@
         }
 
         // ===== Spec-derived field sets (LF SPDX AIBOM tables 8 & 10) ============
-        // AI profile mandatory: name (model_name), license (hasConcluded+hasDeclared
-        // via 'license' key), suppliedBy, packageVersion, primaryPurpose,
-        // releaseTime, downloadLocation, buildTime, spdxId.
-        // Dataset profile mandatory: same set but with originatedBy in place of
-        // suppliedBy, and datasetType added.
+        // The spec marks 10 fields mandatory for each profile. Two of them —
+        // `buildTime` and `spdxId` — are filled in by the SPDX exporter (build
+        // timestamp + synthetic URN), never by extraction, so they always
+        // appear on the exported AIPackage element in the SPDX tab. Including
+        // them in the Provenance tab's Required set would surface them as
+        // perpetually "missing", which is misleading: there's nothing for
+        // extraction to find. Required sets below intentionally exclude them
+        // so the Provenance view only lists fields the user can influence by
+        // improving the source / extraction.
         const REQUIRED_AI_FIELDS = new Set([
             'model_name',         // maps to spec `name` (AIPackage)
             'license',
@@ -4831,8 +4835,6 @@
             'primaryPurpose',
             'releaseTime',
             'downloadLocation',
-            'buildTime',
-            'spdxId',
         ]);
         const REQUIRED_DATA_FIELDS = new Set([
             'name',
@@ -4843,8 +4845,6 @@
             'primaryPurpose',
             'releaseTime',
             'downloadLocation',
-            'buildTime',
-            'spdxId',
         ]);
         // Identifier keys — anchor the BOM but aren't spec fields. Shown in
         // a single meta header line above the Required / Optional groups.

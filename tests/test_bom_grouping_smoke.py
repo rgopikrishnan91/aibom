@@ -220,7 +220,7 @@ def test_ai_bom_required_group_lists_missing_fields(page):
         AI_BOM_SAMPLE,
     )
     # Required group is open by default — its body should contain entries
-    # for every spec-mandatory field, including missing ones.
+    # for every spec-mandatory extraction field, including missing ones.
     page.locator(
         "#flatViewerComplete .bom-group:has(.bom-group-title:text('Required'))"
     ).first.wait_for(state="visible")
@@ -240,6 +240,22 @@ def test_ai_bom_required_group_lists_missing_fields(page):
     assert "downloadLocation" in missing_keys
 
 
+def test_ai_bom_required_excludes_export_only_fields(page):
+    """buildTime and spdxId are filled in by the SPDX exporter, never by
+    extraction — so they must NOT appear in the Provenance tab's Required
+    list (where they'd be perpetually flagged as missing)."""
+    page.evaluate(
+        "(d) => renderBOM(d, document.getElementById('flatViewerComplete'))",
+        AI_BOM_SAMPLE,
+    )
+    keys = page.eval_on_selector_all(
+        "#flatViewerComplete .bom-group:has(.bom-group-title:text('Required')) .flat-row .flat-key",
+        "els => els.map(e => e.textContent.trim())",
+    )
+    assert "buildTime" not in keys, "buildTime is export-only, should not be in Required"
+    assert "spdxId"   not in keys, "spdxId is export-only, should not be in Required"
+
+
 def test_ai_bom_required_meta_count_reflects_presence(page):
     page.evaluate(
         "(d) => renderBOM(d, document.getElementById('flatViewerComplete'))",
@@ -248,8 +264,10 @@ def test_ai_bom_required_meta_count_reflects_presence(page):
     meta = page.locator(
         "#flatViewerComplete .bom-group:has(.bom-group-title:text('Required')) .bom-group-meta"
     ).first.inner_text()
-    # Direct (3: license, suppliedBy, packageVersion) + RAG (1: model_name) = 4 of 9 present
-    assert "4 of 9 present" in meta
+    # Direct (3: license, suppliedBy, packageVersion) + RAG (1: model_name) = 4 of 7 present
+    # (buildTime / spdxId are tool-export-only and excluded from the
+    # Provenance Required set by design — see comment in REQUIRED_AI_FIELDS.)
+    assert "4 of 7 present" in meta
 
 
 def test_ai_bom_optional_group_contains_rag_fields(page):
