@@ -406,6 +406,150 @@ def test_view_bom_action_switches_to_complete_tab(page):
 
 
 # ---------------------------------------------------------------------------
+# Layer 2b — splash redesign, pipeline header, per-row legends, Stage 0
+# ---------------------------------------------------------------------------
+
+def test_splash_shows_brand_and_three_step_cards(page):
+    """The redesigned splash includes the AIkaBoOM logo + wordmark, exactly
+    three numbered step cards with SVG arrows between them, and the returns
+    + pipeline-hint footer."""
+    assert page.locator("#resultEmpty .splash-brand img").count() == 1
+    assert "AIka" in (page.locator("#resultEmpty .splash-wordmark").inner_text() or "")
+    assert page.locator("#resultEmpty .splash-step").count() == 3
+    # Hand-drawn SVG arrows live between the cards (two of them, for three cards)
+    assert page.locator("#resultEmpty .splash-arrow svg").count() == 2
+    # SVG arrows each have at least two <path> children (curve + arrowhead)
+    paths_in_first_arrow = page.locator("#resultEmpty .splash-arrow").nth(0).locator("svg path").count()
+    assert paths_in_first_arrow >= 2
+    assert page.locator("#resultEmpty .splash-returns").count() == 1
+    assert page.locator("#resultEmpty .splash-hint").count() == 1
+
+
+def test_splash_fits_in_typical_viewport(page):
+    """Splash must not require scrolling at a standard viewport. The page
+    has a sticky topbar + result-pane header above the splash so a strict
+    height check is the right gate."""
+    box = page.locator("#resultEmpty").bounding_box()
+    assert box is not None
+    # 500px leaves comfortable room under the topbar + Generated BOM header
+    # within a 768px-tall laptop viewport. Originally splashed at 380px+ padding.
+    assert box["height"] < 500, f"splash height {box['height']}px is too tall"
+
+
+def test_pipeline_header_brand_and_subject(page):
+    """Pipeline tab header carries the AIkaBoOM logo + wordmark on the
+    left and the subject (model/dataset id) on the right, populated from
+    the pipeline.start event."""
+    # Header always rendered, just empty until pipeline.start fires.
+    assert page.locator("#pipelineHeader .pipeline-header-brand img").count() == 1
+    wm = page.locator("#pipelineHeader .pipeline-header-brand .wm").inner_text() or ""
+    assert "AIka" in wm
+    # Subject is "—" before any run
+    assert (page.locator("#pipelineSubject").text_content() or "").strip() in ("—", "-")
+
+    _start_pipeline(page)
+    subject = (page.locator("#pipelineSubject").text_content() or "").strip()
+    assert subject == "test-org/test-model"
+
+
+def test_pipeline_per_row_legends(page):
+    """Every snake-row carries its own Retrieve / Reconcile / Resolve
+    legend (so users don't lose context on row 2 and row 3)."""
+    _start_pipeline(page)
+    legends = page.locator(".pipeline-row-legend")
+    assert legends.count() == 3, f"expected 3 row-legends, got {legends.count()}"
+    # 3 legends × 3 stages = 9 labels total
+    items = page.locator(".pipeline-row-legend > div")
+    assert items.count() == 9
+    # Each legend has all three labels in order
+    for i in range(3):
+        labels = [
+            page.locator(f".pipeline-row-legend").nth(i).locator("> div").nth(j).inner_text().strip()
+            for j in range(3)
+        ]
+        assert labels == ["Retrieve", "Reconcile", "Resolve"], f"row {i}: {labels}"
+
+
+def test_pipeline_snake_fields_reverse_on_odd_rows(page):
+    """Row 2 must visually wind right-to-left: with CSS row-reverse on the
+    fields-wrapper, the first DOM field in row 2's slice appears at the
+    largest x-coordinate, not the smallest."""
+    _start_pipeline(page)
+    # 7 fields, 3 rows → perRow=3:
+    #   row 0 (LTR):      [domain, license, energyConsumption]
+    #   row 1 (reversed): [hyperparameter, limitation, metric]
+    #   row 2 (LTR):      [autonomyType]
+    # With CSS row-reverse on row 1's fields-wrapper, the first DOM field
+    # (hyperparameter) ends up at the RIGHT edge, the last DOM field (metric)
+    # at the LEFT — so first.x > last.x.
+    row1 = page.locator(".pipeline-row").nth(1)
+    first_field = row1.locator(".pipeline-field").nth(0).bounding_box()
+    last_field = row1.locator(".pipeline-field").nth(-1).bounding_box()
+    assert first_field is not None and last_field is not None
+    assert first_field["x"] > last_field["x"], (
+        f"row 1 not reversed: first DOM field x={first_field['x']} "
+        f"should be > last DOM field x={last_field['x']}"
+    )
+
+
+def test_stage0_hidden_before_fallback(page):
+    """Stage 0 (Link Fallback) card stays hidden until a fallback.start
+    event arrives — Pipeline tab starts clean."""
+    assert page.locator("#pipelineStage0").get_attribute("hidden") is not None
+
+
+def test_stage0_renders_searching_then_done(page):
+    """fallback.start makes Stage 0 visible with sources in 'searching'
+    state. Each source.checked transitions one source. fallback.done
+    collapses the card into is-done state with a summary."""
+    page.evaluate(
+        "(e) => Pipeline.handleEvent(e)",
+        {"event": "fallback.start", "sources": ["huggingface", "arxiv", "github"]},
+    )
+    page.wait_for_timeout(80)
+    stage0 = page.locator("#pipelineStage0")
+    assert stage0.get_attribute("hidden") is None, "stage 0 not revealed by fallback.start"
+
+    for src in ["huggingface", "arxiv", "github"]:
+        state = stage0.locator(f'.stage0-src[data-src="{src}"]').get_attribute("data-state")
+        assert state == "searching", f"{src} should be searching, got {state}"
+
+    # Two found, one missing
+    page.evaluate("(e) => Pipeline.handleEvent(e)",
+                  {"event": "fallback.source.checked", "source": "huggingface", "found": True})
+    page.evaluate("(e) => Pipeline.handleEvent(e)",
+                  {"event": "fallback.source.checked", "source": "arxiv", "found": True})
+    page.evaluate("(e) => Pipeline.handleEvent(e)",
+                  {"event": "fallback.source.checked", "source": "github", "found": False})
+    page.wait_for_timeout(80)
+
+    assert stage0.locator('.stage0-src[data-src="huggingface"]').get_attribute("data-state") == "found"
+    assert stage0.locator('.stage0-src[data-src="arxiv"]').get_attribute("data-state") == "found"
+    assert stage0.locator('.stage0-src[data-src="github"]').get_attribute("data-state") == "missing"
+
+    page.evaluate("(e) => Pipeline.handleEvent(e)",
+                  {"event": "fallback.done", "found_count": 2, "total_count": 3})
+    page.wait_for_timeout(80)
+    assert "is-done" in (stage0.get_attribute("class") or "")
+    status = page.locator("#stage0Status").inner_text()
+    assert "2/3" in status, f"summary text missing: {status!r}"
+
+
+def test_stage0_skipped_when_all_links_provided(page):
+    """When the user supplies all 3 links up front, fallback.skipped fires
+    and the card shows a skipped message instead of searching dots."""
+    page.evaluate(
+        "(e) => Pipeline.handleEvent(e)",
+        {"event": "fallback.skipped", "reason": "all links provided"},
+    )
+    page.wait_for_timeout(60)
+    stage0 = page.locator("#pipelineStage0")
+    assert stage0.get_attribute("hidden") is None
+    assert "is-done" in (stage0.get_attribute("class") or "")
+    assert "skipped" in (page.locator("#stage0Status").inner_text() or "").lower()
+
+
+# ---------------------------------------------------------------------------
 # Layer 3 — History tab rehydration
 # ---------------------------------------------------------------------------
 
