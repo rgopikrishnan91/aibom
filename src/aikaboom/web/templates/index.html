@@ -1008,13 +1008,26 @@
             min-height: 0;
             position: relative;
         }
-        .graph-canvas {
+        /* .graph-wrap is the positioning context. Cytoscape mounts inside
+           .graph-canvas and clears its children on init, so the legend and
+           empty placeholder live as siblings, overlaid via absolute pos.
+           Height is bounded with clamp() — without it `flex: 1` inside the
+           tab pane lets the wrap stretch to whatever height the surrounding
+           layout has, which can push graph nodes far below the viewport. */
+        .graph-wrap {
             flex: 1;
-            min-height: 420px;
+            min-width: 0;     /* allow shrink below Cytoscape's intrinsic size */
+            height: clamp(420px, 60vh, 640px);
+            position: relative;
+            display: flex;
             background:
                 radial-gradient(circle at 1px 1px, var(--paper-soft) 1px, transparent 0)
                 0 0 / 22px 22px,
                 var(--paper);
+        }
+        .graph-canvas {
+            flex: 1;
+            min-width: 0;     /* same shrink-below-content reason as .graph-wrap */
             position: relative;
         }
         .graph-legend {
@@ -1043,15 +1056,18 @@
         .graph-legend i.is-tested  { border-top-color: #1a7f37; }
         .graph-legend i.is-depends { border-top-color: var(--paper-mute); border-top-style: dashed; }
         .graph-empty {
+            position: absolute;
+            inset: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 420px;
             padding: 40px;
             font-family: var(--sans);
             font-size: 14px;
             color: var(--paper-faint);
             text-align: center;
+            pointer-events: none;
+            z-index: 1;
         }
 
         .side-panel {
@@ -2337,7 +2353,8 @@
                     </div>
                     <div class="bom-shell-body" data-view-pane="visual" style="display:flex;flex-direction:column;">
                         <div class="recursive-body">
-                            <div id="graphCanvas" class="graph-canvas">
+                            <div class="graph-wrap">
+                                <div id="graphCanvas" class="graph-canvas"></div>
                                 <div class="graph-legend">
                                     <span><i></i> trainedOn</span>
                                     <span><i class="is-tested"></i> testedOn</span>
@@ -3890,6 +3907,11 @@
                 container: canvas,
                 elements: { nodes, edges },
                 wheelSensitivity: 0.2,
+                // Cap the auto-fit zoom so tiny graphs (1–2 nodes) don't blow
+                // up to fill the whole viewport. Users can still wheel-zoom
+                // past these bounds.
+                minZoom: 0.3,
+                maxZoom: 1.4,
                 style: [
                     {
                         selector: 'node',
@@ -4013,13 +4035,26 @@
             document.getElementById('sidePanelRaw').style.display = 'none';
             panel.classList.add('is-open');
             panel.setAttribute('aria-hidden', 'false');
+            // The panel slides in over .18s and steals 420px from the canvas —
+            // re-fit the graph after the transition so nodes don't end up
+            // clipped behind the panel.
+            refitGraphAfterTransition();
         }
 
         function closeSidePanel() {
             const panel = document.getElementById('sidePanel');
             if (!panel) return;
+            const wasOpen = panel.classList.contains('is-open');
             panel.classList.remove('is-open');
             panel.setAttribute('aria-hidden', 'true');
+            if (wasOpen) refitGraphAfterTransition();
+        }
+
+        function refitGraphAfterTransition() {
+            if (!recursiveCy) return;
+            setTimeout(() => {
+                try { recursiveCy.resize(); recursiveCy.fit(undefined, 24); } catch (e) { /* ignore */ }
+            }, 220);
         }
 
         function wireSidePanel() {
