@@ -194,6 +194,18 @@ def _history_record(bom_type: str, metadata: dict, artifacts: dict) -> dict:
     return row
 
 
+def _conflict_summary(metadata: dict) -> dict:
+    """Return the canonical conflict summary, recomputed live.
+
+    BOMs cached on disk before the Phase-12 ``summarise_conflicts`` fix
+    carry inflated counts in ``metadata['conflict_summary']`` (counted
+    every triplet envelope, not just real verdicts). Recomputing on every
+    response makes sure the headline matches the actual conflict list.
+    """
+    from aikaboom.core.conflict_routing import summarise_conflicts
+    return summarise_conflicts(metadata)
+
+
 def _extract_conflicts(metadata: dict) -> list:
     """Walk the BOM metadata and return a list of human-readable conflict dicts.
 
@@ -231,6 +243,16 @@ def _extract_conflicts(metadata: dict) -> list:
             priority = _priority_for(field, section_label)
             field_class = 'direct' if section_label == 'direct' else 'inferred'
 
+            # Every source that contributed a claim for this field — the
+            # universe of evidence the auditor saw. ``trace.claims`` is
+            # populated for every speaking source (silent sources are
+            # omitted upstream), so its keys are the "sources considered"
+            # display list. ``trace.selected_sources`` is the post-consensus
+            # winners and shipped separately so the UI can mark which of
+            # those considered sources survived the routing step.
+            sources_considered = list((trace.get('claims') or {}).keys())
+            selected_sources = trace.get('selected_sources') or sources_considered
+
             # 1. Direct-field conflict (deterministic). Only direct-field
             # triplets carry a ``conflict`` shaped as ``{value, source,
             # type}``. RAG triplets carry a ``conflict`` envelope shaped
@@ -261,7 +283,9 @@ def _extract_conflicts(metadata: dict) -> list:
                     'confidence': 'n/a',
                     'narrative': None,
                     'claims': trace.get('claims') or {},
-                    'sources': [],
+                    'sources': [c.get('source')] if c.get('source') else [],
+                    'sources_considered': sources_considered,
+                    'selected_sources': selected_sources,
                 })
 
             # 2. RAG auditor — internal (intra-source) LLM-detected.
@@ -285,6 +309,8 @@ def _extract_conflicts(metadata: dict) -> list:
                     'narrative': entry.get('narrative'),
                     'claims': trace.get('claims') or {},
                     'sources': [src],
+                    'sources_considered': sources_considered,
+                    'selected_sources': selected_sources,
                 })
 
             # 3. RAG auditor — external (cross-source) LLM-detected.
@@ -309,6 +335,8 @@ def _extract_conflicts(metadata: dict) -> list:
                     'narrative': entry.get('description'),
                     'claims': trace.get('claims') or {},
                     'sources': list(sources),
+                    'sources_considered': sources_considered,
+                    'selected_sources': selected_sources,
                 })
     return conflicts
 
@@ -718,9 +746,7 @@ def process():
                 },
                 'link_fallback': link_fallback_info,
                 'conflicts': _extract_conflicts(metadata),
-                'conflict_summary': metadata.get('conflict_summary') or {
-                    'total': 0, 'high_confidence': 0, 'low_confidence': 0,
-                },
+                'conflict_summary': _conflict_summary(metadata),
             }
 
         else:
@@ -844,9 +870,7 @@ def process():
                 },
                 'link_fallback': link_fallback_info,
                 'conflicts': _extract_conflicts(metadata),
-                'conflict_summary': metadata.get('conflict_summary') or {
-                    'total': 0, 'high_confidence': 0, 'low_confidence': 0,
-                },
+                'conflict_summary': _conflict_summary(metadata),
             }
 
         # Always generate SPDX 3.0.1 output — it's the headline value prop.
