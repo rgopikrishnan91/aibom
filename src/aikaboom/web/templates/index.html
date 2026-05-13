@@ -1130,6 +1130,14 @@
         .flat-row.is-missing .flat-val { color: var(--conflict-low); font-style: italic; }
         .flat-row.is-missing .flat-key { color: var(--conflict-low); }
 
+        /* "(from repo_id)" trailing note on the synthetic `name` row */
+        .flat-source-note {
+            color: var(--paper-mute);
+            font-size: 11.5px;
+            font-family: var(--mono);
+            margin-left: 4px;
+        }
+
         /* ---- BOM grouping (Required / Optional / Diagnostics, SPDX types,
            CycloneDX component types) ------------------------------------ */
 
@@ -5345,24 +5353,29 @@
         }
 
         // ===== Spec-derived field sets (LF SPDX AIBOM tables 8 & 10) ============
-        // AI profile mandatory: name (model_name), license (hasConcluded+hasDeclared
-        // via 'license' key), suppliedBy, packageVersion, primaryPurpose,
-        // releaseTime, downloadLocation, buildTime, spdxId.
-        // Dataset profile mandatory: same set but with originatedBy in place of
-        // suppliedBy, and datasetType added.
+        // The spec marks 10 fields mandatory for each profile. Two of them —
+        // `buildTime` and `spdxId` — are filled in by the SPDX exporter (build
+        // timestamp + synthetic URN), never by extraction, so they always
+        // appear on the exported AIPackage element in the SPDX tab. Including
+        // them in the Provenance tab's Required set would surface them as
+        // perpetually "missing", which is misleading: there's nothing for
+        // extraction to find. Required sets below intentionally exclude them
+        // so the Provenance view only lists fields the user can influence by
+        // improving the source / extraction.
+        // Note: spec field `name` is handled specially via resolveSpecName()
+        // below — the validator (spdx_validator.py:715) uses a fallback chain
+        // (rag_fields.model_name → repo_id → placeholder) so the spec name
+        // is always populated. The UI mirrors that chain so we don't flag a
+        // BOM as missing `name` when it has a perfectly good identifier.
         const REQUIRED_AI_FIELDS = new Set([
-            'model_name',         // maps to spec `name` (AIPackage)
             'license',
             'suppliedBy',
             'packageVersion',
             'primaryPurpose',
             'releaseTime',
             'downloadLocation',
-            'buildTime',
-            'spdxId',
         ]);
         const REQUIRED_DATA_FIELDS = new Set([
-            'name',
             'license',
             'originatedBy',
             'datasetType',
@@ -5370,8 +5383,6 @@
             'primaryPurpose',
             'releaseTime',
             'downloadLocation',
-            'buildTime',
-            'spdxId',
         ]);
         // Identifier keys — anchor the BOM but aren't spec fields. Shown in
         // a single meta header line above the Required / Optional groups.
@@ -5416,6 +5427,52 @@
             return 'ai';
         }
 
+        // Mirror spdx_validator.py:715's fallback chain for spec field `name`.
+        // Returns { value, source } describing which slot resolved, or null
+        // when nothing in the BOM provides a usable name.
+        function resolveSpecName(data, bomType) {
+            const tryV = v => {
+                if (v === undefined || v === null || v === '') return null;
+                if (typeof v === 'object' && 'value' in v) return tryV(v.value);
+                return v;
+            };
+            if (bomType === 'data') {
+                let v;
+                if ((v = tryV((data.direct_fields || {}).name)))       return { value: v, source: 'extraction' };
+                if ((v = tryV(data.dataset_id)))                       return { value: v, source: 'dataset_id' };
+                if ((v = tryV(data.hf_url)))                           return { value: v, source: 'hf_url'    };
+                return null;
+            }
+            let v;
+            if ((v = tryV((data.rag_fields || {}).model_name)))        return { value: v, source: 'rag · model_name' };
+            if ((v = tryV(data.repo_id)))                              return { value: v, source: 'repo_id'  };
+            if ((v = tryV(data.model_id)))                             return { value: v, source: 'model_id' };
+            return null;
+        }
+
+        function buildResolvedNameRow(data, bomType) {
+            const resolved = resolveSpecName(data, bomType);
+            const row = document.createElement('div');
+            if (!resolved) {
+                row.className = 'flat-row is-missing';
+                row.innerHTML =
+                    `<div class="flat-key">name</div>` +
+                    `<div class="flat-val is-null">— missing</div>`;
+                return { row, satisfied: false };
+            }
+            // 'extraction' / 'rag · model_name' are the primary sources —
+            // those render plain. Anything else is a fallback, so we tag
+            // the value with a small "(from <source>)" annotation.
+            const isPrimary = resolved.source === 'extraction' || resolved.source === 'rag · model_name';
+            row.className = 'flat-row';
+            row.innerHTML =
+                `<div class="flat-key">name</div>` +
+                `<div class="flat-val">${escapeHtml(String(resolved.value))}` +
+                (isPrimary ? '' : ` <span class="flat-source-note">(from ${escapeHtml(resolved.source)})</span>`) +
+                `</div>`;
+            return { row, satisfied: true };
+        }
+
         // ===== Required / Optional / Diagnostics grouping =======================
 
         function renderProvenanceBOM(data, target) {
@@ -5453,6 +5510,9 @@
 
             // 3. Bucket into Required / Optional. Required-but-missing rows
             //    surface as italic warnings so users see what's not present.
+            //    Spec `name` is handled separately via the fallback chain —
+            //    it prepends to the Required group as a pre-built row.
+            const nameRowInfo = buildResolvedNameRow(data, bomType);
             const reqPresent = [];
             const reqMissing = [];
             required.forEach(reqKey => {
@@ -5460,13 +5520,19 @@
                 if (hit) reqPresent.push(hit);
                 else     reqMissing.push([reqKey, null]);
             });
-            const optional = collected.filter(([k]) => !required.has(k));
+            // `model_name` (rag) is consumed by resolveSpecName above, so it
+            // shouldn't also leak into the Optional bucket.
+            const optional = collected.filter(([k]) =>
+                !required.has(k) && k !== 'model_name'
+            );
             const diagnostics = Object.entries(data).filter(([k]) => DIAG_KEYS.has(k));
 
+            const reqTotal     = required.size + 1;   // +1 for the synthetic `name`
+            const reqSatisfied = reqPresent.length + (nameRowInfo.satisfied ? 1 : 0);
             target.appendChild(buildGroupSection(
                 `Required`,
-                `${reqPresent.length} of ${required.size} present`,
-                [...reqPresent, ...reqMissing],
+                `${reqSatisfied} of ${reqTotal} present`,
+                [nameRowInfo.row, ...reqPresent, ...reqMissing],
                 true,    // open by default
             ));
             target.appendChild(buildGroupSection(
@@ -5500,7 +5566,14 @@
 
             const body = document.createElement('div');
             body.className = 'bom-group-body';
-            fields.forEach(([k, v]) => {
+            fields.forEach(item => {
+                // Items can be either [key, value] tuples or pre-built DOM
+                // elements (the synthetic `name` row uses the latter).
+                if (item instanceof HTMLElement) {
+                    body.appendChild(item);
+                    return;
+                }
+                const [k, v] = item;
                 if (v === null) {
                     const row = document.createElement('div');
                     row.className = 'flat-row is-missing';
