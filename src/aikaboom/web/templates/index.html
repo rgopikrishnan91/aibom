@@ -1924,6 +1924,116 @@
             color: var(--paper-edge);
             margin-bottom: 10px;
         }
+
+        /* ============================================== HISTORY TAB ====== */
+        .history-shell {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+            min-height: 0;
+        }
+        .history-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 2px;
+        }
+        .history-title {
+            font-family: var(--mono);
+            font-size: 11.5px;
+            color: var(--paper-mute);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .history-title span { color: var(--ink); font-weight: 600; }
+        .history-table-wrap {
+            border: 1px solid var(--paper-edge);
+            border-radius: 6px;
+            background: var(--paper);
+            overflow: auto;
+            flex: 1;
+        }
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .history-table thead th {
+            position: sticky;
+            top: 0;
+            background: var(--paper-2);
+            text-align: left;
+            font-family: var(--mono);
+            font-size: 10.5px;
+            font-weight: 600;
+            color: var(--paper-mute);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--paper-edge);
+            white-space: nowrap;
+        }
+        .history-table tbody td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--paper-soft);
+            vertical-align: middle;
+        }
+        .history-table tbody tr {
+            cursor: pointer;
+            transition: background .12s;
+        }
+        .history-table tbody tr:hover { background: var(--paper-soft); }
+        .history-table tbody tr.is-active { background: var(--primary-soft); }
+        .history-table tbody tr.history-empty { cursor: default; }
+        .history-table tbody tr.history-empty:hover { background: var(--paper); }
+        .history-table tbody tr.history-empty td {
+            text-align: center;
+            color: var(--paper-mute);
+            padding: 40px 12px;
+            font-family: var(--mono);
+            font-size: 12px;
+        }
+        .history-table .col-when { font-family: var(--mono); font-size: 11.5px; color: var(--paper-mute); white-space: nowrap; }
+        .history-table .col-subj { font-weight: 500; color: var(--ink); word-break: break-word; max-width: 320px; }
+        .history-table .col-type { font-family: var(--mono); font-size: 11.5px; }
+        .history-table .col-type .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            border-radius: 2px;
+            border: 1px solid;
+        }
+        .history-table .col-type .badge.ai   { color: var(--primary); border-color: var(--primary-edge); background: var(--primary-soft); }
+        .history-table .col-type .badge.data { color: var(--beta); border-color: var(--beta-edge); background: var(--beta-soft); }
+        .history-table .col-hash {
+            font-family: var(--mono);
+            font-size: 11.5px;
+            color: var(--paper-faint);
+        }
+        .history-table .col-actions { white-space: nowrap; }
+        .history-table .col-actions a {
+            display: inline-block;
+            margin-right: 6px;
+            padding: 3px 7px;
+            font-family: var(--mono);
+            font-size: 10.5px;
+            font-weight: 500;
+            color: var(--paper-mute);
+            border: 1px solid var(--paper-edge);
+            border-radius: 3px;
+            text-decoration: none;
+            background: var(--paper);
+            transition: color .12s, border-color .12s, background .12s;
+        }
+        .history-table .col-actions a:hover {
+            color: var(--ink);
+            border-color: var(--paper-mute);
+            background: var(--paper-2);
+        }
     </style>
 </head>
 <body>
@@ -2213,6 +2323,7 @@
                 <button class="tab" onclick="switchTab(event, 'cyclonedx')" title="CycloneDX 1.6 Beta — ML-BOM export">CycloneDX 1.6 <span class="beta-tag">Beta</span></button>
                 <button class="tab" onclick="switchTab(event, 'recursive')" title="Recursive Beta — child BOM seed exports">Recursive <span class="beta-tag">Beta</span></button>
                 <button class="tab" onclick="switchTab(event, 'logs')" title="Live server processing log">Logs</button>
+                <button class="tab" onclick="switchTab(event, 'history')" title="Previously generated BOMs — click a row to reload it">History</button>
             </div>
 
             <div class="download-strip" id="downloadButtons">
@@ -2376,6 +2487,35 @@
             <div id="logsTab" class="tab-content">
                 <div id="logsViewer" class="logs-viewer">
                     <span class="log-empty">Waiting for processing to start…</span>
+                </div>
+            </div>
+
+            <div id="historyTab" class="tab-content">
+                <div class="history-shell">
+                    <div class="history-head">
+                        <div class="history-title">
+                            <span id="historyCount">—</span> previously generated BOMs
+                        </div>
+                        <button type="button" class="btn-mini" onclick="History.load()" title="Refresh from bom-history/index.json">Refresh</button>
+                    </div>
+                    <div class="history-table-wrap">
+                        <table class="history-table" id="historyTable">
+                            <thead>
+                                <tr>
+                                    <th class="col-when">When</th>
+                                    <th class="col-subj">Subject</th>
+                                    <th class="col-type">Type</th>
+                                    <th class="col-hash">Hash</th>
+                                    <th class="col-actions">Downloads</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyBody">
+                                <tr class="history-empty">
+                                    <td colspan="5">No runs yet — generate a BOM and it will appear here.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </section>
@@ -2793,6 +2933,7 @@
                     downloadButtons.style.display = 'flex';
                     // Reveal tabs + content; remove the first-run splash.
                     document.getElementById('resultPane').classList.remove('is-empty');
+                    if (result.history) History.upsert(result.history);
                 } else {
                     showStatus('error', `Error: ${escapeHtml(result.message || 'unknown')}`);
                 }
@@ -3561,6 +3702,227 @@
 
             return { reset, handleEvent, closeExpand };
         })();
+
+        // ===== History tab controller =========================================
+        // Lists previously generated BOMs from /history. Clicking a row hydrates
+        // the BOM/SPDX/CycloneDX/Conflicts viewers from the saved artifact files
+        // and switches to the BOM tab — same UX as a fresh run finishing.
+        const History = (function () {
+            let rows = [];
+            let activeHash = null;
+
+            async function load() {
+                try {
+                    const resp = await fetch('/history');
+                    const data = await resp.json();
+                    rows = Array.isArray(data.rows) ? data.rows : [];
+                    render();
+                } catch (e) {
+                    console.warn('history load failed', e);
+                }
+            }
+
+            function upsert(row) {
+                if (!row || !row.hash) return;
+                rows = rows.filter(r => r.hash !== row.hash);
+                rows.unshift(row);
+                render();
+            }
+
+            function render() {
+                const body = document.getElementById('historyBody');
+                const count = document.getElementById('historyCount');
+                if (!body) return;
+                count.textContent = String(rows.length);
+                if (rows.length === 0) {
+                    body.innerHTML = '<tr class="history-empty"><td colspan="5">No runs yet — generate a BOM and it will appear here.</td></tr>';
+                    return;
+                }
+                body.innerHTML = '';
+                rows.forEach(r => {
+                    const tr = document.createElement('tr');
+                    if (r.hash === activeHash) tr.classList.add('is-active');
+                    tr.addEventListener('click', (ev) => {
+                        if (ev.target.tagName === 'A') return;  // download click — let it bubble
+                        loadInto(r.hash);
+                    });
+
+                    const when = document.createElement('td');
+                    when.className = 'col-when';
+                    when.textContent = formatWhen(r.created_at);
+                    tr.appendChild(when);
+
+                    const subj = document.createElement('td');
+                    subj.className = 'col-subj';
+                    subj.textContent = r.subject || '(unknown)';
+                    subj.title = r.subject || '';
+                    tr.appendChild(subj);
+
+                    const type = document.createElement('td');
+                    type.className = 'col-type';
+                    const badge = document.createElement('span');
+                    badge.className = 'badge ' + (r.bom_type === 'data' ? 'data' : 'ai');
+                    badge.textContent = r.bom_type === 'data' ? 'Data' : 'AI';
+                    type.appendChild(badge);
+                    tr.appendChild(type);
+
+                    const hash = document.createElement('td');
+                    hash.className = 'col-hash';
+                    hash.textContent = r.hash || '';
+                    tr.appendChild(hash);
+
+                    const actions = document.createElement('td');
+                    actions.className = 'col-actions';
+                    const arts = r.artifacts || {};
+                    [
+                        ['bom', 'BOM'],
+                        ['spdx', 'SPDX'],
+                        ['cyclonedx', 'CDX'],
+                        ['recursive', 'Recursive'],
+                        ['linked', 'Linked'],
+                    ].forEach(([key, label]) => {
+                        if (!arts[key]) return;
+                        const a = document.createElement('a');
+                        a.href = `/history/${encodeURIComponent(r.hash)}/${encodeURIComponent(key)}`;
+                        a.textContent = label;
+                        a.title = `Download ${label}`;
+                        a.addEventListener('click', e => e.stopPropagation());
+                        actions.appendChild(a);
+                    });
+                    tr.appendChild(actions);
+
+                    body.appendChild(tr);
+                });
+            }
+
+            function formatWhen(iso) {
+                if (!iso) return '—';
+                const d = new Date(iso);
+                if (isNaN(d.getTime())) return iso;
+                const pad = n => String(n).padStart(2, '0');
+                return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            }
+
+            async function loadInto(hash) {
+                if (!hash) return;
+                activeHash = hash;
+                try {
+                    const resp = await fetch(`/history/${encodeURIComponent(hash)}`);
+                    if (!resp.ok) {
+                        showStatus('error', `Couldn't load that run (HTTP ${resp.status}).`);
+                        return;
+                    }
+                    const payload = await resp.json();
+                    const data = payload.data || {};
+                    const row = payload.row || {};
+
+                    if (data.bom) {
+                        displayJSON(data.bom, jsonViewerComplete);
+                        // Refresh conflict viewer too — uses the BOM's embedded conflicts.
+                        try {
+                            // _extract_conflicts equivalent lives server-side; for history
+                            // rehydration we walk the BOM client-side using the same shape
+                            // the live render uses.
+                            const conflicts = extractClientConflicts(data.bom);
+                            renderConflicts(conflicts, data.bom.conflict_summary || {}, data.bom);
+                        } catch (e) {
+                            console.warn('conflict rehydration failed', e);
+                        }
+                    }
+                    if (data.spdx) {
+                        displayJSON(data.spdx, jsonViewerSPDX);
+                        spdxData = data.spdx;
+                        if (spdxValidationStatus) spdxValidationStatus.style.display = 'none';
+                    }
+                    if (data.cyclonedx) displayJSON(data.cyclonedx, jsonViewerCDX);
+                    if (data.recursive) displayJSON(data.recursive, jsonViewerRecursive);
+
+                    // Wire downloads to the history endpoints so they survive a re-run.
+                    const arts = row.artifacts || {};
+                    const linkOrHide = (el, key) => {
+                        if (!el) return;
+                        if (arts[key]) { el.href = `/history/${encodeURIComponent(hash)}/${encodeURIComponent(key)}`; el.style.display = 'inline-flex'; }
+                        else { el.style.display = 'none'; }
+                    };
+                    linkOrHide(downloadComplete,  'bom');
+                    linkOrHide(downloadSPDX,      'spdx');
+                    linkOrHide(downloadCDX,       'cyclonedx');
+                    linkOrHide(downloadRecursive, 'recursive');
+                    linkOrHide(downloadLinked,    'linked');
+                    if (downloadButtons) downloadButtons.style.display = 'flex';
+
+                    const pane = document.getElementById('resultPane');
+                    if (pane) pane.classList.remove('is-empty');
+                    render();  // update is-active highlight
+                    showStatus('success', `Loaded <strong>${escapeHtml(row.subject || hash)}</strong> from history.`);
+                    switchTabByName('complete');
+                } catch (e) {
+                    showStatus('error', `History load failed: ${escapeHtml(e.message)}`);
+                }
+            }
+
+            // Client-side reimplementation of the Python _extract_conflicts so
+            // history rehydration doesn't need a separate server call. Kept
+            // narrow — only the fields the conflicts viewer reads.
+            function extractClientConflicts(metadata) {
+                const out = [];
+                const bomType = metadata && metadata.dataset_id ? 'data' : 'ai';
+                ['direct_fields', 'rag_fields'].forEach(section => {
+                    const fields = (metadata || {})[section] || {};
+                    if (!fields || typeof fields !== 'object') return;
+                    const sectionLabel = section.replace('_fields', '');
+                    Object.entries(fields).forEach(([field, triplet]) => {
+                        if (!triplet || typeof triplet !== 'object') return;
+                        const trace = triplet.trace || {};
+                        const fieldClass = sectionLabel === 'direct' ? 'direct' : 'inferred';
+                        const c = triplet.conflict;
+                        if (c && typeof c === 'object' && 'type' in c && 'value' in c && !('internal' in c)) {
+                            out.push({
+                                field, section: sectionLabel, field_class: fieldClass,
+                                kind: c.type || 'inter',
+                                chosen_value: triplet.value, chosen_source: triplet.source,
+                                conflict_value: c.value, conflict_source: c.source, conflict_type: c.type,
+                                grounding: null, confidence: 'n/a', narrative: null,
+                                claims: trace.claims || {}, sources: [], priority: [],
+                            });
+                        }
+                        Object.entries(trace.internal_conflicts || {}).forEach(([src, entry]) => {
+                            const e = (entry && typeof entry === 'object') ? entry : { narrative: String(entry) };
+                            out.push({
+                                field, section: sectionLabel, field_class: fieldClass,
+                                kind: 'rag-internal', chosen_value: triplet.value, chosen_source: triplet.source,
+                                conflict_value: null, conflict_source: src, conflict_type: 'rag-internal',
+                                grounding: e.grounding, confidence: gradeConfidence(e.grounding),
+                                narrative: e.narrative, claims: trace.claims || {}, sources: [src], priority: [],
+                            });
+                        });
+                        (trace.external_conflicts || []).forEach(entry => {
+                            if (!entry || typeof entry !== 'object') return;
+                            const sources = entry.sources || [];
+                            out.push({
+                                field, section: sectionLabel, field_class: fieldClass,
+                                kind: 'rag-external', chosen_value: triplet.value, chosen_source: triplet.source,
+                                conflict_value: null, conflict_source: sources.join(' vs ') || null, conflict_type: 'rag-external',
+                                grounding: entry.grounding, confidence: gradeConfidence(entry.grounding),
+                                narrative: entry.description, claims: trace.claims || {}, sources: Array.from(sources), priority: [],
+                            });
+                        });
+                    });
+                });
+                return out;
+            }
+            function gradeConfidence(g) {
+                if (g === null || g === undefined) return 'n/a';
+                if (g >= 0.7) return 'high';
+                if (g < 0.1)  return 'suppressed';
+                return 'low';
+            }
+
+            return { load, loadInto, upsert };
+        })();
+
+        // Refresh history on first page load.
+        window.addEventListener('DOMContentLoaded', () => { History.load(); });
 
         function showStatus(type, message) {
             statusDiv.className = `status ${type}`;

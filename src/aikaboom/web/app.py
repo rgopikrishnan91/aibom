@@ -54,11 +54,14 @@ app = Flask(__name__)
 _PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 app.config['UPLOAD_FOLDER'] = os.path.join(_PROJECT_ROOT, 'results')
 app.config['REPO_RESULTS_FOLDER'] = os.path.join(_PROJECT_ROOT, 'data', 'results')
+app.config['HISTORY_FOLDER'] = os.path.join(_PROJECT_ROOT, 'bom-history')
+app.config['HISTORY_INDEX'] = os.path.join(app.config['HISTORY_FOLDER'], 'index.json')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
 
 # Ensure results directories exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['REPO_RESULTS_FOLDER'], exist_ok=True)
+os.makedirs(app.config['HISTORY_FOLDER'], exist_ok=True)
 
 # Initialize processors cache
 processors_cache = {}
@@ -103,6 +106,92 @@ class _PrintCapture(io.TextIOBase):
 
 import sys
 sys.stdout = _PrintCapture(sys.stdout)
+
+# Turn on structured pipeline-event emission (the [[BOM_EVENT]] lines the
+# frontend parses out of the log stream to drive the Pipeline tab). Off by
+# default so CLI users don't see the noise.
+from aikaboom.core import agentic_rag as _agentic_rag  # noqa: E402
+_agentic_rag.EMIT_PIPELINE_EVENTS = True
+
+
+# ---------- BOM history ledger ----------
+# Every successful /process run drops its artifacts under bom-history/{hash}
+# and appends a row to bom-history/index.json so the History tab can show
+# past runs and re-load any of them back into the viewer tabs without
+# re-generating.
+
+import hashlib  # noqa: E402
+from datetime import datetime, timezone  # noqa: E402
+
+_history_lock = threading.Lock()
+
+
+def _bom_hash(metadata: dict) -> str:
+    """Stable short hash for a BOM. SHA-256 of canonical JSON, first 12 chars."""
+    payload = json.dumps(metadata or {}, sort_keys=True, ensure_ascii=False).encode('utf-8')
+    return hashlib.sha256(payload).hexdigest()[:12]
+
+
+def _history_load() -> list:
+    path = app.config['HISTORY_INDEX']
+    if not os.path.exists(path):
+        return []
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return data if isinstance(data, list) else []
+    except (OSError, ValueError):
+        return []
+
+
+def _history_save(rows: list) -> None:
+    path = app.config['HISTORY_INDEX']
+    tmp = path + '.tmp'
+    with open(tmp, 'w', encoding='utf-8') as f:
+        json.dump(rows, f, indent=2, ensure_ascii=False)
+    os.replace(tmp, path)
+
+
+def _history_record(bom_type: str, metadata: dict, artifacts: dict) -> dict:
+    """Persist a run's artifacts and append a row to the ledger.
+
+    ``artifacts`` is a {label: source_filename_in_UPLOAD_FOLDER} mapping. The
+    canonical BOM file is required ('bom'); SPDX, CycloneDX, recursive, and
+    linked exports are optional. Files are copied into bom-history/ keyed by
+    the stable BOM hash so the index can later serve them independently of
+    UPLOAD_FOLDER (which gets overwritten on every re-run of the same subject).
+    """
+    import shutil
+    hash_id = _bom_hash(metadata)
+    subject = metadata.get('model_id') or metadata.get('dataset_id') or 'unknown'
+    row = {
+        'hash': hash_id,
+        'subject': subject,
+        'bom_type': bom_type,
+        'created_at': datetime.now(timezone.utc).isoformat(timespec='seconds'),
+        'artifacts': {},
+    }
+    hist_dir = app.config['HISTORY_FOLDER']
+    for label, src_filename in (artifacts or {}).items():
+        if not src_filename:
+            continue
+        src_path = os.path.join(app.config['UPLOAD_FOLDER'], src_filename)
+        if not os.path.exists(src_path):
+            continue
+        ext = src_filename.split('_', 1)[-1] if '_' in src_filename else src_filename
+        dst_name = f"{hash_id}_{ext}"
+        dst_path = os.path.join(hist_dir, dst_name)
+        try:
+            shutil.copy2(src_path, dst_path)
+            row['artifacts'][label] = dst_name
+        except OSError as exc:
+            print(f"⚠️ history copy failed for {label}: {exc}")
+    with _history_lock:
+        rows = _history_load()
+        rows = [r for r in rows if r.get('hash') != hash_id]
+        rows.insert(0, row)
+        _history_save(rows)
+    return row
 
 
 def _conflict_summary(metadata: dict) -> dict:
@@ -925,6 +1014,25 @@ def process():
                 'generated': [],
             }
 
+        # Snapshot this run into the on-disk history so it survives the next
+        # /process call (which would otherwise overwrite UPLOAD_FOLDER files
+        # of the same subject). Failure here must never break the response.
+        try:
+            history_row = _history_record(
+                bom_type=bom_type,
+                metadata=metadata,
+                artifacts={
+                    'bom':        filename,
+                    'spdx':       locals().get('spdx_filename'),
+                    'cyclonedx':  locals().get('cdx_filename'),
+                    'recursive':  locals().get('recursive_filename'),
+                    'linked':     locals().get('linked_filename'),
+                },
+            )
+            response_data['history'] = history_row
+        except Exception as hist_exc:
+            print(f"⚠️ history record failed: {hist_exc}")
+
         return jsonify(response_data)
 
     except Exception as e:
@@ -936,6 +1044,56 @@ def process():
             'message': str(e),
             'trace': error_trace
         }), 500
+
+
+@app.route('/history', methods=['GET'])
+def list_history():
+    """Return the BOM history ledger (most recent first)."""
+    return jsonify({'rows': _history_load()})
+
+
+@app.route('/history/<hash_id>', methods=['GET'])
+def get_history_entry(hash_id):
+    """Return one history row plus the parsed BOM/SPDX/CycloneDX JSON so the
+    frontend can rehydrate the viewer tabs without a separate round-trip."""
+    safe_hash = ''.join(c for c in hash_id if c.isalnum())[:32]
+    if not safe_hash:
+        return jsonify({'status': 'error', 'message': 'invalid hash'}), 400
+    rows = _history_load()
+    row = next((r for r in rows if r.get('hash') == safe_hash), None)
+    if not row:
+        return jsonify({'status': 'error', 'message': 'not found'}), 404
+    artifacts = row.get('artifacts') or {}
+    payload = {'row': row, 'data': {}}
+    for label, fname in artifacts.items():
+        if not fname:
+            continue
+        path = os.path.join(app.config['HISTORY_FOLDER'], secure_filename(fname))
+        if not os.path.exists(path):
+            continue
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                payload['data'][label] = json.load(f)
+        except (OSError, ValueError) as exc:
+            payload['data'][label] = {'error': str(exc)}
+    return jsonify(payload)
+
+
+@app.route('/history/<hash_id>/<label>', methods=['GET'])
+def download_history(hash_id, label):
+    """Download a specific artifact from a history row."""
+    safe_hash = ''.join(c for c in hash_id if c.isalnum())[:32]
+    rows = _history_load()
+    row = next((r for r in rows if r.get('hash') == safe_hash), None)
+    if not row:
+        return jsonify({'status': 'error', 'message': 'not found'}), 404
+    fname = (row.get('artifacts') or {}).get(label)
+    if not fname:
+        return jsonify({'status': 'error', 'message': 'artifact not present'}), 404
+    path = os.path.join(app.config['HISTORY_FOLDER'], secure_filename(fname))
+    if not os.path.exists(path):
+        return jsonify({'status': 'error', 'message': 'file missing on disk'}), 404
+    return send_file(path, as_attachment=True, download_name=fname)
 
 
 @app.route('/download/<filename>')
