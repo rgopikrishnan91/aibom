@@ -1126,6 +1126,66 @@
         }
         .flat-row.is-open > .flat-body { display: block; }
 
+        /* Missing-required-field row styling */
+        .flat-row.is-missing .flat-val { color: var(--conflict-low); font-style: italic; }
+        .flat-row.is-missing .flat-key { color: var(--conflict-low); }
+
+        /* ---- BOM grouping (Required / Optional / Diagnostics, SPDX types,
+           CycloneDX component types) ------------------------------------ */
+
+        .bom-group {
+            border-bottom: 1px solid var(--paper-soft);
+        }
+        .bom-group:last-child { border-bottom: none; }
+        .bom-group-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            padding: 10px 18px;
+            background: var(--paper-2);
+            border: none;
+            border-bottom: 1px solid var(--paper-soft);
+            font-family: var(--sans);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ink);
+            cursor: pointer;
+            text-align: left;
+        }
+        .bom-group-header:hover { background: var(--paper-soft); }
+        .bom-group-header.is-meta {
+            display: grid;
+            grid-template-columns: minmax(160px, 220px) 1fr;
+            gap: 16px;
+            cursor: default;
+            background: var(--paper);
+            font-weight: 400;
+        }
+        .bom-group-header.is-meta:hover { background: var(--paper); }
+        .bom-group-caret {
+            display: inline-block;
+            width: 10px;
+            color: var(--primary);
+            transition: transform .12s;
+            font-size: 10px;
+        }
+        .bom-group.is-open > .bom-group-header > .bom-group-caret {
+            transform: rotate(90deg);
+        }
+        .bom-group-title  { flex: 1; }
+        .bom-group-meta {
+            font-family: var(--mono);
+            font-size: 11.5px;
+            font-weight: 400;
+            color: var(--paper-mute);
+        }
+        .bom-group-body  {
+            display: none;
+            background: var(--paper);
+        }
+        .bom-group.is-open > .bom-group-body { display: block; }
+
         /* ============================================== RECURSIVE GRAPH */
 
         .recursive-shell {
@@ -3358,7 +3418,7 @@
                     showStatus('success', statusMessage);
 
                     // ---- viewers + downloads ------------------------------------
-                    renderFlatBOM(result.metadata, flatViewerComplete);
+                    renderBOM(result.metadata, flatViewerComplete);
                     displayJSON(result.metadata, jsonViewerComplete);
                     downloadComplete.href = result.download_url;
                     downloadComplete.style.display = 'inline-flex';
@@ -3370,7 +3430,7 @@
                         downloadSPDX.href = result.spdx_download_url;
                         downloadSPDX.style.display = 'inline-flex';
                         spdxData = result.spdx_data;
-                        renderFlatBOM(spdxData, flatViewerSPDX);
+                        renderBOM(spdxData, flatViewerSPDX);
                         displayJSON(spdxData, jsonViewerSPDX);
                         renderSpdxValidation(result.spdx_validation);
                     } else {
@@ -3386,7 +3446,7 @@
                     if (result.cyclonedx_download_url && result.cyclonedx_data) {
                         downloadCDX.href = result.cyclonedx_download_url;
                         downloadCDX.style.display = 'inline-flex';
-                        renderFlatBOM(result.cyclonedx_data, flatViewerCDX);
+                        renderBOM(result.cyclonedx_data, flatViewerCDX);
                         displayJSON(result.cyclonedx_data, jsonViewerCDX);
                     } else {
                         downloadCDX.style.display = 'none';
@@ -4757,6 +4817,350 @@
             return row;
         }
 
+        // ===== Spec-derived field sets (LF SPDX AIBOM tables 8 & 10) ============
+        // AI profile mandatory: name (model_name), license (hasConcluded+hasDeclared
+        // via 'license' key), suppliedBy, packageVersion, primaryPurpose,
+        // releaseTime, downloadLocation, buildTime, spdxId.
+        // Dataset profile mandatory: same set but with originatedBy in place of
+        // suppliedBy, and datasetType added.
+        const REQUIRED_AI_FIELDS = new Set([
+            'model_name',         // maps to spec `name` (AIPackage)
+            'license',
+            'suppliedBy',
+            'packageVersion',
+            'primaryPurpose',
+            'releaseTime',
+            'downloadLocation',
+            'buildTime',
+            'spdxId',
+        ]);
+        const REQUIRED_DATA_FIELDS = new Set([
+            'name',
+            'license',
+            'originatedBy',
+            'datasetType',
+            'packageVersion',
+            'primaryPurpose',
+            'releaseTime',
+            'downloadLocation',
+            'buildTime',
+            'spdxId',
+        ]);
+        // Identifier keys — anchor the BOM but aren't spec fields. Shown in
+        // a single meta header line above the Required / Optional groups.
+        const ID_KEYS = ['model_id', 'repo_id', 'dataset_id', 'hf_url', 'use_case'];
+        // Diagnostic / internal keys — present but not user-facing BOM fields.
+        // Rendered in a collapsed "Diagnostics" group at the bottom.
+        const DIAG_KEYS = new Set([
+            'conflict_summary', 'beta', 'beta_fields', 'enabled', 'urls',
+            'processing_timestamp', '_aikaboom_metadata', 'recursive_source',
+            'enrichment_error', 'spdx_error', 'cyclonedx_error',
+            'spdx_validation', 'cyclonedx_validation',
+        ]);
+
+        // Single entry-point used by every BOM viewer. Dispatches by data shape:
+        //  - SPDX 3.0.1 JSON-LD (has @context + @graph)
+        //  - CycloneDX (bomFormat === 'CycloneDX' or has components[])
+        //  - Provenance BOM (has direct_fields / rag_fields / model_id / dataset_id)
+        //  - anything else falls back to the flat renderer
+        function renderBOM(data, target) {
+            if (!data || typeof data !== 'object' || Array.isArray(data)) {
+                renderFlatBOM(data, target);
+                return;
+            }
+            if (data['@context'] && Array.isArray(data['@graph'])) {
+                renderSPDXBOM(data, target);
+                return;
+            }
+            if (data.bomFormat === 'CycloneDX' || Array.isArray(data.components)) {
+                renderCycloneDXBOM(data, target);
+                return;
+            }
+            if (data.direct_fields || data.rag_fields ||
+                data.model_id || data.dataset_id || data.repo_id) {
+                renderProvenanceBOM(data, target);
+                return;
+            }
+            renderFlatBOM(data, target);
+        }
+
+        function inferBomType(data) {
+            if (data.dataset_id || data.hf_url) return 'data';
+            return 'ai';
+        }
+
+        // ===== Required / Optional / Diagnostics grouping =======================
+
+        function renderProvenanceBOM(data, target) {
+            target.innerHTML = '';
+            const bomType = inferBomType(data);
+            const required = bomType === 'data' ? REQUIRED_DATA_FIELDS : REQUIRED_AI_FIELDS;
+
+            // 1. Identifier strip — model_id, repo_id, use_case etc.
+            ID_KEYS.forEach(k => {
+                if (data[k] === undefined || data[k] === null || data[k] === '') return;
+                const row = document.createElement('div');
+                row.className = 'bom-group-header is-meta';
+                row.innerHTML =
+                    `<span class="flat-key">${escapeHtml(k)}</span>` +
+                    `<span class="flat-val">${escapeHtml(String(data[k]))}</span>`;
+                target.appendChild(row);
+            });
+
+            // 2. Collect all candidate fields: direct_fields + rag_fields + any
+            //    top-level non-id non-diag scalars/objects.
+            const collected = [];
+            const seenKeys = new Set();
+            const pushField = (k, v) => {
+                if (seenKeys.has(k)) return;
+                seenKeys.add(k);
+                collected.push([k, v]);
+            };
+            Object.entries(data.direct_fields || {}).forEach(([k, v]) => pushField(k, v));
+            Object.entries(data.rag_fields    || {}).forEach(([k, v]) => pushField(k, v));
+            Object.entries(data).forEach(([k, v]) => {
+                if (k === 'direct_fields' || k === 'rag_fields') return;
+                if (ID_KEYS.includes(k) || DIAG_KEYS.has(k)) return;
+                pushField(k, v);
+            });
+
+            // 3. Bucket into Required / Optional. Required-but-missing rows
+            //    surface as italic warnings so users see what's not present.
+            const reqPresent = [];
+            const reqMissing = [];
+            required.forEach(reqKey => {
+                const hit = collected.find(([k]) => k === reqKey);
+                if (hit) reqPresent.push(hit);
+                else     reqMissing.push([reqKey, null]);
+            });
+            const optional = collected.filter(([k]) => !required.has(k));
+            const diagnostics = Object.entries(data).filter(([k]) => DIAG_KEYS.has(k));
+
+            target.appendChild(buildGroupSection(
+                `Required`,
+                `${reqPresent.length} of ${required.size} present`,
+                [...reqPresent, ...reqMissing],
+                true,    // open by default
+            ));
+            target.appendChild(buildGroupSection(
+                `Optional`,
+                `${optional.length} field${optional.length === 1 ? '' : 's'}`,
+                optional,
+                false,
+            ));
+            if (diagnostics.length) {
+                target.appendChild(buildGroupSection(
+                    `Diagnostics`,
+                    `${diagnostics.length} field${diagnostics.length === 1 ? '' : 's'}`,
+                    diagnostics,
+                    false,
+                ));
+            }
+        }
+
+        function buildGroupSection(title, metaText, fields, openByDefault) {
+            const section = document.createElement('div');
+            section.className = 'bom-group' + (openByDefault ? ' is-open' : '');
+
+            const header = document.createElement('button');
+            header.type = 'button';
+            header.className = 'bom-group-header';
+            header.innerHTML =
+                `<span class="bom-group-caret">▸</span>` +
+                `<span class="bom-group-title">${escapeHtml(title)}</span>` +
+                (metaText ? `<span class="bom-group-meta">${escapeHtml(metaText)}</span>` : '');
+            section.appendChild(header);
+
+            const body = document.createElement('div');
+            body.className = 'bom-group-body';
+            fields.forEach(([k, v]) => {
+                if (v === null) {
+                    const row = document.createElement('div');
+                    row.className = 'flat-row is-missing';
+                    row.innerHTML =
+                        `<div class="flat-key">${escapeHtml(k)}</div>` +
+                        `<div class="flat-val is-null">— missing</div>`;
+                    body.appendChild(row);
+                } else {
+                    body.appendChild(buildFlatRow(k, v));
+                }
+            });
+            section.appendChild(body);
+
+            header.addEventListener('click', () => section.classList.toggle('is-open'));
+            return section;
+        }
+
+        // ===== SPDX 3.0.1 @graph rendered by element type =======================
+
+        const SPDX_TYPE_ORDER = [
+            'SpdxDocument', 'Bom',
+            'CreationInfo',
+            'Person', 'Organization', 'Tool',
+            'ai_AIPackage', 'dataset_DatasetPackage', 'software_Package', 'software_File',
+            'simplelicensing_LicenseExpression', 'expandedlicensing_License',
+            'Relationship',
+        ];
+
+        function spdxIdTail(id) {
+            if (!id) return '';
+            const s = String(id);
+            // Last segment after `:` or `#` or `/`
+            const m = s.match(/[^/:#]+$/);
+            return m ? m[0] : s;
+        }
+        function spdxIdTails(arr) {
+            if (!arr) return '';
+            if (Array.isArray(arr)) return arr.map(spdxIdTail).join(', ');
+            return spdxIdTail(arr);
+        }
+        function labelForSPDXItem(item) {
+            if (!item || typeof item !== 'object') return '(item)';
+            if (item.type === 'Relationship') {
+                return `${item.relationshipType || 'relationship'}: ` +
+                       `${spdxIdTail(item.from)} → ${spdxIdTails(item.to)}`;
+            }
+            if (item.name) return String(item.name);
+            if (item.spdxId) return spdxIdTail(item.spdxId);
+            return item.type || '(unnamed)';
+        }
+
+        function renderSPDXBOM(data, target) {
+            target.innerHTML = '';
+
+            // @context as a meta row at the top (linkified for the URL value).
+            if (data['@context']) {
+                const ctxRow = document.createElement('div');
+                ctxRow.className = 'bom-group-header is-meta';
+                const ctx = String(data['@context']);
+                const valHTML = URL_LIKE.test(ctx)
+                    ? `<a href="${escapeHtml(ctx)}" target="_blank" rel="noopener noreferrer">${escapeHtml(ctx)}</a>`
+                    : escapeHtml(ctx);
+                ctxRow.innerHTML =
+                    `<span class="flat-key">@context</span>` +
+                    `<span class="flat-val is-url">${valHTML}</span>`;
+                target.appendChild(ctxRow);
+            }
+
+            const graph = Array.isArray(data['@graph']) ? data['@graph'] : [];
+            if (!graph.length) {
+                const empty = document.createElement('div');
+                empty.className = 'json-placeholder';
+                empty.textContent = 'No @graph items in this SPDX document.';
+                target.appendChild(empty);
+                return;
+            }
+
+            // Bucket by type, sort buckets by SPDX_TYPE_ORDER, then alphabetic.
+            const byType = new Map();
+            graph.forEach(item => {
+                const t = (item && item.type) || 'Unknown';
+                if (!byType.has(t)) byType.set(t, []);
+                byType.get(t).push(item);
+            });
+            const sortedTypes = [...byType.keys()].sort((a, b) => {
+                const ia = SPDX_TYPE_ORDER.indexOf(a);
+                const ib = SPDX_TYPE_ORDER.indexOf(b);
+                if (ia === -1 && ib === -1) return a.localeCompare(b);
+                if (ia === -1) return 1;
+                if (ib === -1) return -1;
+                return ia - ib;
+            });
+            sortedTypes.forEach(t => {
+                const items   = byType.get(t);
+                const labeled = items.map(item => [labelForSPDXItem(item), item]);
+                target.appendChild(buildGroupSection(
+                    t,
+                    `${items.length} element${items.length === 1 ? '' : 's'}`,
+                    labeled,
+                    false,
+                ));
+            });
+        }
+
+        // ===== CycloneDX 1.6 — components grouped by type =======================
+
+        function labelForCDXComponent(c) {
+            if (!c || typeof c !== 'object') return '(component)';
+            const name = c.name || c['bom-ref'] || '(unnamed)';
+            return c.version ? `${name}@${c.version}` : String(name);
+        }
+
+        function renderCycloneDXBOM(data, target) {
+            target.innerHTML = '';
+
+            // Top meta row: bomFormat / specVersion / version / serialNumber
+            const metaParts = [];
+            if (data.bomFormat)    metaParts.push(data.bomFormat);
+            if (data.specVersion)  metaParts.push('spec v' + data.specVersion);
+            if (data.version)      metaParts.push('rev ' + data.version);
+            if (data.serialNumber) metaParts.push(data.serialNumber);
+            if (metaParts.length) {
+                const h = document.createElement('div');
+                h.className = 'bom-group-header is-meta';
+                h.innerHTML =
+                    `<span class="flat-key">document</span>` +
+                    `<span class="flat-val">${escapeHtml(metaParts.join(' · '))}</span>`;
+                target.appendChild(h);
+            }
+
+            // Metadata block (timestamp, tools, component subject, etc.)
+            if (data.metadata && typeof data.metadata === 'object') {
+                target.appendChild(buildGroupSection(
+                    'metadata',
+                    `${Object.keys(data.metadata).length} field${Object.keys(data.metadata).length === 1 ? '' : 's'}`,
+                    Object.entries(data.metadata),
+                    false,
+                ));
+            }
+
+            // components[] grouped by their `type` field
+            if (Array.isArray(data.components) && data.components.length) {
+                const byType = new Map();
+                data.components.forEach(c => {
+                    const t = (c && c.type) || 'unknown';
+                    if (!byType.has(t)) byType.set(t, []);
+                    byType.get(t).push(c);
+                });
+                [...byType.keys()].sort().forEach(t => {
+                    const items   = byType.get(t);
+                    const labeled = items.map(c => [labelForCDXComponent(c), c]);
+                    target.appendChild(buildGroupSection(
+                        `components · ${t}`,
+                        `${items.length} component${items.length === 1 ? '' : 's'}`,
+                        labeled,
+                        false,
+                    ));
+                });
+            }
+
+            // dependencies[] — list each by its ref
+            if (Array.isArray(data.dependencies) && data.dependencies.length) {
+                const labeled = data.dependencies.map(d => [d.ref || '(ref?)', d]);
+                target.appendChild(buildGroupSection(
+                    'dependencies',
+                    `${data.dependencies.length} edge${data.dependencies.length === 1 ? '' : 's'}`,
+                    labeled,
+                    false,
+                ));
+            }
+
+            // Any other top-level keys (services, vulnerabilities, etc.)
+            const seen = new Set([
+                'bomFormat', 'specVersion', 'version', 'serialNumber',
+                'metadata', 'components', 'dependencies',
+            ]);
+            const others = Object.entries(data).filter(([k]) => !seen.has(k));
+            if (others.length) {
+                target.appendChild(buildGroupSection(
+                    'other',
+                    `${others.length} field${others.length === 1 ? '' : 's'}`,
+                    others,
+                    false,
+                ));
+            }
+        }
+
         // ===== Visual / Raw JSON view toggle ====================================
         // Wires .view-toggle buttons inside .bom-shell-toolbar so each tab can
         // flip between the flat renderer and the raw JSON viewer. Idempotent.
@@ -4991,7 +5395,7 @@
             const panel = document.getElementById('sidePanel');
             document.getElementById('sidePanelTitle').textContent = info.title || 'BOM';
             document.getElementById('sidePanelMeta').textContent  = info.meta  || '';
-            renderFlatBOM(info.data, document.getElementById('sidePanelFlat'));
+            renderBOM(info.data, document.getElementById('sidePanelFlat'));
             displayJSON(info.data, document.getElementById('sidePanelJson'));
             document.querySelectorAll('#sidePanel .view-toggle button').forEach(b => {
                 b.classList.toggle('is-active', b.dataset.sideView === 'visual');
