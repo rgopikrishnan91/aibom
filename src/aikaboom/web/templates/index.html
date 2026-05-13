@@ -1207,6 +1207,94 @@
             z-index: 1;
         }
 
+        /* Floating navigation controls — overlay the graph; bottom-right. */
+        .graph-controls {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.94);
+            border: 1px solid var(--paper-edge);
+            border-radius: 4px;
+            padding: 4px;
+            z-index: 3;
+            box-shadow: var(--shadow-sm);
+        }
+        .graph-controls button {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            border-radius: 3px;
+            font-family: var(--mono);
+            font-size: 16px;
+            line-height: 1;
+            color: var(--ink);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color .12s, color .12s;
+        }
+        .graph-controls button:hover {
+            background: var(--primary-soft);
+            color: var(--primary-deep);
+        }
+        .graph-controls button:active { background: var(--primary-edge); }
+
+        /* Layout switcher (top-right) — segmented control. */
+        .graph-layout-switch {
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            display: flex;
+            gap: 2px;
+            background: rgba(255, 255, 255, 0.94);
+            border: 1px solid var(--paper-edge);
+            border-radius: 4px;
+            padding: 3px;
+            z-index: 3;
+            box-shadow: var(--shadow-sm);
+        }
+        .graph-layout-switch button {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            min-width: 32px;
+            height: 22px;
+            padding: 0 8px;
+            border-radius: 3px;
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            color: var(--paper-mute);
+        }
+        .graph-layout-switch button:hover { color: var(--ink); }
+        .graph-layout-switch button.is-active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Fullscreen mode: lift the wrap out of its flex column and pin it
+           to the viewport. Cytoscape resizes via the ResizeObserver hook
+           in renderRecursiveGraph. */
+        .graph-wrap.is-fullscreen {
+            position: fixed;
+            inset: 0;
+            height: 100vh;
+            z-index: 200;
+            border-radius: 0;
+            background:
+                radial-gradient(circle at 1px 1px, var(--paper-soft) 1px, transparent 0)
+                0 0 / 22px 22px,
+                var(--paper);
+        }
+        body.has-graph-fullscreen { overflow: hidden; }
+
         .side-panel {
             width: 0;
             flex: 0 0 auto;
@@ -2869,12 +2957,30 @@
                     </div>
                     <div class="bom-shell-body" data-view-pane="visual" style="display:flex;flex-direction:column;">
                         <div class="recursive-body">
-                            <div class="graph-wrap">
+                            <div class="graph-wrap" id="graphWrap">
                                 <div id="graphCanvas" class="graph-canvas"></div>
                                 <div class="graph-legend">
                                     <span><i></i> trainedOn</span>
                                     <span><i class="is-tested"></i> testedOn</span>
                                     <span><i class="is-depends"></i> dependsOn</span>
+                                </div>
+                                <!-- Layout switcher (top-right). Re-runs dagre/concentric with the
+                                     chosen direction; useful for tall trees (LR) vs wide ones (TB). -->
+                                <div class="graph-layout-switch" id="graphLayoutSwitch" role="tablist" aria-label="Graph layout">
+                                    <button type="button" class="is-active" data-graph-layout="TB" title="Top → Bottom">TB</button>
+                                    <button type="button" data-graph-layout="LR" title="Left → Right">LR</button>
+                                    <button type="button" data-graph-layout="concentric" title="Concentric (root in centre)">◎</button>
+                                </div>
+                                <!-- Floating zoom/fit/reset/fullscreen controls (bottom-right).
+                                     Cytoscape wheel-zoom is gentle (0.2 sensitivity) which is great
+                                     once you know about it but invisible otherwise — this toolbar
+                                     makes the controls discoverable. -->
+                                <div class="graph-controls" id="graphControls" aria-label="Graph controls">
+                                    <button type="button" id="graphZoomIn"  title="Zoom in (or use mouse wheel)" aria-label="Zoom in">+</button>
+                                    <button type="button" id="graphZoomOut" title="Zoom out" aria-label="Zoom out">−</button>
+                                    <button type="button" id="graphFit"     title="Fit graph to viewport" aria-label="Fit">⤢</button>
+                                    <button type="button" id="graphReset"   title="Reset zoom &amp; centre" aria-label="Reset">⟲</button>
+                                    <button type="button" id="graphFull"    title="Toggle fullscreen (Esc to exit)" aria-label="Fullscreen">⛶</button>
                                 </div>
                                 <div id="graphEmpty" class="graph-empty">Recursive BOM beta was not enabled for this run.</div>
                             </div>
@@ -4784,12 +4890,54 @@
         }
 
         // ===== Recursive graph (Cytoscape + dagre) ==============================
+        //
+        // The graph reads as a layered tree by default (TB: root at top,
+        // dependencies cascading downward). Users can switch to LR for
+        // tall narrow trees or "concentric" for hub-and-spoke views.
+        //
+        // Navigation is mouse-wheel zoom + drag-pan plus a floating toolbar
+        // (zoom in/out/fit/reset/fullscreen) so users who don't know the
+        // mouse shortcuts can still find their way around. A ResizeObserver
+        // re-fits the graph when its container changes size (browser resize,
+        // side-panel open/close, fullscreen toggle) — without that, big
+        // graphs end up cropped or floating off-screen.
 
         let recursiveCy = null;          // active Cytoscape instance
         let recursiveNodeBoms = {};      // node id -> { title, meta, data }
+        let recursiveLayout = 'TB';      // 'TB' | 'LR' | 'concentric'
+        let recursiveResizeObs = null;   // ResizeObserver on .graph-wrap
 
         function rootNodeId(bomType, parentName) {
             return `${bomType || 'ai'}:${String(parentName || '').toLowerCase()}`;
+        }
+
+        // Build a Cytoscape layout config for the current `recursiveLayout`.
+        function _graphLayoutConfig() {
+            if (recursiveLayout === 'concentric') {
+                return {
+                    name: 'concentric',
+                    // Root has depth 0; deeper nodes orbit further out.
+                    concentric: n => 10 - (parseInt(n.data('depth'), 10) || 0),
+                    levelWidth: () => 1,
+                    minNodeSpacing: 40,
+                    fit: true,
+                    padding: 24,
+                };
+            }
+            return {
+                name: 'dagre',
+                rankDir: recursiveLayout === 'LR' ? 'LR' : 'TB',
+                nodeSep: 40,
+                rankSep: 70,
+                edgeSep: 18,
+                fit: true,
+                padding: 24,
+            };
+        }
+
+        function _safeRefit() {
+            if (!recursiveCy) return;
+            try { recursiveCy.resize(); recursiveCy.fit(undefined, 24); } catch (e) { /* ignore */ }
         }
 
         function renderRecursiveGraph(recursiveBom, parentMetadata, parentBomType) {
@@ -4872,11 +5020,12 @@
                 container: canvas,
                 elements: { nodes, edges },
                 wheelSensitivity: 0.2,
-                // Cap the auto-fit zoom so tiny graphs (1–2 nodes) don't blow
-                // up to fill the whole viewport. Users can still wheel-zoom
-                // past these bounds.
-                minZoom: 0.3,
-                maxZoom: 1.4,
+                // Wide zoom range so users can shrink a deep tree to fit and
+                // also pop into a single node for label inspection. The fit
+                // logic still picks a sane starting zoom; these are the hard
+                // bounds users hit with the wheel or +/− buttons.
+                minZoom: 0.05,
+                maxZoom: 3.0,
                 style: [
                     {
                         selector: 'node',
@@ -4957,15 +5106,7 @@
                         },
                     },
                 ],
-                layout: {
-                    name: 'dagre',
-                    rankDir: 'TB',
-                    nodeSep: 40,
-                    rankSep: 70,
-                    edgeSep: 18,
-                    fit: true,
-                    padding: 24,
-                },
+                layout: _graphLayoutConfig(),
             });
 
             recursiveCy.on('tap', 'node', (evt) => {
@@ -4978,11 +5119,110 @@
                 if (evt.target === recursiveCy) closeSidePanel();
             });
 
+            // Auto-refit on container size changes. Fires when the user
+            // resizes the browser, opens/closes the side panel, toggles
+            // fullscreen, or switches view modes. Without this the graph
+            // stays at the original fit and ends up cropped or floating.
+            const wrap = document.getElementById('graphWrap');
+            if (recursiveResizeObs) { try { recursiveResizeObs.disconnect(); } catch (_) {} }
+            if (wrap && 'ResizeObserver' in window) {
+                let pending = null;
+                recursiveResizeObs = new ResizeObserver(() => {
+                    // Debounce — rapid resizes (drag-resize a browser window)
+                    // would otherwise call `fit` dozens of times per second.
+                    if (pending) clearTimeout(pending);
+                    pending = setTimeout(_safeRefit, 60);
+                });
+                recursiveResizeObs.observe(wrap);
+            }
+
             // Re-fit once the recursive tab is actually visible (Cytoscape sizes
             // to 0 when its container is display:none at construction time).
-            setTimeout(() => {
-                try { recursiveCy.resize(); recursiveCy.fit(undefined, 24); } catch (e) { /* ignore */ }
-            }, 80);
+            setTimeout(_safeRefit, 80);
+        }
+
+        // ===== Recursive graph controls + layout switcher =======================
+
+        function _setGraphLayout(name) {
+            if (!recursiveCy) { recursiveLayout = name; return; }
+            recursiveLayout = name;
+            try {
+                recursiveCy.layout(_graphLayoutConfig()).run();
+            } catch (e) { /* ignore */ }
+            document.querySelectorAll('#graphLayoutSwitch button').forEach(b => {
+                b.classList.toggle('is-active', b.dataset.graphLayout === name);
+            });
+        }
+
+        function _toggleGraphFullscreen() {
+            const wrap = document.getElementById('graphWrap');
+            if (!wrap) return;
+            const goingFull = !wrap.classList.contains('is-fullscreen');
+            wrap.classList.toggle('is-fullscreen', goingFull);
+            document.body.classList.toggle('has-graph-fullscreen', goingFull);
+            // The ResizeObserver picks up the dimension change; the explicit
+            // refit here just makes it instantaneous instead of waiting for
+            // the observer's 60 ms debounce.
+            setTimeout(_safeRefit, 30);
+        }
+
+        function _wireGraphControls() {
+            const bind = (id, fn) => {
+                const el = document.getElementById(id);
+                if (el && !el.dataset.wired) {
+                    el.addEventListener('click', fn);
+                    el.dataset.wired = '1';
+                }
+            };
+            bind('graphZoomIn',  () => recursiveCy && recursiveCy.zoom({
+                level: Math.min(recursiveCy.zoom() * 1.25, recursiveCy.maxZoom()),
+                renderedPosition: { x: recursiveCy.width() / 2, y: recursiveCy.height() / 2 },
+            }));
+            bind('graphZoomOut', () => recursiveCy && recursiveCy.zoom({
+                level: Math.max(recursiveCy.zoom() / 1.25, recursiveCy.minZoom()),
+                renderedPosition: { x: recursiveCy.width() / 2, y: recursiveCy.height() / 2 },
+            }));
+            bind('graphFit',     _safeRefit);
+            bind('graphReset',   () => {
+                if (!recursiveCy) return;
+                try { recursiveCy.layout(_graphLayoutConfig()).run(); _safeRefit(); } catch (e) { /* ignore */ }
+            });
+            bind('graphFull',    _toggleGraphFullscreen);
+
+            document.querySelectorAll('#graphLayoutSwitch button').forEach(btn => {
+                if (btn.dataset.wired) return;
+                btn.addEventListener('click', () => _setGraphLayout(btn.dataset.graphLayout));
+                btn.dataset.wired = '1';
+            });
+
+            // Keyboard shortcuts (when the recursive tab is the active one):
+            //   +/= zoom in    −/_ zoom out    0 fit    f fullscreen
+            //   Esc            exit fullscreen
+            if (!document.body.dataset.graphKeysWired) {
+                document.addEventListener('keydown', (e) => {
+                    const recursiveTabActive =
+                        document.getElementById('recursiveTab')?.classList.contains('active');
+                    if (!recursiveTabActive || !recursiveCy) return;
+                    // Don't steal keys from text inputs.
+                    if (/^(input|textarea|select)$/i.test(e.target?.tagName || '')) return;
+                    if (e.key === '+' || e.key === '=') {
+                        document.getElementById('graphZoomIn')?.click();
+                    } else if (e.key === '-' || e.key === '_') {
+                        document.getElementById('graphZoomOut')?.click();
+                    } else if (e.key === '0') {
+                        _safeRefit();
+                    } else if (e.key === 'f' || e.key === 'F') {
+                        _toggleGraphFullscreen();
+                    } else if (e.key === 'Escape') {
+                        const wrap = document.getElementById('graphWrap');
+                        if (wrap?.classList.contains('is-fullscreen')) _toggleGraphFullscreen();
+                    } else {
+                        return;
+                    }
+                    e.preventDefault();
+                });
+                document.body.dataset.graphKeysWired = '1';
+            }
         }
 
         // ===== Side panel (recursive graph) =====================================
@@ -5045,6 +5285,16 @@
         document.addEventListener('DOMContentLoaded', () => {
             wireViewToggles();
             wireSidePanel();
+            _wireGraphControls();
+            // Browser-resize backstop. The per-graph ResizeObserver covers
+            // most cases, but window resize on some platforms doesn't fire
+            // observer notifications until layout reflows — this catches
+            // those cases too.
+            let resizePending = null;
+            window.addEventListener('resize', () => {
+                if (resizePending) clearTimeout(resizePending);
+                resizePending = setTimeout(_safeRefit, 80);
+            });
         });
 
         function resetForm() {
@@ -5066,6 +5316,16 @@
             if (recursiveCy) {
                 try { recursiveCy.destroy(); } catch (e) { /* ignore */ }
                 recursiveCy = null;
+            }
+            if (recursiveResizeObs) {
+                try { recursiveResizeObs.disconnect(); } catch (e) { /* ignore */ }
+                recursiveResizeObs = null;
+            }
+            // If the user reset while fullscreen, drop back to normal layout.
+            const wrap = document.getElementById('graphWrap');
+            if (wrap?.classList.contains('is-fullscreen')) {
+                wrap.classList.remove('is-fullscreen');
+                document.body.classList.remove('has-graph-fullscreen');
             }
             recursiveNodeBoms = {};
             const graphEmpty = document.getElementById('graphEmpty');
