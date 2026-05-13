@@ -550,6 +550,137 @@ def test_stage0_skipped_when_all_links_provided(page):
 
 
 # ---------------------------------------------------------------------------
+# Layer 2c — Stage 2: Recursive Children card
+# ---------------------------------------------------------------------------
+
+def test_stage2_hidden_before_recursive_start(page):
+    """Recursive card stays hidden on a normal run. Only revealed when the
+    recursive walker emits its first event."""
+    assert page.locator("#pipelineStage2").get_attribute("hidden") is not None
+
+
+def test_stage2_start_reveals_card_with_depth_and_cap(page):
+    """recursive.start surfaces the card and shows max-depth + safety-cap
+    in the meta line of the header."""
+    page.evaluate(
+        "(e) => Pipeline.handleEvent(e)",
+        {"event": "recursive.start", "parent": "test/x", "bom_type": "ai",
+         "max_depth": 3, "safety_cap": 50},
+    )
+    page.wait_for_timeout(60)
+    card = page.locator("#pipelineStage2")
+    assert card.get_attribute("hidden") is None
+    meta = (page.locator("#stage2Meta").inner_text() or "").lower()
+    assert "max depth: 3" in meta, f"unexpected meta: {meta!r}"
+    assert "safety cap: 50" in meta
+
+
+def test_stage2_chips_render_with_id_relationship_and_state(page):
+    """Each discovered child renders a chip with target id + relationship
+    + state icon (the answer for the 'chip detail' design question)."""
+    page.evaluate("(e) => Pipeline.handleEvent(e)",
+                  {"event": "recursive.start", "parent": "test/x", "bom_type": "ai", "max_depth": 1, "safety_cap": 10})
+    page.evaluate("(e) => Pipeline.handleEvent(e)", {
+        "event": "recursive.target.discovered",
+        "target": "allenai/c4", "bom_type": "data",
+        "relationship_type": "trainedOn", "depth": 1, "parent": "test/x",
+    })
+    page.wait_for_timeout(60)
+    chip = page.locator(".stage2-chip[data-target='allenai/c4']")
+    assert chip.count() == 1
+    assert chip.get_attribute("data-state") == "pending"
+    assert "allenai/c4" in chip.locator(".target").inner_text()
+    assert "trainedOn" in chip.locator(".rel").inner_text()
+
+
+def test_stage2_chip_state_cycles_pending_running_done(page):
+    """A chip moves through pending → running → done as start/done events
+    arrive for the same target."""
+    page.evaluate("(e) => Pipeline.handleEvent(e)",
+                  {"event": "recursive.start", "parent": "test/x", "bom_type": "ai", "max_depth": 1, "safety_cap": 10})
+    child = {"target": "google/t5-base", "bom_type": "ai",
+             "relationship_type": "dependsOn", "depth": 1, "parent": "test/x"}
+    page.evaluate("(e) => Pipeline.handleEvent(e)", {"event": "recursive.target.discovered", **child})
+    page.wait_for_timeout(40)
+    chip = page.locator(".stage2-chip[data-target='google/t5-base']")
+    assert chip.get_attribute("data-state") == "pending"
+
+    page.evaluate("(e) => Pipeline.handleEvent(e)", {"event": "recursive.child.start", **child})
+    page.wait_for_timeout(40)
+    assert chip.get_attribute("data-state") == "running"
+
+    page.evaluate("(e) => Pipeline.handleEvent(e)",
+                  {"event": "recursive.child.done", **child, "enriched": True, "duration_ms": 1234})
+    page.wait_for_timeout(40)
+    assert chip.get_attribute("data-state") == "done"
+
+
+def test_stage2_skipped_chip_shows_reason(page):
+    """Skipped chips (duplicate / safety-cap / conflict) render muted with
+    the reason visible — this is the 'show skipped' design answer."""
+    page.evaluate("(e) => Pipeline.handleEvent(e)",
+                  {"event": "recursive.start", "parent": "test/x", "bom_type": "ai", "max_depth": 1, "safety_cap": 10})
+    page.evaluate("(e) => Pipeline.handleEvent(e)", {
+        "event": "recursive.child.skipped",
+        "target": "dup/repo", "bom_type": "ai",
+        "relationship_type": "dependsOn", "depth": 1, "parent": "test/x",
+        "reason": "duplicate",
+    })
+    page.wait_for_timeout(60)
+    chip = page.locator(".stage2-chip[data-target='dup/repo']")
+    assert chip.get_attribute("data-state") == "skipped"
+    reason = chip.locator(".reason").inner_text()
+    assert "duplicate" in reason
+
+
+def test_stage2_groups_chips_by_depth(page):
+    """Depth 1 and Depth 2 chips appear under separate, labeled sections
+    (the 'depth grouping' design answer)."""
+    page.evaluate("(e) => Pipeline.handleEvent(e)",
+                  {"event": "recursive.start", "parent": "test/x", "bom_type": "ai", "max_depth": 2, "safety_cap": 50})
+    page.evaluate("(e) => Pipeline.handleEvent(e)", {
+        "event": "recursive.target.discovered",
+        "target": "x/a", "bom_type": "data", "relationship_type": "trainedOn", "depth": 1, "parent": "test/x",
+    })
+    page.evaluate("(e) => Pipeline.handleEvent(e)", {
+        "event": "recursive.target.discovered",
+        "target": "x/b", "bom_type": "data", "relationship_type": "trainedOn", "depth": 2, "parent": "x/a",
+    })
+    page.wait_for_timeout(60)
+    depth_blocks = page.locator(".stage2-depth")
+    assert depth_blocks.count() == 2
+    labels = [depth_blocks.nth(i).locator(".stage2-depth-label").inner_text() for i in range(2)]
+    assert labels == ["Depth 1", "Depth 2"]
+    # Each block holds the right chip
+    assert page.locator('.stage2-depth[data-depth="1"] .stage2-chip[data-target="x/a"]').count() == 1
+    assert page.locator('.stage2-depth[data-depth="2"] .stage2-chip[data-target="x/b"]').count() == 1
+
+
+def test_stage2_done_marks_card_and_shows_summary(page):
+    """recursive.done puts the card in is-done state with a summary line
+    counting done / failed / skipped."""
+    page.evaluate("(e) => Pipeline.handleEvent(e)",
+                  {"event": "recursive.start", "parent": "test/x", "bom_type": "ai", "max_depth": 1, "safety_cap": 10})
+    for tgt in ["x/a", "x/b"]:
+        c = {"target": tgt, "bom_type": "data", "relationship_type": "trainedOn",
+             "depth": 1, "parent": "test/x"}
+        page.evaluate("(e) => Pipeline.handleEvent(e)", {"event": "recursive.target.discovered", **c})
+        page.evaluate("(e) => Pipeline.handleEvent(e)", {"event": "recursive.child.start", **c})
+        page.evaluate("(e) => Pipeline.handleEvent(e)",
+                      {"event": "recursive.child.done", **c, "enriched": True, "duration_ms": 100})
+    page.evaluate("(e) => Pipeline.handleEvent(e)", {
+        "event": "recursive.done", "parent": "test/x",
+        "duration_ms": 200, "generated_count": 2, "skipped_count": 0,
+        "duplicate_count": 0, "deepest_level_reached": 1, "tree_exhausted": True,
+    })
+    page.wait_for_timeout(80)
+    card = page.locator("#pipelineStage2")
+    assert "is-done" in (card.get_attribute("class") or "")
+    status = page.locator("#stage2Status").inner_text() or ""
+    assert "2 done" in status, f"unexpected status: {status!r}"
+
+
+# ---------------------------------------------------------------------------
 # Layer 3 — History tab rehydration
 # ---------------------------------------------------------------------------
 

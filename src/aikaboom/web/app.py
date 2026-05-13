@@ -109,9 +109,10 @@ sys.stdout = _PrintCapture(sys.stdout)
 
 # Turn on structured pipeline-event emission (the [[BOM_EVENT]] lines the
 # frontend parses out of the log stream to drive the Pipeline tab). Off by
-# default so CLI users don't see the noise.
-from aikaboom.core import agentic_rag as _agentic_rag  # noqa: E402
-_agentic_rag.EMIT_PIPELINE_EVENTS = True
+# default so CLI users don't see the noise. Shared by agentic_rag and the
+# recursive walker — both emit through aikaboom.utils.pipeline_events.
+from aikaboom.utils import pipeline_events as _pipeline_events  # noqa: E402
+_pipeline_events.EMIT_EVENTS = True
 
 
 # ---------- BOM history ledger ----------

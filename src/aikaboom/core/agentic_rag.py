@@ -20,21 +20,9 @@ from .prompt import (
     format_chunks_for_answer,
 )
 
-# Structured pipeline events for the web UI. Flipped on by app.py at startup
-# so the CLI stays free of [[BOM_EVENT]] noise. Each emit is best-effort and
-# never raises into the pipeline.
-EMIT_PIPELINE_EVENTS = False
-BOM_EVENT_PREFIX = "[[BOM_EVENT]]"
-
-
-def _emit_event(payload: dict) -> None:
-    if not EMIT_PIPELINE_EVENTS:
-        return
-    try:
-        payload.setdefault("ts", time.time())
-        print(f"{BOM_EVENT_PREFIX}{json.dumps(payload, default=str)}", flush=True)
-    except Exception:
-        pass
+# Structured pipeline events for the web UI live in aikaboom.utils.pipeline_events
+# (shared with the recursive walker so they emit through the same channel).
+from aikaboom.utils.pipeline_events import emit as _emit_event  # noqa: E402
 
 # Create LLM instance based on provider
 def create_llm(model: str, temperature: float = 0, llm_provider: str = "openai", ollama_base_url: str = None):
