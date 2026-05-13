@@ -656,6 +656,29 @@ def test_stage2_groups_chips_by_depth(page):
     assert page.locator('.stage2-depth[data-depth="2"] .stage2-chip[data-target="x/b"]').count() == 1
 
 
+def test_stage2_conflict_flagged_chip_shows_badge(page):
+    """When recursive.target.discovered carries has_conflict=True, the
+    chip gets a ⚠ badge + data-has-conflict attribute. The edge is still
+    walked (not skipped) — this verifies the new conflict-tagged contract."""
+    page.evaluate("(e) => Pipeline.handleEvent(e)",
+                  {"event": "recursive.start", "parent": "test/x", "bom_type": "ai",
+                   "max_depth": 1, "safety_cap": 10})
+    page.evaluate("(e) => Pipeline.handleEvent(e)", {
+        "event": "recursive.target.discovered",
+        "target": "contested/data", "bom_type": "data",
+        "relationship_type": "trainedOn", "depth": 1, "parent": "test/x",
+        "has_conflict": True,
+    })
+    page.wait_for_timeout(80)
+    chip = page.locator(".stage2-chip[data-target='contested/data']")
+    assert chip.count() == 1
+    # Chip is walked (state=pending, not skipped) but flagged
+    assert chip.get_attribute("data-has-conflict") == "true"
+    assert chip.get_attribute("data-state") == "pending"
+    # Badge is rendered
+    assert chip.locator(".conflict-badge").count() == 1
+
+
 def test_stage2_done_marks_card_and_shows_summary(page):
     """recursive.done puts the card in is-done state with a summary line
     counting done / failed / skipped."""

@@ -2289,6 +2289,25 @@
             flex-shrink: 0;
         }
         .stage2-chip .rel::before { content: '↳ '; }
+        /* Conflict badge — overlaid on chips whose parent field surfaced
+           a conflict. The edge was walked anyway; this just marks it. */
+        .stage2-chip .conflict-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--conflict-low);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+        .stage2-chip[data-has-conflict="true"] {
+            border-color: var(--conflict-low);
+        }
         /* State variants */
         .stage2-chip[data-state="pending"] .icon { background: var(--paper-edge); }
         .stage2-chip[data-state="pending"] .icon::before { content: '○'; color: var(--paper-edge); }
@@ -4567,10 +4586,15 @@
                         parent: evt.parent || '',
                         state: state || 'pending',
                         reason: evt.reason || '',
+                        has_conflict: !!evt.has_conflict,
                     };
                     children.set(k, entry);
-                } else if (state) {
-                    entry.state = state;
+                } else {
+                    if (state) entry.state = state;
+                    // Latch has_conflict if any event for this edge reports
+                    // a conflict (the discovered event may not, but child.start
+                    // does — or vice versa).
+                    if (evt.has_conflict) entry.has_conflict = true;
                 }
                 if (evt.reason) entry.reason = evt.reason;
                 return entry;
@@ -4694,14 +4718,23 @@
                 el.dataset.state = entry.state;
                 el.dataset.target = entry.target;
                 el.dataset.depth = String(entry.depth);
+                if (entry.has_conflict) el.dataset.hasConflict = 'true';
                 el.title = `${entry.target}` +
                     (entry.relationship_type ? ` (${entry.relationship_type})` : '') +
                     (entry.parent ? `\nparent: ${entry.parent}` : '') +
+                    (entry.has_conflict ? `\n⚠ parent field had a conflict — walked anyway` : '') +
                     (entry.reason ? `\nreason: ${entry.reason}` : '');
                 const icon = document.createElement('span'); icon.className = 'icon'; el.appendChild(icon);
                 const tgt  = document.createElement('span'); tgt.className = 'target'; tgt.textContent = entry.target; el.appendChild(tgt);
                 if (entry.relationship_type) {
                     const rel = document.createElement('span'); rel.className = 'rel'; rel.textContent = entry.relationship_type; el.appendChild(rel);
+                }
+                if (entry.has_conflict) {
+                    const cb = document.createElement('span');
+                    cb.className = 'conflict-badge';
+                    cb.textContent = '⚠';
+                    cb.setAttribute('aria-label', 'conflict on parent field');
+                    el.appendChild(cb);
                 }
                 if (entry.state === 'skipped' && entry.reason) {
                     const r = document.createElement('span'); r.className = 'reason'; r.textContent = `(${entry.reason})`; el.appendChild(r);
