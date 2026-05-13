@@ -38,7 +38,7 @@ _PRESENCE_VALUES = {"yes", "no", "noAssertion"}
 # can apply the same filter without duplicating the constant.
 from aikaboom.utils.value_helpers import _NIL_VALUES, _is_nil_value  # noqa: F401, E402
 from aikaboom.utils.lineage import split_lineage_targets  # noqa: E402
-_AI_SAFETY_VALUES = {"low", "medium", "high", "serious"}
+_AI_SAFETY_VALUES = {"low", "medium", "high", "serious", "noAssertion"}
 _DATASET_AVAILABILITY_VALUES = {
     "clickthrough", "directDownload", "query", "registration", "scrapingScript",
 }
@@ -176,6 +176,12 @@ class SPDXValidator:
     #   Core properties: no prefix (name, suppliedBy, releaseTime, etc.)
     #   AI properties: ai_ prefix (ai_domain, ai_typeOfModel, etc.)
     #   Software properties: software_ prefix (software_downloadLocation, etc.)
+    # The BOM's RAG fields are keyed by question_type (camelCase, mirroring
+    # the SPDX 3.0.1 property suffix). Each entry below is the BOM key →
+    # SPDX property name. Snake_case aliases stay as a fallback so older
+    # callers that hand-rolled BOMs in the legacy format still export
+    # cleanly (the BOM emitted by the in-tree pipeline has always been
+    # camelCase, but external scripts in the wild may not).
     AI_FIELD_MAPPING = {
         # Direct fields (core + software namespace)
         "releaseTime": "releaseTime",
@@ -185,23 +191,44 @@ class SPDXValidator:
         "primaryPurpose": "software_primaryPurpose",
         "license": "license",
 
-        # RAG fields for AI models (ai_ namespace)
+        # RAG fields for AI models (ai_ namespace) — camelCase keys match
+        # the question_type IDs the pipeline emits into rag_fields.
         "model_name": "name",
-        "autonomy_type": "ai_autonomyType",
-        "domain": "ai_domain",
-        "energy_consumption": "ai_energyConsumption",
-        "hyperparameters": "ai_hyperparameter",
-        "intended_use": "ai_informationAboutApplication",
-        "training_information": "ai_informationAboutTraining",
-        "limitations": "ai_limitation",
-        "performance_metrics": "ai_metric",
-        "decision_threshold": "ai_metricDecisionThreshold",
-        "data_preprocessing": "ai_modelDataPreprocessing",
-        "model_explainability": "ai_modelExplainability",
-        "safety_risk_assessment": "ai_safetyRiskAssessment",
-        "standard_compliance": "ai_standardCompliance",
-        "model_type": "ai_typeOfModel",
-        "sensitive_personal_information": "ai_useSensitivePersonalInformation",
+        "autonomyType":                   "ai_autonomyType",
+        "domain":                         "ai_domain",
+        "energyConsumption":              "ai_energyConsumption",
+        "hyperparameter":                 "ai_hyperparameter",
+        "informationAboutApplication":    "ai_informationAboutApplication",
+        "informationAboutTraining":       "ai_informationAboutTraining",
+        "limitation":                     "ai_limitation",
+        "metric":                         "ai_metric",
+        "metricDecisionThreshold":        "ai_metricDecisionThreshold",
+        "modelDataPreprocessing":         "ai_modelDataPreprocessing",
+        "modelExplainability":            "ai_modelExplainability",
+        "safetyRiskAssessment":           "ai_safetyRiskAssessment",
+        "standardCompliance":             "ai_standardCompliance",
+        "typeOfModel":                    "ai_typeOfModel",
+        "useSensitivePersonalInformation": "ai_useSensitivePersonalInformation",
+    }
+
+    # Snake_case → camelCase aliases. Looked up in _rag_value() when the
+    # primary (camelCase) key is missing, so externally-authored BOMs
+    # that still use the old snake_case keys keep exporting correctly.
+    AI_RAG_FIELD_ALIASES = {
+        "autonomyType":                    ("autonomy_type",),
+        "energyConsumption":               ("energy_consumption",),
+        "hyperparameter":                  ("hyperparameters",),
+        "informationAboutApplication":     ("intended_use",),
+        "informationAboutTraining":        ("training_information",),
+        "limitation":                      ("limitations",),
+        "metric":                          ("performance_metrics",),
+        "metricDecisionThreshold":         ("decision_threshold",),
+        "modelDataPreprocessing":          ("data_preprocessing",),
+        "modelExplainability":             ("model_explainability",),
+        "safetyRiskAssessment":            ("safety_risk_assessment",),
+        "standardCompliance":              ("standard_compliance",),
+        "typeOfModel":                     ("model_type",),
+        "useSensitivePersonalInformation": ("sensitive_personal_information",),
     }
     
     # Field mappings for Dataset BOM
@@ -277,6 +304,27 @@ class SPDXValidator:
         if isinstance(field_data, dict) and "value" in field_data:
             return field_data["value"]
         return field_data
+
+    def _rag_get(self, rag_fields: Dict, key: str) -> Any:
+        """Look up an AI RAG field by its camelCase key, falling back to
+        any registered snake_case alias.
+
+        The in-tree pipeline emits camelCase keys (question_type IDs from
+        ``FIXED_QUESTIONS_AI``), but BOMs hand-rolled before the rename
+        used snake_case (``intended_use``, ``training_information``, …).
+        Both forms are supported here so the SPDX export covers the
+        complete set of provenance fields in either case.
+        """
+        if not isinstance(rag_fields, dict):
+            return None
+        triplet = rag_fields.get(key)
+        if triplet not in (None, "", {}):
+            return triplet
+        for alias in self.AI_RAG_FIELD_ALIASES.get(key, ()):
+            triplet = rag_fields.get(alias)
+            if triplet not in (None, "", {}):
+                return triplet
+        return None
 
     def _first_non_nil(self, *candidates: Any, default: Any = None) -> Any:
         """Return the first candidate whose unwrapped value is non-nil.
@@ -714,52 +762,82 @@ class SPDXValidator:
         model_name_value = self._extract_value(rag_fields.get("model_name"))
         ai_package["name"] = model_name_value or repo_id or "AI Model Name Placeholder"
 
+        # BOM RAG fields are keyed by camelCase question_type IDs. The
+        # snake_case aliases in AI_RAG_FIELD_ALIASES keep this working
+        # for externally-authored BOMs that still use the legacy spelling.
         scalar_mapping = {
-            "intended_use": "ai_informationAboutApplication",
-            "training_information": "ai_informationAboutTraining",
-            "limitations": "ai_limitation",
+            "informationAboutApplication": "ai_informationAboutApplication",
+            "informationAboutTraining":    "ai_informationAboutTraining",
+            "limitation":                  "ai_limitation",
+            "energyConsumption":           "ai_energyConsumption",
         }
         list_mapping = {
-            "domain": "ai_domain",
-            "data_preprocessing": "ai_modelDataPreprocessing",
-            "model_explainability": "ai_modelExplainability",
-            "standard_compliance": "ai_standardCompliance",
-            "model_type": "ai_typeOfModel",
+            "domain":                  "ai_domain",
+            "modelDataPreprocessing":  "ai_modelDataPreprocessing",
+            "modelExplainability":     "ai_modelExplainability",
+            "standardCompliance":      "ai_standardCompliance",
+            "typeOfModel":             "ai_typeOfModel",
         }
         dictionary_mapping = {
-            "hyperparameters": "ai_hyperparameter",
-            "performance_metrics": "ai_metric",
-            "decision_threshold": "ai_metricDecisionThreshold",
+            "hyperparameter":          "ai_hyperparameter",
+            "metric":                  "ai_metric",
+            "metricDecisionThreshold": "ai_metricDecisionThreshold",
         }
 
+        # When a field is populated in the BOM with a real value we emit
+        # that value. When the BOM explicitly says "noAssertion" (the LLM
+        # was asked and couldn't answer), we still emit the property with
+        # the SPDX-canonical ``"noAssertion"`` sentinel — losing the field
+        # entirely would hide audit-relevant information ("we asked, no
+        # source had data"). When the BOM is missing the field altogether,
+        # we skip it (no evidence that the question was even asked).
         for our_field, spdx_field in scalar_mapping.items():
-            value = self._extract_value(rag_fields.get(our_field))
-            if value not in (None, ""):
-                ai_package[spdx_field] = str(value)
+            triplet = self._rag_get(rag_fields, our_field)
+            if triplet is None:
+                continue
+            value = self._extract_value(triplet)
+            if value in (None, ""):
+                continue
+            text = str(value).strip()
+            if not text:
+                continue
+            ai_package[spdx_field] = "noAssertion" if _is_nil_value(text) else text
 
         for our_field, spdx_field in list_mapping.items():
-            values = [str(v) for v in self._as_list(rag_fields.get(our_field))]
+            triplet = self._rag_get(rag_fields, our_field)
+            if triplet is None:
+                continue
+            values = [str(v) for v in self._as_list(triplet)]
             if values:
                 ai_package[spdx_field] = values
+            elif _is_nil_value(self._extract_value(triplet)):
+                ai_package[spdx_field] = ["noAssertion"]
 
         for our_field, spdx_field in dictionary_mapping.items():
-            entries = self._dictionary_entries(rag_fields.get(our_field))
+            triplet = self._rag_get(rag_fields, our_field)
+            if triplet is None:
+                continue
+            entries = self._dictionary_entries(triplet)
             if entries:
                 ai_package[spdx_field] = entries
+            elif _is_nil_value(self._extract_value(triplet)):
+                ai_package[spdx_field] = [
+                    {"type": "DictionaryEntry", "key": "value", "value": "noAssertion"}
+                ]
 
-        autonomy = self._extract_value(rag_fields.get("autonomy_type"))
+        autonomy = self._extract_value(self._rag_get(rag_fields, "autonomyType"))
         if autonomy not in (None, ""):
             ai_package["ai_autonomyType"] = self._normalize_enum(
                 autonomy, _PRESENCE_VALUES, "noAssertion"
             )
 
-        sensitive_pii = self._extract_value(rag_fields.get("sensitive_personal_information"))
+        sensitive_pii = self._extract_value(self._rag_get(rag_fields, "useSensitivePersonalInformation"))
         if sensitive_pii not in (None, ""):
             ai_package["ai_useSensitivePersonalInformation"] = self._normalize_enum(
                 sensitive_pii, _PRESENCE_VALUES, "noAssertion"
             )
 
-        safety = self._extract_value(rag_fields.get("safety_risk_assessment"))
+        safety = self._extract_value(self._rag_get(rag_fields, "safetyRiskAssessment"))
         if safety not in (None, ""):
             normalized_safety = self._normalize_enum(safety, _AI_SAFETY_VALUES, "")
             if normalized_safety:
