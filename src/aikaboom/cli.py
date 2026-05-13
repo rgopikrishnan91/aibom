@@ -394,12 +394,14 @@ def cmd_generate(args):
         enriched_count = sum(
             1 for n in recursive_result["generated"] if n.get("enriched")
         )
+        conflict_count = len(recursive_result.get("conflict_walked")
+                              or recursive_result.get("skipped_due_to_conflict") or [])
         print(
             f"Recursive BOM beta (depth={depth_label}) walked "
             f"{recursive_result['deepest_level_reached']} level(s) and emitted "
             f"{recursive_result['generated_count']} child BOM(s) "
-            f"({enriched_count} enriched); skipped "
-            f"{len(recursive_result['skipped_due_to_conflict'])} field(s)."
+            f"({enriched_count} enriched); "
+            f"{conflict_count} field(s) flagged for conflict (walked with ⚠)."
         )
 
         if args.linked_bom_output:

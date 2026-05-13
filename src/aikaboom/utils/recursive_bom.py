@@ -160,12 +160,28 @@ def discover_recursive_targets(
     metadata: Dict[str, Any],
     bom_type: str = "ai",
 ) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
-    """Find conflict-free relationship targets that can seed child BOMs.
+    """Find relationship targets that can seed child BOMs.
 
-    Returns ``(targets, audit)`` where ``audit`` lists fields skipped
-    because the parent BOM reported a conflict on that relationship.
+    Returns ``(targets, audit)``. Every target the parent reports is
+    returned — including ones whose source field carries a conflict.
+    Conflict-flagged targets are tagged with ``has_conflict=True`` and a
+    ``conflict`` dict so downstream consumers (UI, CLI) can mark the edge
+    without truncating the walk. ``audit['conflict_flagged']`` lists the
+    fields that surfaced any conflicts (useful for summary text).
+
+    This contract changed in the recursive-progress branch: the walker
+    used to skip-and-continue on any conflict, which made it impossible
+    to reach depth 3+ whenever a depth-2 model's ``modelLineage`` was
+    auditor-flagged. Conflicts are now per-edge metadata, not a gate.
     """
-    audit: Dict[str, Any] = {"skipped_due_to_conflict": [], "considered": []}
+    audit: Dict[str, Any] = {
+        "conflict_flagged": [],
+        # Back-compat alias for older callers (CLI, third-party readers
+        # of the recursive result). The new walker no longer actually
+        # skips on conflict — these are walked-with-conflict edges.
+        "skipped_due_to_conflict": [],
+        "considered": [],
+    }
     if bom_type == "ai":
         relationship_map = AI_RELATIONSHIP_FIELDS
     elif bom_type == "data":
@@ -197,13 +213,14 @@ def discover_recursive_targets(
 
         conflict = _conflict_of(triplet)
         if conflict is not None:
-            audit["skipped_due_to_conflict"].append({
+            flagged_entry = {
                 "field": field,
                 "relationship_type": relationship_type,
                 "reason": "conflict-detected",
                 "conflict": conflict,
-            })
-            continue
+            }
+            audit["conflict_flagged"].append(flagged_entry)
+            audit["skipped_due_to_conflict"].append(flagged_entry)
 
         for target in _split_targets(triplet, parent_identifier=parent_id):
             if not _is_walkable_target(target):
@@ -215,6 +232,10 @@ def discover_recursive_targets(
                 "bom_type": child_bom_type,
                 "parent": parent_id,
                 "resolvable_hint": "/" in target and " " not in target,
+                # Per-edge conflict marker so the UI can render a ⚠ badge
+                # and downstream BOM consumers can audit the lineage.
+                "has_conflict": conflict is not None,
+                "conflict": conflict,
             })
 
     return targets, audit
@@ -348,7 +369,10 @@ def generate_recursive_boms(
     visited: Set[Tuple[str, str]] = {_visit_key(bom_type, parent_id)}
 
     generated: List[Dict[str, Any]] = []
-    skipped: List[Dict[str, Any]] = []
+    # ``safety_capped`` is targets dropped because the cap was hit; the old
+    # name ``skipped`` lumped these in with conflict-skipped fields. With
+    # conflicts now walked-through, this list is cleanly cap-only.
+    safety_capped: List[Dict[str, Any]] = []
     duplicates: List[Dict[str, Any]] = []
 
     # Frontier of (parent_metadata, parent_target_label, parent_bom_type, current_depth)
@@ -370,6 +394,8 @@ def generate_recursive_boms(
         "safety_cap": safety_cap,
     })
 
+    conflict_walked: List[Dict[str, Any]] = []
+
     while frontier:
         parent_meta, parent_label, parent_bom_type, depth = frontier.pop(0)
         if depth >= max_depth:
@@ -377,22 +403,15 @@ def generate_recursive_boms(
             targets, audit = discover_recursive_targets(parent_meta, bom_type=parent_bom_type)
             if targets:
                 tree_exhausted = False
-            for skip in audit.get("skipped_due_to_conflict", []):
-                skipped.append({**skip, "parent": parent_label, "depth": depth + 1})
+            for fld in audit.get("conflict_flagged", []):
+                conflict_walked.append({**fld, "parent": parent_label, "depth": depth + 1, "truncated": True})
             continue
 
         targets, audit = discover_recursive_targets(parent_meta, bom_type=parent_bom_type)
-        for skip in audit.get("skipped_due_to_conflict", []):
-            skipped.append({**skip, "parent": parent_label, "depth": depth + 1})
-            _emit_event({
-                "event": "recursive.child.skipped",
-                "target": skip.get("field") or skip.get("target") or "unknown",
-                "bom_type": skip.get("bom_type"),
-                "relationship_type": skip.get("relationship_type"),
-                "parent": parent_label,
-                "depth": depth + 1,
-                "reason": skip.get("reason") or "conflict",
-            })
+        # Record fields that surfaced conflicts (walked anyway — kept here
+        # for the summary/audit; no longer drives skip behaviour).
+        for fld in audit.get("conflict_flagged", []):
+            conflict_walked.append({**fld, "parent": parent_label, "depth": depth + 1})
 
         for t in targets:
             if len(generated) >= safety_cap:
@@ -400,7 +419,7 @@ def generate_recursive_boms(
                 # descending. Without this, the walker could blow up on a
                 # densely connected dependency graph under EXHAUST_DEPTH.
                 tree_exhausted = False
-                skipped.append({
+                safety_capped.append({
                     "target": t["target"],
                     "bom_type": t["bom_type"],
                     "relationship_type": t["relationship_type"],
@@ -442,7 +461,9 @@ def generate_recursive_boms(
 
             # Tell the UI a new child is queued and about to start. We emit
             # discovered + start back-to-back since each target moves
-            # immediately into enrichment in this BFS loop.
+            # immediately into enrichment in this BFS loop. ``has_conflict``
+            # is per-edge metadata so the chip can render a ⚠ marker without
+            # blocking the walk.
             _emit_event({
                 "event": "recursive.target.discovered",
                 "target": t["target"],
@@ -450,6 +471,7 @@ def generate_recursive_boms(
                 "relationship_type": t["relationship_type"],
                 "parent": parent_label,
                 "depth": depth + 1,
+                "has_conflict": t.get("has_conflict", False),
             })
             _emit_event({
                 "event": "recursive.child.start",
@@ -458,6 +480,7 @@ def generate_recursive_boms(
                 "relationship_type": t["relationship_type"],
                 "parent": parent_label,
                 "depth": depth + 1,
+                "has_conflict": t.get("has_conflict", False),
             })
             _child_t0 = time.time()
 
@@ -507,7 +530,8 @@ def generate_recursive_boms(
         "parent": parent_id,
         "duration_ms": int((time.time() - _recursive_t0) * 1000),
         "generated_count": len(generated),
-        "skipped_count": len(skipped),
+        "conflict_walked_count": len(conflict_walked),
+        "safety_capped_count": len(safety_capped),
         "duplicate_count": len(duplicates),
         "deepest_level_reached": deepest,
         "tree_exhausted": tree_exhausted,
@@ -518,10 +542,17 @@ def generate_recursive_boms(
         "max_depth": max_depth,
         "deepest_level_reached": deepest,
         "tree_exhausted": tree_exhausted,
-        "strategy": "conflict-gated dependency-tree recursion",
+        "strategy": "conflict-tagged dependency-tree recursion",
         "generated_count": len(generated),
         "generated": generated,
-        "skipped_due_to_conflict": skipped,
+        # Edges that were walked despite a parent-field conflict — UI shows
+        # a ⚠ on these chips; consumers can audit the lineage. Kept under
+        # the old key name (skipped_due_to_conflict) as an alias for
+        # back-compat with the CLI summary line; semantically it now means
+        # "conflict-flagged walked edges" rather than "skipped".
+        "conflict_walked": conflict_walked,
+        "skipped_due_to_conflict": conflict_walked,
+        "safety_capped": safety_capped,
         "duplicates": duplicates,
         "visited": sorted(f"{bt}:{name}" for bt, name in visited),
         "warnings": [
@@ -529,8 +560,9 @@ def generate_recursive_boms(
             "Each level walks the unique-target set: trainedOn/testedOn "
             "produce data BOM leaves; modelLineage produces AI BOM nodes "
             "that may themselves have dependencies.",
-            "Fields with internal/external conflicts are skipped; resolve "
-            "the conflict in the parent BOM before recursing.",
+            "Edges from conflict-flagged parent fields are walked anyway "
+            "and tagged with has_conflict=True so downstream consumers "
+            "can flag them; resolve the parent conflict to lock the edge.",
             "Without an enrich callback, children only carry seed metadata "
             "and the tree usually terminates after one level. Provide a "
             "real enricher to walk the full dependency tree.",

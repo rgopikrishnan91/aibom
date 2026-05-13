@@ -39,19 +39,30 @@ def test_discover_recursive_targets_from_clean_relationships():
     assert targets[-1]["resolvable_hint"] is True
 
 
-def test_internal_conflict_blocks_recursion():
+def test_internal_conflict_flags_edge_but_walks_target():
+    """A field with an internal conflict no longer blocks recursion — the
+    target is still walked, just tagged with has_conflict so the UI/CLI
+    can mark the edge. (Changed from skip-on-conflict so depth 3+ can
+    still be reached when a depth-2 model's lineage is auditor-flagged.)"""
     metadata = {"rag_fields": {"trainedOnDatasets": _conflict_triplet("squad", "internal")}}
     targets, audit = discover_recursive_targets(metadata, bom_type="ai")
-    assert targets == []
-    assert audit["skipped_due_to_conflict"][0]["field"] == "trainedOnDatasets"
-    assert audit["skipped_due_to_conflict"][0]["reason"] == "conflict-detected"
+    assert len(targets) == 1
+    assert targets[0]["target"] == "squad"
+    assert targets[0]["has_conflict"] is True
+    assert audit["conflict_flagged"][0]["field"] == "trainedOnDatasets"
+    assert audit["conflict_flagged"][0]["reason"] == "conflict-detected"
+    # Back-compat alias still points at the same data
+    assert audit["skipped_due_to_conflict"] == audit["conflict_flagged"]
 
 
-def test_external_conflict_blocks_recursion():
+def test_external_conflict_flags_edge_but_walks_target():
+    """modelLineage with an external conflict — same: walked with ⚠."""
     metadata = {"rag_fields": {"modelLineage": _conflict_triplet("meta-llama/Llama-2", "external")}}
     targets, audit = discover_recursive_targets(metadata, bom_type="ai")
-    assert targets == []
-    assert audit["skipped_due_to_conflict"][0]["field"] == "modelLineage"
+    assert len(targets) == 1
+    assert targets[0]["has_conflict"] is True
+    assert targets[0]["relationship_type"] == "dependsOn"
+    assert audit["conflict_flagged"][0]["field"] == "modelLineage"
 
 
 def test_depth_zero_returns_no_targets():
@@ -247,7 +258,8 @@ def test_warns_about_resource_cost_in_payload():
     # All four bullets we promise users must be present.
     assert "beta" in joined
     assert "unique-target set" in joined
-    assert "conflict" in joined and "skipped" in joined
+    # New warning text covers conflict-walked edges (walked, not skipped).
+    assert "conflict" in joined and "walked" in joined
     assert "enrich" in joined  # documents the enrich_fn escape hatch
 
 
@@ -329,10 +341,10 @@ def test_diamond_dependency_visits_target_once():
     assert any(d["target"] == "shared" for d in out["duplicates"])
 
 
-def test_string_shaped_conflict_blocks_recursion():
-    """The validator must reject conflict values that aren't the RAG dict
-    shape — e.g. a free-form string from SourceHandler — as long as it is
-    not a 'no'-prefixed signal."""
+def test_string_shaped_conflict_flags_edge():
+    """The validator still recognises string-shaped conflict values (e.g.
+    "github: squad-v2" from SourceHandler) as real conflicts — the edge
+    is now walked but tagged ``has_conflict=True``."""
     metadata = {
         "rag_fields": {
             "trainedOnDatasets": {
@@ -343,8 +355,9 @@ def test_string_shaped_conflict_blocks_recursion():
         },
     }
     targets, audit = discover_recursive_targets(metadata, bom_type="ai")
-    assert targets == []
-    assert audit["skipped_due_to_conflict"][0]["conflict"]["type"] == "inter"
+    assert len(targets) == 1
+    assert targets[0]["has_conflict"] is True
+    assert audit["conflict_flagged"][0]["conflict"]["type"] == "inter"
 
 
 def test_no_conflict_string_does_not_block_recursion():
@@ -492,9 +505,9 @@ def test_linked_spdx_bundle_validates_after_multi_level_walk():
 def test_exhaust_mode_hits_safety_cap():
     """Under EXHAUST_DEPTH, an ever-fanning enrich callback must terminate at
     ``safety_cap`` rather than running forever. The walker records the
-    cut-off in ``skipped_due_to_conflict`` with reason ``safety-cap-reached``
-    and flips ``tree_exhausted`` to False so the auditor can see the walk
-    was bounded, not natural."""
+    cut-off in ``safety_capped`` (separated from conflict-walked edges in
+    the conflict-tagged refactor) and flips ``tree_exhausted`` to False so
+    the auditor can see the walk was bounded, not natural."""
     counter = {"n": 0}
 
     def enrich(target):
@@ -525,16 +538,17 @@ def test_exhaust_mode_hits_safety_cap():
         f"expected exactly safety_cap nodes, got {out['generated_count']}"
     )
     assert out["tree_exhausted"] is False
-    capped = [s for s in out["skipped_due_to_conflict"]
+    capped = [s for s in out.get("safety_capped", [])
               if s.get("reason") == "safety-cap-reached"]
-    assert capped, "safety-cap-reached entries must be recorded in skipped"
+    assert capped, "safety-cap-reached entries must be recorded in safety_capped"
 
 
-def test_conflict_gating_under_phase4_structured_shape():
+def test_conflict_flagging_under_phase4_structured_shape():
     """Phase 4's conflict trace can land in the triplet under a richer
     ``{type: "intra"|"inter", ...}`` shape (no legacy ``internal`` /
-    ``external`` strings). ``_conflict_of`` must still flag it so the
-    walker skips the field instead of recursing into a contradiction."""
+    ``external`` strings). ``_conflict_of`` must still recognise it so the
+    walker tags the edge with has_conflict=True (instead of the old
+    skip-and-continue behaviour)."""
     metadata = {
         "rag_fields": {
             "trainedOnDatasets": {
@@ -549,5 +563,6 @@ def test_conflict_gating_under_phase4_structured_shape():
         },
     }
     targets, audit = discover_recursive_targets(metadata, bom_type="ai")
-    assert targets == []
-    assert audit["skipped_due_to_conflict"][0]["field"] == "trainedOnDatasets"
+    assert len(targets) == 1
+    assert targets[0]["has_conflict"] is True
+    assert audit["conflict_flagged"][0]["field"] == "trainedOnDatasets"
