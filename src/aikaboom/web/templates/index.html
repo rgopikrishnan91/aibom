@@ -2616,6 +2616,23 @@
                 if (ctx >= 1000) return Math.round(ctx / 1000) + 'K';
                 return String(ctx);
             }
+            // OpenRouter pricing is { prompt, completion } in $/token as
+            // strings. Convert to $/Mtok (industry-standard display).
+            // Returns "" for missing pricing, "free" for zero-cost models.
+            function fmtPrice(pricing) {
+                if (!pricing) return '';
+                const inP  = parseFloat(pricing.prompt || '0');
+                const outP = parseFloat(pricing.completion || '0');
+                if (!isFinite(inP) || !isFinite(outP)) return '';
+                if (inP === 0 && outP === 0) return 'free';
+                const per = v => {
+                    const m = v * 1e6;
+                    if (m >= 100) return '$' + m.toFixed(0);
+                    if (m >= 10)  return '$' + m.toFixed(1);
+                    return '$' + m.toFixed(2);
+                };
+                return `${per(inP)} in / ${per(outP)} out per Mtok`;
+            }
             function applySelectedModel() {
                 if (select.value === '__custom__') {
                     hidden.style.display = '';
@@ -2642,8 +2659,14 @@
                     models.forEach(m => {
                         const opt = document.createElement('option');
                         opt.value = m.id;
-                        const ctx = fmtCtx(m.context_length);
-                        opt.textContent = ctx ? `${m.name || m.id} (ctx: ${ctx})` : (m.name || m.id);
+                        const ctx   = fmtCtx(m.context_length);
+                        const price = fmtPrice(m.pricing);
+                        const meta  = [];
+                        if (ctx)   meta.push(`ctx: ${ctx}`);
+                        if (price) meta.push(price);
+                        opt.textContent = meta.length
+                            ? `${m.name || m.id} — ${meta.join(' · ')}`
+                            : (m.name || m.id);
                         select.appendChild(opt);
                     });
                     const customOpt = document.createElement('option');
