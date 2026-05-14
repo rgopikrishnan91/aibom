@@ -374,6 +374,12 @@ def generate_recursive_boms(
     # conflicts now walked-through, this list is cleanly cap-only.
     safety_capped: List[Dict[str, Any]] = []
     duplicates: List[Dict[str, Any]] = []
+    # ``unmaterialized`` are targets we discovered but didn't enrich — either
+    # because ``max_depth`` cut us off, or the ``safety_cap`` was already hit.
+    # The UI renders these as greyed chips with a right-click "Generate"
+    # affordance so the user can extend the tree on demand without re-running
+    # the whole walker.
+    unmaterialized: List[Dict[str, Any]] = []
 
     # Frontier of (parent_metadata, parent_target_label, parent_bom_type, current_depth)
     frontier: List[Tuple[Dict[str, Any], str, str, int]] = []
@@ -399,12 +405,29 @@ def generate_recursive_boms(
     while frontier:
         parent_meta, parent_label, parent_bom_type, depth = frontier.pop(0)
         if depth >= max_depth:
-            # We could still discover more but are truncating
+            # We could still discover more but are truncating. Surface the
+            # unwalked targets as ``unmaterialized`` chips so the UI can show
+            # them greyed and let the user pop one out on demand via the
+            # /process/recursive/enrich-node endpoint.
             targets, audit = discover_recursive_targets(parent_meta, bom_type=parent_bom_type)
             if targets:
                 tree_exhausted = False
             for fld in audit.get("conflict_flagged", []):
                 conflict_walked.append({**fld, "parent": parent_label, "depth": depth + 1, "truncated": True})
+            for t in targets:
+                entry = {
+                    "target": t["target"],
+                    "bom_type": t["bom_type"],
+                    "relationship_type": t["relationship_type"],
+                    "parent": parent_label,
+                    "depth": depth + 1,
+                    "reason": "max-depth-reached",
+                    "has_conflict": t.get("has_conflict", False),
+                    "source_field": t.get("source_field"),
+                    "resolvable_hint": t.get("resolvable_hint", False),
+                }
+                unmaterialized.append(entry)
+                _emit_event({"event": "recursive.target.unmaterialized", **entry})
             continue
 
         targets, audit = discover_recursive_targets(parent_meta, bom_type=parent_bom_type)
@@ -442,8 +465,7 @@ def generate_recursive_boms(
                     "parent": parent_label,
                     "depth": depth + 1,
                 })
-                _emit_event({
-                    "event": "recursive.child.skipped",
+                entry = {
                     "target": t["target"],
                     "bom_type": t["bom_type"],
                     "relationship_type": t["relationship_type"],
@@ -451,7 +473,14 @@ def generate_recursive_boms(
                     "depth": depth + 1,
                     "reason": "safety-cap-reached",
                     "has_conflict": t.get("has_conflict", False),
-                })
+                    "source_field": t.get("source_field"),
+                    "resolvable_hint": t.get("resolvable_hint", False),
+                }
+                unmaterialized.append(entry)
+                # Emit ``unmaterialized`` instead of ``child.skipped`` for
+                # safety-cap hits — the user can right-click to materialize
+                # one past the cap, so it's not a final skip.
+                _emit_event({"event": "recursive.target.unmaterialized", **entry})
                 continue
             key = _visit_key(t["bom_type"], t["target"])
             if key in visited:
@@ -552,6 +581,7 @@ def generate_recursive_boms(
         "conflict_walked_count": len(conflict_walked),
         "safety_capped_count": len(safety_capped),
         "duplicate_count": len(duplicates),
+        "unmaterialized_count": len(unmaterialized),
         "deepest_level_reached": deepest,
         "tree_exhausted": tree_exhausted,
     })
@@ -573,6 +603,10 @@ def generate_recursive_boms(
         "skipped_due_to_conflict": conflict_walked,
         "safety_capped": safety_capped,
         "duplicates": duplicates,
+        # Discovered-but-not-walked targets: depth cap or safety cap. The UI
+        # surfaces these as greyed chips with a right-click "Generate"
+        # affordance that POSTs to /process/recursive/enrich-node.
+        "unmaterialized": unmaterialized,
         "visited": sorted(f"{bt}:{name}" for bt, name in visited),
         "warnings": [
             "Recursive BOM generation is beta.",
