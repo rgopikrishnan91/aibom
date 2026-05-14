@@ -395,16 +395,34 @@ def generate_recursive_boms(
     })
 
     conflict_walked: List[Dict[str, Any]] = []
+    depth_truncated: List[Dict[str, Any]] = []
 
     while frontier:
         parent_meta, parent_label, parent_bom_type, depth = frontier.pop(0)
         if depth >= max_depth:
-            # We could still discover more but are truncating
+            # We could still discover more but are truncating. Emit a
+            # skipped event per target so the Stage 2 UI shows them as muted
+            # chips (with reason='depth-limit') instead of silently dropping
+            # them — users couldn't tell otherwise that the tree could have
+            # gone deeper. The chips also become candidates for the
+            # right-click "Generate this BOM" action.
             targets, audit = discover_recursive_targets(parent_meta, bom_type=parent_bom_type)
             if targets:
                 tree_exhausted = False
             for fld in audit.get("conflict_flagged", []):
                 conflict_walked.append({**fld, "parent": parent_label, "depth": depth + 1, "truncated": True})
+            for t in targets:
+                entry = {
+                    "target": t["target"],
+                    "bom_type": t["bom_type"],
+                    "relationship_type": t["relationship_type"],
+                    "parent": parent_label,
+                    "depth": depth + 1,
+                    "reason": "depth-limit",
+                    "has_conflict": t.get("has_conflict", False),
+                }
+                depth_truncated.append(entry)
+                _emit_event({"event": "recursive.child.skipped", **entry})
             continue
 
         targets, audit = discover_recursive_targets(parent_meta, bom_type=parent_bom_type)
@@ -551,6 +569,7 @@ def generate_recursive_boms(
         "generated_count": len(generated),
         "conflict_walked_count": len(conflict_walked),
         "safety_capped_count": len(safety_capped),
+        "depth_truncated_count": len(depth_truncated),
         "duplicate_count": len(duplicates),
         "deepest_level_reached": deepest,
         "tree_exhausted": tree_exhausted,
@@ -572,6 +591,11 @@ def generate_recursive_boms(
         "conflict_walked": conflict_walked,
         "skipped_due_to_conflict": conflict_walked,
         "safety_capped": safety_capped,
+        # Targets discovered at the max_depth boundary that weren't walked.
+        # The UI renders them as muted chips with a 'depth-limit' reason and
+        # offers a right-click "Generate this BOM" action via the
+        # /recursive/generate-one endpoint.
+        "depth_truncated": depth_truncated,
         "duplicates": duplicates,
         "visited": sorted(f"{bt}:{name}" for bt, name in visited),
         "warnings": [

@@ -1047,6 +1047,108 @@ def process():
         }), 500
 
 
+@app.route('/recursive/generate-one', methods=['POST'])
+def generate_one_recursive_child():
+    """Generate a single child BOM on demand (triggered from the Stage 2
+    right-click / ▶ icon on a muted chip).
+
+    The walker's max-depth / safety-cap / duplicate logic naturally leaves
+    chips as "skipped" — this endpoint lets the user manually resolve one
+    of them without rerunning the whole walk.
+
+    Body (JSON):
+        target, bom_type, relationship_type, parent, depth   — target spec
+        use_case, mode, llm_provider, model, openrouter_model — same as /process
+
+    Emits standard recursive.child.start / recursive.child.done events so
+    the existing Stage 2 controller transitions the chip in place.
+    """
+    import time as _time
+    from aikaboom.utils.pipeline_events import emit as _emit_pipeline_event
+    from aikaboom.utils.recursive_enrich import build_enrich_fn
+    # Flip the event flag in case this is the first request (the same
+    # toggle the /process route uses, kept idempotent).
+    _pipeline_events.EMIT_EVENTS = True
+
+    try:
+        data = request.get_json(silent=True)
+        if not data or not isinstance(data, dict):
+            return jsonify({'status': 'error', 'message': 'Request must be JSON'}), 400
+
+        target = (data.get('target') or '').strip()
+        if not target:
+            return jsonify({'status': 'error', 'message': 'target required'}), 400
+        child_bom_type = (data.get('bom_type') or 'data').strip().lower()
+        if child_bom_type not in ('ai', 'data'):
+            child_bom_type = 'data'
+        relationship_type = data.get('relationship_type') or ''
+        parent = data.get('parent') or ''
+        depth = int(data.get('depth') or 1)
+
+        use_case = normalize_use_case(data.get('use_case', 'complete'), child_bom_type)
+        mode = (data.get('mode') or 'rag').strip().lower()
+        if mode not in ('rag', 'direct'):
+            mode = 'rag'
+        llm_provider = (data.get('llm_provider') or 'openrouter').strip().lower()
+        if llm_provider not in ('openai', 'ollama', 'openrouter'):
+            llm_provider = 'openrouter'
+        model = (data.get('model') or data.get('openrouter_model')
+                 or 'qwen/qwen-2.5-72b-instruct').strip()
+
+        target_spec = {
+            'target': target,
+            'bom_type': child_bom_type,
+            'relationship_type': relationship_type,
+            'parent': parent,
+            'source_field': data.get('source_field') or '',
+        }
+
+        _emit_pipeline_event({
+            'event': 'recursive.child.start',
+            'target': target, 'bom_type': child_bom_type,
+            'relationship_type': relationship_type,
+            'parent': parent, 'depth': depth,
+            'has_conflict': bool(data.get('has_conflict')),
+            'manual': True,
+        })
+        t0 = _time.time()
+
+        enrich_fn = build_enrich_fn(
+            use_case=use_case, mode=mode,
+            llm_provider=llm_provider, model=model,
+        )
+        try:
+            child_metadata = enrich_fn(target_spec)
+            error = None
+        except Exception as exc:
+            child_metadata = None
+            error = str(exc)
+            import traceback
+            print(traceback.format_exc())
+
+        _emit_pipeline_event({
+            'event': 'recursive.child.done',
+            'target': target, 'bom_type': child_bom_type,
+            'relationship_type': relationship_type,
+            'parent': parent, 'depth': depth,
+            'enriched': child_metadata is not None,
+            'error': error,
+            'has_conflict': bool(data.get('has_conflict')),
+            'manual': True,
+            'duration_ms': int((_time.time() - t0) * 1000),
+        })
+
+        return jsonify({
+            'status': 'success' if child_metadata else 'failed',
+            'metadata': child_metadata,
+            'error': error,
+        })
+    except Exception as exc:
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({'status': 'error', 'message': str(exc)}), 500
+
+
 @app.route('/history', methods=['GET'])
 def list_history():
     """Return the BOM history ledger (most recent first)."""
