@@ -176,6 +176,25 @@
             color: var(--primary-deep);
             margin-bottom: 10px;
         }
+        /* Inline eyebrow + "Clear saved inputs" link so the form pane has a
+           one-line affordance to discard persisted state. */
+        .form-pane-eyebrow {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .form-pane-eyebrow .pane-eyebrow { margin-bottom: 0; }
+        .form-pane-clear {
+            font-size: 11.5px;
+            color: var(--paper-mute);
+            text-decoration: none;
+        }
+        .form-pane-clear:hover {
+            color: var(--conflict-high);
+            text-decoration: underline;
+        }
+        .form-pane-clear[hidden] { display: none; }
         .pane-title {
             font-family: var(--sans);
             font-weight: 600;
@@ -2757,7 +2776,13 @@
     <main class="shell">
         <!-- =================================================== FORM PANE -->
         <section class="form-pane">
-            <div class="pane-eyebrow">Generator</div>
+            <div class="form-pane-eyebrow">
+                <span class="pane-eyebrow">Generator</span>
+                <button type="button" id="clearSavedInputsBtn" class="link-btn form-pane-clear"
+                        hidden title="Discard the form values restored from your last browser session">
+                    Clear saved inputs
+                </button>
+            </div>
             <h1 class="pane-title">Build a Bill of Materials.</h1>
             <p class="pane-lead">
                 Aggregate metadata from HuggingFace, GitHub, and arXiv.
@@ -6288,8 +6313,120 @@
             });
         });
 
+        // ===== Form-state persistence (localStorage) ============================
+        // Survives browser refresh so a user who reloads doesn't lose what they
+        // typed. Save on every change; hydrate once on DOMContentLoaded; clear
+        // when the user explicitly resets or clicks "Clear saved inputs".
+        const FORM_STORAGE_KEY = 'aikaboom.form.v1';
+
+        function _captureForm() {
+            const out = {};
+            form.querySelectorAll('input, select, textarea').forEach(el => {
+                if (el.type === 'radio') {
+                    // Persist the chosen value per radio-group name.
+                    if (el.checked && el.name) {
+                        out['radio:' + el.name] = el.value;
+                    }
+                } else if (el.type === 'checkbox') {
+                    if (el.id) out['cb:' + el.id] = el.checked;
+                } else {
+                    if (el.id) out['v:' + el.id] = el.value;
+                }
+            });
+            return out;
+        }
+
+        function _applyForm(state) {
+            if (!state || typeof state !== 'object') return;
+            Object.entries(state).forEach(([key, value]) => {
+                if (key.startsWith('radio:')) {
+                    const name = key.slice(6);
+                    const radio = document.querySelector(
+                        `input[type=radio][name="${name}"][value="${value}"]`
+                    );
+                    if (radio) {
+                        radio.checked = true;
+                        // Re-fire change so visibility toggles (e.g. AI vs
+                        // Data input groups) sync to the restored radio.
+                        radio.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                } else if (key.startsWith('cb:')) {
+                    const el = document.getElementById(key.slice(3));
+                    if (el) el.checked = !!value;
+                } else if (key.startsWith('v:')) {
+                    const el = document.getElementById(key.slice(2));
+                    if (el) el.value = value;
+                }
+            });
+            // The use-case dropdown has a separate visible label that's not
+            // wired to the hidden input's change event — sync it explicitly.
+            _syncUseCaseLabel();
+        }
+
+        function _syncUseCaseLabel() {
+            const v = useCaseInput.value || 'complete';
+            const opt = document.querySelector(`.dropdown-option[data-value="${v}"]`);
+            if (!opt) return;
+            useCaseLabelSpan.textContent = opt.textContent.split('—')[0].trim();
+            document.querySelectorAll('.dropdown-option').forEach(o => o.classList.remove('selected'));
+            opt.classList.add('selected');
+        }
+
+        function _saveFormStorage() {
+            try {
+                localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(_captureForm()));
+            } catch (_) { /* unavailable / quota — silently noop */ }
+        }
+        function _loadFormStorage() {
+            try {
+                const raw = localStorage.getItem(FORM_STORAGE_KEY);
+                return raw ? JSON.parse(raw) : null;
+            } catch (_) { return null; }
+        }
+        function _clearFormStorage() {
+            try { localStorage.removeItem(FORM_STORAGE_KEY); } catch (_) {}
+            const link = document.getElementById('clearSavedInputsBtn');
+            if (link) link.hidden = true;
+        }
+
+        function _hydrateFromStorage() {
+            const saved = _loadFormStorage();
+            if (!saved || !Object.keys(saved).length) return false;
+            _applyForm(saved);
+            const link = document.getElementById('clearSavedInputsBtn');
+            if (link) link.hidden = false;
+            return true;
+        }
+
+        form.addEventListener('input',  _saveFormStorage);
+        form.addEventListener('change', _saveFormStorage);
+        // Use-case dropdown writes to a hidden input which doesn't fire input/
+        // change events on its own — pick up its writes via a click on options.
+        document.querySelectorAll('.dropdown-option').forEach(o => {
+            o.addEventListener('click', () => setTimeout(_saveFormStorage, 0));
+        });
+
+        document.getElementById('clearSavedInputsBtn')?.addEventListener('click', () => {
+            _clearFormStorage();
+            // Wipe the form back to defaults so the user sees the effect.
+            form.reset();
+            useCaseInput.value = 'complete';
+            _syncUseCaseLabel();
+            showStatus('success', 'Saved inputs cleared.');
+        });
+
+        // Hydrate on first paint. Setting `defer`-style by running at DCL so
+        // every input element is in the DOM. Saved state always wins over the
+        // server-rendered defaults (the user explicitly typed it last time).
+        document.addEventListener('DOMContentLoaded', () => {
+            _hydrateFromStorage();
+        });
+
         function resetForm() {
             form.reset();
+            // Wipe persisted state so a reload after Reset doesn't bring back
+            // the cleared inputs.
+            _clearFormStorage();
             statusDiv.style.display = 'none';
             downloadButtons.style.display = 'none';
             [downloadComplete, downloadSPDX, downloadCDX, downloadRecursive, downloadLinked].forEach(b => b.style.display = 'none');
