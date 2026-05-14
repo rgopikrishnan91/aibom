@@ -769,6 +769,126 @@ def test_stage2_conflict_flagged_chip_shows_badge(page):
     assert chip.locator(".conflict-badge").count() == 1
 
 
+def _reveal_pipeline(page):
+    """Tests that need a *visible* chip/button must drop the splash class
+    AND activate the Pipeline tab — the tab is otherwise display:none."""
+    page.evaluate("document.getElementById('resultPane').classList.remove('is-empty')")
+    page.evaluate("switchTabByName('pipeline')")
+    page.wait_for_timeout(40)
+
+
+def test_stage2_depth_limit_chip_renders_with_play_button(page):
+    """A depth-truncated chip (reason='depth-limit') renders as muted and
+    sports a ▶ play button so the user can manually generate that BOM via
+    the /recursive/generate-one endpoint."""
+    _reveal_pipeline(page)
+    page.evaluate("(e) => Pipeline.handleEvent(e)",
+                  {"event": "recursive.start", "parent": "p", "bom_type": "ai",
+                   "max_depth": 1, "safety_cap": 10})
+    page.evaluate("(e) => Pipeline.handleEvent(e)", {
+        "event": "recursive.child.skipped",
+        "target": "deep/leaf", "bom_type": "data",
+        "relationship_type": "trainedOn", "depth": 2,
+        "parent": "p", "reason": "depth-limit",
+    })
+    page.wait_for_timeout(80)
+    chip = page.locator('.stage2-chip[data-target="deep/leaf"]')
+    assert chip.get_attribute("data-state") == "skipped"
+    assert chip.get_attribute("data-reason") == "depth-limit"
+    play = chip.locator(".play-btn")
+    assert play.count() == 1
+    assert play.is_visible()
+
+
+def test_stage2_play_button_hidden_on_non_muted_chips(page):
+    """Only muted chips (skipped, error) carry the ▶ play button —
+    chips in pending/running/done states should not."""
+    _reveal_pipeline(page)
+    page.evaluate("(e) => Pipeline.handleEvent(e)",
+                  {"event": "recursive.start", "parent": "p", "bom_type": "ai",
+                   "max_depth": 1, "safety_cap": 10})
+    c = {"target": "happy/path", "bom_type": "data", "relationship_type": "trainedOn",
+         "depth": 1, "parent": "p"}
+    page.evaluate("(e) => Pipeline.handleEvent(e)", {"event": "recursive.target.discovered", **c})
+    page.evaluate("(e) => Pipeline.handleEvent(e)", {"event": "recursive.child.start", **c})
+    page.evaluate("(e) => Pipeline.handleEvent(e)",
+                  {"event": "recursive.child.done", **c, "enriched": True, "duration_ms": 100})
+    page.wait_for_timeout(60)
+    chip = page.locator('.stage2-chip[data-target="happy/path"]')
+    assert chip.get_attribute("data-state") == "done"
+    # Either no .play-btn node at all, or one that's not visible
+    play = chip.locator(".play-btn")
+    if play.count() > 0:
+        assert not play.is_visible()
+
+
+def test_stage2_right_click_opens_generate_menu(page):
+    """Right-clicking a muted chip opens a small popover with the
+    'Generate this BOM' action + the target id as a hint."""
+    _reveal_pipeline(page)
+    page.evaluate("(e) => Pipeline.handleEvent(e)",
+                  {"event": "recursive.start", "parent": "p", "bom_type": "ai",
+                   "max_depth": 1, "safety_cap": 10})
+    page.evaluate("(e) => Pipeline.handleEvent(e)", {
+        "event": "recursive.child.skipped",
+        "target": "skipped/one", "bom_type": "data",
+        "relationship_type": "trainedOn", "depth": 1,
+        "parent": "p", "reason": "duplicate",
+    })
+    page.wait_for_timeout(80)
+
+    chip = page.locator('.stage2-chip[data-target="skipped/one"]')
+    chip.dispatch_event("contextmenu", {"clientX": 400, "clientY": 400})
+    page.wait_for_timeout(80)
+
+    menu = page.locator(".stage2-menu")
+    assert menu.count() == 1
+    menu_text = menu.locator(".stage2-menu-item").inner_text()
+    assert "Generate this BOM" in menu_text
+    assert "skipped/one" in menu_text
+
+
+def test_stage2_play_button_posts_to_generate_one(page):
+    """Clicking ▶ on a muted chip POSTs the target spec + form config to
+    /recursive/generate-one and optimistically marks the chip as running."""
+    # Intercept the endpoint so the test doesn't depend on an LLM
+    posted = {"body": None}
+    def _intercept(route):
+        posted["body"] = route.request.post_data_json
+        route.fulfill(status=200, content_type='application/json',
+                      body='{"status":"success","metadata":{"dataset_id":"t/g"}}')
+    page.route("**/recursive/generate-one", _intercept)
+
+    _reveal_pipeline(page)
+    page.evaluate("(e) => Pipeline.handleEvent(e)",
+                  {"event": "recursive.start", "parent": "p", "bom_type": "ai",
+                   "max_depth": 1, "safety_cap": 10})
+    page.evaluate("(e) => Pipeline.handleEvent(e)", {
+        "event": "recursive.child.skipped",
+        "target": "t/g", "bom_type": "data",
+        "relationship_type": "trainedOn", "depth": 2,
+        "parent": "p", "reason": "depth-limit",
+    })
+    page.wait_for_timeout(80)
+
+    play = page.locator('.stage2-chip[data-target="t/g"] .play-btn')
+    play.click()
+    page.wait_for_timeout(300)
+
+    body = posted["body"] or {}
+    assert body.get("target") == "t/g"
+    assert body.get("bom_type") == "data"
+    assert body.get("parent") == "p"
+    assert int(body.get("depth", 0)) == 2
+    # And config fields are included
+    assert "use_case" in body
+    assert "llm_provider" in body
+
+    # Optimistic UI: chip now reads as running
+    chip_state = page.locator('.stage2-chip[data-target="t/g"]').get_attribute("data-state")
+    assert chip_state == "running"
+
+
 def test_stage2_done_marks_card_and_shows_summary(page):
     """recursive.done puts the card in is-done state with a summary line
     counting done / failed / skipped."""

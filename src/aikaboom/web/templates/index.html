@@ -2511,6 +2511,82 @@
             font-size: 10.5px;
             font-style: italic;
         }
+        /* ▶ Play button on muted chips — click triggers manual generation
+           via /recursive/generate-one. Right-click on the chip opens a
+           menu (see .stage2-menu) with the same action. Both routes lead
+           to Stage2.generateOne(...). */
+        .stage2-chip .play-btn {
+            /* Base = hidden; muted states below opt in via inline-block.
+               Using inline-block (not inline-flex) so the explicit width
+               isn't collapsed by the flex-row chip container. */
+            display: none;
+            box-sizing: border-box;
+            margin-left: 4px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 1px solid var(--primary-edge);
+            background: var(--primary-soft);
+            color: var(--primary-deep);
+            cursor: pointer;
+            font-size: 10px;
+            line-height: 16px;  /* roughly height - border*2 — centres the glyph */
+            padding: 0;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .stage2-chip[data-state="skipped"] .play-btn,
+        .stage2-chip[data-state="error"] .play-btn {
+            display: inline-block;
+        }
+        .stage2-chip .play-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .stage2-chip .play-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        /* Right-click context menu on Stage 2 chips. Absolute-positioned;
+           the Stage2 controller pops it open near the cursor. */
+        .stage2-menu {
+            position: absolute;
+            z-index: 100;
+            background: var(--paper);
+            border: 1px solid var(--paper-edge);
+            border-radius: 6px;
+            box-shadow: var(--shadow);
+            padding: 4px;
+            min-width: 200px;
+            font-family: var(--sans);
+            font-size: 13px;
+            display: none;
+        }
+        .stage2-menu.is-open { display: block; }
+        .stage2-menu-item {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            color: var(--ink);
+            font: inherit;
+        }
+        .stage2-menu-item:hover {
+            background: var(--primary-soft);
+            color: var(--primary-deep);
+        }
+        .stage2-menu-item .target-hint {
+            display: block;
+            font-family: var(--mono);
+            font-size: 10.5px;
+            color: var(--paper-mute);
+            margin-top: 2px;
+        }
 
         .pipeline-expand {
             display: none;
@@ -4986,11 +5062,14 @@
                 el.dataset.target = entry.target;
                 el.dataset.depth = String(entry.depth);
                 if (entry.has_conflict) el.dataset.hasConflict = 'true';
+                if (entry.reason) el.dataset.reason = entry.reason;
                 el.title = `${entry.target}` +
                     (entry.relationship_type ? ` (${entry.relationship_type})` : '') +
                     (entry.parent ? `\nparent: ${entry.parent}` : '') +
                     (entry.has_conflict ? `\n⚠ parent field had a conflict — walked anyway` : '') +
-                    (entry.reason ? `\nreason: ${entry.reason}` : '');
+                    (entry.reason ? `\nreason: ${entry.reason}` : '') +
+                    ((entry.state === 'skipped' || entry.state === 'error')
+                        ? `\nright-click or ▶ to generate this BOM` : '');
                 const icon = document.createElement('span'); icon.className = 'icon'; el.appendChild(icon);
                 const tgt  = document.createElement('span'); tgt.className = 'target'; tgt.textContent = entry.target; el.appendChild(tgt);
                 if (entry.relationship_type) {
@@ -5006,10 +5085,148 @@
                 if (entry.state === 'skipped' && entry.reason) {
                     const r = document.createElement('span'); r.className = 'reason'; r.textContent = `(${entry.reason})`; el.appendChild(r);
                 }
+                // ▶ play button — only visible (via CSS) on skipped / error
+                // chips. Triggers the same generateOne flow as the
+                // right-click menu.
+                if (entry.state === 'skipped' || entry.state === 'error') {
+                    const play = document.createElement('button');
+                    play.type = 'button';
+                    play.className = 'play-btn';
+                    play.textContent = '▶';
+                    play.setAttribute('aria-label', `Generate BOM for ${entry.target}`);
+                    play.title = `Generate BOM for ${entry.target}`;
+                    play.addEventListener('click', (ev) => {
+                        ev.stopPropagation();
+                        generateOne(entry, play);
+                    });
+                    el.appendChild(play);
+                }
+                // Right-click context menu — only for muted chips.
+                if (entry.state === 'skipped' || entry.state === 'error') {
+                    el.addEventListener('contextmenu', (ev) => {
+                        ev.preventDefault();
+                        _openMenu(ev.clientX, ev.clientY, entry);
+                    });
+                }
                 return el;
             }
 
-            return { reset, handle };
+            // ---------- right-click menu --------------------------------
+            // Single reusable menu DOM appended to <body> on demand.
+            let _menuEl = null;
+            function _openMenu(x, y, entry) {
+                _closeMenu();
+                const menu = document.createElement('div');
+                menu.className = 'stage2-menu is-open';
+                menu.style.left = `${x}px`;
+                menu.style.top = `${y}px`;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'stage2-menu-item';
+                btn.innerHTML = `Generate this BOM<span class="target-hint">${entry.target}</span>`;
+                btn.addEventListener('click', () => {
+                    _closeMenu();
+                    generateOne(entry);
+                });
+                menu.appendChild(btn);
+                document.body.appendChild(menu);
+                _menuEl = menu;
+                // Close on outside click or Escape.
+                setTimeout(() => {
+                    document.addEventListener('click', _closeMenu, { once: true });
+                    document.addEventListener('keydown', _menuKey);
+                }, 0);
+            }
+            function _menuKey(ev) { if (ev.key === 'Escape') _closeMenu(); }
+            function _closeMenu() {
+                if (_menuEl) { _menuEl.remove(); _menuEl = null; }
+                document.removeEventListener('keydown', _menuKey);
+            }
+
+            // ---------- manual generation -------------------------------
+            // POST /recursive/generate-one with the target spec + current
+            // form config. Backend emits the standard recursive.child.start
+            // / done events so the existing handle() flow updates the chip
+            // state in place.
+            async function generateOne(entry, btnEl) {
+                if (btnEl) btnEl.disabled = true;
+                // Optimistically mark the chip as running so the user sees
+                // immediate feedback even before the POST completes.
+                _ensureNode({
+                    target: entry.target,
+                    bom_type: entry.bom_type,
+                    relationship_type: entry.relationship_type,
+                    parent: entry.parent,
+                    depth: entry.depth,
+                    has_conflict: entry.has_conflict,
+                }, 'running');
+                render();
+
+                // Snapshot the current form config so generation matches the
+                // settings used for the original walk.
+                const cfg = _currentFormConfig();
+                try {
+                    const resp = await fetch('/recursive/generate-one', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            target: entry.target,
+                            bom_type: entry.bom_type,
+                            relationship_type: entry.relationship_type,
+                            parent: entry.parent,
+                            depth: entry.depth,
+                            has_conflict: entry.has_conflict,
+                            ...cfg,
+                        }),
+                    });
+                    if (!resp.ok) {
+                        const txt = await resp.text();
+                        console.warn('generate-one failed', resp.status, txt);
+                        _ensureNode({
+                            target: entry.target, bom_type: entry.bom_type,
+                            relationship_type: entry.relationship_type,
+                            parent: entry.parent, depth: entry.depth,
+                            reason: `HTTP ${resp.status}`,
+                        }, 'error');
+                        render();
+                    }
+                    // Success path: backend already emitted recursive.child.done
+                    // via the SSE stream, which routes through handle() and
+                    // updates the chip. No further action needed here.
+                } catch (err) {
+                    console.warn('generate-one error', err);
+                    _ensureNode({
+                        target: entry.target, bom_type: entry.bom_type,
+                        relationship_type: entry.relationship_type,
+                        parent: entry.parent, depth: entry.depth,
+                        reason: String(err && err.message || err),
+                    }, 'error');
+                    render();
+                }
+            }
+
+            function _currentFormConfig() {
+                // Pull the same config the /process call used. Falls back
+                // to defaults if the form isn't fully populated (shouldn't
+                // happen since the user just ran a /process).
+                const bom_type = (document.querySelector('input[name="bom_type"]:checked') || {}).value || 'ai';
+                const mode = (document.querySelector('input[name="mode"]:checked') || {}).value || 'rag';
+                const provider = (document.querySelector('input[name="llm_provider"]:checked') || {}).value || 'openrouter';
+                const use_case = (document.getElementById('use_case') || {}).value || 'complete';
+                const openrouter_model = (document.getElementById('openrouter_model') || {}).value || '';
+                const openai_model = (document.getElementById('openai_model') || {}).value || '';
+                const ollama_model = (document.getElementById('ollama_model_input') || {}).value || '';
+                let model = '';
+                if (provider === 'openrouter') model = openrouter_model;
+                else if (provider === 'openai') model = openai_model;
+                else                            model = ollama_model;
+                return {
+                    use_case, mode, llm_provider: provider,
+                    model, openrouter_model, openai_model, ollama_model,
+                };
+            }
+
+            return { reset, handle, generateOne };
         })();
 
         // ===== History tab controller =========================================
