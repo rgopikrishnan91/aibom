@@ -3822,6 +3822,8 @@
                     // Reveal tabs + content; remove the first-run splash.
                     document.getElementById('resultPane').classList.remove('is-empty');
                     if (result.history) History.upsert(result.history);
+
+                    refocusAfterGeneration();
                 } else {
                     showStatus('error', `Error: ${escapeHtml(result.message || 'unknown')}`);
                 }
@@ -4303,6 +4305,20 @@
         }
 
         // Programmatic version (no click event) used by Pipeline action buttons.
+        // Called from the /process response handler once the BOM is rendered.
+        // If the user is still on the Pipeline tab (i.e. pipeline.start /
+        // fallback.start moved them there and they didn't navigate away
+        // mid-run), swing them back to the BOM tab so they actually see the
+        // result. The inner re-check respects manual navigation during the
+        // 700 ms delay.
+        const REFOCUS_DELAY_MS = 700;
+        function refocusAfterGeneration() {
+            if (currentTab !== 'pipeline') return;
+            setTimeout(() => {
+                if (currentTab === 'pipeline') switchTabByName('complete');
+            }, REFOCUS_DELAY_MS);
+        }
+
         function switchTabByName(tabName) {
             const btn = document.querySelector(`.tab[onclick*="'${tabName}'"]`);
             if (!btn) return;
