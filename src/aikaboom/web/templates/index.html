@@ -593,6 +593,87 @@
             gap: 16px;
             margin-bottom: 22px;
         }
+        .result-head-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        /* `+ New BOM` — hidden when the result pane is empty (no result to
+           start over from), shown otherwise as a clear next-step CTA. */
+        .result-pane.is-empty .result-head-actions { display: none; }
+        .btn-new-bom {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            background: var(--primary);
+            color: #fff;
+            border: 1px solid var(--primary);
+            border-radius: 5px;
+            font-family: var(--sans);
+            font-size: 12.5px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background .12s, border-color .12s;
+        }
+        .btn-new-bom:hover { background: var(--primary-deep); border-color: var(--primary-deep); }
+        .btn-new-bom span { font-weight: 600; font-size: 14px; }
+
+        /* History banner — shown when the result pane is rehydrated from
+           a History row. Disappears once the user starts a fresh run or
+           clicks "Back to current work". */
+        .history-banner {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 10px 14px;
+            margin-bottom: 16px;
+            background: var(--primary-soft);
+            border: 1px solid var(--primary-edge);
+            border-radius: 5px;
+            font-family: var(--sans);
+            font-size: 12.5px;
+            color: var(--ink);
+        }
+        .history-banner[hidden] { display: none; }
+        .history-banner-icon { font-size: 14px; }
+        .history-banner-text { margin-right: 4px; }
+        .history-banner-sep   { color: var(--paper-mute); }
+        .link-btn {
+            background: transparent;
+            border: none;
+            padding: 0;
+            font-family: inherit;
+            font-size: inherit;
+            color: var(--primary);
+            cursor: pointer;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+        .link-btn:hover { color: var(--primary-deep); }
+
+        /* Undo snackbar — bottom-center overlay, auto-dismisses after 5 s. */
+        .undo-snackbar {
+            position: fixed;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 18px;
+            background: var(--ink);
+            color: #fff;
+            border-radius: 6px;
+            font-family: var(--sans);
+            font-size: 13px;
+            box-shadow: var(--shadow-lg);
+            z-index: 10000;
+        }
+        .undo-snackbar[hidden] { display: none; }
+        .undo-snackbar .link-btn { color: #ffd58a; }
+        .undo-snackbar .link-btn:hover { color: #fff; }
 
         .tabs {
             display: flex;
@@ -2976,7 +3057,7 @@
                         Generate BOM
                         <span class="btn-arrow">→</span>
                     </button>
-                    <button type="button" class="btn btn-ghost" onclick="resetForm()">Reset</button>
+                    <button type="button" class="btn btn-ghost" onclick="requestReset('Reset')">Reset</button>
                 </div>
             </form>
 
@@ -2994,6 +3075,24 @@
                     <div class="pane-eyebrow">Output</div>
                     <h2 class="pane-title">Generated BOM</h2>
                 </div>
+                <div class="result-head-actions">
+                    <button type="button" id="newBomBtn" class="btn-new-bom" title="Clear the form and start a new BOM">
+                        <span aria-hidden="true">+</span> New BOM
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sticky banner shown when viewing a BOM loaded from History. -->
+            <div id="historyBanner" class="history-banner" hidden>
+                <span class="history-banner-icon" aria-hidden="true">⏱</span>
+                <span class="history-banner-text">
+                    Viewing <strong id="historyBannerSubject">—</strong> from history
+                </span>
+                <button type="button" class="link-btn" id="useAsTemplateBtn"
+                        title="Pre-fill the form with this run's inputs">Use as template</button>
+                <span class="history-banner-sep">·</span>
+                <button type="button" class="link-btn" id="backToWorkBtn"
+                        title="Restore your last generation, or clear the result pane">Back to current work</button>
             </div>
 
             <!-- Splash shown before the first run; removed from view by JS
@@ -3341,6 +3440,13 @@
             </div>
         </section>
     </main>
+
+    <!-- Undo snackbar — shown briefly after the user clears the form via
+         Reset or `+ New BOM`. Restores the pre-reset form snapshot. -->
+    <div id="undoSnackbar" class="undo-snackbar" hidden role="status" aria-live="polite">
+        <span id="undoSnackbarText">Form cleared.</span>
+        <button type="button" id="undoSnackbarBtn" class="link-btn">Undo</button>
+    </div>
 
     <script>
         // ===== element refs ======================================================
@@ -3754,6 +3860,19 @@
                     }
 
                     showStatus('success', statusMessage);
+
+                    // Remember this fresh-gen so "Back to current work" can
+                    // restore it after the user wanders into History view.
+                    lastFreshGenState = {
+                        metadata:  result.metadata,
+                        spdx:      result.spdx_data,
+                        cyclonedx: result.cyclonedx_data,
+                    };
+                    viewMode = 'fresh';
+                    hideHistoryBanner();
+                    // Form is now in-sync with this generated BOM, so the user
+                    // hasn't "edited away from it" — clear the dirty flag.
+                    formIsEdited = false;
 
                     // ---- viewers + downloads ------------------------------------
                     renderBOM(result.metadata, flatViewerComplete);
@@ -5019,6 +5138,10 @@
         const History = (function () {
             let rows = [];
             let activeHash = null;
+            // Last row + BOM loaded via loadInto — used by `Use as template`
+            // and by the history banner to identify what's on screen.
+            let _lastLoadedRow = null;
+            let _lastLoadedBom = null;
 
             async function load() {
                 try {
@@ -5160,9 +5283,22 @@
                     linkOrHide(downloadLinked,    'linked');
                     if (downloadButtons) downloadButtons.style.display = 'flex';
 
+                    // Also drive the flat-renderer side so the new BOM
+                    // grouping (Required / Optional / SPDX-by-type) reflects
+                    // the rehydrated payload.
+                    if (data.bom)       renderBOM(data.bom,       flatViewerComplete);
+                    if (data.spdx)      renderBOM(data.spdx,      flatViewerSPDX);
+                    if (data.cyclonedx) renderBOM(data.cyclonedx, flatViewerCDX);
+
                     const pane = document.getElementById('resultPane');
                     if (pane) pane.classList.remove('is-empty');
                     render();  // update is-active highlight
+                    // Remember what we just loaded so the banner + Use-as-template
+                    // know what to reference.
+                    _lastLoadedRow = row;
+                    _lastLoadedBom = data.bom || {};
+                    viewMode = 'history';
+                    showHistoryBanner(row.subject || hash);
                     showStatus('success', `Loaded <strong>${escapeHtml(row.subject || hash)}</strong> from history.`);
                     switchTabByName('complete');
                 } catch (e) {
@@ -5227,7 +5363,13 @@
                 return 'low';
             }
 
-            return { load, loadInto, upsert };
+            return {
+                load, loadInto, upsert,
+                // Used by the history banner and `Use as template` to read
+                // the last-rehydrated row + BOM without re-fetching.
+                get _lastLoadedRow() { return _lastLoadedRow; },
+                get _lastLoadedBom() { return _lastLoadedBom; },
+            };
         })();
 
         // Refresh history on first page load.
@@ -6287,6 +6429,187 @@
                 resizePending = setTimeout(_safeRefit, 80);
             });
         });
+
+        // ===== Post-generation UX: edit-tracking, history banner, undo =========
+
+        // Track whether the user has typed/changed anything in the form since
+        // the last reset. We use this to skip the confirm prompt when the form
+        // is already in its default state, and to label the undo snackbar.
+        let formIsEdited = false;
+        // Snapshot of form state captured right before a reset, so the user
+        // can Undo within the snackbar lifetime.
+        let lastResetSnapshot = null;
+        let undoSnackbarTimer = null;
+        // Track view mode and remember the last fresh-gen so "Back to current
+        // work" can restore it.
+        let viewMode = 'fresh';          // 'fresh' | 'history' | 'splash'
+        let lastFreshGenState = null;    // { metadata, spdx, cdx, recursive_bom, ... }
+
+        form.addEventListener('input', () => { formIsEdited = true; });
+        form.addEventListener('change', () => { formIsEdited = true; });
+
+        function snapshotForm() {
+            // Capture every value the form holds — text inputs, radios,
+            // checkboxes, hidden fields, selects. Stored as a plain object
+            // so we can replay it on Undo.
+            const snap = {};
+            form.querySelectorAll('input, select, textarea').forEach(el => {
+                if (!el.id) return;
+                if (el.type === 'checkbox' || el.type === 'radio') {
+                    snap[el.id] = { _type: el.type, value: el.value, checked: el.checked };
+                } else {
+                    snap[el.id] = { _type: el.type || 'text', value: el.value };
+                }
+            });
+            return snap;
+        }
+
+        function restoreForm(snap) {
+            if (!snap) return;
+            Object.entries(snap).forEach(([id, state]) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                if (state._type === 'checkbox' || state._type === 'radio') {
+                    el.checked = state.checked;
+                } else {
+                    el.value = state.value;
+                }
+            });
+            // Re-fire the BOM-type / mode visibility toggles that depend
+            // on radio state.
+            try {
+                form.querySelectorAll('input[name="bom_type"], input[name="mode"]')
+                    .forEach(r => r.dispatchEvent(new Event('change', { bubbles: true })));
+            } catch (_) { /* ignore */ }
+            formIsEdited = true;
+        }
+
+        function showUndoSnackbar(message) {
+            const bar = document.getElementById('undoSnackbar');
+            const txt = document.getElementById('undoSnackbarText');
+            if (!bar || !txt) return;
+            txt.textContent = message;
+            bar.hidden = false;
+            if (undoSnackbarTimer) clearTimeout(undoSnackbarTimer);
+            undoSnackbarTimer = setTimeout(() => { bar.hidden = true; }, 5000);
+        }
+        function hideUndoSnackbar() {
+            const bar = document.getElementById('undoSnackbar');
+            if (bar) bar.hidden = true;
+            if (undoSnackbarTimer) { clearTimeout(undoSnackbarTimer); undoSnackbarTimer = null; }
+        }
+
+        // Wire `+ New BOM` (in result header) — same destructive scope as
+        // Reset, but the action point is right next to where the user is
+        // reading the result, not buried in the form pane.
+        document.getElementById('newBomBtn')?.addEventListener('click', () => {
+            requestReset('+ New BOM');
+        });
+
+        // Centralise the "user wants to clear the form" gesture so both the
+        // header button and the form's Reset button share the same prompt +
+        // undo behaviour.
+        function requestReset(label) {
+            if (formIsEdited) {
+                const ok = window.confirm(
+                    'Start a new BOM? Your current form inputs will be cleared.'
+                );
+                if (!ok) return;
+            }
+            lastResetSnapshot = snapshotForm();
+            resetForm();
+            // Scroll the form into view so the user can see the empty inputs
+            // (relevant when they triggered Reset from the result pane header).
+            const formPane = document.querySelector('.form-pane') || form;
+            try { formPane.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (_) {}
+            showUndoSnackbar(`Form cleared by ${label}.`);
+        }
+
+        document.getElementById('undoSnackbarBtn')?.addEventListener('click', () => {
+            restoreForm(lastResetSnapshot);
+            hideUndoSnackbar();
+        });
+
+        // History banner — shown when viewMode === 'history'.
+        function showHistoryBanner(subject) {
+            const b = document.getElementById('historyBanner');
+            const s = document.getElementById('historyBannerSubject');
+            if (!b || !s) return;
+            s.textContent = subject || '(unnamed)';
+            b.hidden = false;
+        }
+        function hideHistoryBanner() {
+            const b = document.getElementById('historyBanner');
+            if (b) b.hidden = true;
+        }
+
+        document.getElementById('useAsTemplateBtn')?.addEventListener('click', () => {
+            // Use the row currently being viewed: pre-fill the form with the
+            // bare-minimum inputs we can derive (bom_type + repo/dataset id +
+            // use_case). Mode / provider / recursive options stay at their
+            // defaults — those weren't preserved in the row metadata.
+            if (!History._lastLoadedRow || !History._lastLoadedBom) return;
+            const row  = History._lastLoadedRow;
+            const meta = History._lastLoadedBom;
+            const bomType = (row.bom_type === 'data') ? 'data' : 'ai';
+            const radio = document.getElementById('bom_type_' + bomType);
+            if (radio) { radio.checked = true; radio.dispatchEvent(new Event('change', { bubbles: true })); }
+            const subject = row.subject || meta.repo_id || meta.dataset_id || '';
+            if (bomType === 'data') {
+                const f = document.getElementById('hf_repo_id');
+                if (f) f.value = subject;
+            } else {
+                const f = document.getElementById('repo_id');
+                if (f) f.value = subject;
+            }
+            const useCase = meta.use_case || 'complete';
+            useCaseInput.value = useCase;
+            const opt = document.querySelector(`.dropdown-option[data-value="${useCase}"]`);
+            if (opt) {
+                useCaseLabelSpan.textContent = opt.textContent.split('—')[0].trim();
+                document.querySelectorAll('.dropdown-option').forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+            }
+            formIsEdited = true;
+            // Drop the history view and let the user tweak + Generate.
+            hideHistoryBanner();
+            viewMode = 'fresh';
+            const formPane = document.querySelector('.form-pane') || form;
+            try { formPane.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (_) {}
+            showStatus('success', `Form pre-filled from <strong>${escapeHtml(subject)}</strong>. Tweak inputs and click Generate.`);
+        });
+
+        document.getElementById('backToWorkBtn')?.addEventListener('click', () => {
+            hideHistoryBanner();
+            if (lastFreshGenState) {
+                // Replay the last fresh result into the viewers.
+                rehydrateFreshGen(lastFreshGenState);
+                viewMode = 'fresh';
+                showStatus('success', 'Returned to your last generation.');
+            } else {
+                // No prior fresh-gen → splash.
+                document.getElementById('resultPane').classList.add('is-empty');
+                viewMode = 'splash';
+            }
+        });
+
+        function rehydrateFreshGen(state) {
+            if (!state) return;
+            if (state.metadata) {
+                renderBOM(state.metadata, flatViewerComplete);
+                displayJSON(state.metadata, jsonViewerComplete);
+            }
+            if (state.spdx) {
+                renderBOM(state.spdx, flatViewerSPDX);
+                displayJSON(state.spdx, jsonViewerSPDX);
+                spdxData = state.spdx;
+            }
+            if (state.cyclonedx) {
+                renderBOM(state.cyclonedx, flatViewerCDX);
+                displayJSON(state.cyclonedx, jsonViewerCDX);
+            }
+            document.getElementById('resultPane').classList.remove('is-empty');
+        }
 
         function resetForm() {
             form.reset();
