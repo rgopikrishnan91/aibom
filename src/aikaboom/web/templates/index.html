@@ -4140,33 +4140,55 @@
         // entry that carries a matching ``spdx_annotation_id``. Lets the
         // reader trace a UI conflict row back to the exact
         // ``urn:spdx:Annotation-…`` Element in the downloaded SPDX 3.0.1
-        // artifact (and the linked recursive bundle). The chip is
-        // copy-to-clipboard on click so the IRI can be pasted into an
-        // SPDX viewer / SHACL inspector.
+        // artifact (and the linked recursive bundle). Click copies the
+        // IRI to the clipboard via a delegated handler — see
+        // ``spdxAnnotChipClickHandler`` below — so we don't have to
+        // hand-quote IRIs into an inline ``onclick`` attribute.
+        //
+        // Iterates ``entries`` directly (not a filtered ID list) so the
+        // ``id`` and ``subject`` for each chip always come off the same
+        // entry; an earlier version filtered IDs first and then re-indexed
+        // ``entries[i]``, which misaligned the subject tooltip when any
+        // entry lacked an annotation ID.
         function annotationChipsFor(entries) {
-            const ids = (entries || [])
-                .map(e => e && e.spdx_annotation_id)
-                .filter(Boolean);
-            if (!ids.length) return '';
+            if (!Array.isArray(entries) || !entries.length) return '';
             const seen = new Set();
             const chips = [];
-            ids.forEach((id, i) => {
-                if (seen.has(id)) return;
+            for (const entry of entries) {
+                const id = entry && entry.spdx_annotation_id;
+                if (!id || seen.has(id)) continue;
                 seen.add(id);
                 const short = id.replace(/^urn:spdx:Annotation-/, '').slice(0, 8);
-                const subject = (entries[i] && entries[i].spdx_annotation_subject) || '';
+                const subject = (entry && entry.spdx_annotation_subject) || '';
                 const title = subject
                     ? `SPDX 3.0.1 Annotation ${id}\nSubject: ${subject}\nClick to copy IRI`
                     : `SPDX 3.0.1 Annotation ${id}\nClick to copy IRI`;
                 chips.push(
-                    `<span class="spdx-annot-chip" title="${escapeHtml(title)}" `
-                    + `onclick="navigator.clipboard && navigator.clipboard.writeText('${escapeHtml(id)}')">`
+                    `<span class="spdx-annot-chip" `
+                    + `data-spdx-id="${escapeHtml(id)}" `
+                    + `title="${escapeHtml(title)}">`
                     + `SPDX ann · ${escapeHtml(short)}`
                     + `</span>`
                 );
-            });
+            }
             return chips.join(' ');
         }
+
+        // Delegated click handler: any element with the ``spdx-annot-chip``
+        // class anywhere in the document copies its ``data-spdx-id`` to
+        // the clipboard. Registered once at module load — re-rendering
+        // the conflicts tab doesn't need to re-attach handlers, and the
+        // chip HTML carries no inline JS so the data-attribute value is
+        // safely HTML-escaped at render time.
+        document.addEventListener('click', function spdxAnnotChipClickHandler(ev) {
+            const chip = ev.target && ev.target.closest && ev.target.closest('.spdx-annot-chip');
+            if (!chip) return;
+            const id = chip.getAttribute('data-spdx-id');
+            if (!id) return;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(id);
+            }
+        });
 
         function letterMapFromClaims(claims) {
             const letters = ['A', 'B', 'C', 'D', 'E', 'F'];

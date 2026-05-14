@@ -250,10 +250,70 @@ def test_annotated_ai_bom_passes_strict_shacl():
 
 
 def test_dataset_bom_emits_annotations():
+    """Use the section names the real DATABOMProcessor pipeline emits
+    (``direct_fields`` / ``rag_fields`` — see processors.py:894–895),
+    not the legacy ``direct_metadata`` / ``rag_metadata`` shape.
+    """
     bom = {
         "dataset_id": "acme/qa",
-        "direct_metadata": {
+        "direct_fields": {
             "name": {"value": "qa", "source": "huggingface", "conflict": None},
+            "license": {
+                "value": "MIT",
+                "source": "github",
+                "conflict": {"value": "Apache-2.0", "source": "arxiv", "type": "inter"},
+            },
+        },
+        "rag_fields": {
+            "intendedUse": {"value": "QA", "source": "huggingface", "conflict": None},
+            "datasetType": {
+                "value": "text",
+                "source": "huggingface",
+                "conflict": {"internal": "No", "external": "Yes"},
+                "trace": {
+                    "claims": {"huggingface": "text", "arxiv": "categorical"},
+                    "selected_sources": ["huggingface"],
+                    "internal_conflicts": {},
+                    "external_conflicts": [{
+                        "sources": ["huggingface", "arxiv"],
+                        "description": "text vs categorical",
+                        "grounding": 0.75,
+                    }],
+                },
+            },
+        },
+        "urls": {},
+    }
+    doc = SPDXValidator(bom_type="data").validate_and_convert(bom)
+    annotations = [e for e in doc["@graph"] if e.get("type") == "Annotation"]
+    # license (direct-inter) + datasetType (rag-external)
+    assert len(annotations) == 2
+    for a in annotations:
+        assert a["subject"].startswith("urn:spdx:DatasetPackage-")
+
+    by_property = {
+        json.loads(a["statement"])["spdx_property"]: a for a in annotations
+    }
+    # Verify the SPDX property mapping kicks in for both the license
+    # special case and a regular dataset_ property.
+    assert "simplelicensing_licenseExpression" in by_property
+    assert "dataset_datasetType" in by_property
+
+    result = validate_spdx_export(doc, strict=False, bom_type="data")
+    assert result["valid"], result["errors"]
+
+
+def test_dataset_bom_legacy_metadata_shape_still_works():
+    """Hand-authored / pre-pipeline BOMs may still use
+    ``direct_metadata`` / ``rag_metadata`` keys. The writer accepts both
+    shapes (spdx_validator.py:1149 fallback), and annotations should
+    still be emitted so legacy BOMs don't silently lose conflict
+    provenance after upgrading.
+    """
+    bom = {
+        "dataset_id": "acme/qa-legacy",
+        "direct_metadata": {
+            "name": {"value": "qa-legacy", "source": "huggingface", "conflict": None},
             "license": {
                 "value": "MIT",
                 "source": "github",
@@ -268,10 +328,8 @@ def test_dataset_bom_emits_annotations():
     doc = SPDXValidator(bom_type="data").validate_and_convert(bom)
     annotations = [e for e in doc["@graph"] if e.get("type") == "Annotation"]
     assert len(annotations) == 1
-    assert annotations[0]["subject"].startswith("urn:spdx:DatasetPackage-")
-
-    result = validate_spdx_export(doc, strict=False, bom_type="data")
-    assert result["valid"], result["errors"]
+    payload = json.loads(annotations[0]["statement"])
+    assert payload["spdx_property"] == "simplelicensing_licenseExpression"
 
 
 def _enrich_with_conflict(target):
