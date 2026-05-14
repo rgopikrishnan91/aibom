@@ -942,98 +942,91 @@
 
         /* ====================================================== DOWNLOADS */
 
+        /* The strip is the outer wrapper for the dropdown; hidden until a
+           result lands (the .is-empty rule on .result-pane). */
         .download-strip {
             display: none;
-            flex-wrap: wrap;
-            gap: 8px;
-            padding: 12px 14px;
-            border: 1px solid var(--paper-edge);
-            background: var(--paper);
-            border-radius: 6px;
             margin-bottom: 14px;
+        }
+        .download-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .download-toggle {
+            display: inline-flex;
             align-items: center;
-        }
-        .download-strip-label {
-            font-family: var(--mono);
-            font-size: 11px;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--paper-mute);
-            margin-right: 4px;
-            padding-right: 10px;
-            border-right: 1px solid var(--paper-edge);
-        }
-        .download-btn {
-            display: none;          /* JS toggles inline-flex when ready */
-            align-items: center;
-            gap: 6px;
-            padding: 8px 12px;
-            background: var(--paper);
-            border: 1px solid var(--paper-edge);
-            color: var(--ink);
-            font-family: var(--mono);
-            font-size: 12px;
-            font-weight: 500;
-            text-decoration: none;
-            border-radius: 4px;
-            transition: all .15s;
-        }
-        .download-btn::before { content: '↓'; font-weight: 700; opacity: 0.6; }
-        .download-btn:hover {
-            border-color: var(--ink);
-            background: var(--ink);
-            color: var(--paper);
-        }
-        .download-btn:hover::before { opacity: 1; }
-
-        /* Headline download — the SPDX 3.0.1 export. This is the
-           tool's *raison d'être*, so it gets the filled-indigo treatment
-           that visually outweighs the orange BETA buttons next to it. */
-        .download-btn.is-primary {
+            gap: 8px;
+            padding: 9px 14px;
             background: var(--primary);
-            border-color: var(--primary);
+            border: 1px solid var(--primary);
             color: white;
-            box-shadow: 0 1px 0 var(--primary-deep), 0 2px 6px rgba(52, 81, 178, 0.18);
+            font-family: var(--sans);
+            font-size: 13px;
             font-weight: 600;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background .12s, border-color .12s;
+            box-shadow: 0 1px 0 var(--primary-deep), 0 2px 6px rgba(52, 81, 178, 0.18);
         }
-        .download-btn.is-primary::before { opacity: 0.95; }
-        .download-btn.is-primary:hover {
+        .download-toggle:hover {
             background: var(--primary-deep);
             border-color: var(--primary-deep);
-            color: white;
         }
-        .download-btn.is-primary::after {
-            content: 'STANDARD';
-            font-size: 8.5px;
-            letter-spacing: 0.14em;
-            padding: 1px 5px;
-            background: rgba(255, 255, 255, 0.18);
-            color: white;
-            border-radius: 2px;
-            margin-left: 4px;
+        .download-toggle-caret {
+            font-size: 10px;
+            transition: transform .12s;
+        }
+        .download-dropdown.is-open .download-toggle-caret { transform: rotate(180deg); }
+
+        .download-menu {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            min-width: 260px;
+            padding: 6px 0;
+            background: var(--paper);
+            border: 1px solid var(--paper-edge);
+            border-radius: 6px;
+            box-shadow: var(--shadow-lg);
+            z-index: 50;
+        }
+        .download-menu[hidden] { display: none; }
+
+        .download-item {
+            display: none;          /* JS toggles flex when its href is set */
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 8px 14px;
+            text-decoration: none;
+            color: var(--ink);
+            font-family: var(--sans);
+            transition: background .1s;
+        }
+        .download-item:hover { background: var(--paper-2); }
+        .download-item-title {
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .download-item-meta {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--paper-mute);
+            white-space: nowrap;
+        }
+        .download-item.is-primary .download-item-title { color: var(--primary-deep); }
+        .download-item.is-beta    .download-item-title { color: var(--beta); }
+
+        .download-divider {
+            height: 1px;
+            margin: 6px 8px;
+            background: var(--paper-edge);
         }
 
-        .download-btn.is-beta {
-            border-color: var(--beta-edge);
-            color: var(--beta);
-        }
-        .download-btn.is-beta:hover {
-            background: var(--beta);
-            border-color: var(--beta);
-            color: white;
-        }
-        .download-btn.is-beta::after {
-            content: 'BETA';
-            font-size: 8.5px;
-            letter-spacing: 0.14em;
-            padding: 1px 4px;
-            background: var(--beta-soft);
-            color: var(--beta);
-            border-radius: 2px;
-            margin-left: 4px;
-        }
-        .download-btn.is-beta:hover::after { background: rgba(255, 255, 255, 0.2); color: white; }
+        /* The toggle button is the only visible affordance when the menu
+           is closed; when nothing in the result is downloadable yet, the
+           outer .download-strip is hidden by .result-pane.is-empty, so
+           there's nothing more to suppress on the toggle. */
 
         /* ============================================ JSON / CONTENT VIEW */
 
@@ -3198,13 +3191,43 @@
                 <button class="tab" onclick="switchTab(event, 'history')" title="Previously generated BOMs — click a row to reload it">History</button>
             </div>
 
+            <!-- Download dropdown — collapses the 5 per-format buttons that
+                 used to live in a horizontal strip. Each <a> is a real
+                 anchor (so right-click → Save As still works) but rendered
+                 as a menu row. The existing per-item style.display logic
+                 still hides whichever formats aren't available for this run. -->
             <div class="download-strip" id="downloadButtons">
-                <span class="download-strip-label">Download</span>
-                <a id="downloadComplete" href="#" class="download-btn" target="_blank">Download Provenance BOM</a>
-                <a id="downloadSPDX" href="#" class="download-btn is-primary" target="_blank">Download SPDX 3.0.1</a>
-                <a id="downloadCDX" href="#" class="download-btn is-beta" target="_blank">Download CycloneDX 1.6 Beta</a>
-                <a id="downloadRecursive" href="#" class="download-btn is-beta" target="_blank">Download Recursive BOM Beta</a>
-                <a id="downloadLinked" href="#" class="download-btn is-beta" target="_blank">Download Linked SPDX Beta</a>
+                <div class="download-dropdown" id="downloadDropdown">
+                    <button type="button" class="download-toggle" id="downloadToggle"
+                            aria-haspopup="menu" aria-expanded="false"
+                            aria-controls="downloadMenu">
+                        <span>Download</span>
+                        <span class="download-toggle-caret" aria-hidden="true">▾</span>
+                    </button>
+                    <div class="download-menu" id="downloadMenu" role="menu" hidden>
+                        <a id="downloadComplete" href="#" class="download-item is-primary" target="_blank" role="menuitem">
+                            <span class="download-item-title">Provenance BOM</span>
+                            <span class="download-item-meta">primary · JSON</span>
+                        </a>
+                        <a id="downloadSPDX" href="#" class="download-item" target="_blank" role="menuitem">
+                            <span class="download-item-title">SPDX 3.0.1</span>
+                            <span class="download-item-meta">standard · JSON-LD</span>
+                        </a>
+                        <div class="download-divider" role="separator"></div>
+                        <a id="downloadCDX" href="#" class="download-item is-beta" target="_blank" role="menuitem">
+                            <span class="download-item-title">CycloneDX 1.6</span>
+                            <span class="download-item-meta">beta · ML-BOM</span>
+                        </a>
+                        <a id="downloadRecursive" href="#" class="download-item is-beta" target="_blank" role="menuitem">
+                            <span class="download-item-title">Recursive BOM</span>
+                            <span class="download-item-meta">beta · child seeds</span>
+                        </a>
+                        <a id="downloadLinked" href="#" class="download-item is-beta" target="_blank" role="menuitem">
+                            <span class="download-item-title">Linked SPDX</span>
+                            <span class="download-item-meta">beta · merged graph</span>
+                        </a>
+                    </div>
+                </div>
             </div>
 
             <div id="pipelineTab" class="tab-content">
@@ -3646,6 +3669,48 @@
             if (!useCaseContainer.contains(e.target)) useCaseContainer.classList.remove('open');
         });
 
+        // ===== Download dropdown =================================================
+        // Single Download ▾ button → menu of per-format anchors. Each menu
+        // item is hidden by default; the /process success handler + History
+        // rehydration toggle `display: flex` on the items whose hrefs are
+        // ready. The menu collapses on outside click or after a download
+        // is initiated so the user is left looking at the BOM, not a menu.
+        (function setupDownloadDropdown() {
+            const dropdown = document.getElementById('downloadDropdown');
+            const toggle   = document.getElementById('downloadToggle');
+            const menu     = document.getElementById('downloadMenu');
+            if (!dropdown || !toggle || !menu) return;
+
+            function open()  {
+                dropdown.classList.add('is-open');
+                menu.hidden = false;
+                toggle.setAttribute('aria-expanded', 'true');
+            }
+            function close() {
+                dropdown.classList.remove('is-open');
+                menu.hidden = true;
+                toggle.setAttribute('aria-expanded', 'false');
+            }
+            toggle.addEventListener('click', e => {
+                e.preventDefault();
+                e.stopPropagation();
+                menu.hidden ? open() : close();
+            });
+            // Outside click → close.
+            document.addEventListener('click', e => {
+                if (!dropdown.contains(e.target)) close();
+            });
+            // Escape → close.
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape' && !menu.hidden) close();
+            });
+            // After a download item is clicked, give the browser its tick
+            // to start the download then collapse the menu.
+            menu.querySelectorAll('.download-item').forEach(a => {
+                a.addEventListener('click', () => setTimeout(close, 50));
+            });
+        })();
+
         // ===== BOM-type switch ===================================================
         document.querySelectorAll('input[name="bom_type"]').forEach(radio => {
             radio.addEventListener('change', function() {
@@ -3908,14 +3973,19 @@
                     renderBOM(result.metadata, flatViewerComplete);
                     displayJSON(result.metadata, jsonViewerComplete);
                     downloadComplete.href = result.download_url;
-                    downloadComplete.style.display = 'inline-flex';
-                    downloadComplete.textContent = isSubset
-                        ? `Download ${useCaseLabel} Provenance BOM`
-                        : 'Download Provenance BOM';
+                    downloadComplete.style.display = 'flex';
+                    // Update the inner title; we can't textContent= the whole
+                    // anchor anymore since it carries title + meta spans.
+                    {
+                        const t = downloadComplete.querySelector('.download-item-title');
+                        if (t) t.textContent = isSubset
+                            ? `${useCaseLabel} Provenance BOM`
+                            : 'Provenance BOM';
+                    }
 
                     if (result.spdx_download_url && result.spdx_data) {
                         downloadSPDX.href = result.spdx_download_url;
-                        downloadSPDX.style.display = 'inline-flex';
+                        downloadSPDX.style.display = 'flex';
                         spdxData = result.spdx_data;
                         renderBOM(spdxData, flatViewerSPDX);
                         displayJSON(spdxData, jsonViewerSPDX);
@@ -3932,7 +4002,7 @@
 
                     if (result.cyclonedx_download_url && result.cyclonedx_data) {
                         downloadCDX.href = result.cyclonedx_download_url;
-                        downloadCDX.style.display = 'inline-flex';
+                        downloadCDX.style.display = 'flex';
                         renderBOM(result.cyclonedx_data, flatViewerCDX);
                         displayJSON(result.cyclonedx_data, jsonViewerCDX);
                     } else {
@@ -3949,11 +4019,11 @@
                         displayJSON(result.recursive_bom, jsonViewerRecursive);
                         if (result.recursive_bom_download_url) {
                             downloadRecursive.href = result.recursive_bom_download_url;
-                            downloadRecursive.style.display = 'inline-flex';
+                            downloadRecursive.style.display = 'flex';
                         }
                         if (result.linked_bom_download_url) {
                             downloadLinked.href = result.linked_bom_download_url;
-                            downloadLinked.style.display = 'inline-flex';
+                            downloadLinked.style.display = 'flex';
                         } else {
                             downloadLinked.style.display = 'none';
                         }
@@ -5303,8 +5373,12 @@
                     const arts = row.artifacts || {};
                     const linkOrHide = (el, key) => {
                         if (!el) return;
-                        if (arts[key]) { el.href = `/history/${encodeURIComponent(hash)}/${encodeURIComponent(key)}`; el.style.display = 'inline-flex'; }
-                        else { el.style.display = 'none'; }
+                        if (arts[key]) {
+                            el.href = `/history/${encodeURIComponent(hash)}/${encodeURIComponent(key)}`;
+                            el.style.display = 'flex';
+                        } else {
+                            el.style.display = 'none';
+                        }
                     };
                     linkOrHide(downloadComplete,  'bom');
                     linkOrHide(downloadSPDX,      'spdx');
