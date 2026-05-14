@@ -1687,6 +1687,27 @@
             padding-left: 6px;
             margin-left: 2px;
         }
+        .spdx-annot-chip {
+            display: inline-flex;
+            align-items: center;
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 3px 10px;
+            border-radius: 3px;
+            background: var(--paper-2);
+            color: var(--ink);
+            border: 1px solid var(--paper-edge);
+            cursor: pointer;
+            user-select: all;
+        }
+        .spdx-annot-chip:hover {
+            background: var(--paper-soft);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
         .kind-tag {
             font-family: var(--mono);
             font-size: 10px;
@@ -4140,6 +4161,60 @@
             return `<span class="conf-pill det">no grounding</span>`;
         }
 
+        // Render an SPDX Annotation reference chip for each conflict
+        // entry that carries a matching ``spdx_annotation_id``. Lets the
+        // reader trace a UI conflict row back to the exact
+        // ``urn:spdx:Annotation-…`` Element in the downloaded SPDX 3.0.1
+        // artifact (and the linked recursive bundle). Click copies the
+        // IRI to the clipboard via a delegated handler — see
+        // ``spdxAnnotChipClickHandler`` below — so we don't have to
+        // hand-quote IRIs into an inline ``onclick`` attribute.
+        //
+        // Iterates ``entries`` directly (not a filtered ID list) so the
+        // ``id`` and ``subject`` for each chip always come off the same
+        // entry; an earlier version filtered IDs first and then re-indexed
+        // ``entries[i]``, which misaligned the subject tooltip when any
+        // entry lacked an annotation ID.
+        function annotationChipsFor(entries) {
+            if (!Array.isArray(entries) || !entries.length) return '';
+            const seen = new Set();
+            const chips = [];
+            for (const entry of entries) {
+                const id = entry && entry.spdx_annotation_id;
+                if (!id || seen.has(id)) continue;
+                seen.add(id);
+                const short = id.replace(/^urn:spdx:Annotation-/, '').slice(0, 8);
+                const subject = (entry && entry.spdx_annotation_subject) || '';
+                const title = subject
+                    ? `SPDX 3.0.1 Annotation ${id}\nSubject: ${subject}\nClick to copy IRI`
+                    : `SPDX 3.0.1 Annotation ${id}\nClick to copy IRI`;
+                chips.push(
+                    `<span class="spdx-annot-chip" `
+                    + `data-spdx-id="${escapeHtml(id)}" `
+                    + `title="${escapeHtml(title)}">`
+                    + `SPDX ann · ${escapeHtml(short)}`
+                    + `</span>`
+                );
+            }
+            return chips.join(' ');
+        }
+
+        // Delegated click handler: any element with the ``spdx-annot-chip``
+        // class anywhere in the document copies its ``data-spdx-id`` to
+        // the clipboard. Registered once at module load — re-rendering
+        // the conflicts tab doesn't need to re-attach handlers, and the
+        // chip HTML carries no inline JS so the data-attribute value is
+        // safely HTML-escaped at render time.
+        document.addEventListener('click', function spdxAnnotChipClickHandler(ev) {
+            const chip = ev.target && ev.target.closest && ev.target.closest('.spdx-annot-chip');
+            if (!chip) return;
+            const id = chip.getAttribute('data-spdx-id');
+            if (!id) return;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(id);
+            }
+        });
+
         function letterMapFromClaims(claims) {
             const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
             const out = {};
@@ -4299,6 +4374,7 @@
                 </div>
                 <div class="cell conflict-meta">
                     ${pills}
+                    ${annotationChipsFor(g.entries)}
                 </div>
                 ${narrativeBlocks || claimItems ? `<div class="conflict-claims">
                     ${narrativeBlocks ? `<div class="claims-section-label">Auditor narrative</div>${narrativeBlocks}` : ''}
@@ -5897,6 +5973,10 @@
             'Person', 'Organization', 'Tool',
             'simplelicensing_LicenseExpression', 'expandedlicensing_License',
             'Relationship',
+            // AIkaBoOM-emitted conflict provenance. After Relationships
+            // because annotations are commentary on the structural graph,
+            // not part of it.
+            'Annotation',
         ];
 
         function spdxIdTail(id) {
@@ -5911,15 +5991,58 @@
             if (Array.isArray(arr)) return arr.map(spdxIdTail).join(', ');
             return spdxIdTail(arr);
         }
+
+        // Best-effort parse of an Annotation's ``statement`` (a JSON
+        // string per SPDX Core ``contentType: application/json``). Used
+        // both for the group-item label and to pretty-render the
+        // statement body — falls back to the raw string when parsing
+        // fails so we never lose data on a malformed payload.
+        function parseAnnotationStatement(item) {
+            if (!item || typeof item.statement !== 'string') return null;
+            try { return JSON.parse(item.statement); }
+            catch (_) { return null; }
+        }
+
         function labelForSPDXItem(item) {
             if (!item || typeof item !== 'object') return '(item)';
             if (item.type === 'Relationship') {
                 return `${item.relationshipType || 'relationship'}: ` +
                        `${spdxIdTail(item.from)} → ${spdxIdTails(item.to)}`;
             }
+            if (item.type === 'Annotation') {
+                // The annotation ``name`` is ``aikaboom:conflict:<spdx_property>``
+                // by convention; ``statement.spdx_property`` is the same value.
+                // Surface the SPDX property plus the conflict kind so a reader
+                // can scan a list of annotations at a glance ("which property?
+                // direct or RAG? high or low confidence?") without expanding.
+                const payload = parseAnnotationStatement(item) || {};
+                const property = payload.spdx_property
+                    || (item.name && item.name.replace(/^aikaboom:conflict:/, ''))
+                    || '(unknown property)';
+                const kind = payload.kind || '?';
+                const confidence = payload.confidence;
+                const conf = confidence && confidence !== 'deterministic'
+                    ? `, ${confidence}` : '';
+                return `${property}  (${kind}${conf})`;
+            }
             if (item.name) return String(item.name);
             if (item.spdxId) return spdxIdTail(item.spdxId);
             return item.type || '(unnamed)';
+        }
+
+        // Replace each Annotation's ``statement`` (JSON string) with the
+        // parsed object so ``buildFlatRow`` renders it as an expandable
+        // group of typed key-value rows instead of one long quoted blob.
+        // Non-Annotation items pass through untouched; failed parses
+        // leave the raw string in place.
+        function preprocessSPDXItemForRender(item) {
+            if (!item || typeof item !== 'object') return item;
+            if (item.type !== 'Annotation') return item;
+            const payload = parseAnnotationStatement(item);
+            if (!payload) return item;
+            // Shallow clone so we don't mutate the response payload (it's
+            // also displayed verbatim in the JSON tab).
+            return Object.assign({}, item, { statement: payload });
         }
 
         function renderSPDXBOM(data, target) {
@@ -5951,9 +6074,13 @@
             // Bucket by type, sort buckets so the principal package types
             // (the actual BOM subject) come first, then the supporting
             // graph (creation info, identities, licenses), then the
-            // relationship glue.
+            // relationship glue, then commentary (Annotations).
+            // ``preprocessSPDXItemForRender`` parses each Annotation's
+            // ``statement`` JSON so the body renders as expandable typed
+            // rows rather than a one-line quoted blob.
             const byType = new Map();
-            graph.forEach(item => {
+            graph.forEach(rawItem => {
+                const item = preprocessSPDXItemForRender(rawItem);
                 const t = (item && item.type) || 'Unknown';
                 if (!byType.has(t)) byType.set(t, []);
                 byType.get(t).push(item);

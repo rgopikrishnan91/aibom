@@ -20,7 +20,7 @@ shows you *how to use* the tool, this doc shows you *how the tool works*.
 5. [Direct-field resolution](#5-direct-field-resolution)
 6. [Field reference table — every BOM field, its sources, and how conflicts work](#6-field-reference-table)
 7. [Recursive walker — depth-1 and beyond](#7-recursive-walker--depth-1-and-beyond)
-8. [Validation — SPDX 3.0.1 and CycloneDX 1.6](#8-validation--spdx-301-and-cyclonedx-16)
+8. [Validation — SPDX 3.0.1 and CycloneDX 1.6](#8-validation--spdx-301-and-cyclonedx-16) (incl. conflict annotations in §8.3)
 9. [Output formats and where each lives](#9-output-formats-and-where-each-lives)
 10. [End-to-end worked example](#10-end-to-end-worked-example)
 
@@ -590,6 +590,79 @@ External validator — uses the `sbom-utility` binary
 We emit CycloneDX 1.6 specifically because the validator's bundled
 schemas stop there as of v0.18.x (see
 [README known limitations](../README.md#known-limitations)).
+
+### 8.3 Conflict annotations in the emitted SPDX / CycloneDX
+
+Every detected conflict (direct, RAG-internal, RAG-external) is
+surfaced inside the generated SPDX and CycloneDX artifacts so a
+downstream consumer can see the disagreement without parsing the
+AIkaBoOM provenance BOM.
+
+**SPDX 3.0.1 (`*.spdx.json`, `*.linked.spdx.json`):** one SPDX Core
+`Annotation` Element per conflict, sitting alongside the other
+Elements in `@graph`. Shape:
+
+```json
+{
+  "type": "Annotation",
+  "spdxId": "urn:spdx:Annotation-<uuid>",
+  "creationInfo": "_:creationinfo-<uuid>",
+  "annotationType": "other",
+  "subject": "urn:spdx:AIPackage-<uuid>",
+  "contentType": "application/json",
+  "name": "aikaboom:conflict:ai_safetyRiskAssessment",
+  "description": "AIkaBoOM-detected intra-source-contradiction on SPDX property 'ai_safetyRiskAssessment'. …",
+  "statement": "{\"spdx_property\": \"ai_safetyRiskAssessment\", \"field\": \"safety_risk_assessment\", \"kind\": \"rag-internal\", \"chosen_value\": \"high\", \"confidence\": \"low\", \"grounding\": 0.65, \"claims\": {…}, \"narrative\": \"…\", …}"
+}
+```
+
+Key conventions:
+
+- `subject` points at the conflicted Element — usually the root
+  AIPackage / DatasetPackage. Relationship-field conflicts
+  (`trainedOnDatasets` etc.) target the first stub child Package
+  for that field when one was emitted.
+- `annotationType: "other"` — the SPDX 3.0.1 enum only defines
+  `other` and `review`; conflict provenance is not a human review,
+  so `other` is correct.
+- `name` and the JSON `statement.spdx_property` carry the **SPDX
+  3.0.1 property name** (`ai_informationAboutTraining`,
+  `simplelicensing_licenseExpression`, `trainedOn`, …), not the
+  AIkaBoOM-internal field key. A consumer can identify the
+  conflicted property from the annotation alone.
+- `statement` is JSON-encoded with `contentType: application/json`
+  and includes claims by source, narrative, grounding score,
+  confidence band (`high` / `low` / `suppressed` / `deterministic`),
+  and the post-consensus selected sources.
+
+Phantom RAG envelopes (`{internal: "No", external: "No"}`) are
+explicitly skipped, so an annotation appears only when there's an
+actual disagreement.
+
+Annotations propagate through the linked recursive bundle: each
+child SPDX builds its own annotations against its own root Package,
+and `build_linked_spdx_bundle`
+([`utils/recursive_bom.py`](../src/aikaboom/utils/recursive_bom.py))
+carries them across the merge with `creationInfo` refs rebound to
+the parent's CreationInfo.
+
+**CycloneDX 1.6 (`*.cdx.json`):** the same conflict provenance ships
+as component-level `properties` entries (1.6 doesn't have a top-level
+`annotations` array; that's 1.7+). Same gate, same property keys,
+same JSON value shape as the SPDX `statement`:
+
+```json
+{
+  "name": "aikaboom:conflict:simplelicensing_licenseExpression",
+  "value": "{\"spdx_property\": \"simplelicensing_licenseExpression\", \"field\": \"license\", \"kind\": \"inter\", …}"
+}
+```
+
+A consumer cross-walking SPDX ↔ CycloneDX sees the same
+property name (`aikaboom:conflict:<spdx_property>`) on both sides.
+
+Both validators pass: SPDX with JSON Schema + strict SHACL, CycloneDX
+with `sbom-utility`.
 
 ---
 

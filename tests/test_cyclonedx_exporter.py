@@ -125,6 +125,83 @@ class TestAIBOMConversion:
         assert len(conflict_props) >= 1
         assert any("license" in p["name"] for p in conflict_props)
 
+    def test_conflict_property_names_use_spdx_property(self):
+        """CycloneDX conflict properties key on the SPDX 3.0.1 property
+        name (parity with the SPDX Annotation feature) so a consumer
+        cross-walking CycloneDX ↔ SPDX sees the same identifier on both
+        sides. License conflicts become
+        ``aikaboom:conflict:simplelicensing_licenseExpression``.
+        """
+        cdx = CycloneDXExporter(bom_type="ai").validate_and_convert(_ai_bom_data())
+        names = [
+            p["name"] for p in cdx["components"][0].get("properties", [])
+            if p["name"].startswith("aikaboom:conflict:")
+        ]
+        assert "aikaboom:conflict:simplelicensing_licenseExpression" in names, names
+
+    def test_conflict_property_value_is_structured_provenance(self):
+        """The property value is JSON carrying the structured conflict
+        provenance — at minimum ``spdx_property``, ``field``, ``kind`` —
+        same payload shape as the SPDX Annotation ``statement``.
+        """
+        bom = {
+            "repo_id": "acme/conflict-model",
+            "direct_fields": {},
+            "rag_fields": {
+                "model_name": {"value": "Conflict", "source": "hf", "conflict": None},
+                "intended_use": {
+                    "value": "Chatbot",
+                    "source": "huggingface",
+                    "conflict": {"internal": "No", "external": "Yes"},
+                    "trace": {
+                        "claims": {"huggingface": "Customer chatbot", "arxiv": "LM eval"},
+                        "selected_sources": ["huggingface"],
+                        "internal_conflicts": {},
+                        "external_conflicts": [{
+                            "sources": ["huggingface", "arxiv"],
+                            "description": "A says X vs B says Y",
+                            "grounding": 0.82,
+                        }],
+                    },
+                },
+            },
+        }
+        cdx = CycloneDXExporter(bom_type="ai").validate_and_convert(bom)
+        conflict_props = [
+            p for p in cdx["components"][0].get("properties", [])
+            if p["name"] == "aikaboom:conflict:ai_informationAboutApplication"
+        ]
+        assert len(conflict_props) == 1
+        payload = json.loads(conflict_props[0]["value"])
+        assert payload["spdx_property"] == "ai_informationAboutApplication"
+        assert payload["field"] == "intended_use"
+        assert payload["kind"] == "rag-external"
+        assert payload["grounding"] == 0.82
+
+    def test_phantom_rag_envelope_does_not_emit_conflict_property(self):
+        """``{internal: "No", external: "No"}`` is a no-op envelope —
+        must not appear in CycloneDX properties. Same gate as the SPDX
+        Annotation emitter so the two formats agree on which fields
+        actually have a conflict.
+        """
+        bom = {
+            "repo_id": "acme/quiet",
+            "direct_fields": {},
+            "rag_fields": {
+                "model_name": {
+                    "value": "Quiet",
+                    "source": "huggingface",
+                    "conflict": {"internal": "No", "external": "No"},
+                },
+            },
+        }
+        cdx = CycloneDXExporter(bom_type="ai").validate_and_convert(bom)
+        names = [
+            p["name"] for p in cdx["components"][0].get("properties", [])
+            if p["name"].startswith("aikaboom:conflict:")
+        ]
+        assert names == []
+
 
 class TestDatasetBOMConversion:
 
@@ -138,6 +215,31 @@ class TestDatasetBOMConversion:
         cdx = CycloneDXExporter(bom_type="data").validate_and_convert(_dataset_bom_data())
         licenses = cdx["components"][0].get("licenses", [])
         assert any("CC-BY-4.0" in l.get("license", {}).get("id", "") for l in licenses)
+
+    def test_dataset_conflicts_surface_as_properties(self):
+        """Dataset BOMs should surface conflict provenance via properties
+        too (parity with AI BOMs). License → SPDX property name."""
+        bom = {
+            "dataset_id": "acme/qa",
+            "direct_fields": {
+                "name": {"value": "qa", "source": "hf", "conflict": None},
+                "license": {
+                    "value": "MIT",
+                    "source": "github",
+                    "conflict": {"value": "Apache-2.0", "source": "arxiv", "type": "inter"},
+                },
+            },
+            "rag_fields": {
+                "intendedUse": {"value": "QA", "source": "hf", "conflict": None},
+            },
+            "urls": {},
+        }
+        cdx = CycloneDXExporter(bom_type="data").validate_and_convert(bom)
+        names = [
+            p["name"] for p in cdx["components"][0].get("properties", [])
+            if p["name"].startswith("aikaboom:conflict:")
+        ]
+        assert "aikaboom:conflict:simplelicensing_licenseExpression" in names, names
 
 
 class TestValidation:

@@ -30,6 +30,170 @@ from aikaboom.utils.normalise import cdx_license_block
 CDX_SPEC_VERSION = "1.6"
 
 
+def _collect_conflict_properties(
+    bom_data: Dict[str, Any], bom_type: str
+) -> List[Dict[str, str]]:
+    """Build CycloneDX ``properties`` entries describing every detected conflict.
+
+    Same gate, same SPDX-property naming, and (a JSON-serialised slice of)
+    the same payload shape as
+    :meth:`SPDXValidator._build_conflict_annotations`, so a consumer
+    cross-walking SPDX ↔ CycloneDX sees the same identifier and the same
+    provenance on both sides.
+
+    CycloneDX 1.6 doesn't have a top-level ``annotations`` array (added in
+    1.7); properties is the canonical extensibility slot in 1.6. We key
+    each entry on the SPDX 3.0.1 property name (``ai_safetyRiskAssessment``,
+    ``simplelicensing_licenseExpression``, …) so the property key alone
+    identifies the conflicted SPDX property; the JSON value carries the
+    full provenance.
+
+    Phantom RAG envelopes (``{internal: "No", external: "No"}``) are
+    explicitly skipped — same fix class as the SPDX side and the
+    ``_extract_conflicts`` web helper.
+    """
+    # Lazy import to avoid a circular dependency: spdx_validator imports
+    # ``aikaboom.utils.value_helpers`` and a few others that don't reach
+    # cyclonedx_exporter, but routing through the class keeps the mapping
+    # source-of-truth in one place.
+    from aikaboom.utils.spdx_validator import SPDXValidator
+    from aikaboom.core.conflict_routing import (
+        HIGH_CONFIDENCE_THRESHOLD,
+        SUPPRESS_GROUNDING_BELOW,
+    )
+
+    validator = SPDXValidator(bom_type=bom_type)
+
+    def _confidence_band(grounding: Any) -> str:
+        if grounding is None:
+            return "deterministic"
+        try:
+            g = float(grounding)
+        except (TypeError, ValueError):
+            return "deterministic"
+        if g < SUPPRESS_GROUNDING_BELOW:
+            return "suppressed"
+        if g >= HIGH_CONFIDENCE_THRESHOLD:
+            return "high"
+        return "low"
+
+    out: List[Dict[str, str]] = []
+    if not isinstance(bom_data, dict):
+        return out
+
+    for section in ("direct_fields", "rag_fields", "direct_metadata", "rag_metadata"):
+        fields = bom_data.get(section) or {}
+        if not isinstance(fields, dict):
+            continue
+        section_label = "direct" if section.startswith("direct") else "rag"
+        for field_name, triplet in fields.items():
+            if not isinstance(triplet, dict):
+                continue
+            spdx_property = validator._spdx_property_for_bom_field(
+                field_name, bom_type
+            )
+            property_key = (
+                f"aikaboom:conflict:{spdx_property}" if spdx_property
+                else f"aikaboom:conflict:{field_name}"
+            )
+            trace = triplet.get("trace") or {}
+            claims = (trace.get("claims") or {}) if isinstance(trace, dict) else {}
+            selected_sources = (
+                (trace.get("selected_sources") or [])
+                if isinstance(trace, dict) else []
+            )
+
+            # 1. Direct-field conflict (deterministic).
+            conflict = triplet.get("conflict")
+            if (
+                isinstance(conflict, dict)
+                and "type" in conflict
+                and "value" in conflict
+                and "internal" not in conflict
+            ):
+                payload = {
+                    "spdx_property": spdx_property,
+                    "field": field_name,
+                    "section": section_label,
+                    "kind": conflict.get("type") or "inter",
+                    "chosen_value": triplet.get("value"),
+                    "chosen_source": triplet.get("source"),
+                    "conflict_value": conflict.get("value"),
+                    "conflict_source": conflict.get("source"),
+                    "confidence": "deterministic",
+                    "claims": dict(claims) or None,
+                    "selected_sources": list(selected_sources) or None,
+                }
+                out.append({
+                    "name": property_key,
+                    "value": json.dumps(
+                        {k: v for k, v in payload.items() if v is not None and v != ""},
+                        ensure_ascii=False, sort_keys=True,
+                    ),
+                })
+
+            # 2. RAG auditor — internal contradictions.
+            if isinstance(trace, dict):
+                for src, entry in (trace.get("internal_conflicts") or {}).items():
+                    if not isinstance(entry, dict):
+                        entry = {"narrative": str(entry)}
+                    grounding = entry.get("grounding")
+                    payload = {
+                        "spdx_property": spdx_property,
+                        "field": field_name,
+                        "section": section_label,
+                        "kind": "rag-internal",
+                        "chosen_value": triplet.get("value"),
+                        "chosen_source": triplet.get("source"),
+                        "conflict_source": src,
+                        "narrative": entry.get("narrative"),
+                        "grounding": grounding,
+                        "confidence": _confidence_band(grounding),
+                        "claims": dict(claims) or None,
+                        "selected_sources": list(selected_sources) or None,
+                    }
+                    out.append({
+                        "name": property_key,
+                        "value": json.dumps(
+                            {k: v for k, v in payload.items()
+                             if v is not None and v != ""},
+                            ensure_ascii=False, sort_keys=True,
+                        ),
+                    })
+
+            # 3. RAG auditor — external contradictions.
+            if isinstance(trace, dict):
+                for entry in (trace.get("external_conflicts") or []):
+                    if not isinstance(entry, dict):
+                        continue
+                    sources = list(entry.get("sources") or [])
+                    grounding = entry.get("grounding")
+                    payload = {
+                        "spdx_property": spdx_property,
+                        "field": field_name,
+                        "section": section_label,
+                        "kind": "rag-external",
+                        "chosen_value": triplet.get("value"),
+                        "chosen_source": triplet.get("source"),
+                        "conflict_sources": sources or None,
+                        "narrative": entry.get("description"),
+                        "grounding": grounding,
+                        "confidence": _confidence_band(grounding),
+                        "claims": dict(claims) or None,
+                        "selected_sources": list(selected_sources) or None,
+                    }
+                    out.append({
+                        "name": property_key,
+                        "value": json.dumps(
+                            {k: v for k, v in payload.items()
+                             if v is not None and v != ""},
+                            ensure_ascii=False, sort_keys=True,
+                        ),
+                    })
+
+    return out
+
+
 class CycloneDXExporter:
     """Converts AIkaBoOM provenance BOMs to CycloneDX 1.6 JSON."""
 
@@ -202,17 +366,13 @@ class CycloneDXExporter:
             if val and not _is_nil_value(val):
                 properties.append({"name": f"aikaboom:{prop_name}", "value": str(val)})
 
-        # Preserve conflict info as properties
-        for section_key in ("direct_fields", "rag_fields"):
-            fields = bom_data.get(section_key, {})
-            if not isinstance(fields, dict):
-                continue
-            for field, triplet in fields.items():
-                if isinstance(triplet, dict) and triplet.get("conflict"):
-                    properties.append({
-                        "name": f"aikaboom:conflict:{field}",
-                        "value": json.dumps(triplet["conflict"]),
-                    })
+        # Preserve conflict info as properties, with parity to the SPDX
+        # Annotation Element emitter (spdx_validator._build_conflict_annotations).
+        # ``_collect_conflict_properties`` filters phantom RAG envelopes,
+        # uses SPDX 3.0.1 property names in the property key, and includes
+        # the rich provenance (claims, narrative, grounding, confidence
+        # band) as a JSON value.
+        properties.extend(_collect_conflict_properties(bom_data, bom_type="ai"))
 
         # Model lineage / pedigree
         pedigree = None
@@ -280,6 +440,11 @@ class CycloneDXExporter:
             val = self._extract_value(raw)
             if val and str(val).lower() not in ("not found", "not found.", ""):
                 properties.append({"name": f"aikaboom:{prop_name}", "value": str(val)})
+
+        # Same conflict surfacing as the AI path, parity with the SPDX
+        # Annotation emitter. Keyed on SPDX 3.0.1 property names so
+        # CycloneDX ↔ SPDX cross-walks line up on both sides.
+        properties.extend(_collect_conflict_properties(bom_data, bom_type="data"))
 
         if properties:
             component["properties"] = properties
