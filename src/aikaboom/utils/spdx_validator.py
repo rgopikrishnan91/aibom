@@ -472,7 +472,288 @@ class SPDXValidator:
     def _get_current_timestamp(self) -> str:
         """Get current timestamp in ISO format"""
         return datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-    
+
+    # Relationship-typed BOM fields don't map to a single property on the
+    # package — they materialize as ``Relationship`` Elements pointing at
+    # child Packages. The SPDX 3.0.1 relationship-type token is the most
+    # specific identifier we can put in an Annotation's ``name``.
+    _AI_RELATIONSHIP_PROPERTIES = {
+        "trainedOnDatasets": "trainedOn",
+        "testedOnDatasets":  "testedOn",
+        "modelLineage":      "dependsOn",
+    }
+
+    def _spdx_property_for_bom_field(
+        self, bom_field: str, bom_type: str
+    ) -> Optional[str]:
+        """Return the SPDX 3.0.1 property/relationship name for a BOM field.
+
+        Resolution order:
+
+        1. **Direct lookup** in ``AI_FIELD_MAPPING`` / ``DATASET_FIELD_MAPPING``
+           (handles canonical camelCase keys like ``informationAboutTraining``).
+        2. **Snake_case alias reverse-lookup** via ``AI_RAG_FIELD_ALIASES``
+           so legacy keys (``training_information``,
+           ``safety_risk_assessment``, …) still resolve.
+        3. **License special case** — the LicenseExpression element owns
+           ``simplelicensing_licenseExpression``; the AIPackage / DatasetPackage
+           reaches it via ``hasConcludedLicense`` / ``hasDeclaredLicense``
+           Relationships. Conflicts on ``license`` are reported as
+           ``simplelicensing_licenseExpression`` so downstream tooling can
+           cross-reference into the License element.
+        4. **Relationship-typed AI fields** (``trainedOnDatasets`` etc.) →
+           the SPDX relationship-type token (``trainedOn``, …).
+
+        Returns ``None`` for unknown fields so callers can fall back to the
+        BOM field key as a last resort.
+        """
+        # 1. Direct hit
+        mapping = (
+            self.AI_FIELD_MAPPING if (bom_type or "").lower() == "ai"
+            else self.DATASET_FIELD_MAPPING
+        )
+        if bom_field in mapping:
+            value = mapping[bom_field]
+            # The mappings store ``license`` as the literal string
+            # ``"license"`` because the BOM dict uses ``license`` as the
+            # key in both direct_fields and direct_metadata. The actual
+            # SPDX 3.0.1 property is the one on LicenseExpression, so we
+            # normalise that here.
+            if value == "license":
+                return "simplelicensing_licenseExpression"
+            return value
+
+        # 2. Snake_case alias → canonical camelCase → SPDX property
+        if (bom_type or "").lower() == "ai":
+            for canonical, aliases in self.AI_RAG_FIELD_ALIASES.items():
+                if bom_field in aliases:
+                    return self.AI_FIELD_MAPPING.get(canonical)
+
+        # 3. Relationship-typed AI fields (no single property on the package)
+        if (bom_type or "").lower() == "ai":
+            rel = self._AI_RELATIONSHIP_PROPERTIES.get(bom_field)
+            if rel:
+                return rel
+
+        return None
+
+    def _build_conflict_annotations(
+        self,
+        bom_data: Dict[str, Any],
+        subject_id: str,
+        creation_ref: str,
+        bom_type: str = "ai",
+        relationship_subjects: Optional[Dict[str, str]] = None,
+    ) -> List[Dict[str, Any]]:
+        """Emit SPDX 3.0.1 ``Annotation`` Elements for every conflict in ``bom_data``.
+
+        SPDX Core defines ``Annotation`` as an Element whose ``subject``
+        points at the annotated Element and whose ``statement`` carries
+        free-form content (typed via ``contentType``). The vocabulary for
+        ``annotationType`` only defines ``other`` and ``review``; we use
+        ``other`` because conflict provenance is not a human review.
+
+        The ``statement`` is JSON-encoded (``contentType: application/json``)
+        so downstream consumers can parse the rich provenance — claims by
+        source, narrative, grounding, confidence band — without re-running
+        the auditor. ``name``/``description`` provide a human-readable
+        summary for SPDX viewers that don't parse JSON statements.
+
+        Args:
+            bom_data: BOM metadata dict (``direct_fields`` / ``rag_fields``
+                / ``direct_metadata`` / ``rag_metadata``).
+            subject_id: ``spdxId`` of the Element that owns the conflicted
+                field (the root AIPackage / DatasetPackage).
+            creation_ref: ``@id`` reference (e.g. ``_:creationinfo-<uuid>``
+                or the legacy ``_:creationinfo``) of the CreationInfo node
+                shared with the rest of the document so SHACL
+                ``creationInfo`` refs resolve.
+            relationship_subjects: Optional ``{bom_field_name: spdxId}`` map
+                for relationship fields (e.g. ``trainedOnDatasets`` →
+                ``urn:spdx:DatasetPackage-…``). Falls back to ``subject_id``.
+        """
+        from aikaboom.core.conflict_routing import (
+            HIGH_CONFIDENCE_THRESHOLD,
+            SUPPRESS_GROUNDING_BELOW,
+        )
+
+        if not isinstance(bom_data, dict):
+            return []
+
+        relationship_subjects = relationship_subjects or {}
+
+        def _confidence_band(grounding: Any) -> str:
+            if grounding is None:
+                return "deterministic"
+            try:
+                g = float(grounding)
+            except (TypeError, ValueError):
+                return "deterministic"
+            if g < SUPPRESS_GROUNDING_BELOW:
+                return "suppressed"
+            if g >= HIGH_CONFIDENCE_THRESHOLD:
+                return "high"
+            return "low"
+
+        annotations: List[Dict[str, Any]] = []
+
+        for section in ("direct_fields", "rag_fields", "direct_metadata", "rag_metadata"):
+            fields = bom_data.get(section)
+            if not isinstance(fields, dict):
+                continue
+            section_label = (
+                "direct" if section.startswith("direct") else "rag"
+            )
+            for field_name, triplet in fields.items():
+                if not isinstance(triplet, dict):
+                    continue
+
+                subject_for_field = relationship_subjects.get(field_name, subject_id)
+                spdx_property = self._spdx_property_for_bom_field(field_name, bom_type)
+                trace = triplet.get("trace") or {}
+                claims = (trace.get("claims") or {}) if isinstance(trace, dict) else {}
+                selected_sources = (
+                    (trace.get("selected_sources") or [])
+                    if isinstance(trace, dict) else []
+                )
+
+                # 1. Direct-field conflict (deterministic). Same shape gate
+                #    as ``_extract_conflicts`` so phantom RAG envelopes
+                #    (``{internal: "No", external: "No"}``) don't create
+                #    Annotation noise.
+                conflict = triplet.get("conflict")
+                if (
+                    isinstance(conflict, dict)
+                    and "type" in conflict
+                    and "value" in conflict
+                    and "internal" not in conflict
+                ):
+                    payload = {
+                        "spdx_property": spdx_property,
+                        "field": field_name,
+                        "section": section_label,
+                        "kind": conflict.get("type") or "inter",
+                        "chosen_value": triplet.get("value"),
+                        "chosen_source": triplet.get("source"),
+                        "conflict_value": conflict.get("value"),
+                        "conflict_source": conflict.get("source"),
+                        "grounding": None,
+                        "confidence": "deterministic",
+                        "claims": dict(claims),
+                        "sources_considered": list(claims.keys()),
+                        "selected_sources": list(selected_sources),
+                    }
+                    annotations.append(
+                        self._make_annotation(
+                            subject_for_field, creation_ref,
+                            spdx_property, field_name,
+                            "direct-source-disagreement", payload,
+                        )
+                    )
+
+                # 2. RAG auditor — internal contradictions inside one source.
+                if isinstance(trace, dict):
+                    for src, entry in (trace.get("internal_conflicts") or {}).items():
+                        if not isinstance(entry, dict):
+                            entry = {"narrative": str(entry)}
+                        grounding = entry.get("grounding")
+                        payload = {
+                            "spdx_property": spdx_property,
+                            "field": field_name,
+                            "section": section_label,
+                            "kind": "rag-internal",
+                            "chosen_value": triplet.get("value"),
+                            "chosen_source": triplet.get("source"),
+                            "conflict_source": src,
+                            "narrative": entry.get("narrative"),
+                            "statements": entry.get("statements"),
+                            "grounding": grounding,
+                            "confidence": _confidence_band(grounding),
+                            "claims": dict(claims),
+                            "sources_considered": list(claims.keys()),
+                            "selected_sources": list(selected_sources),
+                        }
+                        annotations.append(
+                            self._make_annotation(
+                                subject_for_field, creation_ref,
+                                spdx_property, field_name,
+                                "intra-source-contradiction", payload,
+                            )
+                        )
+
+                # 3. RAG auditor — external contradictions across sources.
+                if isinstance(trace, dict):
+                    for entry in (trace.get("external_conflicts") or []):
+                        if not isinstance(entry, dict):
+                            continue
+                        sources = list(entry.get("sources") or [])
+                        grounding = entry.get("grounding")
+                        payload = {
+                            "spdx_property": spdx_property,
+                            "field": field_name,
+                            "section": section_label,
+                            "kind": "rag-external",
+                            "chosen_value": triplet.get("value"),
+                            "chosen_source": triplet.get("source"),
+                            "conflict_sources": sources,
+                            "narrative": entry.get("description"),
+                            "statements": entry.get("statements"),
+                            "grounding": grounding,
+                            "confidence": _confidence_band(grounding),
+                            "claims": dict(claims),
+                            "sources_considered": list(claims.keys()),
+                            "selected_sources": list(selected_sources),
+                        }
+                        annotations.append(
+                            self._make_annotation(
+                                subject_for_field, creation_ref,
+                                spdx_property, field_name,
+                                "inter-source-disagreement", payload,
+                            )
+                        )
+
+        return annotations
+
+    def _make_annotation(
+        self,
+        subject_id: str,
+        creation_ref: str,
+        spdx_property: Optional[str],
+        bom_field: str,
+        kind_label: str,
+        payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Build a single SPDX ``Annotation`` Element.
+
+        The annotation ``name`` and the human-readable ``description`` are
+        keyed on the **SPDX 3.0.1 property name** (e.g.
+        ``ai_safetyRiskAssessment``) so a downstream SPDX consumer can
+        identify the affected property without knowing AIkaBoOM's internal
+        field vocabulary. Unknown / unmapped BOM fields fall back to the
+        BOM field key as a last-resort identifier.
+        """
+        compact_payload = {
+            k: v for k, v in payload.items()
+            if v is not None and v != "" and v != [] and v != {}
+        }
+        statement = json.dumps(compact_payload, ensure_ascii=False, sort_keys=True)
+        property_label = spdx_property or bom_field
+        return {
+            "type": "Annotation",
+            "spdxId": f"urn:spdx:Annotation-{self._generate_uuid()}",
+            "creationInfo": creation_ref,
+            "annotationType": "other",
+            "subject": subject_id,
+            "contentType": "application/json",
+            "statement": statement,
+            "name": f"aikaboom:conflict:{property_label}",
+            "description": (
+                f"AIkaBoOM-detected {kind_label} on SPDX property "
+                f"'{property_label}'. Statement carries structured conflict "
+                "provenance (claims, sources, narrative, grounding) as JSON."
+            ),
+        }
+
     def validate_and_convert(self, bom_data: Dict[str, Any], bom_type: str = None) -> Dict[str, Any]:
         """
         Convert BOM data to SPDX 3.0.1 format
@@ -615,12 +896,16 @@ class SPDXValidator:
             ]
         }
         
-        # Emit trainedOn / testedOn / dependsOn relationships from RAG fields
+        # Emit trainedOn / testedOn / dependsOn relationships from RAG fields.
+        # Track the first stub spdxId per relationship field so conflict
+        # annotations on those relationship fields can target the child
+        # element rather than always pointing at the AIPackage.
         relationship_fields = {
             'trainedOnDatasets': 'trainedOn',
             'testedOnDatasets': 'testedOn',
             'modelLineage': 'dependsOn',
         }
+        relationship_subjects: Dict[str, str] = {}
         for field_key, rel_type in relationship_fields.items():
             value = self._extract_value(rag_fields.get(field_key))
             if _is_nil_value(value):
@@ -634,6 +919,21 @@ class SPDXValidator:
             )
             spdx_doc['@graph'].extend(stub_elements)
             spdx_doc['@graph'].extend(rels)
+            if stub_elements:
+                relationship_subjects[field_key] = stub_elements[0].get("spdxId")
+
+        # Attach SPDX Core Annotation Elements for every detected conflict.
+        # Subject defaults to the AIPackage; relationship-field conflicts
+        # target the first stub child for that field when available.
+        ai_subject_id = f"urn:spdx:AIPackage-{package_uuid}"
+        spdx_doc['@graph'].extend(
+            self._build_conflict_annotations(
+                bom_data, ai_subject_id,
+                creation_ref=f"_:creationinfo-{creation_uuid}",
+                bom_type="ai",
+                relationship_subjects=relationship_subjects,
+            )
+        )
 
         return spdx_doc
 
@@ -1084,7 +1384,20 @@ class SPDXValidator:
                 }
             ]
         }
-        
+
+        # Attach SPDX Core Annotation Elements for every detected conflict.
+        # Dataset BOMs share a single literal ``_:creationinfo`` ref across
+        # the whole graph (legacy of pre-Phase-7 dataset writer), so we
+        # pass that here instead of a uuid-suffixed ref.
+        dataset_subject_id = f"urn:spdx:DatasetPackage-{dataset_uuid}"
+        spdx_doc['@graph'].extend(
+            self._build_conflict_annotations(
+                bom_data, dataset_subject_id,
+                creation_ref="_:creationinfo",
+                bom_type="data",
+            )
+        )
+
         return spdx_doc
     
     def save_spdx(self, spdx_data: Dict[str, Any], output_path: str) -> str:

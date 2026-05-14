@@ -1668,6 +1668,27 @@
             padding-left: 6px;
             margin-left: 2px;
         }
+        .spdx-annot-chip {
+            display: inline-flex;
+            align-items: center;
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 3px 10px;
+            border-radius: 3px;
+            background: var(--paper-2);
+            color: var(--ink);
+            border: 1px solid var(--paper-edge);
+            cursor: pointer;
+            user-select: all;
+        }
+        .spdx-annot-chip:hover {
+            background: var(--paper-soft);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
         .kind-tag {
             font-family: var(--mono);
             font-size: 10px;
@@ -4115,6 +4136,38 @@
             return `<span class="conf-pill det">no grounding</span>`;
         }
 
+        // Render an SPDX Annotation reference chip for each conflict
+        // entry that carries a matching ``spdx_annotation_id``. Lets the
+        // reader trace a UI conflict row back to the exact
+        // ``urn:spdx:Annotation-…`` Element in the downloaded SPDX 3.0.1
+        // artifact (and the linked recursive bundle). The chip is
+        // copy-to-clipboard on click so the IRI can be pasted into an
+        // SPDX viewer / SHACL inspector.
+        function annotationChipsFor(entries) {
+            const ids = (entries || [])
+                .map(e => e && e.spdx_annotation_id)
+                .filter(Boolean);
+            if (!ids.length) return '';
+            const seen = new Set();
+            const chips = [];
+            ids.forEach((id, i) => {
+                if (seen.has(id)) return;
+                seen.add(id);
+                const short = id.replace(/^urn:spdx:Annotation-/, '').slice(0, 8);
+                const subject = (entries[i] && entries[i].spdx_annotation_subject) || '';
+                const title = subject
+                    ? `SPDX 3.0.1 Annotation ${id}\nSubject: ${subject}\nClick to copy IRI`
+                    : `SPDX 3.0.1 Annotation ${id}\nClick to copy IRI`;
+                chips.push(
+                    `<span class="spdx-annot-chip" title="${escapeHtml(title)}" `
+                    + `onclick="navigator.clipboard && navigator.clipboard.writeText('${escapeHtml(id)}')">`
+                    + `SPDX ann · ${escapeHtml(short)}`
+                    + `</span>`
+                );
+            });
+            return chips.join(' ');
+        }
+
         function letterMapFromClaims(claims) {
             const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
             const out = {};
@@ -4274,6 +4327,7 @@
                 </div>
                 <div class="cell conflict-meta">
                     ${pills}
+                    ${annotationChipsFor(g.entries)}
                 </div>
                 ${narrativeBlocks || claimItems ? `<div class="conflict-claims">
                     ${narrativeBlocks ? `<div class="claims-section-label">Auditor narrative</div>${narrativeBlocks}` : ''}

@@ -342,6 +342,61 @@ def _extract_conflicts(metadata: dict) -> list:
     return conflicts
 
 
+def _annotate_conflicts_with_spdx_ids(conflicts: list, spdx_doc: dict) -> list:
+    """Tag each conflict row with the spdxId of its matching SPDX Annotation.
+
+    Both ``_extract_conflicts`` and ``SPDXValidator._build_conflict_annotations``
+    iterate ``direct_fields`` then ``rag_fields`` in dict-insertion order and
+    emit one row per detected conflict. We index annotations by
+    ``(section, field, kind)`` and pop a candidate per matching conflict row
+    so duplicate (field, kind) pairs (e.g. two external conflict entries on
+    the same field) line up by first-come, first-served — same order the
+    SPDX writer used.
+
+    Adds two keys to each conflict dict:
+      * ``spdx_annotation_id``  — the ``urn:spdx:Annotation-…`` IRI
+      * ``spdx_annotation_subject`` — the Element that annotation targets
+
+    Conflicts with no matching annotation (e.g. annotation emission threw)
+    keep the keys absent, so the UI can degrade gracefully.
+    """
+    if not isinstance(spdx_doc, dict) or not isinstance(conflicts, list):
+        return conflicts
+
+    # Build {(section, field, kind): [annotation, …]} from the SPDX graph.
+    # Kind in the annotation statement maps 1:1 onto the conflict row's
+    # ``kind`` value (``inter``, ``intra``, ``rag-internal``,
+    # ``rag-external``).
+    buckets: dict = {}
+    for elem in spdx_doc.get('@graph') or []:
+        if not isinstance(elem, dict) or elem.get('type') != 'Annotation':
+            continue
+        statement = elem.get('statement')
+        if not isinstance(statement, str):
+            continue
+        try:
+            payload = json.loads(statement)
+        except (ValueError, TypeError):
+            continue
+        key = (payload.get('section'), payload.get('field'), payload.get('kind'))
+        buckets.setdefault(key, []).append(elem)
+
+    for conflict in conflicts:
+        section = conflict.get('section')
+        field = conflict.get('field')
+        kind = conflict.get('kind')
+        key = (section, field, kind)
+        candidates = buckets.get(key)
+        if not candidates:
+            continue
+        annotation = candidates.pop(0)
+        conflict['spdx_annotation_id'] = annotation.get('spdxId')
+        conflict['spdx_annotation_subject'] = annotation.get('subject')
+        conflict['spdx_annotation_type'] = annotation.get('annotationType')
+
+    return conflicts
+
+
 @app.route('/logs')
 def stream_logs():
     """SSE endpoint — streams server logs to the browser in real time."""
@@ -889,6 +944,13 @@ def process():
                 json.dump(spdx_output, f, indent=2, ensure_ascii=False)
             response_data['spdx_download_url'] = f'/download/{spdx_filename}'
             response_data['spdx_data'] = spdx_output
+            # Cross-reference each conflict row with the spdxId of its
+            # matching Annotation Element so the UI can deep-link from a
+            # conflict back into the SPDX viewer / downloaded artifact.
+            if isinstance(response_data.get('conflicts'), list):
+                response_data['conflicts'] = _annotate_conflicts_with_spdx_ids(
+                    response_data['conflicts'], spdx_output,
+                )
             if validate_spdx:
                 response_data['spdx_validation'] = validate_spdx_export(
                     spdx_output,
