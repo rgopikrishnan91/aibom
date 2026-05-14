@@ -413,11 +413,26 @@ def generate_recursive_boms(
         for fld in audit.get("conflict_flagged", []):
             conflict_walked.append({**fld, "parent": parent_label, "depth": depth + 1})
 
+        # Two-phase walk per parent:
+        #   Phase 1 — discovery: classify every target (dup / cap / valid)
+        #     and emit one event per target so the UI can render the full
+        #     set of pending chips for this parent BEFORE any enrichment
+        #     starts.
+        #   Phase 2 — processing: enrich each valid target serially,
+        #     emitting child.start before and child.done after.
+        # Splitting these phases is what lets the Stage 2 tree show "0/3
+        # processed" up front and then watch the chips turn amber → green
+        # as each child resolves, instead of chips popping into existence
+        # already-done.
+        to_process: List[Dict[str, Any]] = []
         for t in targets:
-            if len(generated) >= safety_cap:
-                # Exhaustion ran past the safety cap — record and stop
-                # descending. Without this, the walker could blow up on a
-                # densely connected dependency graph under EXHAUST_DEPTH.
+            if len(generated) + len(to_process) >= safety_cap:
+                # The cap is on the total *generated* count, but during
+                # discovery we don't know which targets will actually be
+                # enriched yet. Approximating with len(generated) + queued
+                # to-process keeps the prior semantics intact while still
+                # rejecting targets eagerly so the UI sees skipped chips
+                # immediately rather than after all earlier siblings run.
                 tree_exhausted = False
                 safety_capped.append({
                     "target": t["target"],
@@ -435,6 +450,7 @@ def generate_recursive_boms(
                     "parent": parent_label,
                     "depth": depth + 1,
                     "reason": "safety-cap-reached",
+                    "has_conflict": t.get("has_conflict", False),
                 })
                 continue
             key = _visit_key(t["bom_type"], t["target"])
@@ -454,16 +470,13 @@ def generate_recursive_boms(
                     "parent": parent_label,
                     "depth": depth + 1,
                     "reason": "duplicate",
+                    "has_conflict": t.get("has_conflict", False),
                 })
                 continue
             visited.add(key)
-            t_with_parent = {**t, "parent": parent_label}
-
-            # Tell the UI a new child is queued and about to start. We emit
-            # discovered + start back-to-back since each target moves
-            # immediately into enrichment in this BFS loop. ``has_conflict``
-            # is per-edge metadata so the chip can render a ⚠ marker without
-            # blocking the walk.
+            # Emit the discovery event immediately so the UI's pending
+            # chip for this target shows up before any of its siblings
+            # start running.
             _emit_event({
                 "event": "recursive.target.discovered",
                 "target": t["target"],
@@ -473,6 +486,11 @@ def generate_recursive_boms(
                 "depth": depth + 1,
                 "has_conflict": t.get("has_conflict", False),
             })
+            to_process.append(t)
+
+        # Phase 2 — process each valid target in BFS-sibling order.
+        for t in to_process:
+            t_with_parent = {**t, "parent": parent_label}
             _emit_event({
                 "event": "recursive.child.start",
                 "target": t["target"],
@@ -517,6 +535,7 @@ def generate_recursive_boms(
                 "depth": depth + 1,
                 "enriched": enriched,
                 "error": enrichment_error,
+                "has_conflict": t.get("has_conflict", False),
                 "duration_ms": int((time.time() - _child_t0) * 1000),
             })
 

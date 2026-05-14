@@ -2379,29 +2379,41 @@
         .pipeline-stage2 .stage2-summary .stat.skipped .num { color: var(--paper-mute); }
         .pipeline-stage2 .stage2-summary .stat.error .num { color: var(--conflict-high); }
 
-        .pipeline-stage2 .stage2-depths {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .pipeline-stage2 .stage2-depth {
+        /* Tree layout — children render inside their parent's container
+           with a subtle vertical guide line in the indent gutter. */
+        .pipeline-stage2 .stage2-tree {
             display: flex;
             flex-direction: column;
             gap: 6px;
         }
-        .pipeline-stage2 .stage2-depth-label {
-            font-family: var(--mono);
-            font-size: 10.5px;
-            font-weight: 600;
-            color: var(--paper-faint);
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-        }
-        .pipeline-stage2 .stage2-chips {
+        .pipeline-stage2 .stage2-node {
             display: flex;
-            flex-wrap: wrap;
-            gap: 6px 8px;
+            flex-direction: column;
+            gap: 4px;
         }
+        .pipeline-stage2 .stage2-node-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .pipeline-stage2 .stage2-children {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding-left: 22px;
+            margin-left: 8px;
+            border-left: 1px solid var(--paper-edge);
+            margin-top: 4px;
+        }
+        .pipeline-stage2 .stage2-children:empty { display: none; }
+        .pipeline-stage2 .dep-count {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--paper-faint);
+            white-space: nowrap;
+        }
+        .pipeline-stage2 .dep-count.is-done { color: var(--conflict-none); font-weight: 600; }
+        .pipeline-stage2 .dep-count.is-running { color: #d18814; }
         .stage2-chip {
             display: inline-flex;
             align-items: center;
@@ -3145,7 +3157,7 @@
                             <div class="stage-status" id="stage2Status">walking the dependency tree…</div>
                         </div>
                         <div class="stage2-summary" id="stage2Summary"></div>
-                        <div class="stage2-depths" id="stage2Depths"></div>
+                        <div class="stage2-tree" id="stage2Tree"></div>
                     </div>
 
                     <div class="pipeline-expand" id="pipelineExpand">
@@ -4726,13 +4738,22 @@
         // of chips under the Stage 1 timeline. Card stays hidden until the
         // walker emits its first event so non-recursive runs aren't cluttered.
         const Stage2 = (function () {
-            // Keyed by `${depth}::${target}::${bom_type}` so the same target
-            // surfacing under multiple parents at different depths gets
-            // distinct chips.
-            const children = new Map();  // key → {target, bom_type, relationship_type, depth, parent, state, reason}
+            // Tree-structured Stage 2: each child node is keyed by its parent
+            // + target so the same target appearing under two different parents
+            // gets two distinct chips (e.g. the duplicate-skipped emission
+            // under one parent, the real walk under another). Discovery order
+            // is preserved via an insertionOrder counter so siblings render
+            // in the order the walker found them.
+            //
+            // The root chip represents the input BOM itself (target = the
+            // canonical parent_id from recursive.start). Its "parent" is
+            // empty so the renderer knows where the tree starts.
+            const nodes = new Map();  // key → entry
+            let insertionCounter = 0;
 
             function reset() {
-                children.clear();
+                nodes.clear();
+                insertionCounter = 0;
                 const card = document.getElementById('pipelineStage2');
                 if (!card) return;
                 card.hidden = true;
@@ -4740,16 +4761,18 @@
                 document.getElementById('stage2Meta').textContent = '';
                 document.getElementById('stage2Status').textContent = 'walking the dependency tree…';
                 document.getElementById('stage2Summary').innerHTML = '';
-                document.getElementById('stage2Depths').innerHTML = '';
+                document.getElementById('stage2Tree').innerHTML = '';
             }
 
-            function _key(evt) {
-                return `${evt.depth || 1}::${evt.target}::${evt.bom_type || 'ai'}`;
+            // Key includes parent so the same target can appear under two
+            // different parents (the dedupe-skipped sibling case).
+            function _key(parent, target, bom_type) {
+                return `${parent || '__root__'}::${target}::${bom_type || 'ai'}`;
             }
 
-            function _ensureChild(evt, state) {
-                const k = _key(evt);
-                let entry = children.get(k);
+            function _ensureNode(evt, state) {
+                const k = _key(evt.parent, evt.target, evt.bom_type);
+                let entry = nodes.get(k);
                 if (!entry) {
                     entry = {
                         key: k,
@@ -4761,16 +4784,41 @@
                         state: state || 'pending',
                         reason: evt.reason || '',
                         has_conflict: !!evt.has_conflict,
+                        order: insertionCounter++,
                     };
-                    children.set(k, entry);
+                    nodes.set(k, entry);
                 } else {
                     if (state) entry.state = state;
                     // Latch has_conflict if any event for this edge reports
-                    // a conflict (the discovered event may not, but child.start
-                    // does — or vice versa).
+                    // a conflict (one of discovered / start / done may have
+                    // surfaced it but not all).
                     if (evt.has_conflict) entry.has_conflict = true;
                 }
                 if (evt.reason) entry.reason = evt.reason;
+                return entry;
+            }
+
+            function _ensureRoot(parentId) {
+                // The root chip carries no parent (parent=''), state tracks
+                // the overall walk: running → done on recursive.done.
+                const k = _key('', parentId, 'ai');
+                let entry = nodes.get(k);
+                if (!entry) {
+                    entry = {
+                        key: k,
+                        target: parentId,
+                        bom_type: 'ai',
+                        relationship_type: 'root',
+                        depth: 0,
+                        parent: '',
+                        state: 'running',
+                        reason: '',
+                        has_conflict: false,
+                        order: insertionCounter++,
+                        is_root: true,
+                    };
+                    nodes.set(k, entry);
+                }
                 return entry;
             }
 
@@ -4782,7 +4830,8 @@
             function handle(evt) {
                 switch (evt.event) {
                     case 'recursive.start': {
-                        children.clear();
+                        nodes.clear();
+                        insertionCounter = 0;
                         _reveal();
                         const card = document.getElementById('pipelineStage2');
                         if (card) card.classList.remove('is-done');
@@ -4791,31 +4840,35 @@
                         if (evt.safety_cap) meta.push(`safety cap: ${evt.safety_cap}`);
                         document.getElementById('stage2Meta').textContent = meta.join(' · ');
                         document.getElementById('stage2Status').textContent = 'walking the dependency tree…';
+                        // Seed the root chip from the parent identifier so the
+                        // user sees the source of the walk immediately, even
+                        // before any children come back.
+                        _ensureRoot(evt.parent || 'parent BOM');
                         render();
                         break;
                     }
                     case 'recursive.target.discovered': {
                         _reveal();
-                        _ensureChild(evt, 'pending');
+                        _ensureNode(evt, 'pending');
                         render();
                         break;
                     }
                     case 'recursive.child.start': {
                         _reveal();
-                        _ensureChild(evt, 'running');
+                        _ensureNode(evt, 'running');
                         render();
                         break;
                     }
                     case 'recursive.child.done': {
                         _reveal();
-                        const entry = _ensureChild(evt, evt.error ? 'error' : 'done');
+                        const entry = _ensureNode(evt, evt.error ? 'error' : 'done');
                         if (evt.error) entry.reason = evt.error;
                         render();
                         break;
                     }
                     case 'recursive.child.skipped': {
                         _reveal();
-                        _ensureChild(evt, 'skipped');
+                        _ensureNode(evt, 'skipped');
                         render();
                         break;
                     }
@@ -4823,6 +4876,10 @@
                         const card = document.getElementById('pipelineStage2');
                         if (!card) break;
                         card.classList.add('is-done');
+                        // Flip the root chip to done as well.
+                        for (const v of nodes.values()) {
+                            if (v.is_root) v.state = 'done';
+                        }
                         const counts = _counts();
                         const parts = [`✓ ${counts.done} done`];
                         if (counts.error)   parts.push(`${counts.error} failed`);
@@ -4835,18 +4892,44 @@
             }
 
             function _counts() {
+                // Exclude the root from the counts since it's the parent BOM
+                // (whose progress is shown by Stage 1, not here).
                 const c = { pending: 0, running: 0, done: 0, error: 0, skipped: 0 };
-                for (const v of children.values()) c[v.state] = (c[v.state] || 0) + 1;
+                for (const v of nodes.values()) {
+                    if (v.is_root) continue;
+                    c[v.state] = (c[v.state] || 0) + 1;
+                }
                 return c;
             }
 
-            function render() {
-                if (children.size === 0) return;
-                const summary = document.getElementById('stage2Summary');
-                const depths = document.getElementById('stage2Depths');
-                if (!summary || !depths) return;
+            function _directChildren(parentTarget) {
+                const out = [];
+                for (const v of nodes.values()) {
+                    if (v.parent === parentTarget && !v.is_root) out.push(v);
+                }
+                out.sort((a, b) => a.order - b.order);
+                return out;
+            }
 
-                // Summary row
+            function _depCountLabel(parentTarget) {
+                const kids = _directChildren(parentTarget);
+                if (kids.length === 0) return null;
+                const processed = kids.filter(
+                    k => k.state === 'done' || k.state === 'error' || k.state === 'skipped'
+                ).length;
+                const label = `${processed} / ${kids.length} processed`;
+                const klass = processed === kids.length ? 'is-done'
+                            : kids.some(k => k.state === 'running') ? 'is-running'
+                            : '';
+                return { text: label, klass };
+            }
+
+            function render() {
+                const summary = document.getElementById('stage2Summary');
+                const tree = document.getElementById('stage2Tree');
+                if (!summary || !tree) return;
+
+                // Summary row (counts non-root entries).
                 const c = _counts();
                 const stat = (k, label, kls) => `<span class="stat ${kls}"><span class="num">${c[k]}</span> ${label}</span>`;
                 summary.innerHTML = [
@@ -4857,33 +4940,43 @@
                     c.error   ? stat('error',   'failed',  'error')   : '',
                 ].filter(Boolean).join('');
 
-                // Depth-grouped chips
-                const byDepth = new Map();
-                for (const v of children.values()) {
-                    if (!byDepth.has(v.depth)) byDepth.set(v.depth, []);
-                    byDepth.get(v.depth).push(v);
+                // Build tree: find roots (entries with empty parent) and
+                // render each one with its descendants recursively.
+                tree.innerHTML = '';
+                const roots = [];
+                for (const v of nodes.values()) if (!v.parent || v.is_root) roots.push(v);
+                roots.sort((a, b) => a.order - b.order);
+                for (const root of roots) tree.appendChild(_renderNode(root));
+            }
+
+            function _renderNode(entry) {
+                const node = document.createElement('div');
+                node.className = 'stage2-node';
+                node.dataset.target = entry.target;
+                node.dataset.depth = String(entry.depth);
+
+                const row = document.createElement('div');
+                row.className = 'stage2-node-row';
+                row.appendChild(_chip(entry));
+
+                const dep = _depCountLabel(entry.target);
+                if (dep) {
+                    const lbl = document.createElement('span');
+                    lbl.className = 'dep-count' + (dep.klass ? ` ${dep.klass}` : '');
+                    lbl.textContent = dep.text;
+                    row.appendChild(lbl);
                 }
-                const sortedDepths = Array.from(byDepth.keys()).sort((a, b) => a - b);
-                depths.innerHTML = '';
-                for (const d of sortedDepths) {
-                    const block = document.createElement('div');
-                    block.className = 'stage2-depth';
-                    block.dataset.depth = String(d);
-                    const label = document.createElement('div');
-                    label.className = 'stage2-depth-label';
-                    label.textContent = `Depth ${d}`;
-                    block.appendChild(label);
-                    const chips = document.createElement('div');
-                    chips.className = 'stage2-chips';
-                    // Stable order: done first, then running, then pending, then skipped/error
-                    const order = { running: 0, done: 1, pending: 2, skipped: 3, error: 4 };
-                    const sorted = byDepth.get(d).slice().sort(
-                        (a, b) => (order[a.state] - order[b.state]) || a.target.localeCompare(b.target)
-                    );
-                    for (const entry of sorted) chips.appendChild(_chip(entry));
-                    block.appendChild(chips);
-                    depths.appendChild(block);
+                node.appendChild(row);
+
+                // Recurse into direct children.
+                const kids = _directChildren(entry.target);
+                if (kids.length > 0) {
+                    const container = document.createElement('div');
+                    container.className = 'stage2-children';
+                    for (const k of kids) container.appendChild(_renderNode(k));
+                    node.appendChild(container);
                 }
+                return node;
             }
 
             function _chip(entry) {

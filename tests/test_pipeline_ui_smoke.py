@@ -633,9 +633,10 @@ def test_stage2_skipped_chip_shows_reason(page):
     assert "duplicate" in reason
 
 
-def test_stage2_groups_chips_by_depth(page):
-    """Depth 1 and Depth 2 chips appear under separate, labeled sections
-    (the 'depth grouping' design answer)."""
+def test_stage2_nests_children_under_their_parent(page):
+    """Tree layout: x/b is a child of x/a, so x/b's node must be rendered
+    inside x/a's .stage2-children container — not as a sibling under the
+    root. (Replaces the old depth-band grouping.)"""
     page.evaluate("(e) => Pipeline.handleEvent(e)",
                   {"event": "recursive.start", "parent": "test/x", "bom_type": "ai", "max_depth": 2, "safety_cap": 50})
     page.evaluate("(e) => Pipeline.handleEvent(e)", {
@@ -647,13 +648,102 @@ def test_stage2_groups_chips_by_depth(page):
         "target": "x/b", "bom_type": "data", "relationship_type": "trainedOn", "depth": 2, "parent": "x/a",
     })
     page.wait_for_timeout(60)
-    depth_blocks = page.locator(".stage2-depth")
-    assert depth_blocks.count() == 2
-    labels = [depth_blocks.nth(i).locator(".stage2-depth-label").inner_text() for i in range(2)]
-    assert labels == ["Depth 1", "Depth 2"]
-    # Each block holds the right chip
-    assert page.locator('.stage2-depth[data-depth="1"] .stage2-chip[data-target="x/a"]').count() == 1
-    assert page.locator('.stage2-depth[data-depth="2"] .stage2-chip[data-target="x/b"]').count() == 1
+    # Root chip rendered from recursive.start
+    root = page.locator('.stage2-node[data-target="test/x"]')
+    assert root.count() == 1
+    # x/a is a direct child of root (under root's .stage2-children)
+    assert root.locator('> .stage2-children > .stage2-node[data-target="x/a"]').count() == 1
+    # x/b is a direct child of x/a, not of root
+    assert page.locator('.stage2-node[data-target="x/a"] > .stage2-children > .stage2-node[data-target="x/b"]').count() == 1
+    # x/b should NOT appear at the root level
+    assert root.locator('> .stage2-children > .stage2-node[data-target="x/b"]').count() == 0
+
+
+def test_stage2_root_chip_rendered_from_recursive_start(page):
+    """The root chip represents the input BOM and appears immediately on
+    recursive.start, before any child events arrive."""
+    page.evaluate("(e) => Pipeline.handleEvent(e)",
+                  {"event": "recursive.start", "parent": "meta/my-model",
+                   "bom_type": "ai", "max_depth": 3, "safety_cap": 50})
+    page.wait_for_timeout(60)
+    root_chip = page.locator('.stage2-node[data-target="meta/my-model"] > .stage2-node-row > .stage2-chip')
+    assert root_chip.count() == 1
+    # Root sports the special 'root' relationship label
+    assert "root" in root_chip.locator(".rel").inner_text()
+    # Root is in running state until recursive.done fires
+    assert root_chip.get_attribute("data-state") == "running"
+
+
+def test_stage2_dep_count_label_grows_with_discovery(page):
+    """The 'N / M processed' label on a parent updates as discovery and
+    processing progress: M = direct children discovered so far,
+    N = direct children in a terminal state."""
+    P = "test/parent"
+    page.evaluate("(e) => Pipeline.handleEvent(e)",
+                  {"event": "recursive.start", "parent": P, "bom_type": "ai",
+                   "max_depth": 1, "safety_cap": 10})
+    page.wait_for_timeout(40)
+
+    def dep_text():
+        return (page.locator(f'.stage2-node[data-target="{P}"] > .stage2-node-row > .dep-count')
+                .text_content() or "").strip()
+
+    # No children yet → no label
+    assert page.locator(f'.stage2-node[data-target="{P}"] > .stage2-node-row > .dep-count').count() == 0
+
+    # Discover one → 0 / 1 processed
+    c1 = {"target": "a/1", "bom_type": "data", "relationship_type": "trainedOn", "depth": 1, "parent": P}
+    page.evaluate("(e) => Pipeline.handleEvent(e)", {"event": "recursive.target.discovered", **c1})
+    page.wait_for_timeout(40)
+    assert "0 / 1 processed" in dep_text()
+
+    # Discover second → 0 / 2 processed (denominator grows)
+    c2 = {"target": "a/2", "bom_type": "data", "relationship_type": "trainedOn", "depth": 1, "parent": P}
+    page.evaluate("(e) => Pipeline.handleEvent(e)", {"event": "recursive.target.discovered", **c2})
+    page.wait_for_timeout(40)
+    assert "0 / 2 processed" in dep_text()
+
+    # First child done → 1 / 2 processed (numerator grows)
+    page.evaluate("(e) => Pipeline.handleEvent(e)", {"event": "recursive.child.start", **c1})
+    page.evaluate("(e) => Pipeline.handleEvent(e)", {"event": "recursive.child.done", **c1, "duration_ms": 100})
+    page.wait_for_timeout(40)
+    assert "1 / 2 processed" in dep_text()
+
+    # All processed → 2 / 2, and the label gets the is-done class
+    page.evaluate("(e) => Pipeline.handleEvent(e)", {"event": "recursive.child.start", **c2})
+    page.evaluate("(e) => Pipeline.handleEvent(e)", {"event": "recursive.child.done", **c2, "duration_ms": 100})
+    page.wait_for_timeout(40)
+    assert "2 / 2 processed" in dep_text()
+    dep_el = page.locator(f'.stage2-node[data-target="{P}"] > .stage2-node-row > .dep-count')
+    assert "is-done" in (dep_el.get_attribute("class") or "")
+
+
+def test_stage2_all_chips_visible_before_processing_starts(page):
+    """The two-phase walker emits all recursive.target.discovered events
+    for a parent's siblings before any of them transition to running.
+    Verifies the UI shows all pending chips up front (the user's ask:
+    'continuous set that we keep displayed')."""
+    P = "test/parent"
+    page.evaluate("(e) => Pipeline.handleEvent(e)",
+                  {"event": "recursive.start", "parent": P, "bom_type": "ai",
+                   "max_depth": 1, "safety_cap": 10})
+
+    # Phase 1 — discover 3 siblings (no starts yet)
+    for n in ["a", "b", "c"]:
+        page.evaluate("(e) => Pipeline.handleEvent(e)", {
+            "event": "recursive.target.discovered",
+            "target": f"sib/{n}", "bom_type": "data",
+            "relationship_type": "trainedOn", "depth": 1, "parent": P,
+        })
+    page.wait_for_timeout(60)
+
+    pending_kids = page.locator(
+        f'.stage2-node[data-target="{P}"] > .stage2-children > .stage2-node'
+    )
+    assert pending_kids.count() == 3
+    for i in range(3):
+        chip = pending_kids.nth(i).locator("> .stage2-node-row > .stage2-chip")
+        assert chip.get_attribute("data-state") == "pending"
 
 
 def test_stage2_conflict_flagged_chip_shows_badge(page):
