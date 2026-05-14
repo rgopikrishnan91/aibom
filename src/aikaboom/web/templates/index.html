@@ -5948,6 +5948,10 @@
             'Person', 'Organization', 'Tool',
             'simplelicensing_LicenseExpression', 'expandedlicensing_License',
             'Relationship',
+            // AIkaBoOM-emitted conflict provenance. After Relationships
+            // because annotations are commentary on the structural graph,
+            // not part of it.
+            'Annotation',
         ];
 
         function spdxIdTail(id) {
@@ -5962,15 +5966,58 @@
             if (Array.isArray(arr)) return arr.map(spdxIdTail).join(', ');
             return spdxIdTail(arr);
         }
+
+        // Best-effort parse of an Annotation's ``statement`` (a JSON
+        // string per SPDX Core ``contentType: application/json``). Used
+        // both for the group-item label and to pretty-render the
+        // statement body — falls back to the raw string when parsing
+        // fails so we never lose data on a malformed payload.
+        function parseAnnotationStatement(item) {
+            if (!item || typeof item.statement !== 'string') return null;
+            try { return JSON.parse(item.statement); }
+            catch (_) { return null; }
+        }
+
         function labelForSPDXItem(item) {
             if (!item || typeof item !== 'object') return '(item)';
             if (item.type === 'Relationship') {
                 return `${item.relationshipType || 'relationship'}: ` +
                        `${spdxIdTail(item.from)} → ${spdxIdTails(item.to)}`;
             }
+            if (item.type === 'Annotation') {
+                // The annotation ``name`` is ``aikaboom:conflict:<spdx_property>``
+                // by convention; ``statement.spdx_property`` is the same value.
+                // Surface the SPDX property plus the conflict kind so a reader
+                // can scan a list of annotations at a glance ("which property?
+                // direct or RAG? high or low confidence?") without expanding.
+                const payload = parseAnnotationStatement(item) || {};
+                const property = payload.spdx_property
+                    || (item.name && item.name.replace(/^aikaboom:conflict:/, ''))
+                    || '(unknown property)';
+                const kind = payload.kind || '?';
+                const confidence = payload.confidence;
+                const conf = confidence && confidence !== 'deterministic'
+                    ? `, ${confidence}` : '';
+                return `${property}  (${kind}${conf})`;
+            }
             if (item.name) return String(item.name);
             if (item.spdxId) return spdxIdTail(item.spdxId);
             return item.type || '(unnamed)';
+        }
+
+        // Replace each Annotation's ``statement`` (JSON string) with the
+        // parsed object so ``buildFlatRow`` renders it as an expandable
+        // group of typed key-value rows instead of one long quoted blob.
+        // Non-Annotation items pass through untouched; failed parses
+        // leave the raw string in place.
+        function preprocessSPDXItemForRender(item) {
+            if (!item || typeof item !== 'object') return item;
+            if (item.type !== 'Annotation') return item;
+            const payload = parseAnnotationStatement(item);
+            if (!payload) return item;
+            // Shallow clone so we don't mutate the response payload (it's
+            // also displayed verbatim in the JSON tab).
+            return Object.assign({}, item, { statement: payload });
         }
 
         function renderSPDXBOM(data, target) {
@@ -6002,9 +6049,13 @@
             // Bucket by type, sort buckets so the principal package types
             // (the actual BOM subject) come first, then the supporting
             // graph (creation info, identities, licenses), then the
-            // relationship glue.
+            // relationship glue, then commentary (Annotations).
+            // ``preprocessSPDXItemForRender`` parses each Annotation's
+            // ``statement`` JSON so the body renders as expandable typed
+            // rows rather than a one-line quoted blob.
             const byType = new Map();
-            graph.forEach(item => {
+            graph.forEach(rawItem => {
+                const item = preprocessSPDXItemForRender(rawItem);
                 const t = (item && item.type) || 'Unknown';
                 if (!byType.has(t)) byType.set(t, []);
                 byType.get(t).push(item);

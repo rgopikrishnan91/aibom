@@ -303,6 +303,52 @@ def test_dataset_bom_emits_annotations():
     assert result["valid"], result["errors"]
 
 
+def test_dataset_bom_with_misplaced_ai_relationship_key_degrades_gracefully():
+    """Regression pin: a malformed dataset BOM that mistakenly carries
+    an AI-only relationship key (``trainedOnDatasets``) must still
+    produce a parseable, SHACL-clean SPDX document. The annotation
+    falls back to ``aikaboom:conflict:trainedOnDatasets`` (BOM-field
+    fallback) rather than raising — bad input shape shouldn't break
+    SPDX emission for the rest of the BOM.
+
+    Documented behavior; the test prevents a future "strict mode"
+    refactor from accidentally hardening this into a crash.
+    """
+    bom = {
+        "dataset_id": "acme/odd",
+        "direct_fields": {
+            "name": {"value": "odd", "source": "huggingface", "conflict": None},
+        },
+        "rag_fields": {
+            # This is an AI-only relationship key — dataset BOMs don't
+            # define it. Hand-authored / legacy BOMs occasionally have
+            # this shape; we want it to round-trip, not crash.
+            "trainedOnDatasets": {
+                "value": "a, b",
+                "source": "github",
+                "conflict": {
+                    "value": "c, d", "source": "arxiv", "type": "inter",
+                },
+            },
+        },
+        "urls": {},
+    }
+    doc = SPDXValidator(bom_type="data").validate_and_convert(bom)
+    annotations = [e for e in doc["@graph"] if e.get("type") == "Annotation"]
+    assert len(annotations) == 1
+    # No SPDX property for AI-relationship key in a dataset context →
+    # name falls back to the BOM field key, statement.spdx_property is
+    # omitted entirely (None values are dropped by ``compact_payload``).
+    assert annotations[0]["name"] == "aikaboom:conflict:trainedOnDatasets"
+    payload = json.loads(annotations[0]["statement"])
+    assert "spdx_property" not in payload
+    assert payload["field"] == "trainedOnDatasets"
+
+    # Still valid SPDX overall.
+    result = validate_spdx_export(doc, strict=False, bom_type="data")
+    assert result["valid"], result["errors"]
+
+
 def test_dataset_bom_legacy_metadata_shape_still_works():
     """Hand-authored / pre-pipeline BOMs may still use
     ``direct_metadata`` / ``rag_metadata`` keys. The writer accepts both

@@ -529,7 +529,14 @@ class SPDXValidator:
                 if bom_field in aliases:
                     return self.AI_FIELD_MAPPING.get(canonical)
 
-        # 3. Relationship-typed AI fields (no single property on the package)
+        # 3. Relationship-typed AI fields (no single property on the package).
+        # Dataset BOMs intentionally don't have these (no ``trainedOnDatasets``
+        # on a Dataset), so the lookup is AI-only by design. A malformed
+        # dataset BOM that contained one of these keys falls through to the
+        # generic ``return None`` below — callers degrade gracefully by using
+        # the BOM field name in the annotation ``name``. This is preferable
+        # to raising: a bad input shape should still produce a parseable
+        # SPDX document with the conflict labelled, just less prettily.
         if (bom_type or "").lower() == "ai":
             rel = self._AI_RELATIONSHIP_PROPERTIES.get(bom_field)
             if rel:
