@@ -73,15 +73,16 @@ The graph store has to fit four constraints: SPDX 3.0.1 alignment (which is RDF)
                           └─────────┬──────────────┘
                                     │ user picks: use / regen
                                     │
-                  ┌─────────────────┼──────────────────┐
-                  │                 │                  │
-            use cached         regenerate          keep both
-                  │                 │                  │
-                  ▼                 ▼                  ▼
-            return BOM     ┌────────────────────────────────┐
-            JSON from      │ AIBOMProcessor /               │
-            graph          │ DATABOMProcessor (unchanged)   │
-                           └─────────┬──────────────────────┘
+                  ┌─────────────────┴──────────────────┐
+                  │                                    │
+            use cached                            regenerate
+                  │                                    │
+                  ▼                                    ▼
+            return BOM                     ┌──────────────────────┐
+            JSON from                      │ AIBOMProcessor /     │
+            graph                          │ DATABOMProcessor     │
+                                           │ (unchanged)          │
+                                           └─────────┬────────────┘
                                      │ BOM JSON
                                      ▼
                            ┌────────────────────────┐
@@ -469,7 +470,7 @@ Votes are quads like everything else and are included in `aikaboom graph export`
 | `utils/supplier_alias.py` | Unchanged. Reused by `store/naming.py` for canonicalization. |
 | `utils/spdx_validator.py`, `schemas/` | Unchanged. SPDX JSON-LD output is still produced from the in-memory BOM JSON. |
 | CycloneDX export | Unchanged. |
-| Web UI BOM view | New "Trust" panel and "Alternatives" tab. |
+| Web UI BOM view | Shows latest-claim-per-version + resolve prompt list. No trust panel or alternatives tab in v1 (deferred to v2 once trust signal has accumulated). |
 
 The store is a **new optional layer**. With `AIKABOOM_GRAPH_DISABLE=1`, the system behaves exactly as today.
 
@@ -548,7 +549,7 @@ aikaboom bom diff <claim-a> <claim-b>  # field-level diff between two claims
 | Schema evolution breaks old claims | Claims tagged with `aibom:schemaVersion`; mapper reads old versions; new versions only on write. `aikaboom graph rebuild` is the escape hatch. |
 | Canonicalization rule changes split or merge artifact nodes silently | Rule changes are versioned (`aibom:canonRuleVersion` on Artifact); migration is explicit (`aikaboom graph migrate-canon`). No silent merges. |
 | Trust scoring is gameable in a multi-user setting | Out of scope for v1. The vote *data* is preserved (agent IRI, timestamp), so a smarter scorer can replace the simple aggregator without re-collecting votes. |
-| Prompt fatigue from the resolve step | `--cache auto` for power users; the prompt only appears in interactive TTY / browser sessions; sensible defaults baked in (`use` if canonical claim trust ≥ 0.8 *and* same generation params, `prompt` otherwise). |
+| Prompt fatigue from the resolve step | `--cache auto` / `AIKABOOM_CACHE_POLICY_DEFAULT=use` for power users; the prompt only appears in interactive TTY / browser sessions. v2 will add a trust-threshold auto-skip once scores are meaningful (proposed: ≥ 0.8 with same generation params); v1 always prompts when interactive + claims exist. |
 | Cache returns stale BOM after prompt/model change | `GenerationRun` IRI includes `prompt_version` and `code_version`; a bumped prompt produces a different run, which produces a different claim — visible in the prompt as "your run differs from the canonical claim's run." |
 
 ## Open Questions
