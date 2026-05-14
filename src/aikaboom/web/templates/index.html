@@ -3002,7 +3002,12 @@
             <div class="result-empty" id="resultEmpty">
                 <div class="splash-brand">
                     <img src="{{ url_for('static', filename='aikaboom-logo.png') }}" alt="AIkaBoOM logo">
-                    <div class="splash-wordmark"><span class="lo">AIka</span><span class="hi">BoOM</span></div>
+                    <!-- Wordmark reveals the AIBOM acronym hidden inside
+                         "AIkaBoOM" by colouring the uppercase letters
+                         (A, I, B, O, M) in primary indigo and leaving the
+                         lowercase camouflage in ink. -->
+                    <div class="splash-wordmark" aria-label="AIkaBoOM"
+                    ><span class="hi">AI</span><span class="lo">ka</span><span class="hi">B</span><span class="lo">o</span><span class="hi">OM</span></div>
                     <div class="splash-tagline">
                         Provenance <strong>BOMs</strong> for AI models &amp; datasets — with live conflict auditing.
                     </div>
