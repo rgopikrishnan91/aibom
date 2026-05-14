@@ -342,6 +342,103 @@ def _extract_conflicts(metadata: dict) -> list:
     return conflicts
 
 
+@app.route('/process/recursive/enrich-node', methods=['POST'])
+def enrich_recursive_node():
+    """Materialize a single discovered-but-not-walked target on demand.
+
+    The recursive walker tags depth-capped and safety-cap-blocked children
+    as ``unmaterialized``; the UI renders those as greyed chips with a
+    right-click "Generate" affordance that POSTs here. We run the same
+    enrich_fn the walker would have used, build the same node shape, and
+    return it along with the next layer of discovered targets so the UI
+    can extend the tree without re-running the whole walk.
+    """
+    from aikaboom.utils.recursive_bom import (
+        _build_node,
+        discover_recursive_targets,
+    )
+    from aikaboom.utils.recursive_enrich import build_enrich_fn
+
+    data = request.get_json(silent=True) or {}
+    target_name = (data.get('target') or '').strip()
+    bom_type = (data.get('bom_type') or 'ai').strip().lower()
+    relationship_type = (data.get('relationship_type') or 'dependsOn').strip()
+    parent_label = (data.get('parent') or '').strip() or 'parent-bom'
+    source_field = (data.get('source_field') or '').strip() or None
+    resolvable_hint = bool(data.get('resolvable_hint', False))
+    depth = int(data.get('depth') or 1)
+
+    if not target_name or bom_type not in ('ai', 'data'):
+        return jsonify({'status': 'error', 'message': 'target and bom_type required'}), 400
+
+    use_case = data.get('use_case', 'complete')
+    mode = data.get('mode', 'rag')
+    llm_provider = data.get('llm_provider')
+    model = data.get('model')
+    validate_spdx = bool(data.get('validate_spdx', True))
+    strict_spdx_validation = bool(data.get('strict_spdx_validation', False))
+
+    target_dict = {
+        'target': target_name,
+        'bom_type': bom_type,
+        'relationship_type': relationship_type,
+        'source_field': source_field or relationship_type,
+        'parent': parent_label,
+        'resolvable_hint': resolvable_hint or ('/' in target_name and ' ' not in target_name),
+        'has_conflict': bool(data.get('has_conflict', False)),
+        'conflict': data.get('conflict'),
+    }
+
+    enrich_fn = build_enrich_fn(
+        use_case=use_case,
+        mode=mode,
+        llm_provider=llm_provider,
+        model=model,
+    )
+
+    try:
+        enriched_metadata = enrich_fn(target_dict)
+    except Exception as exc:  # noqa: BLE001
+        return jsonify({'status': 'error', 'message': str(exc)}), 500
+
+    enriched = enriched_metadata is not None
+    if not enriched:
+        from aikaboom.utils.recursive_bom import _build_child_metadata
+        child_metadata = _build_child_metadata(target_dict)
+    else:
+        child_metadata = enriched_metadata
+
+    node = _build_node(
+        target_dict, child_metadata, depth,
+        validate_spdx, strict_spdx_validation,
+        enrichment_error=None, enriched=enriched,
+    )
+
+    discovered: list = []
+    if bom_type == 'ai':
+        deeper_targets, _audit = discover_recursive_targets(
+            child_metadata, bom_type='ai'
+        )
+        for t in deeper_targets:
+            discovered.append({
+                'target': t['target'],
+                'bom_type': t['bom_type'],
+                'relationship_type': t['relationship_type'],
+                'parent': target_name,
+                'depth': depth + 1,
+                'has_conflict': t.get('has_conflict', False),
+                'source_field': t.get('source_field'),
+                'resolvable_hint': t.get('resolvable_hint', False),
+            })
+
+    return jsonify({
+        'status': 'success',
+        'node': node,
+        'discovered': discovered,
+        'enriched': enriched,
+    })
+
+
 @app.route('/logs')
 def stream_logs():
     """SSE endpoint — streams server logs to the browser in real time."""
