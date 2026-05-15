@@ -39,6 +39,10 @@ def run_iri(params: Mapping[str, str]) -> str:
 
     Two generations with identical (provider, llm_model, prompt_version,
     code_version, mode, use_case) share the same run node.
+
+    The fixed field tuple is a stability contract: adding a new field
+    is a breaking change to run identity — previously stored run IRIs
+    will no longer reproduce. Bump the schema version when this changes.
     """
     fields = ("provider", "llm_model", "prompt_version", "code_version", "mode", "use_case")
     key = "|".join(f"{f}={params.get(f, '')}" for f in fields)

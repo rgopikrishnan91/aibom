@@ -1,4 +1,3 @@
-import pytest
 from aikaboom.store.naming import Identifier
 from aikaboom.store.iris import (
     artifact_iri,
@@ -26,6 +25,16 @@ class TestArtifactIri:
         assert all(c in "0123456789abcdef" for c in suffix)
         assert len(suffix) == 64  # sha256 hex digest length
 
+    def test_different_platforms_distinct(self):
+        a = artifact_iri(Identifier("huggingface", "mistralai/mistral-7b"))
+        b = artifact_iri(Identifier("github", "mistralai/mistral-7b"))
+        assert a != b
+
+    def test_different_values_distinct(self):
+        a = artifact_iri(Identifier("huggingface", "mistralai/mistral-7b"))
+        b = artifact_iri(Identifier("huggingface", "mistralai/mistral-7b-instruct"))
+        assert a != b
+
 
 class TestVersionIri:
     def test_includes_version(self):
@@ -52,6 +61,31 @@ class TestRunIri:
         b = run_iri({"provider": "openrouter", "llm_model": "gpt-4o-mini", "prompt_version": "v12", "code_version": "abc1234", "mode": "rag", "use_case": "license"})
         assert a != b
 
+    def test_run_iri_insensitive_to_insertion_order(self):
+        a = run_iri({
+            "provider": "openrouter", "llm_model": "claude-3-haiku",
+            "prompt_version": "v12", "code_version": "abc1234",
+            "mode": "rag", "use_case": "license",
+        })
+        b = run_iri({
+            "use_case": "license", "mode": "rag",
+            "code_version": "abc1234", "prompt_version": "v12",
+            "llm_model": "claude-3-haiku", "provider": "openrouter",
+        })
+        assert a == b
+
+    def test_run_iri_sensitive_to_every_field(self):
+        base = {
+            "provider": "openrouter", "llm_model": "claude-3-haiku",
+            "prompt_version": "v12", "code_version": "abc1234",
+            "mode": "rag", "use_case": "license",
+        }
+        base_iri = run_iri(base)
+        for field in base:
+            mutated = dict(base)
+            mutated[field] = mutated[field] + "-changed"
+            assert run_iri(mutated) != base_iri, f"run_iri must be sensitive to {field}"
+
 
 class TestClaimAndVote:
     def test_claim_iri_is_uuid_form(self):
@@ -59,7 +93,7 @@ class TestClaimAndVote:
         assert iri.startswith("bom:claim/")
         suffix = iri[len("bom:claim/"):]
         # uuid4 hex form: 32 chars, no dashes (we normalize).
-        assert len(suffix) >= 32
+        assert len(suffix) == 32
 
     def test_two_claims_distinct(self):
         assert claim_iri() != claim_iri()
