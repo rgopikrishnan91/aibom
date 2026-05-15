@@ -1439,7 +1439,7 @@ def worldofboms_export():
         resp = jsonify(bundle)
         fname = 'worldofboms-graph.spdx.json' if scope == 'full' \
             else 'worldofboms-ego.spdx.json'
-        resp.headers['Content-Disposition'] = f'attachment; filename={fname}'
+        resp.headers['Content-Disposition'] = f'attachment; filename="{fname}"'
         return resp
     except Exception as e:  # noqa: BLE001
         print(f"⚠️ worldofboms export failed: {e}")

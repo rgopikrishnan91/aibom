@@ -193,13 +193,33 @@ class TestWorldOfBomsRoutes:
         data = resp.get_json()
         assert data.get("store_unavailable") is True
 
-    def test_query_route_runs_preset(self, client):
+    def test_query_route_runs_preset(self, client, tmp_path, monkeypatch):
+        monkeypatch.setenv("AIKABOOM_GRAPH_BACKEND", "rdflib")
+        monkeypatch.setenv("AIKABOOM_GRAPH_DIR", str(tmp_path / "graph"))
+        from aikaboom.store.store import BomStore
+        from aikaboom.store.naming import Identifier
+        store = BomStore.open()
+        store.save_claim(
+            {"repo_id": "acme/m", "use_case": "complete",
+             "direct_fields": {"trainedOnDatasets": {"value": "squad",
+                               "source": "huggingface", "conflict": None}},
+             "rag_fields": {}},
+            {"provider": "t", "llm_model": "t", "prompt_version": "t",
+             "code_version": "t", "mode": "rag", "use_case": "complete"},
+            identifiers=[Identifier("huggingface", "acme/m")],
+        )
+        from aikaboom.store import graph_view
+        g = graph_view.full_graph(store)
+        m_iri = next(n["iri"] for n in g["nodes"] if n["label"] == "acme/m")
         resp = client.post("/worldofboms/query",
-                            json={"preset": "datasets", "artifact": "bom:artifact/none",
+                            json={"preset": "datasets", "artifact": m_iri,
                                   "direction": "up"},
                             content_type="application/json")
         assert resp.status_code == 200
-        assert "rows" in resp.get_json()
+        data = resp.get_json()
+        assert "rows" in data
+        assert "store_unavailable" not in data   # the real path ran
+        assert any(r.get("label") == "squad" for r in data["rows"])
 
     def test_query_route_rejects_mutating_sparql(self, client):
         resp = client.post("/worldofboms/query",
@@ -211,3 +231,4 @@ class TestWorldOfBomsRoutes:
         resp = client.get("/worldofboms/export?scope=full")
         assert resp.status_code == 200
         assert "@graph" in resp.get_json()
+        assert resp.headers.get("Content-Disposition", "").startswith("attachment")
