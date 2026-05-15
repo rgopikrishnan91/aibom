@@ -113,11 +113,16 @@ each relationship field present in `bom_json`:
 2. Canonicalize each target to an `Identifier`. If the value carries a
    platform-qualified handle (e.g. a HuggingFace dataset id), use that platform;
    otherwise fall back to `name-only`.
-3. `store.resolve([identifier])`:
-   - **Match** → use the existing Artifact IRI as the edge target.
-   - **No match** → mint a placeholder Artifact (`isPlaceholder true`,
-     `name-only` identifier) exactly as the recursive walker's unresolved-target
-     path already does.
+3. Resolve the target to an Artifact IRI, in order:
+   a. `store.resolve([identifier])` — identifier match. This is the cache-hit
+      path; it matches on platform handles only.
+   b. If 3a misses and the target is `name-only`, a **name-label match**: look
+      for an existing non-placeholder Artifact whose canonicalized
+      `canonicalLabel` exactly equals the canonicalized target name. If found,
+      link to it — no placeholder is minted.
+   c. If 3a and 3b both miss, mint a placeholder Artifact (`isPlaceholder true`,
+      `name-only` identifier), exactly as the recursive walker's
+      unresolved-target path already does.
 4. Add the triple `(source_artifact, <predicate>, target_artifact)`.
 
 Edge writes are idempotent — saving the same BOM twice does not create
@@ -126,19 +131,35 @@ best-effort persistence style).
 
 ### A.4 "Connects to a dataset we already have a BOM for"
 
-Because step 3 runs `resolve()` on every save, connectivity is automatic in both
-directions:
+Connectivity is automatic in both directions. Note that the plain cache-hit
+`resolve()` is **identifier**-based — on its own it does not match a free-text
+`name-only` placeholder against a platform-handle artifact. The name-label match
+(A.3 step 3b) is what bridges that gap.
 
-- **New model, known dataset:** the model's `trainedOn` edge lands directly on
-  the dataset's existing Artifact node.
-- **Known model placeholder, new dataset BOM:** when a model BOM previously
-  minted a `name-only` placeholder for a dataset, and that dataset is later
-  generated with a real platform identifier, the two are reconciled.
-  *Auto-promotion* works when the placeholder's `name-only` value canonicalizes
-  to the new artifact's label. When it cannot (free-text names with no clean
-  identifier), the placeholder remains and is reconciled manually with
-  `aikaboom graph merge <real> <placeholder>` — a documented, accepted edge case,
-  surfaced in the UI as a "possible duplicate" hint (see C.6).
+- **A new model references a known dataset.** A.3 step 3 finds the dataset's
+  existing node — by identifier (3a) or by name (3b) — and the `trainedOn` edge
+  lands directly on it. No placeholder, no duplicate node.
+
+- **A new dataset BOM arrives for an existing placeholder.** When an earlier
+  model BOM minted a `name-only` placeholder for a dataset, and that dataset is
+  later generated for real, `save_claim` runs the name-label match *in reverse*:
+  it looks for placeholder Artifacts whose canonicalized name exactly equals the
+  new real artifact's canonicalized label. Each match is **merged** into the new
+  artifact. So yes — *if the name resolves, we merge*: the placeholder is
+  promoted in place and every incoming edge that pointed at it (the model's
+  `trainedOn`/`testedOn`/`dependsOn`) now points at the real dataset node.
+
+The merge reuses the store's existing `graph merge` logic (`cmd_graph_merge`
+already transfers all incoming edges then deletes the stale node). That logic is
+extracted from `cli_graph.py` into a `BomStore.merge_artifacts(into, from_)`
+method so both the CLI and `save_claim` call one implementation.
+
+The name-label match is **exact equality on canonicalized names — deliberately
+not fuzzy.** Auto-merging on a fuzzy match risks collapsing two genuinely
+different artifacts. A free-text name that does not canonicalize to an exact
+match stays a placeholder and is surfaced in the UI as a "possible duplicate"
+hint (C.6), reconciled manually with `aikaboom graph merge` when the user
+confirms.
 
 `aikaboom graph rebuild` already replays every `results/*.json`; because edge
 creation lives inside `save_claim`, a rebuild reconstructs all edges
@@ -283,7 +304,12 @@ TDD-first — a failing test precedes each production change.
   (placeholder or real) dataset Artifact.
 - `testedOn` and `dependsOn` edges created from their respective fields.
 - Saving a model BOM that names an *already-stored* dataset connects to the
-  existing node — node count does not increase for the dataset.
+  existing node — by identifier (3a) and, separately, by name-label match (3b);
+  node count does not increase for the dataset.
+- A `name-only` placeholder is merged into a later real BOM for the same
+  canonicalized name: incoming `trainedOn`/`testedOn`/`dependsOn` edges are
+  transferred to the real artifact and the placeholder node is removed.
+- A non-exact name does *not* auto-merge — the placeholder survives.
 - Edge writes are idempotent across a re-save.
 - `graph rebuild` reconstructs edges from `results/*.json`.
 - Vocab↔SCHEMA.md parity (existing `test_docs_schema_parity` covers the new
@@ -317,7 +343,8 @@ TDD-first — a failing test precedes each production change.
 |---|---|
 | `src/aikaboom/store/vocab.py` | + `testedOn`, `dependsOn` |
 | `src/aikaboom/store/mapper.py` (or new `store/edges.py`) | `add_relationship_edges` |
-| `src/aikaboom/store/store.py` | call edge creation from `save_claim` |
+| `src/aikaboom/store/store.py` | call edge creation from `save_claim`; new `merge_artifacts(into, from_)` (extracted from `cli_graph.py`); name-label match helper |
+| `src/aikaboom/store/cli_graph.py` | `cmd_graph_merge` delegates to `BomStore.merge_artifacts` |
 | `src/aikaboom/store/graph_view.py` | **new** — full/ego/query/export read logic |
 | `src/aikaboom/web/app.py` | + 6 `/worldofboms/*` routes |
 | `src/aikaboom/web/templates/index.html` | + `worldofBOMs` tab, JS, side-panel tab |
