@@ -1,13 +1,22 @@
 """BomStore — public facade over the graph backend."""
 from __future__ import annotations
 
+import datetime as _dt
 from dataclasses import dataclass, field
 from typing import Any, Mapping
+
+from rdflib import XSD
 
 from aikaboom.store import iris, vocab
 from aikaboom.store.backend import GraphBackend, open_backend
 from aikaboom.store.mapper import bom_to_rdf, rdf_to_bom
 from aikaboom.store.naming import Identifier, canonicalize_set, pick_primary
+from aikaboom.store.trust import (
+    VoteKind,
+    agent_id_default,
+    compute_score,
+    vote_kind_iri,
+)
 
 
 @dataclass
@@ -276,6 +285,133 @@ class BomStore:
             break
 
         return rdf_to_bom(ds, claim_iri)
+
+    def record_trust_vote(self, claim_iri: str, kind: VoteKind) -> str:
+        """Record a TrustVote node for `claim_iri` and recompute its score.
+
+        Returns the new vote's IRI. The vote captures who voted (Agent IRI
+        derived from `agent_id_default()`), what they voted (`kind`), and
+        when (UTC ISO-8601 timestamp).
+        """
+        claim = _validate_sparql_iri(claim_iri)
+        vote = _validate_sparql_iri(iris.vote_iri())
+        agent = _validate_sparql_iri(iris.agent_iri(agent_id_default()))
+        kind_iri = _validate_sparql_iri(str(vote_kind_iri(kind)))
+        now = _dt.datetime.now(_dt.timezone.utc).isoformat()
+        # `now` is an ISO-8601 timestamp from `datetime.isoformat()`; safe
+        # for embedding inside a SPARQL literal but escape defensively.
+        now_lit = _escape_sparql_literal(now)
+        self._backend.update(f"""
+            INSERT DATA {{
+                <{vote}> a <{vocab.TrustVote}> ;
+                         <{vocab.trustVoteFor}> <{claim}> ;
+                         <{vocab.votedBy}> <{agent}> ;
+                         <{vocab.voteKind}> <{kind_iri}> ;
+                         <{vocab.votedAt}> "{now_lit}"^^<{XSD.dateTime}> .
+            }}
+        """)
+        self._recompute_score(claim_iri)
+        return vote
+
+    def _recompute_score(self, claim_iri: str) -> float:
+        """Re-aggregate `trustScore` from every vote on `claim_iri`."""
+        claim = _validate_sparql_iri(claim_iri)
+        q = f"""
+        SELECT ?kind WHERE {{
+            ?vote <{vocab.trustVoteFor}> <{claim}> ;
+                  <{vocab.voteKind}> ?kind .
+        }}
+        """
+        kinds: list[VoteKind] = []
+        for row in self._backend.select(q):
+            iri_str = str(row["kind"])
+            for k in VoteKind:
+                if str(vote_kind_iri(k)) == iri_str:
+                    kinds.append(k)
+                    break
+        score = compute_score(kinds)
+        # `score` is a Python float; format guarantees a safe numeric literal.
+        score_lit = repr(float(score))
+        self._backend.update(f"""
+            DELETE {{ <{claim}> <{vocab.trustScore}> ?old . }}
+            INSERT {{ <{claim}> <{vocab.trustScore}> "{score_lit}"^^<{XSD.decimal}> . }}
+            WHERE {{ OPTIONAL {{ <{claim}> <{vocab.trustScore}> ?old . }} }}
+        """)
+        return score
+
+    def trust_score(self, claim_iri: str) -> float:
+        """Return the persisted `trustScore` for `claim_iri`, or 0.0 if absent."""
+        claim = _validate_sparql_iri(claim_iri)
+        q = f"SELECT ?s WHERE {{ <{claim}> <{vocab.trustScore}> ?s }}"
+        for row in self._backend.select(q):
+            return float(row["s"])
+        return 0.0
+
+    def recompute_canonical_for_claim(self, claim_iri: str) -> None:
+        """Re-point this claim's version `canonicalClaim` to the top-trust claim.
+
+        No-op when the claim has no parent version (orphan) or when the
+        version has no claims (should not happen, but guards against
+        partial writes).
+        """
+        claim = _validate_sparql_iri(claim_iri)
+        q_v = f"""
+        SELECT ?version WHERE {{
+            ?version <{vocab.hasClaim}> <{claim}> .
+        }}
+        """
+        versions = list(self._backend.select(q_v))
+        if not versions:
+            return
+        version = _validate_sparql_iri(str(versions[0]["version"]))
+        q_top = f"""
+        SELECT ?claim ?score WHERE {{
+            <{version}> <{vocab.hasClaim}> ?claim .
+            OPTIONAL {{ ?claim <{vocab.trustScore}> ?score . }}
+        }}
+        ORDER BY DESC(?score)
+        LIMIT 1
+        """
+        rows = list(self._backend.select(q_top))
+        if not rows:
+            return
+        top_claim = _validate_sparql_iri(str(rows[0]["claim"]))
+        self._backend.update(f"""
+            DELETE {{ <{version}> <{vocab.canonicalClaim}> ?old . }}
+            INSERT {{ <{version}> <{vocab.canonicalClaim}> <{top_claim}> . }}
+            WHERE {{ OPTIONAL {{ <{version}> <{vocab.canonicalClaim}> ?old . }} }}
+        """)
+
+    def canonical_claim_for(
+        self,
+        identifiers: list[Identifier],
+        version_hint: str | None = None,
+    ) -> str | None:
+        """Return the canonical claim IRI for the artifact at `identifiers`.
+
+        When `version_hint` is supplied, the lookup is constrained to a
+        version whose IRI ends with `/{version_hint}` — useful when an
+        Artifact has multiple stored versions and the caller knows the
+        package version of interest.
+        """
+        canon = canonicalize_set(identifiers)
+        if not canon:
+            return None
+        primary = pick_primary(canon)
+        artifact = _validate_sparql_iri(iris.artifact_iri(primary))
+        version_filter = ""
+        if version_hint:
+            hint_lit = _escape_sparql_literal(version_hint)
+            version_filter = f'FILTER (STRENDS(STR(?version), "/{hint_lit}"))'
+        q = f"""
+        SELECT ?canonical WHERE {{
+            <{artifact}> <{vocab.hasVersion}> ?version .
+            ?version <{vocab.canonicalClaim}> ?canonical .
+            {version_filter}
+        }}
+        """
+        rows = list(self._backend.select(q))
+        return str(rows[0]["canonical"]) if rows else None
 
     def close(self) -> None:
         self._backend.close()
