@@ -72,6 +72,12 @@ ollama serve && ollama pull llama3:8b
 > priority, what's extracted, how conflicts work, SPDX target) and
 > file:line refs into the code at every step.
 
+> Want the worldofBOMs knowledge graph story? Start with
+> [`docs/worldofboms/CONCEPT.md`](docs/worldofboms/CONCEPT.md) for the
+> mental model, then
+> [`docs/worldofboms/PIPELINE.md`](docs/worldofboms/PIPELINE.md) for the
+> code-level walkthrough.
+
 ## Usage
 
 ### Web UI
