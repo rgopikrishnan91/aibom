@@ -32,8 +32,23 @@ def test_resolve_edge_target_finds_existing_artifact_by_label(store, sample_bom,
     # sample_bom's repo_id is "mistralai/Mistral-7B-v0.1" -> canonicalLabel.
     store.save_claim(sample_bom, sample_run_meta,
                      identifiers=[Identifier("huggingface", "mistralai/Mistral-7B-v0.1")])
+    # store.resolve (step 1) misses here: the stored identifier platform is
+    # "huggingface" but the probe platform is "name-only" -> forces the
+    # _find_artifact_by_label (step 2) path.
     iri, minted = resolve_edge_target(store, "mistralai/Mistral-7B-v0.1")
     assert minted is False  # matched the real artifact, no placeholder
+    assert iri.startswith("bom:artifact/")
+    rows = list(store._backend.select(
+        f"SELECT ?o WHERE {{ <{iri}> <https://aikaboom.dev/aibom#isPlaceholder> ?o }}"))
+    assert len(rows) == 0
+
+
+def test_resolve_edge_target_placeholder_is_idempotent(store):
+    iri1, minted1 = resolve_edge_target(store, "repeated-dataset")
+    iri2, minted2 = resolve_edge_target(store, "repeated-dataset")
+    assert iri1 == iri2
+    assert minted1 is True
+    assert minted2 is False  # second call hits store.resolve, not _mint_placeholder
 
 
 def _bom_with(field, value):

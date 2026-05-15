@@ -9,7 +9,10 @@ disconnected stars.
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from typing import TYPE_CHECKING, Any, Mapping
+
+if TYPE_CHECKING:
+    from aikaboom.store.store import BomStore
 
 from rdflib import Literal, URIRef, XSD
 from rdflib.namespace import RDF
@@ -58,7 +61,7 @@ def canon_name(name: str) -> str:
     return canonicalize(Identifier("name-only", name)).value
 
 
-def _find_artifact_by_label(store, name: str) -> str | None:
+def _find_artifact_by_label(store: "BomStore", name: str) -> str | None:
     """Return a non-placeholder Artifact IRI whose canonical label matches `name`."""
     target = canon_name(name)
     rows = store._backend.select(
@@ -70,13 +73,15 @@ def _find_artifact_by_label(store, name: str) -> str | None:
         }}
         """
     )
+    # Label comparison is done in Python (reusing canon_name) rather than in
+    # SPARQL so we get the same separator-collapse + lowercase normalisation.
     for row in rows:
         if canon_name(str(row["label"])) == target:
             return str(row["artifact"])
     return None
 
 
-def _mint_placeholder(store, name: str) -> str:
+def _mint_placeholder(store: "BomStore", name: str) -> str:
     """Create a flagged placeholder Artifact for an unresolved name; return its IRI."""
     ident = canonicalize(Identifier("name-only", name))
     art = iris.artifact_iri(ident)
@@ -100,7 +105,7 @@ def _mint_placeholder(store, name: str) -> str:
     return art
 
 
-def resolve_edge_target(store, name: str) -> tuple[str, bool]:
+def resolve_edge_target(store: "BomStore", name: str) -> tuple[str, bool]:
     """Resolve a relationship target name to an Artifact IRI.
 
     Resolution order (identity layer only — no fuzzy matching here):
