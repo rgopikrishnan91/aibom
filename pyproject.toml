@@ -96,7 +96,9 @@ python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v"
 filterwarnings = [
-    "ignore:Dataset.default_context is deprecated:DeprecationWarning:rdflib.graph",
+    "ignore:Dataset.default_context is deprecated:DeprecationWarning:rdflib\\..*",
+    "ignore:Dataset.contexts is deprecated:DeprecationWarning:rdflib\\..*",
+    "ignore:Dataset.identifier is deprecated:DeprecationWarning:rdflib\\..*",
 ]
 
 [tool.mypy]

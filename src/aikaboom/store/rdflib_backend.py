@@ -22,13 +22,27 @@ class RDFLibBackend:
             self._ds.parse(self._nq_path, format="nquads")
 
     def _flush(self) -> None:
-        """Atomically rewrite the N-Quads file."""
-        with tempfile.NamedTemporaryFile(
+        """Atomically rewrite the N-Quads file.
+
+        Writes to a tempfile in the same directory, then `os.replace`s it
+        over the destination — same-filesystem rename is atomic on POSIX.
+        On serialization failure, the tempfile is unlinked.
+        """
+        tmp = tempfile.NamedTemporaryFile(
             mode="wb", dir=self._store_dir, delete=False, suffix=".nq.tmp"
-        ) as tmp:
-            self._ds.serialize(destination=tmp, format="nquads")
-            tmp_path = Path(tmp.name)
-        os.replace(tmp_path, self._nq_path)
+        )
+        try:
+            try:
+                self._ds.serialize(destination=tmp, format="nquads")
+            finally:
+                tmp.close()
+            os.replace(tmp.name, self._nq_path)
+        except BaseException:
+            try:
+                os.unlink(tmp.name)
+            except OSError:
+                pass
+            raise
 
     def update(self, sparql: str) -> None:
         # rdflib 7.x's Dataset.update() crashes on INSERT DATA without a
@@ -42,12 +56,28 @@ class RDFLibBackend:
         return bool(self._ds.query(sparql).askAnswer)
 
     def select(self, sparql: str) -> Iterator[Mapping[str, object]]:
+        """Run SPARQL SELECT, yielding row bindings with Literals unwrapped to Python values."""
+        from rdflib.term import Literal as _Literal
+        def _unwrap(term):
+            if isinstance(term, _Literal):
+                return term.toPython()
+            return term
         for row in self._ds.query(sparql):
-            yield {str(var): row[var] for var in row.labels}
+            yield {str(var): _unwrap(row[var]) for var in row.labels}
 
     def add_quads(self, quads: Iterable[tuple]) -> None:
-        for s, p, o, g in quads:
-            self._ds.add((s, p, o, g))
+        """Bulk-add triples or quads (see GraphBackend Protocol)."""
+        for quad in quads:
+            if len(quad) == 4:
+                s, p, o, g = quad
+                if g is None:
+                    self._ds.add((s, p, o))
+                else:
+                    self._ds.add((s, p, o, g))
+            elif len(quad) == 3:
+                self._ds.add(quad)
+            else:
+                raise ValueError(f"Expected triple or quad tuple, got {len(quad)}-tuple")
         self._flush()
 
     def export(self, path: Path, fmt: str = "nquads") -> None:

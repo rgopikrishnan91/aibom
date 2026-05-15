@@ -24,6 +24,7 @@ class TestRDFLibBackend:
             "SELECT ?u WHERE { <bom:test/2> <https://aikaboom.dev/aibom#useCase> ?u }"
         ))
         assert len(rows) == 1
+        assert str(rows[0]["u"]) == "license"
 
     def test_persistence_across_reopen(self, tmp_store_dir):
         b1 = RDFLibBackend(tmp_store_dir)
