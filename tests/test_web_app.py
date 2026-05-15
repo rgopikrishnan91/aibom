@@ -451,3 +451,64 @@ class TestFlaskApp:
         assert "cyclonedx" in data["beta_fields"]
         assert "recursive_bom" in data["beta_fields"]
         assert "linked_spdx_bundle" in data["beta_fields"]
+
+    def test_recursive_node_missing_target(self, client):
+        """POST /recursive-node with no target → 400, ok=False."""
+        response = client.post(
+            "/recursive-node", json={"bom_type": "ai"},
+            content_type="application/json",
+        )
+        assert response.status_code == 400
+        data = response.get_json()
+        assert data["ok"] is False
+
+    def test_recursive_node_generates_on_demand(self, client, monkeypatch):
+        """A greyed node can be generated on demand via /recursive-node."""
+        import importlib
+        rb = importlib.import_module("aikaboom.utils.recursive_bom")
+        re_mod = importlib.import_module("aikaboom.utils.recursive_enrich")
+
+        monkeypatch.setattr(re_mod, "build_enrich_fn", lambda **kw: (lambda t: {}))
+        captured = {}
+
+        def fake_single(target, enrich_fn=None, validate_spdx=True, strict_spdx=False):
+            captured.update(target)
+            return {"ok": True, "node": {"target": target["target"], "depth": 2}}
+
+        monkeypatch.setattr(rb, "generate_single_node", fake_single)
+
+        response = client.post(
+            "/recursive-node",
+            json={
+                "target": "meta-llama/Llama-3", "bom_type": "ai",
+                "relationship_type": "dependsOn", "parent": "p/model", "depth": 2,
+            },
+            content_type="application/json",
+        )
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data["ok"] is True
+        assert data["node"]["target"] == "meta-llama/Llama-3"
+        assert captured["target"] == "meta-llama/Llama-3"
+
+    def test_recursive_node_unresolved_target(self, client, monkeypatch):
+        """When the target cannot be enriched the endpoint returns ok=False."""
+        import importlib
+        rb = importlib.import_module("aikaboom.utils.recursive_bom")
+        re_mod = importlib.import_module("aikaboom.utils.recursive_enrich")
+
+        monkeypatch.setattr(re_mod, "build_enrich_fn", lambda **kw: (lambda t: None))
+        monkeypatch.setattr(
+            rb, "generate_single_node",
+            lambda *a, **kw: {"ok": False, "error": "unresolved"},
+        )
+
+        response = client.post(
+            "/recursive-node",
+            json={"target": "nonsense-model", "bom_type": "ai"},
+            content_type="application/json",
+        )
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data["ok"] is False
+        assert data["error"] == "unresolved"

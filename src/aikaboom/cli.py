@@ -381,6 +381,7 @@ def cmd_generate(args):
             result,
             bom_type=bom_type,
             max_depth=recursive_max_depth,
+            breadth=args.recursive_breadth,
             safety_cap=args.recursive_safety_cap,
             validate_spdx=args.validate_spdx,
             strict_spdx=args.strict_spdx_validation,
@@ -557,13 +558,26 @@ def main():
         ),
     )
     gen.add_argument(
+        "--recursive-breadth",
+        type=int,
+        default=10,
+        help=(
+            "Maximum children expanded per node (per-node fan-out) under "
+            "--recursive-bom. Default: 10. Targets are discovered "
+            "lineage-first, so the dependsOn edge always survives the "
+            "budget; surplus trainedOn/testedOn dataset edges are recorded "
+            "as breadth-capped."
+        ),
+    )
+    gen.add_argument(
         "--recursive-safety-cap",
         type=int,
-        default=50,
+        default=200,
         help=(
-            "Maximum number of child BOMs to generate under --recursive-depth=all "
-            "before stopping. Default: 50. Bounds runaway walks on densely "
-            "connected dependency graphs."
+            "Absolute ceiling on the total number of child BOMs generated "
+            "across the whole tree — a last-resort runaway guard. Default: "
+            "200. Per-node fan-out is bounded by --recursive-breadth and "
+            "tree levels by --recursive-depth."
         ),
     )
     gen.add_argument(
