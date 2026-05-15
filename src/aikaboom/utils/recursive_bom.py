@@ -488,6 +488,60 @@ def generate_recursive_boms(
                     "has_conflict": t.get("has_conflict", False),
                 })
                 continue
+            # Trust-gated reuse: when ``min_trust`` is positive, consult the
+            # BomStore canonical trust score for the child's identifiers.
+            # If the score is below the threshold, either skip the child
+            # entirely (default) or fall through to the regular
+            # generate-child path (``regen_on_low_trust=True``).
+            if min_trust > 0.0:
+                try:
+                    from aikaboom.store.naming import Identifier as _Identifier
+                    from aikaboom.store.store import BomStore as _BomStore
+
+                    _child_ref = t["target"]
+                    _store = _BomStore.open()
+                    _child_idents = [
+                        _Identifier("huggingface", _child_ref)
+                        if "/" in _child_ref
+                        else _Identifier("name-only", _child_ref)
+                    ]
+                    _canonical = _store.canonical_claim_for(_child_idents)
+                    if _canonical:
+                        _score = _store.trust_score(_canonical)
+                        if _score < min_trust and not regen_on_low_trust:
+                            safety_capped.append({
+                                "target": t["target"],
+                                "bom_type": t["bom_type"],
+                                "relationship_type": t["relationship_type"],
+                                "reason": "low-trust",
+                                "parent": parent_label,
+                                "depth": depth + 1,
+                                "trust_score": _score,
+                                "min_trust": min_trust,
+                            })
+                            _emit_event({
+                                "event": "recursive.child.skipped",
+                                "target": t["target"],
+                                "bom_type": t["bom_type"],
+                                "relationship_type": t["relationship_type"],
+                                "parent": parent_label,
+                                "depth": depth + 1,
+                                "reason": "low-trust",
+                                "trust_score": _score,
+                                "min_trust": min_trust,
+                                "has_conflict": t.get("has_conflict", False),
+                            })
+                            continue
+                        # else: fall through (regen_on_low_trust=True or
+                        # score >= threshold) — proceed to enrichment as
+                        # usual.
+                except Exception:
+                    # Trust-gate consultation is best-effort. If the store
+                    # backend is unavailable or the lookup fails, fall
+                    # through to the normal generate-child path rather than
+                    # blocking the walk.
+                    pass
+
             visited.add(key)
             # Emit the discovery event immediately so the UI's pending
             # chip for this target shows up before any of its siblings
