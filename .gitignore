@@ -83,4 +83,4 @@ test_outputs/
 # Cursor, etc.). These are per-developer machine state, not project code.
 .claude/
 AGENTS.md
-CLAUDE.md
+CLAUDE.md.superpowers/
