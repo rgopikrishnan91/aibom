@@ -391,6 +391,20 @@ def cmd_generate(args):
             if validation["valid"]:
                 beta = " beta" if validation.get("beta") else ""
                 print(f"SPDX validation passed ({validation['validator']}{beta})")
+                # Implicit-validate: silent positive signal when a freshly
+                # generated claim's SPDX export validates. Best-effort: a
+                # trust-write failure must never block generation output.
+                if (
+                    _store is not None
+                    and not _skip_generation
+                    and _saved_claim_iri is not None
+                ):
+                    try:
+                        _store.record_trust_vote(
+                            _saved_claim_iri, VoteKind.IMPLICIT_VALIDATE,
+                        )
+                    except Exception:
+                        pass
             else:
                 beta = " beta" if validation.get("beta") else ""
                 print(
