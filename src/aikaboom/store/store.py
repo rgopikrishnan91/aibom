@@ -3,12 +3,35 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 
-from rdflib import Dataset
-
 from aikaboom.store import iris, vocab
 from aikaboom.store.backend import GraphBackend, open_backend
 from aikaboom.store.mapper import bom_to_rdf, rdf_to_bom
 from aikaboom.store.naming import Identifier, canonicalize_set, pick_primary
+
+
+def _escape_sparql_literal(s: str) -> str:
+    """Escape a string for safe interpolation into a SPARQL string literal.
+
+    Handles backslash, double-quote, newline, and carriage return.
+    The result is intended for embedding inside `"..."` in SPARQL.
+    """
+    return (
+        s.replace("\\", "\\\\")
+         .replace('"', '\\"')
+         .replace("\n", "\\n")
+         .replace("\r", "\\r")
+    )
+
+
+def _validate_sparql_iri(s: str) -> str:
+    """Validate an IRI string for safe interpolation into a SPARQL `<...>` slot.
+
+    Raises ValueError if the string contains characters that would break
+    out of the `<>` bracket form. Returns the input unchanged on success.
+    """
+    if any(c in s for c in '<>"\\\n\r '):
+        raise ValueError(f"unsafe IRI for SPARQL interpolation: {s!r}")
+    return s
 
 
 class BomStore:
@@ -46,14 +69,14 @@ class BomStore:
 
         filters = []
         if use_case is not None:
-            filters.append(f'?claim <{vocab.useCase}> "{use_case}" .')
+            filters.append(f'?claim <{vocab.useCase}> "{_escape_sparql_literal(use_case)}" .')
         if mode is not None:
-            filters.append(f'?claim <{vocab.mode}> "{mode}" .')
+            filters.append(f'?claim <{vocab.mode}> "{_escape_sparql_literal(mode)}" .')
         filter_clause = "\n".join(filters)
 
         q = f"""
         SELECT ?claim ?createdAt ?llmModel WHERE {{
-            <{artifact}> <{vocab.hasVersion}> ?version .
+            <{_validate_sparql_iri(artifact)}> <{vocab.hasVersion}> ?version .
             ?version <{vocab.hasClaim}> ?claim .
             {filter_clause}
             OPTIONAL {{ ?claim <{vocab.createdAt}> ?createdAt . }}
@@ -103,7 +126,7 @@ class BomStore:
         ds = _RDFDataset()
 
         # Pull every (claim_iri, p, o) triple.
-        q_claim = f"SELECT ?p ?o WHERE {{ <{claim_iri}> ?p ?o }}"
+        q_claim = f"SELECT ?p ?o WHERE {{ <{_validate_sparql_iri(claim_iri)}> ?p ?o }}"
         for row in self._backend.select(q_claim):
             p = _URIRef(str(row["p"]))
             o_raw = row["o"]
@@ -113,7 +136,7 @@ class BomStore:
         # Pull annotation blank nodes that point at this claim.
         q_ann = f"""
         SELECT ?ann ?p ?subj ?pred ?obj ?asserted ?conflict WHERE {{
-            ?ann <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <{claim_iri}> .
+            ?ann <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <{_validate_sparql_iri(claim_iri)}> .
             ?ann <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> ?pred .
             ?ann <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> ?obj .
             OPTIONAL {{ ?ann <{vocab.assertedBy}> ?asserted . }}
@@ -135,7 +158,7 @@ class BomStore:
         # Pull the artifact label via the hasClaim back-edge so rdf_to_bom can populate repo_id.
         q_label = f"""
         SELECT ?label WHERE {{
-            ?version <{vocab.hasClaim}> <{claim_iri}> .
+            ?version <{vocab.hasClaim}> <{_validate_sparql_iri(claim_iri)}> .
             ?artifact <{vocab.hasVersion}> ?version ;
                       <{vocab.canonicalLabel}> ?label .
         }}

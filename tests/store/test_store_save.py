@@ -42,3 +42,33 @@ class TestSaveClaim:
             mode="rag",
         )
         assert any(c["iri"] == claim_iri for c in claims)
+
+
+def test_reconstruct_bom_returns_saved_fields(store, sample_bom, sample_run_meta):
+    """save_claim → reconstruct_bom returns the same direct_fields values."""
+    claim_iri = store.save_claim(
+        sample_bom,
+        sample_run_meta,
+        identifiers=[Identifier("huggingface", "mistralai/Mistral-7B-v0.1")],
+    )
+    reconstructed = store.reconstruct_bom(claim_iri)
+    assert reconstructed["direct_fields"]["suppliedBy"]["value"] == "mistralai"
+    assert reconstructed["direct_fields"]["suppliedBy"]["source"] == "huggingface"
+    assert reconstructed["direct_fields"]["packageVersion"]["value"] == "27d67f1b"
+
+
+def test_sparql_injection_in_use_case_is_safe(store, sample_bom, sample_run_meta):
+    """A `use_case` containing a SPARQL-special char doesn't break the query."""
+    store.save_claim(
+        sample_bom, sample_run_meta,
+        identifiers=[Identifier("huggingface", "mistralai/Mistral-7B-v0.1")],
+    )
+    # An attacker-supplied use_case containing a quote shouldn't crash or inject.
+    # We just need the call to return cleanly (and return zero matches since
+    # the escaped literal will not match the stored "license" value).
+    claims = store.find_claims_for(
+        [Identifier("huggingface", "mistralai/Mistral-7B-v0.1")],
+        use_case='license"} UNION { ?x ?y ?z',
+        mode="rag",
+    )
+    assert claims == []  # no matches; the escaped string is a literal, not SPARQL
