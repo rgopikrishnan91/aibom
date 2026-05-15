@@ -88,10 +88,14 @@ class BomStore:
         self._backend.add_quads(quads)
 
         try:
-            from aikaboom.store.edges import add_relationship_edges
+            from aikaboom.store.edges import add_relationship_edges, promote_placeholders_for
 
             artifact = iris.artifact_iri(pick_primary(canonicalize_set(identifiers)))
             add_relationship_edges(self, artifact, bom_json)
+
+            label = bom_json.get("repo_id") or bom_json.get("model_id")
+            if label:
+                promote_placeholders_for(self, artifact, str(label))
         except Exception as e:  # noqa: BLE001 — never let edges break a save
             import logging
 

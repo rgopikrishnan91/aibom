@@ -125,6 +125,34 @@ def resolve_edge_target(store: "BomStore", name: str) -> tuple[str, bool]:
     return _mint_placeholder(store, name), True
 
 
+def promote_placeholders_for(store: "BomStore", real_artifact_iri: str,
+                             label: str) -> list[str]:
+    """Merge any name-only placeholders that match `label` into the real artifact.
+
+    Exact canonical-name equality only — never fuzzy. Returns the list of
+    placeholder IRIs that were merged away.
+    """
+    target = canon_name(label)
+    real = _validate_sparql_iri(real_artifact_iri)
+    merged: list[str] = []
+    rows = list(store._backend.select(
+        f"""
+        SELECT ?artifact ?label WHERE {{
+            ?artifact <{vocab.isPlaceholder}> true ;
+                      <{vocab.canonicalLabel}> ?label .
+        }}
+        """
+    ))
+    for row in rows:
+        placeholder = str(row["artifact"])
+        if placeholder == real:
+            continue
+        if canon_name(str(row["label"])) == target:
+            store.merge_artifacts(into=real, from_=placeholder)
+            merged.append(placeholder)
+    return merged
+
+
 def add_relationship_edges(store: "BomStore", source_artifact_iri: str,
                            bom_json: Mapping[str, Any]) -> list[tuple[str, str, str]]:
     """Persist `trainedOn`/`testedOn`/`dependsOn` edges from a saved BOM.

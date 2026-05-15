@@ -4,6 +4,8 @@ import pytest
 from aikaboom.store.store import BomStore
 from aikaboom.store.naming import Identifier
 from aikaboom.store.edges import extract_relationship_targets, resolve_edge_target, canon_name, add_relationship_edges
+from aikaboom.store.edges import promote_placeholders_for
+from aikaboom.store.naming import Identifier as _Id
 
 
 @pytest.fixture
@@ -115,3 +117,23 @@ def test_add_relationship_edges_is_idempotent(store):
     rows = list(store._backend.select(
         f"SELECT ?t WHERE {{ <{src}> <{'https://aikaboom.dev/aibom#trainedOn'}> ?t }}"))
     assert len(rows) == 1
+
+
+def test_placeholder_is_promoted_into_a_later_real_bom(store, sample_run_meta):
+    # 1. A model BOM names dataset "squad" -> placeholder minted + edge.
+    model_bom = _bom_with("trainedOnDatasets", "squad")
+    store.save_claim(model_bom, sample_run_meta,
+                     identifiers=[_Id("huggingface", "acme/model-z")])
+    # 2. A real BOM for "squad" arrives.
+    real_bom = {"repo_id": "squad", "use_case": "complete",
+                "direct_fields": {}, "rag_fields": {}}
+    store.save_claim(real_bom, sample_run_meta,
+                     identifiers=[_Id("huggingface", "squad")])
+    # The placeholder was merged away: the model's trainedOn edge now points
+    # at the real artifact, and no placeholder artifact remains.
+    placeholders = list(store._backend.select(
+        "SELECT ?a WHERE { ?a <https://aikaboom.dev/aibom#isPlaceholder> true }"))
+    assert placeholders == []
+    edges = list(store._backend.select(
+        "SELECT ?s ?t WHERE { ?s <https://aikaboom.dev/aibom#trainedOn> ?t }"))
+    assert len(edges) == 1
