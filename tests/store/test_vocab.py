@@ -64,3 +64,37 @@ class TestPredicates:
     def test_asserted_by_and_conflict_kind(self):
         assert str(vocab.assertedBy) == str(vocab.AIBOM) + "assertedBy"
         assert str(vocab.conflictKind) == str(vocab.AIBOM) + "conflictKind"
+
+
+import pytest
+from aikaboom.store import vocab as vocab_module
+
+
+def _public_urirefs():
+    """Collect every public URIRef constant exported by vocab.py."""
+    out = {}
+    for name in dir(vocab_module):
+        if name.startswith("_"):
+            continue
+        value = getattr(vocab_module, name)
+        if isinstance(value, URIRef):
+            out[name] = value
+    return out
+
+
+@pytest.mark.parametrize("name,uriref", sorted(_public_urirefs().items()))
+def test_every_public_uriref_resolves_under_aibom_namespace(name, uriref):
+    """Every URIRef constant must point to <AIBOM>{local-name}.
+
+    Local name is the Python identifier, except `implicit_use` /
+    `implicit_validate` use the hyphenated forms `implicit-use` /
+    `implicit-validate`.
+    """
+    snake_to_hyphen = {
+        "implicit_use": "implicit-use",
+        "implicit_validate": "implicit-validate",
+    }
+    expected_local = snake_to_hyphen.get(name, name)
+    assert str(uriref) == str(vocab_module.AIBOM) + expected_local, (
+        f"vocab.{name} points to {uriref!r}, expected {str(vocab_module.AIBOM) + expected_local!r}"
+    )
