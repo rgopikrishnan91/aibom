@@ -6868,7 +6868,7 @@
                 return;
             }
             const cols = Object.keys(rows[0]);
-            const head = cols.map(c => `<th style="text-align:left;padding:3px 6px;">${c}</th>`).join('');
+            const head = cols.map(c => `<th style="text-align:left;padding:3px 6px;">${escapeHtml(c)}</th>`).join('');
             const body = rows.map(r =>
                 '<tr>' + cols.map(c =>
                     `<td style="padding:3px 6px;border-top:1px solid #eee;">${
