@@ -174,6 +174,29 @@ Reused where SPDX/PROV-O don't already cover them.
 | `aibom:promptVersion` | xsd:string | Internal prompt version tag. |
 | `aibom:codeVersion` | xsd:string | Code version (git SHA short form). |
 
+## Vocabulary individuals
+
+These are named IRIs used as the **object** of `aibom:voteKind` and
+`aibom:conflictKind`. They are not predicates; they are constants.
+
+### Vote-kind individuals
+
+| Individual | Meaning |
+|---|---|
+| `aibom:trusted` | Explicit positive vote: "this claim looks correct." |
+| `aibom:flagged` | Explicit negative vote: "this claim looks wrong." |
+| `aibom:disputed` | Explicit ambiguity vote: "this claim is contested." |
+| `aibom:implicit-use` | Implicit positive: the claim was used downstream (e.g. resolved by `bom show`). Python attribute: `implicit_use`. |
+| `aibom:implicit-validate` | Implicit positive: validator confirmed the claim's structure. Python attribute: `implicit_validate`. |
+
+### Conflict-kind individuals
+
+| Individual | Meaning |
+|---|---|
+| `aibom:noConflict` | No other source asserts a competing value for this field. |
+| `aibom:interSourceConflict` | Two distinct sources assert different values. |
+| `aibom:intraSourceConflict` | A single source asserts inconsistent values (rare). |
+
 ## Constants
 
 - `SCHEMA_VERSION = "1.0"` — current vocab version. Bump on any
