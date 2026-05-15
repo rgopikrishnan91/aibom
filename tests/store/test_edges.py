@@ -138,3 +138,18 @@ def test_placeholder_is_promoted_into_a_later_real_bom(store, sample_run_meta):
     edges = list(store._backend.select(
         "SELECT ?s ?t WHERE { ?s <https://aikaboom.dev/aibom#trainedOn> ?t }"))
     assert len(edges) == 1
+
+
+def test_confident_inexact_match_records_potential_duplicate(store, sample_run_meta):
+    """A placeholder minted near an existing artifact gets a potentialDuplicateOf edge."""
+    from aikaboom.store.naming import Identifier
+    # Existing real artifact under owner "qwen".
+    store.save_claim({"repo_id": "qwen/chat", "use_case": "complete",
+                      "direct_fields": {}, "rag_fields": {}},
+                     sample_run_meta, identifiers=[Identifier("huggingface", "qwen/chat")])
+    # Edge target "QwenLM/chat" — same supplier, inexact name -> placeholder + soft edge.
+    iri, minted = resolve_edge_target(store, "QwenLM/chat")
+    assert minted is True
+    dup = list(store._backend.select(
+        f"SELECT ?o WHERE {{ <{iri}> <https://aikaboom.dev/aibom#potentialDuplicateOf> ?o }}"))
+    assert len(dup) == 1

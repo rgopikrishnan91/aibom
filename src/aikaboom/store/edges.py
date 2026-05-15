@@ -122,7 +122,46 @@ def resolve_edge_target(store: "BomStore", name: str) -> tuple[str, bool]:
     by_label = _find_artifact_by_label(store, name)
     if by_label:
         return by_label, False
-    return _mint_placeholder(store, name), True
+    placeholder = _mint_placeholder(store, name)
+    _record_potential_duplicates(store, placeholder, name)
+    return placeholder, True
+
+
+def _record_potential_duplicates(store: "BomStore", placeholder_iri: str,
+                                 name: str) -> None:
+    """Soft-link a placeholder to confident-but-inexact existing artifacts.
+
+    Uses the supplier-alias confidence triage (Jaro-Winkler tier included).
+    Records `potentialDuplicateOf` — a hint for the UI — and never merges.
+    """
+    from aikaboom.utils.supplier_alias import default_alias_index
+
+    index = default_alias_index()
+    owner = name.partition("/")[0] if "/" in name else name
+    rows = list(store._backend.select(
+        f"""
+        SELECT ?artifact ?label WHERE {{
+            ?artifact a <{vocab.Artifact}> ;
+                      <{vocab.canonicalLabel}> ?label .
+            FILTER NOT EXISTS {{ ?artifact <{vocab.isPlaceholder}> true }}
+        }}
+        """
+    ))
+    src = _validate_sparql_iri(placeholder_iri)
+    for row in rows:
+        cand_label = str(row["label"])
+        cand_owner = cand_label.partition("/")[0] if "/" in cand_label else cand_label
+        if canon_name(cand_label) == canon_name(name):
+            continue  # exact — handled by name-label match, not a "duplicate"
+        if index.is_same_supplier(owner, cand_owner):
+            tgt = _validate_sparql_iri(str(row["artifact"]))
+            if not store._backend.ask(
+                f"ASK {{ <{src}> <{vocab.potentialDuplicateOf}> <{tgt}> }}"
+            ):
+                store._backend.add_quads(
+                    [(URIRef(src), URIRef(vocab.potentialDuplicateOf),
+                      URIRef(tgt), None)]
+                )
 
 
 def promote_placeholders_for(store: "BomStore", real_artifact_iri: str,
