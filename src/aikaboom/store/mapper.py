@@ -125,6 +125,11 @@ def bom_to_rdf(
     ds.add((artifact, RDF.type, _u(vocab.Artifact)))
     ds.add((artifact, _u(vocab.primaryIdentifier), Literal(f"{primary.platform}:{primary.value}")))
     ds.add((artifact, _u(vocab.canonRuleVersion), Literal(vocab.CANON_RULE_VERSION)))
+    # When the only known identifier is a free-text name (platform=="name-only"),
+    # mark the artifact as a placeholder so higher layers can exclude it from
+    # primary-key matching while still allowing direct lookup by that name.
+    if primary.platform == "name-only":
+        ds.add((artifact, _u(vocab.isPlaceholder), Literal(True, datatype=XSD.boolean)))
     _add_identifier_set(ds, artifact, canon_ids)
     label = bom_json.get("repo_id") or bom_json.get("model_id") or primary.value
     ds.add((artifact, _u(vocab.canonicalLabel), Literal(str(label))))

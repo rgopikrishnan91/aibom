@@ -1,12 +1,34 @@
 """BomStore — public facade over the graph backend."""
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from typing import Any, Mapping
 
 from aikaboom.store import iris, vocab
 from aikaboom.store.backend import GraphBackend, open_backend
 from aikaboom.store.mapper import bom_to_rdf, rdf_to_bom
 from aikaboom.store.naming import Identifier, canonicalize_set, pick_primary
+
+
+@dataclass
+class ResolveResult:
+    """Outcome of a resolve step.
+
+    Attributes:
+        existing_artifact: IRI of a matching Artifact, or None when no
+            stored artifact shares any of the supplied identifiers.
+        artifact_label: The Artifact's canonicalLabel, when known.
+        matching_claims: BOMClaim rows already attached to the matched
+            artifact (filtered by `use_case`/`mode` when supplied).
+        collision_artifacts: Additional Artifact IRIs that also matched
+            the identifier set — populated when the supplied identifiers
+            straddle two previously-disconnected artifact nodes (cross-
+            identifier collision). The primary is in `existing_artifact`.
+    """
+    existing_artifact: str | None
+    artifact_label: str | None
+    matching_claims: list[dict] = field(default_factory=list)
+    collision_artifacts: list[str] = field(default_factory=list)
 
 
 def _escape_sparql_literal(s: str) -> str:
@@ -95,6 +117,73 @@ class BomStore:
                 "llm_model": str(row.get("llmModel", "")),
             })
         return out
+
+    def resolve(
+        self,
+        identifiers: list[Identifier],
+        use_case: str | None = None,
+        mode: str | None = None,
+    ) -> ResolveResult:
+        """Find existing Artifact + claims via cross-identifier lookup.
+
+        Unlike `find_claims_for`, which uses only the primary identifier,
+        `resolve` walks every identifier in the input set so that an
+        Artifact previously saved under (huggingface=X, arxiv=Y) is still
+        found when only `arxiv=Y` is supplied.
+
+        Returns a `ResolveResult`:
+          * no matches    → existing_artifact=None, matching_claims=[]
+          * one match     → existing_artifact set, matching_claims populated
+          * multi-match   → existing_artifact set to the first hit, with
+                            the rest in `collision_artifacts` (caller can
+                            issue a `potentialDuplicateOf` link later).
+        """
+        canon = canonicalize_set(identifiers)
+        if not canon:
+            return ResolveResult(existing_artifact=None, artifact_label=None)
+
+        # Build a VALUES clause across all provided identifiers. Both
+        # platform and value are user-supplied, so escape each literal
+        # to defeat SPARQL injection (see `_escape_sparql_literal`).
+        values_rows = "\n".join(
+            f'            ("{_escape_sparql_literal(ident.platform)}" '
+            f'"{_escape_sparql_literal(ident.value)}")'
+            for ident in canon
+        )
+        q = f"""
+        SELECT DISTINCT ?artifact ?label WHERE {{
+            ?artifact <{vocab.identifier}> ?id .
+            ?id <{vocab.platform}> ?p ; <{vocab.value}> ?v .
+            VALUES (?p ?v) {{
+{values_rows}
+            }}
+            OPTIONAL {{ ?artifact <{vocab.canonicalLabel}> ?label . }}
+        }}
+        """
+        matches: list[tuple[str, str]] = []
+        for row in self._backend.select(q):
+            matches.append((str(row["artifact"]), str(row.get("label") or "")))
+
+        if not matches:
+            return ResolveResult(existing_artifact=None, artifact_label=None)
+
+        if len(matches) > 1:
+            return ResolveResult(
+                existing_artifact=matches[0][0],
+                artifact_label=matches[0][1],
+                collision_artifacts=[m[0] for m in matches[1:]],
+                matching_claims=self.find_claims_for(
+                    identifiers, use_case=use_case, mode=mode
+                ),
+            )
+
+        return ResolveResult(
+            existing_artifact=matches[0][0],
+            artifact_label=matches[0][1],
+            matching_claims=self.find_claims_for(
+                identifiers, use_case=use_case, mode=mode
+            ),
+        )
 
     def stats(self) -> dict[str, int]:
         """Return node counts by class."""
