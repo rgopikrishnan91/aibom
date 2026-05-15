@@ -96,7 +96,13 @@ def test_camelcase_scalar_values_round_trip():
     assert ai["ai_informationAboutApplication"].startswith("Used for fine-tuning")
     assert "BookCorpus" in ai["ai_informationAboutTraining"]
     assert "English-only" in ai["ai_limitation"]
-    assert ai["ai_energyConsumption"] == "100 kWh"
+    # energyConsumption is not a scalar in SPDX 3.0.1 — it round-trips as a
+    # structured ai_EnergyConsumption object, the only schema-valid form.
+    energy = ai["ai_energyConsumption"]
+    assert energy["type"] == "ai_EnergyConsumption"
+    desc = energy["ai_trainingEnergyConsumption"][0]
+    assert desc["ai_energyQuantity"] == 100.0
+    assert desc["ai_energyUnit"] == "kilowattHour"
 
 
 def test_camelcase_enum_values_normalize():
@@ -110,9 +116,15 @@ def test_camelcase_enum_values_normalize():
 
 
 def test_noassertion_fields_emit_canonical_sentinel():
-    """A BOM where every optional field is ``noAssertion`` should still
-    produce a complete AIPackage — losing the field hides the audit
-    signal that "we asked, the source had nothing to say"."""
+    """A BOM where every optional field is ``noAssertion``.
+
+    String / list / dict fields keep the canonical ``noAssertion``
+    sentinel — losing them hides the audit signal "we asked, the source
+    had nothing to say". Enum and structured fields
+    (``ai_safetyRiskAssessment``, ``ai_energyConsumption``) have no
+    schema-valid ``noAssertion`` form, so they are omitted instead:
+    emitting a sentinel there made the whole document fail validation.
+    """
     def t():
         return {"value": "noAssertion", "source": "huggingface", "conflict": None}
 
@@ -130,16 +142,22 @@ def test_noassertion_fields_emit_canonical_sentinel():
             ).split()
         },
     }
-    ai = _ai_pkg(SPDXValidator(bom_type="ai").validate_and_convert(bom))
+    v = SPDXValidator(bom_type="ai")
+    spdx = v.validate_and_convert(bom)
+    ai = _ai_pkg(spdx)
 
-    # All 15 ai_* properties should be present.
+    # safety / energy have no schema-valid noAssertion encoding → omitted.
+    assert "ai_safetyRiskAssessment" not in ai
+    assert "ai_energyConsumption" not in ai
+    # The remaining 13 ai_* fields carry a noAssertion sentinel.
     ai_props = sorted(k for k in ai if k.startswith("ai_"))
-    assert len(ai_props) == 15, ai_props
-    # Each should carry a noAssertion sentinel of some kind.
+    assert len(ai_props) == 13, ai_props
     for prop in ai_props:
-        v = ai[prop]
-        flat = str(v).lower()
-        assert "noassertion" in flat, f"{prop} did not carry a noAssertion sentinel: {v!r}"
+        flat = str(ai[prop]).lower()
+        assert "noassertion" in flat, f"{prop} did not carry a noAssertion sentinel: {ai[prop]!r}"
+    # An all-noAssertion BOM must still produce a schema-valid SPDX.
+    ok, errs = v.validate_spdx_bom(spdx)
+    assert ok, f"all-noAssertion BOM produced invalid SPDX: {errs}"
 
 
 def test_snake_case_aliases_still_work():
@@ -186,7 +204,9 @@ def test_snake_case_aliases_still_work():
     assert ai["ai_autonomyType"]                == "noAssertion"
     assert ai["ai_useSensitivePersonalInformation"] == "no"
     assert ai["ai_safetyRiskAssessment"]        == "low"
-    assert ai["ai_energyConsumption"]           == "50 kWh"
+    assert ai["ai_energyConsumption"]["ai_trainingEnergyConsumption"][0][
+        "ai_energyQuantity"
+    ] == 50.0
 
 
 def test_partial_rag_fields_only_emit_what_is_present():

@@ -34,10 +34,15 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple
 from aikaboom.utils.pipeline_events import emit as _emit_event
 
 
+# Order matters: discovery emits targets in this order and the global
+# safety cap is applied first-come-first-served. modelLineage is listed
+# first because the dependsOn edge is the only recursable one (it spawns
+# AI children that walk deeper) and must never be starved by a large
+# trainedOn/testedOn dataset fan-out — dataset edges are leaves.
 AI_RELATIONSHIP_FIELDS = {
+    "modelLineage": ("ai", "dependsOn"),
     "trainedOnDatasets": ("data", "trainedOn"),
     "testedOnDatasets": ("data", "testedOn"),
-    "modelLineage": ("ai", "dependsOn"),
 }
 
 # Dataset BOMs walk their upstream lineage via ``sourceInfo`` (which captures
@@ -627,12 +632,21 @@ def build_linked_spdx_bundle(
     suppressed_names = {
         str(n["target"]).strip().lower() for n in recursive_result.get("generated", [])
     }
+    # The parent SPDX auto-emits a stub for every relationship target:
+    # dataset_DatasetPackage stubs for trainedOn/testedOn and ai_AIPackage
+    # stubs for modelLineage/dependsOn. Both kinds must be suppressed when
+    # a recursive child covers the same target — but never the parent's
+    # own root package, which is also an ai_AIPackage.
+    parent_root_id = _root_package_id(parent_spdx)
     stub_ids_to_drop = set()
     for elem in parent_spdx.get("@graph", []):
-        if elem.get("type") == "dataset_DatasetPackage":
+        if elem.get("type") in ("dataset_DatasetPackage", "ai_AIPackage"):
+            sid = elem.get("spdxId") or elem.get("@id")
+            if sid == parent_root_id:
+                continue
             name = str(elem.get("name") or "").strip().lower()
             if name in suppressed_names:
-                stub_ids_to_drop.add(elem.get("spdxId") or elem.get("@id"))
+                stub_ids_to_drop.add(sid)
 
     graph: List[Dict[str, Any]] = []
     for elem in parent_spdx.get("@graph", []):

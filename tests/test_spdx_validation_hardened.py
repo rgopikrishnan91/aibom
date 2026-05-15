@@ -194,3 +194,70 @@ class TestDocumentAndBomProperties:
         ok, errs = SPDXValidator(bom_type='ai').validate_spdx_bom(spdx)
         assert not ok
         assert any("missing 'rootElement'" in e for e in errs)
+
+
+def _ai_pkg(spdx):
+    return next(e for e in spdx['@graph'] if e.get('type') == 'ai_AIPackage')
+
+
+class TestEnumAndStructuredFieldsStaySchemaValid:
+    """Regression for the 'generated SPDX is broken' report.
+
+    The AIPackage emitted ``ai_safetyRiskAssessment: "noAssertion"`` and
+    ``ai_energyConsumption: "<free text>"``. SPDX 3.0.1's
+    SafetyRiskAssessmentType has no ``noAssertion`` member, and
+    ``ai_energyConsumption`` is a structured type — not a string. Either
+    one made the whole document fail JSON Schema validation.
+    """
+
+    def _ai_bom(self, rag_extra):
+        return {
+            "repo_id": "test/model",
+            "direct_fields": {
+                "license": {"value": "MIT", "source": "hf", "conflict": None},
+            },
+            "rag_fields": {
+                "model_name": {"value": "TestModel", "source": "hf", "conflict": None},
+                **rag_extra,
+            },
+        }
+
+    def test_noassertion_safety_and_energy_produce_valid_spdx(self):
+        v = SPDXValidator(bom_type='ai')
+        bom = self._ai_bom({
+            "safetyRiskAssessment": {"value": "noAssertion", "source": "hf", "conflict": None},
+            "energyConsumption": {"value": "noAssertion", "source": "hf", "conflict": None},
+        })
+        spdx = v.validate_and_convert(bom)
+        ok, errs = v.validate_spdx_bom(spdx)
+        assert ok, f"noAssertion safety/energy broke SPDX validation: {errs}"
+        ai = _ai_pkg(spdx)
+        # Neither field is representable as 'noAssertion' in SPDX 3.0.1 —
+        # the schema-valid encoding of "unknown" for these is omission.
+        assert "ai_safetyRiskAssessment" not in ai
+        assert "ai_energyConsumption" not in ai
+
+    def test_parseable_energy_consumption_emits_structured_element(self):
+        v = SPDXValidator(bom_type='ai')
+        bom = self._ai_bom({
+            "energyConsumption": {"value": "100 kWh", "source": "hf", "conflict": None},
+        })
+        spdx = v.validate_and_convert(bom)
+        ok, errs = v.validate_spdx_bom(spdx)
+        assert ok, f"structured energy broke SPDX validation: {errs}"
+        energy = _ai_pkg(spdx)["ai_energyConsumption"]
+        assert isinstance(energy, dict)
+        assert energy["type"] == "ai_EnergyConsumption"
+
+    def test_unparseable_energy_consumption_is_omitted(self):
+        v = SPDXValidator(bom_type='ai')
+        bom = self._ai_bom({
+            "energyConsumption": {
+                "value": "trained on a large GPU cluster",
+                "source": "hf", "conflict": None,
+            },
+        })
+        spdx = v.validate_and_convert(bom)
+        ok, errs = v.validate_spdx_bom(spdx)
+        assert ok, f"prose energy broke SPDX validation: {errs}"
+        assert "ai_energyConsumption" not in _ai_pkg(spdx)
