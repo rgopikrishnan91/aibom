@@ -4035,6 +4035,14 @@
                     if (result.history) History.upsert(result.history);
 
                     refocusAfterGeneration();
+                    // Keep the worldofBOMs graph fresh — a new BOM just grew it.
+                    if (typeof worldFullGraph !== 'undefined') {
+                        worldFullGraph = null;
+                        if (document.getElementById('worldofbomsTab')
+                              ?.classList.contains('active')) {
+                            loadWorldGraph();
+                        }
+                    }
                 } else {
                     showStatus('error', `Error: ${escapeHtml(result.message || 'unknown')}`);
                 }

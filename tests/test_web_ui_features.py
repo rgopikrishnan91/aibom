@@ -240,3 +240,9 @@ class TestWorldOfBomsTab:
         assert "switchTab(event, 'worldofboms')" in html
         assert 'id="worldofbomsTab"' in html
         assert 'id="worldGraphCanvas"' in html
+
+    def test_worldofboms_tab_has_lineage_and_direction_controls(self, client):
+        html = client.get("/").get_data(as_text=True)
+        assert 'id="worldDirection"' in html
+        assert 'data-world-pane="lineage"' in html
+        assert 'id="worldDownload"' in html
