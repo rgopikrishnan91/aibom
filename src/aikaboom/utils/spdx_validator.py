@@ -38,7 +38,10 @@ _PRESENCE_VALUES = {"yes", "no", "noAssertion"}
 # can apply the same filter without duplicating the constant.
 from aikaboom.utils.value_helpers import _NIL_VALUES, _is_nil_value  # noqa: F401, E402
 from aikaboom.utils.lineage import split_lineage_targets  # noqa: E402
-_AI_SAFETY_VALUES = {"low", "medium", "high", "serious", "noAssertion"}
+# SPDX 3.0.1 SafetyRiskAssessmentType has no "noAssertion" member — the
+# only members are low/medium/high/serious. An unknown safety risk is
+# encoded by omitting ai_safetyRiskAssessment, not by a sentinel string.
+_AI_SAFETY_VALUES = {"low", "medium", "high", "serious"}
 _DATASET_AVAILABILITY_VALUES = {
     "clickthrough", "directDownload", "query", "registration", "scrapingScript",
 }
@@ -159,6 +162,61 @@ def _coerce_dataset_size_bytes(value: Any) -> Optional[int]:
     multiplier = _SIZE_UNITS.get(suffix, 1)
     result = int(number * multiplier)
     return result if result > 0 else None
+
+
+# SPDX 3.0.1 ai_energyUnit enum members are kilowattHour / megajoule /
+# other. Free-text unit spellings the RAG layer emits are folded onto
+# those; anything unrecognised falls back to "other".
+_ENERGY_UNIT_ALIASES = {
+    "kwh": "kilowattHour", "kw·h": "kilowattHour", "kw h": "kilowattHour",
+    "kilowatthour": "kilowattHour", "kilowatt-hour": "kilowattHour",
+    "kilowatt hour": "kilowattHour", "kilowatt hours": "kilowattHour",
+    "kilowatt-hours": "kilowattHour",
+    "mj": "megajoule", "megajoule": "megajoule", "megajoules": "megajoule",
+}
+
+_ENERGY_PATTERN = re.compile(
+    r"^\s*([0-9][\d_,]*(?:\.\d+)?)\s*([A-Za-z][A-Za-z·\- ]*?)\s*$"
+)
+
+
+def _energy_consumption_element(value: Any) -> Optional[Dict[str, Any]]:
+    """Convert a free-text energy figure into an inline SPDX 3.0.1
+    ``ai_EnergyConsumption`` object.
+
+    SPDX 3.0.1 models ``ai_energyConsumption`` as a structured type, not
+    a string. Emitting the raw RAG text (``"100 kWh"``, ``"noAssertion"``,
+    or prose) made the AI Package — and therefore the whole document —
+    fail JSON Schema validation.
+
+    Only a clean ``<number> <unit>`` figure is representable. Anything
+    else (no-assertion sentinels, prose, a bare number with no unit)
+    returns ``None`` so the caller omits the property, which is the
+    schema-valid encoding of "no information". The figure is filed under
+    ``ai_trainingEnergyConsumption`` — training energy is the headline
+    number model cards report.
+    """
+    if value in (None, "") or _is_nil_value(value):
+        return None
+    match = _ENERGY_PATTERN.match(str(value))
+    if not match:
+        return None
+    try:
+        quantity = float(match.group(1).replace(",", "").replace("_", ""))
+    except ValueError:
+        return None
+    if quantity <= 0:
+        return None
+    unit_text = re.sub(r"\s+", " ", match.group(2).strip().lower())
+    unit = _ENERGY_UNIT_ALIASES.get(unit_text, "other")
+    return {
+        "type": "ai_EnergyConsumption",
+        "ai_trainingEnergyConsumption": [{
+            "type": "ai_EnergyConsumptionDescription",
+            "ai_energyQuantity": quantity,
+            "ai_energyUnit": unit,
+        }],
+    }
 
 
 class SPDXValidator:
@@ -1072,11 +1130,12 @@ class SPDXValidator:
         # BOM RAG fields are keyed by camelCase question_type IDs. The
         # snake_case aliases in AI_RAG_FIELD_ALIASES keep this working
         # for externally-authored BOMs that still use the legacy spelling.
+        # energyConsumption is handled separately below — SPDX 3.0.1 models
+        # it as a structured ai_EnergyConsumption object, not a free string.
         scalar_mapping = {
             "informationAboutApplication": "ai_informationAboutApplication",
             "informationAboutTraining":    "ai_informationAboutTraining",
             "limitation":                  "ai_limitation",
-            "energyConsumption":           "ai_energyConsumption",
         }
         list_mapping = {
             "domain":                  "ai_domain",
@@ -1144,12 +1203,25 @@ class SPDXValidator:
                 sensitive_pii, _PRESENCE_VALUES, "noAssertion"
             )
 
+        # safetyRiskAssessment: emit only when the value normalises to a
+        # real SafetyRiskAssessmentType member (low/medium/high/serious).
+        # "noAssertion" and other non-members are dropped — the schema has
+        # no sentinel for them, so emitting one breaks the whole document.
         safety = self._extract_value(self._rag_get(rag_fields, "safetyRiskAssessment"))
         if safety not in (None, ""):
             normalized_safety = self._normalize_enum(safety, _AI_SAFETY_VALUES, "")
             if normalized_safety:
                 ai_package["ai_safetyRiskAssessment"] = normalized_safety
-        
+
+        # energyConsumption: only a clean "<number> <unit>" figure can be
+        # represented as the structured ai_EnergyConsumption type. Prose
+        # and no-assertion sentinels yield None and the property is omitted.
+        energy_element = _energy_consumption_element(
+            self._extract_value(self._rag_get(rag_fields, "energyConsumption"))
+        )
+        if energy_element is not None:
+            ai_package["ai_energyConsumption"] = energy_element
+
         # Set builtTime if not present
         if "builtTime" not in ai_package:
             built_time = self._extract_value(direct_fields.get("builtTime"))

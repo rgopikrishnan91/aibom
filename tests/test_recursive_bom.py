@@ -31,12 +31,15 @@ def test_discover_recursive_targets_from_clean_relationships():
         },
     }
     targets, audit = discover_recursive_targets(metadata, bom_type="ai")
+    # modelLineage is discovered first so its dependsOn edge is never
+    # starved by a large trainedOn/testedOn dataset fan-out under the cap.
     assert [t["relationship_type"] for t in targets] == [
-        "trainedOn", "trainedOn", "testedOn", "dependsOn",
+        "dependsOn", "trainedOn", "trainedOn", "testedOn",
     ]
     assert audit["skipped_due_to_conflict"] == []
-    assert targets[-1]["bom_type"] == "ai"
-    assert targets[-1]["resolvable_hint"] is True
+    assert targets[0]["relationship_type"] == "dependsOn"
+    assert targets[0]["bom_type"] == "ai"
+    assert targets[0]["resolvable_hint"] is True
 
 
 def test_internal_conflict_flags_edge_but_walks_target():
@@ -566,3 +569,52 @@ def test_conflict_flagging_under_phase4_structured_shape():
     assert len(targets) == 1
     assert targets[0]["has_conflict"] is True
     assert audit["conflict_flagged"][0]["field"] == "trainedOnDatasets"
+
+
+def test_modellineage_not_starved_by_dataset_fanout_under_safety_cap():
+    """A model with a large testedOn fan-out plus one modelLineage edge.
+
+    Regression: the safety cap is global and targets were discovered in
+    trainedOn/testedOn/modelLineage order, so a big dataset fan-out
+    consumed every slot and the modelLineage dependsOn child — the only
+    recursable edge — was dropped. modelLineage must be discovered first
+    so it is never crowded out by dataset leaves.
+    """
+    datasets = ", ".join(f"DS{i}" for i in range(20))
+    metadata = {
+        "repo_id": "microsoft/Magma-8B",
+        "rag_fields": {
+            "testedOnDatasets": _clean_triplet(datasets),
+            "modelLineage": _clean_triplet("meta-llama/Llama-3-8B-Instruct"),
+        },
+    }
+    out = generate_recursive_boms(metadata, bom_type="ai", max_depth=1, safety_cap=5)
+    rels = {(n["relationship_type"], n["target"]) for n in out["generated"]}
+    assert ("dependsOn", "meta-llama/Llama-3-8B-Instruct") in rels, (
+        "modelLineage dependsOn child was starved by the dataset fan-out; "
+        f"generated: {sorted(rels)}"
+    )
+
+
+def test_linked_bundle_has_no_duplicate_ai_package_stub():
+    """modelLineage produces a recursive AI child; the parent SPDX's
+    auto-generated dependsOn stub for the same model must be suppressed
+    so the linked bundle carries exactly one ai_AIPackage per model.
+    """
+    metadata = {
+        "repo_id": "microsoft/Magma-8B",
+        "rag_fields": {"modelLineage": _clean_triplet("meta-llama/Llama-3-8B-Instruct")},
+    }
+    rec = generate_recursive_boms(metadata, bom_type="ai", max_depth=1)
+    bundle = build_linked_spdx_bundle(metadata, rec, bom_type="ai")
+    names = [
+        e.get("name") for e in bundle["@graph"]
+        if e.get("type") == "ai_AIPackage"
+    ]
+    assert names.count("meta-llama/Llama-3-8B-Instruct") == 1, (
+        f"duplicate ai_AIPackage stub in linked bundle: {names}"
+    )
+    result = validate_spdx_export(bundle, bom_type="ai")
+    assert result["valid"], (
+        f"linked bundle with deduped stub must still validate: {result['errors']}"
+    )
