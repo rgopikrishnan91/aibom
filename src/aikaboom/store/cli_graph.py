@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 from aikaboom.store.naming import Identifier
-from aikaboom.store.store import BomStore
+from aikaboom.store.store import BomStore, _validate_sparql_iri
 from aikaboom.store.trust import VoteKind
 
 
@@ -139,17 +139,19 @@ def cmd_graph_list(args: argparse.Namespace) -> int:
 def cmd_graph_show(args: argparse.Namespace) -> int:
     """Show all triples with the given IRI as subject."""
     store = BomStore.open()
-    q = f"SELECT ?p ?o WHERE {{ <{args.iri}> ?p ?o }}"
+    iri = _validate_sparql_iri(args.iri)
+    q = f"SELECT ?p ?o WHERE {{ <{iri}> ?p ?o }}"
     rows = [{k: str(v) for k, v in row.items()} for row in store._backend.select(q)]
     print(json.dumps(rows, indent=2))
     return 0
 
 
 def cmd_graph_merge(args: argparse.Namespace) -> int:
-    """Merge artifact-b into artifact-a: transfer all hasVersion/identifier edges, delete b."""
+    """Merge artifact-b into artifact-a: transfer all hasVersion/identifier/incoming edges, delete b."""
     from aikaboom.store import vocab
     store = BomStore.open()
-    a, b = args.artifact_a, args.artifact_b
+    a = _validate_sparql_iri(args.artifact_a)
+    b = _validate_sparql_iri(args.artifact_b)
     store._backend.update(f"""
         INSERT {{ <{a}> <{vocab.hasVersion}> ?v . }}
         WHERE {{ <{b}> <{vocab.hasVersion}> ?v . }}
@@ -157,6 +159,15 @@ def cmd_graph_merge(args: argparse.Namespace) -> int:
     store._backend.update(f"""
         INSERT {{ <{a}> <{vocab.identifier}> ?i . }}
         WHERE {{ <{b}> <{vocab.identifier}> ?i . }}
+    """)
+    # Fix 2: also redirect any incoming references to b → a so they aren't dangling.
+    store._backend.update(f"""
+        INSERT {{ ?s ?p <{a}> . }}
+        WHERE {{ ?s ?p <{b}> . FILTER(?s != <{a}>) }}
+    """)
+    store._backend.update(f"""
+        DELETE {{ ?s ?p <{b}> . }}
+        WHERE {{ ?s ?p <{b}> . }}
     """)
     store._backend.update(f"""
         DELETE {{ <{b}> ?p ?o . }}

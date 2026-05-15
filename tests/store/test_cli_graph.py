@@ -36,3 +36,60 @@ def test_graph_export_import_roundtrip(tmp_store_dir, tmp_path):
     result = run_cli(["graph", "export", str(dump)], env=env)
     assert result.returncode == 0
     assert dump.exists()
+
+
+def test_graph_merge_transfers_versions_and_cleans_incoming(tmp_path):
+    """After merge, artifact b has no outgoing edges and incoming refs point to a."""
+    import os
+    from aikaboom.store import vocab
+    from aikaboom.store.naming import Identifier
+    from aikaboom.store.store import BomStore
+
+    env_dir = tmp_path / "graph"
+    env_dir.mkdir()
+    env = {**os.environ,
+           "AIKABOOM_GRAPH_DIR": str(env_dir),
+           "AIKABOOM_GRAPH_BACKEND": "rdflib"}
+
+    # Build two artifacts and an incoming ref a → b via SPARQL.
+    monkey = {k: os.environ.get(k) for k in env}
+    try:
+        os.environ.update(env)
+        store = BomStore.open()
+        a_iri = "bom:artifact/aaaa"
+        b_iri = "bom:artifact/bbbb"
+        store._backend.update(
+            f"INSERT DATA {{ <{a_iri}> a <{vocab.Artifact}> ; <{vocab.potentialDuplicateOf}> <{b_iri}> . "
+            f"<{b_iri}> a <{vocab.Artifact}> ; <{vocab.hasVersion}> <bom:version/x> . }}"
+        )
+
+        # Run the merge CLI via the handler directly (faster than subprocess).
+        from aikaboom.store.cli_graph import cmd_graph_merge
+        import argparse
+        args = argparse.Namespace(artifact_a=a_iri, artifact_b=b_iri)
+        rc = cmd_graph_merge(args)
+        assert rc == 0
+
+        # Reopen and verify.
+        store2 = BomStore.open()
+        # a now owns b's version.
+        has_v = list(store2._backend.select(
+            f"SELECT ?v WHERE {{ <{a_iri}> <{vocab.hasVersion}> ?v }}"
+        ))
+        assert len(has_v) == 1
+        # b has no outgoing edges.
+        outgoing = list(store2._backend.select(
+            f"SELECT ?p WHERE {{ <{b_iri}> ?p ?o }}"
+        ))
+        assert outgoing == []
+        # The previous incoming a→b edge now points at a→a (or is gone).
+        dangling = list(store2._backend.select(
+            f"SELECT ?s WHERE {{ ?s ?p <{b_iri}> }}"
+        ))
+        assert dangling == []
+    finally:
+        for k, v in monkey.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
