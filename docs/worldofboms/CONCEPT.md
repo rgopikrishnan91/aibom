@@ -111,9 +111,11 @@ store of every BOM you've ever generated, designed to be exchanged with
 other instances by file.
 
 The worldofBOMs graph **is not** (in v1): a registry server, a SPARQL HTTP
-endpoint, a graph visualizer, a multi-user identity system with auth, or
-a Sybil-resistant reputation network. All of these are addressable later
-without changing the storage layer.
+endpoint, a multi-user identity system with auth, or a Sybil-resistant
+reputation network. All of these are addressable later without changing the
+storage layer.
+
+The worldofBOMs graph visualizer is documented in `VISUALIZATION.md`.
 
 Start with `docs/worldofboms/PIPELINE.md` once it exists for the
 code-level walkthrough, or `docs/worldofboms/SCHEMA.md` for the full

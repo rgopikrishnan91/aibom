@@ -27,7 +27,7 @@ We can collapse all of this into a single persistent knowledge graph: store gene
 
 - Public registry or federation protocol.
 - SPARQL HTTP endpoint.
-- Browser graph visualizer.
+- Browser graph visualizer — delivered in the 2026-05-15 follow-up spec.
 - Schema migration tooling beyond `rebuild`.
 - Multi-tenant auth / ACLs / Sybil-resistant trust.
 - Replacing the existing JSON / SPDX / CycloneDX exports — those stay.
@@ -617,7 +617,7 @@ The implementation plan (writing-plans skill) will sequence the doc deliverables
 
 - SPARQL HTTP endpoint (users run SPARQL via `aikaboom graph query`).
 - Public registry / federation protocol beyond dump exchange.
-- Browser graph visualizer.
+- Browser graph visualizer — delivered in the 2026-05-15 follow-up spec.
 - Schema migration tooling beyond `rebuild` and `migrate-canon`.
 - Multi-user auth / ACLs.
 - Sybil-resistant trust (reputation-weighted voting, vote decay).
