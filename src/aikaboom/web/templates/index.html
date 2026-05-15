@@ -3194,6 +3194,7 @@
                 <button class="tab is-standard" onclick="switchTab(event, 'spdx')" title="Standards-compliant SPDX 3.0.1 export">SPDX 3.0.1 <span class="prod-tag">Standard</span></button>
                 <button class="tab" onclick="switchTab(event, 'cyclonedx')" title="CycloneDX 1.6 Beta — ML-BOM export">CycloneDX 1.6 <span class="beta-tag">Beta</span></button>
                 <button class="tab" onclick="switchTab(event, 'recursive')" title="Recursive Beta — child BOM seed exports">Recursive <span class="beta-tag">Beta</span></button>
+                <button class="tab" onclick="switchTab(event, 'worldofboms')" title="worldofBOMs — the connected knowledge graph of every BOM generated">worldofBOMs <span class="beta-tag">Beta</span></button>
                 <button class="tab" onclick="switchTab(event, 'logs')" title="Live server processing log">Logs</button>
                 <button class="tab" onclick="switchTab(event, 'history')" title="Previously generated BOMs — click a row to reload it">History</button>
             </div>
@@ -3430,6 +3431,67 @@
                     </div>
                     <div class="bom-shell-body is-raw" data-view-pane="raw" style="display:none;">
                         <div id="jsonViewerRecursive" class="json-viewer"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="worldofbomsTab" class="tab-content">
+                <div class="bom-shell" data-bom-shell="worldofboms">
+                    <div class="bom-shell-toolbar" id="worldToolbar">
+                        <div class="view-toggle" role="tablist" id="worldViewToggle">
+                            <button type="button" class="is-active" data-world-view="global">Global</button>
+                            <button type="button" data-world-view="ego" disabled id="worldEgoToggle">Ego</button>
+                        </div>
+                        <div class="view-toggle" id="worldDirection" style="margin-left:8px;">
+                            <button type="button" class="is-active" data-world-dir="both">Both</button>
+                            <button type="button" data-world-dir="up">Upstream</button>
+                            <button type="button" data-world-dir="down">Downstream</button>
+                        </div>
+                        <input type="search" id="worldSearch" placeholder="Find a node…"
+                               style="margin-left:8px;font-size:12px;padding:3px 8px;">
+                        <div style="flex:1"></div>
+                        <span id="worldStats" style="font-size:11.5px;color:var(--paper-mute);"></span>
+                        <a id="worldDownload" class="mock-button"
+                           style="margin-left:10px;font-size:11.5px;" href="#">⬇ Download ▾</a>
+                    </div>
+                    <div class="recursive-body">
+                        <div class="graph-wrap" id="worldGraphWrap">
+                            <div id="worldGraphCanvas" class="graph-canvas"></div>
+                            <div class="graph-legend">
+                                <span><i></i> trainedOn</span>
+                                <span><i class="is-tested"></i> testedOn</span>
+                                <span><i class="is-depends"></i> dependsOn</span>
+                            </div>
+                            <div class="graph-controls" id="worldGraphControls" aria-label="Graph controls">
+                                <button type="button" id="worldZoomIn"  title="Zoom in" aria-label="Zoom in">+</button>
+                                <button type="button" id="worldZoomOut" title="Zoom out" aria-label="Zoom out">−</button>
+                                <button type="button" id="worldFit"     title="Fit" aria-label="Fit">⤢</button>
+                                <button type="button" id="worldReset"   title="Reset" aria-label="Reset">⟲</button>
+                                <button type="button" id="worldFull"    title="Fullscreen" aria-label="Fullscreen">⛶</button>
+                            </div>
+                            <div id="worldGraphEmpty" class="graph-empty">No BOMs in the graph yet — generate one to start your worldofBOMs.</div>
+                        </div>
+                        <aside id="worldSidePanel" class="side-panel" aria-hidden="true">
+                            <div class="side-panel-header">
+                                <div style="min-width:0;flex:1;">
+                                    <div id="worldSidePanelTitle" class="side-panel-title">—</div>
+                                    <div id="worldSidePanelMeta" class="side-panel-meta"></div>
+                                </div>
+                                <button type="button" class="side-panel-close" id="worldSidePanelClose" aria-label="Close">×</button>
+                            </div>
+                            <div class="side-panel-toolbar">
+                                <div class="view-toggle">
+                                    <button type="button" class="is-active" data-world-pane="bom">BOM</button>
+                                    <button type="button" data-world-pane="lineage">Lineage &amp; queries</button>
+                                </div>
+                            </div>
+                            <div class="side-panel-body" id="worldPaneBom" data-world-pane-body="bom">
+                                <div id="worldSidePanelFlat" class="flat-bom"></div>
+                            </div>
+                            <div class="side-panel-body" id="worldPaneLineage" data-world-pane-body="lineage" style="display:none;">
+                                <div id="worldLineageResults"></div>
+                            </div>
+                        </aside>
                     </div>
                 </div>
             </div>

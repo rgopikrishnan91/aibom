@@ -232,3 +232,11 @@ class TestWorldOfBomsRoutes:
         assert resp.status_code == 200
         assert "@graph" in resp.get_json()
         assert resp.headers.get("Content-Disposition", "").startswith("attachment")
+
+
+class TestWorldOfBomsTab:
+    def test_index_has_worldofboms_tab(self, client):
+        html = client.get("/").get_data(as_text=True)
+        assert "switchTab(event, 'worldofboms')" in html
+        assert 'id="worldofbomsTab"' in html
+        assert 'id="worldGraphCanvas"' in html
