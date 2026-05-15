@@ -1,4 +1,5 @@
 """Each ```sparql block in QUERIES.md parses (syntax check only)."""
+
 import re
 from pathlib import Path
 

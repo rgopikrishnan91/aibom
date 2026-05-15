@@ -1,4 +1,5 @@
 """Every predicate in vocab.py appears in SCHEMA.md."""
+
 import inspect
 import re
 from pathlib import Path
@@ -30,8 +31,21 @@ def test_schema_md_covers_all_vocab_predicates():
     missing = actual - documented
     # Filter out classes that are documented under their own section heading
     # without `aibom:` backtick form. This is a deliberate looseness.
-    class_names = {"Artifact", "Model", "Dataset", "Paper", "CodeRepo",
-                   "ArtifactVersion", "BOMClaim", "GenerationRun",
-                   "TrustVote", "Agent", "License", "Supplier", "Person", "Source"}
+    class_names = {
+        "Artifact",
+        "Model",
+        "Dataset",
+        "Paper",
+        "CodeRepo",
+        "ArtifactVersion",
+        "BOMClaim",
+        "GenerationRun",
+        "TrustVote",
+        "Agent",
+        "License",
+        "Supplier",
+        "Person",
+        "Source",
+    }
     missing -= class_names
     assert not missing, f"Predicates missing from SCHEMA.md: {missing}"

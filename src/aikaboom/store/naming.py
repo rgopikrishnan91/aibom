@@ -3,6 +3,7 @@
 Pure functions only — no I/O, no graph access. The output is fully
 determined by the input plus the supplier alias index loaded at startup.
 """
+
 from __future__ import annotations
 
 import re
@@ -12,13 +13,13 @@ from urllib.parse import urlparse
 
 from aikaboom.utils.supplier_alias import default_alias_index
 
-
 PLATFORM_PRIORITY: tuple[str, ...] = ("huggingface", "github", "arxiv", "doi", "url")
 
 
 @dataclass(frozen=True)
 class Identifier:
     """A platform-typed identifier value."""
+
     platform: str
     value: str
 

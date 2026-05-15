@@ -60,7 +60,8 @@ def test_reconstruct_bom_returns_saved_fields(store, sample_bom, sample_run_meta
 def test_sparql_injection_in_use_case_is_safe(store, sample_bom, sample_run_meta):
     """A `use_case` containing a SPARQL-special char doesn't break the query."""
     store.save_claim(
-        sample_bom, sample_run_meta,
+        sample_bom,
+        sample_run_meta,
         identifiers=[Identifier("huggingface", "mistralai/Mistral-7B-v0.1")],
     )
     # An attacker-supplied use_case containing a quote shouldn't crash or inject.

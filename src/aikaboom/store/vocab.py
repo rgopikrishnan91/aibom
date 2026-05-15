@@ -3,8 +3,8 @@
 Single source of truth. If you add a predicate here, also add it to
 docs/worldofboms/SCHEMA.md (a CI test enforces parity).
 """
-from rdflib import Namespace, URIRef
 
+from rdflib import Namespace, URIRef
 
 AIBOM = Namespace("https://aikaboom.dev/aibom#")
 BOM = Namespace("bom:")

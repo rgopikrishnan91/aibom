@@ -9,20 +9,18 @@ def backend(tmp_store_dir):
 
 class TestRDFLibBackend:
     def test_add_and_ask(self, backend):
-        backend.update(
-            "INSERT DATA { <bom:test/1> <https://aikaboom.dev/aibom#trustScore> 0.5 }"
-        )
-        assert backend.ask(
-            "ASK { <bom:test/1> <https://aikaboom.dev/aibom#trustScore> 0.5 }"
-        )
+        backend.update("INSERT DATA { <bom:test/1> <https://aikaboom.dev/aibom#trustScore> 0.5 }")
+        assert backend.ask("ASK { <bom:test/1> <https://aikaboom.dev/aibom#trustScore> 0.5 }")
 
     def test_select_returns_bindings(self, backend):
         backend.update(
             "INSERT DATA { <bom:test/2> <https://aikaboom.dev/aibom#useCase> 'license' }"
         )
-        rows = list(backend.select(
-            "SELECT ?u WHERE { <bom:test/2> <https://aikaboom.dev/aibom#useCase> ?u }"
-        ))
+        rows = list(
+            backend.select(
+                "SELECT ?u WHERE { <bom:test/2> <https://aikaboom.dev/aibom#useCase> ?u }"
+            )
+        )
         assert len(rows) == 1
         assert str(rows[0]["u"]) == "license"
 

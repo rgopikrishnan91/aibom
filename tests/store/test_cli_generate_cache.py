@@ -1,12 +1,11 @@
 """Verify --cache flags wire through cmd_generate correctly."""
-import json
+
 import os
-import pytest
 import subprocess
 import sys
 from pathlib import Path
-from unittest.mock import patch
 
+import pytest
 
 # Ensure subprocess imports the *worktree* copy of `aikaboom`, not the
 # editable install that points at the canonical repo root. Mirrors
@@ -29,6 +28,8 @@ def test_cache_flag_recognized(store_env):
     """The --cache flag is parsed without error."""
     result = subprocess.run(
         [sys.executable, "-m", "aikaboom.cli", "generate", "--help"],
-        capture_output=True, text=True, env=store_env,
+        capture_output=True,
+        text=True,
+        env=store_env,
     )
     assert "--cache" in result.stdout

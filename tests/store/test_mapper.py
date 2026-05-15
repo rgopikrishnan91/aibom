@@ -1,4 +1,5 @@
 """Mapper: BOM JSON ↔ RDF quads."""
+
 from rdflib import Literal, URIRef
 
 from aikaboom.store.mapper import bom_to_rdf
@@ -64,9 +65,11 @@ class TestBomToRdf:
     def test_handles_explicit_null_packageVersion(self, sample_bom, sample_run_meta):
         """A BOM with packageVersion: None should not crash."""
         from aikaboom.store.naming import Identifier
+
         sample_bom["direct_fields"]["packageVersion"] = None
         ds, claim_iri = bom_to_rdf(
-            sample_bom, sample_run_meta,
+            sample_bom,
+            sample_run_meta,
             identifiers=[Identifier("huggingface", "x/y")],
         )
         assert claim_iri.startswith("bom:claim/")

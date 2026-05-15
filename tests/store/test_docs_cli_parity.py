@@ -1,4 +1,5 @@
 """Every command shown in CLI.md exists in the argparse tree."""
+
 import re
 from pathlib import Path
 
@@ -13,6 +14,7 @@ def test_cli_md_subcommands_match_argparse():
     # Build the actual subcommand set.
     from aikaboom.store.cli_graph import register_subparsers
     import argparse
+
     parser = argparse.ArgumentParser()
     subs = parser.add_subparsers(dest="command")
     register_subparsers(subs)

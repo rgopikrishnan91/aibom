@@ -1,4 +1,5 @@
 """BomStore — public facade over the graph backend."""
+
 from __future__ import annotations
 
 import datetime as _dt
@@ -34,6 +35,7 @@ class ResolveResult:
             straddle two previously-disconnected artifact nodes (cross-
             identifier collision). The primary is in `existing_artifact`.
     """
+
     existing_artifact: str | None
     artifact_label: str | None
     matching_claims: list[dict] = field(default_factory=list)
@@ -46,12 +48,7 @@ def _escape_sparql_literal(s: str) -> str:
     Handles backslash, double-quote, newline, and carriage return.
     The result is intended for embedding inside `"..."` in SPARQL.
     """
-    return (
-        s.replace("\\", "\\\\")
-         .replace('"', '\\"')
-         .replace("\n", "\\n")
-         .replace("\r", "\\r")
-    )
+    return s.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n").replace("\r", "\\r")
 
 
 def _validate_sparql_iri(s: str) -> str:
@@ -134,11 +131,13 @@ class BomStore:
         """
         out = []
         for row in self._backend.select(q):
-            out.append({
-                "iri": str(row["claim"]),
-                "created_at": str(row.get("createdAt", "")),
-                "llm_model": str(row.get("llmModel", "")),
-            })
+            out.append(
+                {
+                    "iri": str(row["claim"]),
+                    "created_at": str(row.get("createdAt", "")),
+                    "llm_model": str(row.get("llmModel", "")),
+                }
+            )
         return out
 
     def resolve(
@@ -196,7 +195,9 @@ class BomStore:
                 artifact_label=matches[0][1],
                 collision_artifacts=[m[0] for m in matches[1:]],
                 matching_claims=self._find_claims_for_artifact(
-                    matches[0][0], use_case=use_case, mode=mode,
+                    matches[0][0],
+                    use_case=use_case,
+                    mode=mode,
                 ),
             )
 
@@ -204,7 +205,9 @@ class BomStore:
             existing_artifact=matches[0][0],
             artifact_label=matches[0][1],
             matching_claims=self._find_claims_for_artifact(
-                matches[0][0], use_case=use_case, mode=mode,
+                matches[0][0],
+                use_case=use_case,
+                mode=mode,
             ),
         )
 
@@ -217,11 +220,7 @@ class BomStore:
             ("claims", vocab.BOMClaim),
             ("votes", vocab.TrustVote),
         ]:
-            rows = list(
-                self._backend.select(
-                    f"SELECT (COUNT(?s) AS ?n) WHERE {{ ?s a <{cls}> }}"
-                )
-            )
+            rows = list(self._backend.select(f"SELECT (COUNT(?s) AS ?n) WHERE {{ ?s a <{cls}> }}"))
             out[label] = int(rows[0]["n"]) if rows else 0
         return out
 
@@ -233,7 +232,12 @@ class BomStore:
         annotation blank node that references those triples, then hands
         the dataset to `rdf_to_bom`.
         """
-        from rdflib import Dataset as _RDFDataset, URIRef as _URIRef, Literal as _Literal, BNode as _BNode
+        from rdflib import (
+            Dataset as _RDFDataset,
+            URIRef as _URIRef,
+            Literal as _Literal,
+            BNode as _BNode,
+        )
 
         ds = _RDFDataset()
 
@@ -242,13 +246,18 @@ class BomStore:
         for row in self._backend.select(q_claim):
             p = _URIRef(str(row["p"]))
             o_raw = row["o"]
-            o = _URIRef(str(o_raw)) if str(o_raw).startswith(("http", "bom:", "aibom:", "_:")) else _Literal(str(o_raw))
+            o = (
+                _URIRef(str(o_raw))
+                if str(o_raw).startswith(("http", "bom:", "aibom:", "_:"))
+                else _Literal(str(o_raw))
+            )
             ds.add((_URIRef(claim_iri), p, o))
 
         # Pull annotation blank nodes that point at this claim.
+        _claim_iri_safe = _validate_sparql_iri(claim_iri)
         q_ann = f"""
         SELECT ?ann ?p ?subj ?pred ?obj ?asserted ?conflict WHERE {{
-            ?ann <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <{_validate_sparql_iri(claim_iri)}> .
+            ?ann <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <{_claim_iri_safe}> .
             ?ann <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> ?pred .
             ?ann <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> ?obj .
             OPTIONAL {{ ?ann <{vocab.assertedBy}> ?asserted . }}
@@ -257,10 +266,26 @@ class BomStore:
         """
         for row in self._backend.select(q_ann):
             ann = _BNode()
-            ds.add((ann, _URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"), _URIRef(claim_iri)))
-            ds.add((ann, _URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate"), _URIRef(str(row["pred"]))))
+            ds.add(
+                (
+                    ann,
+                    _URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"),
+                    _URIRef(claim_iri),
+                )
+            )
+            ds.add(
+                (
+                    ann,
+                    _URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate"),
+                    _URIRef(str(row["pred"])),
+                )
+            )
             obj_raw = row["obj"]
-            obj_val = _URIRef(str(obj_raw)) if str(obj_raw).startswith(("http", "bom:", "aibom:", "_:")) else _Literal(str(obj_raw))
+            obj_val = (
+                _URIRef(str(obj_raw))
+                if str(obj_raw).startswith(("http", "bom:", "aibom:", "_:"))
+                else _Literal(str(obj_raw))
+            )
             ds.add((ann, _URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#object"), obj_val))
             if row.get("asserted"):
                 ds.add((ann, _URIRef(vocab.assertedBy), _URIRef(str(row["asserted"]))))

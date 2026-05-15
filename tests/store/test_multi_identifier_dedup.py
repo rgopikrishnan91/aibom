@@ -11,9 +11,11 @@ def store(tmp_store_dir, monkeypatch):
 
 
 def test_save_with_hf_then_resolve_with_arxiv_finds_same_artifact(
-    store, sample_bom, sample_run_meta,
+    store,
+    sample_bom,
+    sample_run_meta,
 ):
-    """If a BOM was saved with HF+arxiv ids, a later resolve with only arxiv finds it AND its claims."""
+    """A later resolve with only arxiv finds the prior HF+arxiv save and its claims."""
     claim_iri = store.save_claim(
         sample_bom,
         sample_run_meta,
@@ -54,13 +56,15 @@ def test_collision_returns_multiple_artifacts(store, sample_bom, sample_run_meta
     """When the same set straddles two separately-saved artifacts, collision_artifacts populates."""
     # Save artifact A with only HF.
     store.save_claim(
-        sample_bom, sample_run_meta,
+        sample_bom,
+        sample_run_meta,
         identifiers=[Identifier("huggingface", "owner-a/model")],
     )
     # Save artifact B with only arxiv. These are independent records that
     # happen to refer to the same upstream thing.
     store.save_claim(
-        sample_bom, sample_run_meta,
+        sample_bom,
+        sample_run_meta,
         identifiers=[Identifier("arxiv", "1234.56789")],
     )
     # Resolve with BOTH identifiers — collision case.

@@ -4,6 +4,7 @@
 about); `rdf_to_bom` reconstructs the JSON. Round-trip is lossless for the
 fields the vocab defines, asserted by `test_mapper_roundtrip.py`.
 """
+
 from __future__ import annotations
 
 import datetime as _dt
@@ -168,7 +169,7 @@ def _platform_name_from_source_iri(source_iri_str: str) -> str:
     """Reverse `iris.source_iri('huggingface')` → 'huggingface'."""
     prefix = "aibom:source/"
     if source_iri_str.startswith(prefix):
-        return source_iri_str[len(prefix):]
+        return source_iri_str[len(prefix) :]
     return source_iri_str
 
 
@@ -220,8 +221,12 @@ def rdf_to_bom(ds: Dataset, claim_iri: str) -> dict:
     # Walk every (claim, pred, value) triple; pred → field name.
     aibom_ns = str(vocab.AIBOM)
     structural_preds = {
-        str(vocab.useCase), str(vocab.mode), str(vocab.createdAt),
-        str(vocab.schemaVersion), str(vocab.trustScore), str(vocab.generatedBy),
+        str(vocab.useCase),
+        str(vocab.mode),
+        str(vocab.createdAt),
+        str(vocab.schemaVersion),
+        str(vocab.trustScore),
+        str(vocab.generatedBy),
         str(RDF.type),
     }
     for _, p, o, _ in ds.quads((claim, None, None, None)):
@@ -230,7 +235,7 @@ def rdf_to_bom(ds: Dataset, claim_iri: str) -> dict:
             continue
         if not p_str.startswith(aibom_ns):
             continue
-        field_name = p_str[len(aibom_ns):]
+        field_name = p_str[len(aibom_ns) :]
         triplet: dict[str, Any] = {"value": str(o), "source": None, "conflict": None}
         # Find the annotation blank node for this triple, if any.
         for ann, _, _, _ in ds.quads((None, RDF.object, o, None)):

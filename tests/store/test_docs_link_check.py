@@ -1,4 +1,5 @@
 """Every internal markdown link in docs/worldofboms/ resolves."""
+
 import re
 from pathlib import Path
 

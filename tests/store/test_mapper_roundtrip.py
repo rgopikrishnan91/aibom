@@ -1,4 +1,5 @@
 """Round-trip: BOM JSON → RDF → BOM JSON should be value-preserving."""
+
 import json
 from pathlib import Path
 import pytest
@@ -6,7 +7,6 @@ import pytest
 from aikaboom.store.mapper import bom_to_rdf, rdf_to_bom
 from aikaboom.store.naming import Identifier
 from tests.store.conftest import SAMPLE_RUN_META
-
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 BOM_CORPUS = Path(__file__).resolve().parent / "fixtures" / "bom_corpus"
@@ -36,7 +36,11 @@ assert len(_DISCOVERED_BOMS) >= 1, (
 @pytest.mark.parametrize("name,bom_json", _DISCOVERED_BOMS)
 def test_roundtrip_preserves_direct_fields(name, bom_json):
     """Every direct_field value survives JSON → RDF → JSON."""
-    ids = [Identifier("huggingface", bom_json.get("repo_id") or bom_json.get("model_id") or "unknown/unknown")]
+    ids = [
+        Identifier(
+            "huggingface", bom_json.get("repo_id") or bom_json.get("model_id") or "unknown/unknown"
+        )
+    ]
     ds, claim_iri = bom_to_rdf(bom_json, SAMPLE_RUN_META, identifiers=ids)
     reconstructed = rdf_to_bom(ds, claim_iri)
     for field_name, triplet in (bom_json.get("direct_fields") or {}).items():

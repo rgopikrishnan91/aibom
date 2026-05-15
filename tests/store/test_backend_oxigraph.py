@@ -1,7 +1,8 @@
 import pytest
+
 pytest.importorskip("pyoxigraph")
 
-from aikaboom.store.backend import open_backend
+from aikaboom.store.backend import open_backend  # noqa: E402
 
 
 @pytest.fixture
@@ -15,21 +16,19 @@ class TestOxigraphBackend:
         assert backend is not None
 
     def test_add_and_ask(self, backend):
-        backend.update(
-            "INSERT DATA { <bom:test/1> <https://aikaboom.dev/aibom#trustScore> 0.5 }"
-        )
-        result = backend.ask(
-            "ASK { <bom:test/1> <https://aikaboom.dev/aibom#trustScore> 0.5 }"
-        )
+        backend.update("INSERT DATA { <bom:test/1> <https://aikaboom.dev/aibom#trustScore> 0.5 }")
+        result = backend.ask("ASK { <bom:test/1> <https://aikaboom.dev/aibom#trustScore> 0.5 }")
         assert result is True
 
     def test_select_returns_bindings(self, backend):
         backend.update(
             "INSERT DATA { <bom:test/2> <https://aikaboom.dev/aibom#useCase> 'license' }"
         )
-        rows = list(backend.select(
-            "SELECT ?u WHERE { <bom:test/2> <https://aikaboom.dev/aibom#useCase> ?u }"
-        ))
+        rows = list(
+            backend.select(
+                "SELECT ?u WHERE { <bom:test/2> <https://aikaboom.dev/aibom#useCase> ?u }"
+            )
+        )
         assert len(rows) == 1
         assert str(rows[0]["u"]) == "license"
 
@@ -43,17 +42,17 @@ class TestOxigraphBackend:
 
         # Import the dump into a fresh store and verify the triple survived.
         import os
+
         fresh_dir = tmp_path / "fresh_store"
         fresh_dir.mkdir()
         prev_dir = os.environ.get("AIKABOOM_GRAPH_DIR")
         os.environ["AIKABOOM_GRAPH_DIR"] = str(fresh_dir)
         try:
             from aikaboom.store.backend import open_backend
+
             fresh = open_backend()
             fresh.import_(dump, fmt="nquads")
-            assert fresh.ask(
-                "ASK { <bom:test/3> <https://aikaboom.dev/aibom#useCase> 'license' }"
-            )
+            assert fresh.ask("ASK { <bom:test/3> <https://aikaboom.dev/aibom#useCase> 'license' }")
         finally:
             if prev_dir is not None:
                 os.environ["AIKABOOM_GRAPH_DIR"] = prev_dir

@@ -1,4 +1,5 @@
 """Trust vote model + score aggregation + canonical-claim pointer."""
+
 from __future__ import annotations
 
 import enum

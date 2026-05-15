@@ -1,4 +1,5 @@
 """Mint stable IRIs for graph nodes."""
+
 from __future__ import annotations
 
 import hashlib

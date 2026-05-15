@@ -1,4 +1,5 @@
 """Cache resolution UX: prompt the user, or auto-decide based on policy."""
+
 from __future__ import annotations
 
 import enum

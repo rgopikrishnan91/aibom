@@ -1,9 +1,9 @@
 """aikaboom graph / aikaboom bom subcommands."""
+
 from __future__ import annotations
 
 import argparse
 import json
-import sys
 from pathlib import Path
 
 from aikaboom.store.naming import Identifier
@@ -62,7 +62,8 @@ def cmd_bom_claims(args: argparse.Namespace) -> int:
     platform, _, value = args.identifier.partition(":")
     claims = store.find_claims_for(
         [Identifier(platform or "huggingface", value or args.identifier)],
-        use_case=args.use_case, mode=args.mode,
+        use_case=args.use_case,
+        mode=args.mode,
     )
     print(json.dumps(claims, indent=2))
     return 0
@@ -79,6 +80,7 @@ def cmd_bom_dispute(args: argparse.Namespace) -> int:
 def cmd_bom_votes(args: argparse.Namespace) -> int:
     """List votes on a claim."""
     from aikaboom.store import vocab
+
     store = BomStore.open()
     q = f"""
     SELECT ?vote ?kind ?at ?agent WHERE {{
@@ -123,6 +125,7 @@ def cmd_bom_diff(args: argparse.Namespace) -> int:
 def cmd_graph_list(args: argparse.Namespace) -> int:
     """List artifacts with their primary identifier."""
     from aikaboom.store import vocab
+
     store = BomStore.open()
     q = f"""
     SELECT ?artifact ?label ?primary WHERE {{
@@ -147,8 +150,12 @@ def cmd_graph_show(args: argparse.Namespace) -> int:
 
 
 def cmd_graph_merge(args: argparse.Namespace) -> int:
-    """Merge artifact-b into artifact-a: transfer all hasVersion/identifier/incoming edges, delete b."""
+    """Merge artifact-b into artifact-a.
+
+    Transfers all hasVersion/identifier/incoming edges, then deletes b.
+    """
     from aikaboom.store import vocab
+
     store = BomStore.open()
     a = _validate_sparql_iri(args.artifact_a)
     b = _validate_sparql_iri(args.artifact_b)
@@ -202,8 +209,10 @@ def cmd_graph_rebuild(args: argparse.Namespace) -> int:
         repo = data.get("repo_id") or data.get("model_id") or results_file.stem
         idents = [Identifier("huggingface", repo)]
         run_meta = {
-            "provider": "rebuild", "llm_model": "unknown",
-            "prompt_version": "rebuild", "code_version": "rebuild",
+            "provider": "rebuild",
+            "llm_model": "unknown",
+            "prompt_version": "rebuild",
+            "code_version": "rebuild",
             "mode": data.get("mode", "rag"),
             "use_case": data.get("use_case", "complete"),
         }
@@ -219,7 +228,9 @@ def register_subparsers(subparsers: argparse._SubParsersAction) -> None:
     g_sub = g.add_subparsers(dest="graph_cmd", required=True)
 
     g_sub.add_parser("stats", help="Counts of nodes and edges").set_defaults(func=cmd_graph_stats)
-    g_sub.add_parser("list", help="List artifacts with their primary identifier").set_defaults(func=cmd_graph_list)
+    g_sub.add_parser("list", help="List artifacts with their primary identifier").set_defaults(
+        func=cmd_graph_list
+    )
 
     p_show = g_sub.add_parser("show", help="Show all triples for a given IRI")
     p_show.add_argument("iri")
@@ -244,7 +255,9 @@ def register_subparsers(subparsers: argparse._SubParsersAction) -> None:
     p_merge.add_argument("artifact_b")
     p_merge.set_defaults(func=cmd_graph_merge)
 
-    g_sub.add_parser("rebuild", help="Rebuild the graph from results/*.json").set_defaults(func=cmd_graph_rebuild)
+    g_sub.add_parser("rebuild", help="Rebuild the graph from results/*.json").set_defaults(
+        func=cmd_graph_rebuild
+    )
 
     b = subparsers.add_parser("bom", help="BOM-claim operations")
     b_sub = b.add_subparsers(dest="bom_cmd", required=True)

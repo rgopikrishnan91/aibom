@@ -1,4 +1,5 @@
 """End-to-end: stats on empty store, export empty, import-export roundtrip."""
+
 import json
 import os
 import subprocess
@@ -6,7 +7,6 @@ import sys
 from pathlib import Path
 
 import pytest
-
 
 # Ensure subprocess imports the *worktree* copy of `aikaboom`, not the
 # editable install that points at the canonical repo root. Without this,
@@ -55,7 +55,7 @@ def test_import_export_roundtrip(isolated_env, tmp_path):
     dump = tmp_path / "seed.nq"
     dump.write_text(
         '<bom:artifact/x> <https://aikaboom.dev/aibom#canonicalLabel> "Test" '
-        '<urn:x-arq:DefaultGraphNode> .\n'
+        "<urn:x-arq:DefaultGraphNode> .\n"
     )
     r1 = subprocess.run(
         [sys.executable, "-m", "aikaboom.cli", "graph", "import", str(dump)],

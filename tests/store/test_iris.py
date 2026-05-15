@@ -21,7 +21,7 @@ class TestArtifactIri:
         # IRI hash is hex — no slashes, colons, unicode.
         prefix = "bom:artifact/"
         assert iri.startswith(prefix)
-        suffix = iri[len(prefix):]
+        suffix = iri[len(prefix) :]
         assert all(c in "0123456789abcdef" for c in suffix)
         assert len(suffix) == 64  # sha256 hex digest length
 
@@ -57,28 +57,59 @@ class TestRunIri:
         assert run_iri(params) == run_iri(params)
 
     def test_different_params_different_iri(self):
-        a = run_iri({"provider": "openrouter", "llm_model": "claude-3-haiku", "prompt_version": "v12", "code_version": "abc1234", "mode": "rag", "use_case": "license"})
-        b = run_iri({"provider": "openrouter", "llm_model": "gpt-4o-mini", "prompt_version": "v12", "code_version": "abc1234", "mode": "rag", "use_case": "license"})
+        a = run_iri(
+            {
+                "provider": "openrouter",
+                "llm_model": "claude-3-haiku",
+                "prompt_version": "v12",
+                "code_version": "abc1234",
+                "mode": "rag",
+                "use_case": "license",
+            }
+        )
+        b = run_iri(
+            {
+                "provider": "openrouter",
+                "llm_model": "gpt-4o-mini",
+                "prompt_version": "v12",
+                "code_version": "abc1234",
+                "mode": "rag",
+                "use_case": "license",
+            }
+        )
         assert a != b
 
     def test_run_iri_insensitive_to_insertion_order(self):
-        a = run_iri({
-            "provider": "openrouter", "llm_model": "claude-3-haiku",
-            "prompt_version": "v12", "code_version": "abc1234",
-            "mode": "rag", "use_case": "license",
-        })
-        b = run_iri({
-            "use_case": "license", "mode": "rag",
-            "code_version": "abc1234", "prompt_version": "v12",
-            "llm_model": "claude-3-haiku", "provider": "openrouter",
-        })
+        a = run_iri(
+            {
+                "provider": "openrouter",
+                "llm_model": "claude-3-haiku",
+                "prompt_version": "v12",
+                "code_version": "abc1234",
+                "mode": "rag",
+                "use_case": "license",
+            }
+        )
+        b = run_iri(
+            {
+                "use_case": "license",
+                "mode": "rag",
+                "code_version": "abc1234",
+                "prompt_version": "v12",
+                "llm_model": "claude-3-haiku",
+                "provider": "openrouter",
+            }
+        )
         assert a == b
 
     def test_run_iri_sensitive_to_every_field(self):
         base = {
-            "provider": "openrouter", "llm_model": "claude-3-haiku",
-            "prompt_version": "v12", "code_version": "abc1234",
-            "mode": "rag", "use_case": "license",
+            "provider": "openrouter",
+            "llm_model": "claude-3-haiku",
+            "prompt_version": "v12",
+            "code_version": "abc1234",
+            "mode": "rag",
+            "use_case": "license",
         }
         base_iri = run_iri(base)
         for field in base:
@@ -91,7 +122,7 @@ class TestClaimAndVote:
     def test_claim_iri_is_uuid_form(self):
         iri = claim_iri()
         assert iri.startswith("bom:claim/")
-        suffix = iri[len("bom:claim/"):]
+        suffix = iri[len("bom:claim/") :]
         # uuid4 hex form: 32 chars, no dashes (we normalize).
         assert len(suffix) == 32
 

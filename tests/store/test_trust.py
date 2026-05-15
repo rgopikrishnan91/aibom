@@ -1,4 +1,5 @@
 """Trust votes, score aggregation, canonical-claim pointer."""
+
 import pytest
 
 from aikaboom.store.naming import Identifier
@@ -36,11 +37,13 @@ def test_explicit_flag_decreases_score(store, claim):
 
 def test_implicit_use_weighs_less_than_explicit(store, sample_bom, sample_run_meta):
     c1 = store.save_claim(
-        sample_bom, sample_run_meta,
+        sample_bom,
+        sample_run_meta,
         identifiers=[Identifier("huggingface", "owner-a/model")],
     )
     c2 = store.save_claim(
-        sample_bom, sample_run_meta,
+        sample_bom,
+        sample_run_meta,
         identifiers=[Identifier("huggingface", "owner-b/model")],
     )
     store.record_trust_vote(c1, VoteKind.TRUSTED)
@@ -51,7 +54,7 @@ def test_implicit_use_weighs_less_than_explicit(store, sample_bom, sample_run_me
 def test_canonical_claim_points_to_highest_trust(store, sample_bom, sample_run_meta):
     """Two claims on the same version: canonical points to the one with more trust."""
     ids = [Identifier("huggingface", "mistralai/Mistral-7B-v0.1")]
-    c1 = store.save_claim(sample_bom, sample_run_meta, identifiers=ids)
+    store.save_claim(sample_bom, sample_run_meta, identifiers=ids)
     run_meta_b = dict(sample_run_meta)
     run_meta_b["llm_model"] = "openai/gpt-4o-mini"
     c2 = store.save_claim(sample_bom, run_meta_b, identifiers=ids)

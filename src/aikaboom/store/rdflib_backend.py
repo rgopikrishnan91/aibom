@@ -1,4 +1,5 @@
 """RDFLib + N-Quads fallback backend."""
+
 from __future__ import annotations
 
 import os
@@ -7,7 +8,6 @@ from pathlib import Path
 from typing import Iterable, Iterator, Mapping
 
 from rdflib import Dataset
-
 
 _NQ_FILE = "store.nq"
 
@@ -58,10 +58,12 @@ class RDFLibBackend:
     def select(self, sparql: str) -> Iterator[Mapping[str, object]]:
         """Run SPARQL SELECT, yielding row bindings with Literals unwrapped to Python values."""
         from rdflib.term import Literal as _Literal
+
         def _unwrap(term):
             if isinstance(term, _Literal):
                 return term.toPython()
             return term
+
         for row in self._ds.query(sparql):
             yield {str(var): _unwrap(row[var]) for var in row.labels}
 

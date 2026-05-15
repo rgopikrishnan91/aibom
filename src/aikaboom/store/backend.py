@@ -1,11 +1,11 @@
 """GraphBackend Protocol + selection."""
+
 from __future__ import annotations
 
 import logging
 import os
 from pathlib import Path
 from typing import Iterable, Iterator, Mapping, Protocol
-
 
 _log = logging.getLogger(__name__)
 
@@ -60,6 +60,7 @@ def open_backend() -> GraphBackend:
     if requested in ("oxigraph", "auto"):
         try:
             from aikaboom.store.oxigraph_backend import OxigraphBackend
+
             return OxigraphBackend(store_dir)
         except ImportError as e:
             if requested == "oxigraph":
@@ -67,4 +68,5 @@ def open_backend() -> GraphBackend:
             _log.warning("Oxigraph unavailable (%s); falling back to RDFLib", e)
 
     from aikaboom.store.rdflib_backend import RDFLibBackend
+
     return RDFLibBackend(store_dir)

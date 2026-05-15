@@ -1,5 +1,5 @@
 """Canonicalization rules for artifact identifiers."""
-import pytest
+
 from aikaboom.store.naming import (
     Identifier,
     canonicalize,
@@ -11,8 +11,9 @@ from aikaboom.store.naming import (
 
 class TestCanonicalize:
     def test_lowercases(self):
-        assert canonicalize(Identifier("huggingface", "MistralAI/Mistral-7B-v0.1")) == \
-            Identifier("huggingface", "mistralai/mistral-7b-v0.1")
+        assert canonicalize(Identifier("huggingface", "MistralAI/Mistral-7B-v0.1")) == Identifier(
+            "huggingface", "mistralai/mistral-7b-v0.1"
+        )
 
     def test_idempotent(self):
         once = canonicalize(Identifier("huggingface", "MistralAI/Mistral-7B-v0.1"))
@@ -26,9 +27,7 @@ class TestCanonicalize:
         assert result == Identifier("huggingface", "mistralai/mistral-7b-v0.1")
 
     def test_strips_url_prefix_for_github(self):
-        result = canonicalize(
-            Identifier("github", "https://github.com/mistralai/mistral-src.git")
-        )
+        result = canonicalize(Identifier("github", "https://github.com/mistralai/mistral-src.git"))
         assert result == Identifier("github", "mistralai/mistral-src")
 
     def test_strips_arxiv_version_suffix(self):
@@ -50,21 +49,15 @@ class TestCanonicalize:
         assert result == Identifier("huggingface", "mistralai/mistral-7b")
 
     def test_strips_doi_url_prefix(self):
-        result = canonicalize(
-            Identifier("doi", "https://doi.org/10.48550/arXiv.2310.06825")
-        )
+        result = canonicalize(Identifier("doi", "https://doi.org/10.48550/arXiv.2310.06825"))
         assert result == Identifier("doi", "10.48550/arxiv.2310.06825")
 
     def test_bare_doi_unchanged(self):
-        result = canonicalize(
-            Identifier("doi", "10.48550/arXiv.2310.06825")
-        )
+        result = canonicalize(Identifier("doi", "10.48550/arXiv.2310.06825"))
         assert result == Identifier("doi", "10.48550/arxiv.2310.06825")
 
     def test_url_platform_preserves_full_url(self):
-        result = canonicalize(
-            Identifier("url", "https://example.com/abc/def")
-        )
+        result = canonicalize(Identifier("url", "https://example.com/abc/def"))
         assert result == Identifier("url", "https://example.com/abc/def")
 
 

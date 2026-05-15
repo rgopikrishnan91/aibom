@@ -66,8 +66,8 @@ class TestPredicates:
         assert str(vocab.conflictKind) == str(vocab.AIBOM) + "conflictKind"
 
 
-import pytest
-from aikaboom.store import vocab as vocab_module
+import pytest  # noqa: E402
+from aikaboom.store import vocab as vocab_module  # noqa: E402
 
 
 def _public_urirefs():
@@ -95,6 +95,6 @@ def test_every_public_uriref_resolves_under_aibom_namespace(name, uriref):
         "implicit_validate": "implicit-validate",
     }
     expected_local = snake_to_hyphen.get(name, name)
-    assert str(uriref) == str(vocab_module.AIBOM) + expected_local, (
-        f"vocab.{name} points to {uriref!r}, expected {str(vocab_module.AIBOM) + expected_local!r}"
-    )
+    assert (
+        str(uriref) == str(vocab_module.AIBOM) + expected_local
+    ), f"vocab.{name} points to {uriref!r}, expected {str(vocab_module.AIBOM) + expected_local!r}"
