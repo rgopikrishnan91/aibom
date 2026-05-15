@@ -86,6 +86,11 @@ def _edge_rows(store) -> list[dict]:
     return out
 
 
+def edge_count(store) -> int:
+    """Total number of artifact-to-artifact relationship edges."""
+    return len(_edge_rows(store))
+
+
 def full_graph(store) -> dict:
     """The whole graph: every artifact node and every relationship edge."""
     return {"nodes": _node_rows(store), "edges": _edge_rows(store)}

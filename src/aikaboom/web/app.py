@@ -1357,7 +1357,7 @@ def worldofboms_stats():
                         'edges': 0, 'store_unavailable': True})
     try:
         stats = dict(store.stats())
-        stats['edges'] = len(graph_view._edge_rows(store))
+        stats['edges'] = graph_view.edge_count(store)
         return jsonify(stats)
     except Exception as e:  # noqa: BLE001
         print(f"⚠️ worldofboms stats failed: {e}")
@@ -1372,6 +1372,8 @@ def worldofboms_ego(artifact):
         return jsonify({'nodes': [], 'edges': [], 'focus': artifact,
                         'store_unavailable': True})
     direction = request.args.get('direction', 'both')
+    if direction not in ('up', 'down', 'both'):
+        direction = 'both'
     depth_arg = request.args.get('depth')
     depth = int(depth_arg) if depth_arg and depth_arg.isdigit() else None
     try:
@@ -1396,7 +1398,7 @@ def worldofboms_bom(artifact):
         return jsonify(store.reconstruct_bom(claim))
     except Exception as e:  # noqa: BLE001
         print(f"⚠️ worldofboms bom failed: {e}")
-        return jsonify({'error': str(e)})
+        return jsonify({'error': str(e)}), 500
 
 
 if __name__ == '__main__':

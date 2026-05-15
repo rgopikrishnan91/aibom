@@ -178,3 +178,17 @@ class TestWorldOfBomsRoutes:
         assert resp.status_code == 200
         data = resp.get_json()
         assert data["nodes"] == [] and data.get("store_unavailable") is True
+
+    def test_ego_route_survives_unavailable_store(self, client, monkeypatch):
+        monkeypatch.setenv("AIKABOOM_GRAPH_DISABLE", "1")
+        resp = client.get("/worldofboms/ego/bom:artifact/whatever")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["nodes"] == [] and data.get("store_unavailable") is True
+
+    def test_bom_route_survives_unavailable_store(self, client, monkeypatch):
+        monkeypatch.setenv("AIKABOOM_GRAPH_DISABLE", "1")
+        resp = client.get("/worldofboms/bom/bom:artifact/whatever")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data.get("store_unavailable") is True
