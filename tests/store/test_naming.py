@@ -49,6 +49,24 @@ class TestCanonicalize:
         result = canonicalize(Identifier("huggingface", "  mistralai/mistral-7b  "))
         assert result == Identifier("huggingface", "mistralai/mistral-7b")
 
+    def test_strips_doi_url_prefix(self):
+        result = canonicalize(
+            Identifier("doi", "https://doi.org/10.48550/arXiv.2310.06825")
+        )
+        assert result == Identifier("doi", "10.48550/arxiv.2310.06825")
+
+    def test_bare_doi_unchanged(self):
+        result = canonicalize(
+            Identifier("doi", "10.48550/arXiv.2310.06825")
+        )
+        assert result == Identifier("doi", "10.48550/arxiv.2310.06825")
+
+    def test_url_platform_preserves_full_url(self):
+        result = canonicalize(
+            Identifier("url", "https://example.com/abc/def")
+        )
+        assert result == Identifier("url", "https://example.com/abc/def")
+
 
 class TestPickPrimary:
     def test_hf_beats_arxiv(self):

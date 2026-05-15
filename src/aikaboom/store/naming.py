@@ -46,6 +46,10 @@ _OWNER_SHAPED_PLATFORMS: frozenset[str] = frozenset({"huggingface", "github"})
 
 def _strip_url(platform: str, value: str) -> str:
     """Reduce a URL form to its canonical path component."""
+    if platform == "url":
+        # The url platform is an opaque last-resort identifier — preserve the
+        # full value rather than discarding scheme/host.
+        return value
     has_scheme = "://" in value
     is_bare_host = value.startswith("www.") or value.startswith(_BARE_HOST_PREFIXES)
     if not has_scheme and not is_bare_host:
