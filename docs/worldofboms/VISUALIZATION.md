@@ -27,8 +27,8 @@ relationship edge between them.
 
 | Kind | Colour |
 |---|---|
-| Model | Amber / orange |
-| Dataset | Blue |
+| Model | Blue / indigo (`#e6ecff` background, `#3451b2` border) |
+| Dataset | Amber / peach (`#fff1e5` background, `#f0b079` border) |
 | Paper | Green |
 | CodeRepo | Purple |
 
@@ -49,7 +49,7 @@ Clicking any node switches the canvas to that node's *ego subgraph*:
 a breadth-first subgraph of the node and everything connected to it
 (direction-dependent; see below). The rest of the graph is dimmed.
 
-The layout switches from the global `cose`/`concentric` arrangement to a
+The layout switches from the global `cose` arrangement to a
 directional `dagre` layout. The focus node gains an amber ring, the same
 treatment as the root node in the recursive tab.
 
@@ -59,8 +59,10 @@ without navigating away.
 
 ## The Direction control
 
-A `Direction: Upstream | Downstream | Both` control in the top strip scopes
+A `Direction: Upstream | Downstream | Both` control in the top toolbar scopes
 every ego operation — the ego subgraph, preset queries, and the download.
+The Lineage & queries pane reflects the active value via a "Scope:
+\<direction\>" hint but does not host the control itself.
 
 **Edge direction convention.** Relationship edges point from the *dependent*
 to the *dependency*:
@@ -82,11 +84,13 @@ to the *dependency*:
 Clicking a node opens a side panel with two panes:
 
 - **BOM** — the node's reconstructed canonical BOM, fetched from
-  `GET /worldofboms/bom/<artifact>`. Rendered with the same `renderBOM` /
-  `renderFlatBOM` + raw-JSON toggle as the recursive tab's side panel.
+  `GET /worldofboms/bom/<artifact>`. Rendered via `renderBOM()` into a
+  `.flat-bom` div — the same renderer the recursive tab uses, but without
+  a raw-JSON toggle.
 
-- **Lineage & queries** — the Direction control, the four preset-query
-  buttons, and an Advanced SPARQL box (see below).
+- **Lineage & queries** — the four preset-query buttons, a "Scope:
+  \<direction\>" hint reflecting the current Direction control value, and an
+  Advanced SPARQL box (see below).
 
 ## Preset lineage queries
 
@@ -94,7 +98,7 @@ Four preset queries run over the ego node set for the active direction:
 
 | Preset | What it returns |
 |---|---|
-| **Licenses across the lineage** | One row per (artifact, license) pair found in the ego set. Falls back to the `licenseName` field literal when no `hasLicense` edge exists. |
+| **Licenses across the lineage** | One row per (artifact, license) pair found in the ego set. Each artifact's `licenseName` field value is read directly from its canonical claim. |
 | **All datasets in the lineage** | Ego nodes typed `aibom:Dataset`. |
 | **All models in the lineage** | Ego nodes typed `aibom:Model`. |
 | **Conflicts anywhere in the lineage** | Claims in the ego set whose field annotations carry `conflictKind ∈ {interSourceConflict, intraSourceConflict}`. |
