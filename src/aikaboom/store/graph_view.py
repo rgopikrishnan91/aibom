@@ -86,3 +86,47 @@ def _edge_rows(store) -> list[dict]:
 def full_graph(store) -> dict:
     """The whole graph: every artifact node and every relationship edge."""
     return {"nodes": _node_rows(store), "edges": _edge_rows(store)}
+
+
+def ego_graph(store, artifact_iri: str, direction: str = "both",
+              depth: int | None = None) -> dict:
+    """Breadth-first ego subgraph around `artifact_iri`.
+
+    direction: "up" follows edges forward (dependencies), "down" follows
+    them backward (dependents), "both" does the union. `depth` caps the
+    hop count; None means unlimited (full lineage).
+    """
+    focus = _validate_sparql_iri(artifact_iri)
+    all_edges = _edge_rows(store)
+    forward: dict[str, list[dict]] = {}
+    backward: dict[str, list[dict]] = {}
+    for e in all_edges:
+        forward.setdefault(e["source"], []).append(e)
+        backward.setdefault(e["target"], []).append(e)
+
+    keep_nodes: set[str] = {focus}
+    keep_edges: list[dict] = []
+    seen_edges: set[tuple] = set()
+    frontier = [focus]
+    hops = 0
+    while frontier and (depth is None or hops < depth):
+        nxt: list[str] = []
+        for node in frontier:
+            steps: list[tuple[dict, str]] = []
+            if direction in ("up", "both"):
+                steps += [(e, e["target"]) for e in forward.get(node, [])]
+            if direction in ("down", "both"):
+                steps += [(e, e["source"]) for e in backward.get(node, [])]
+            for edge, other in steps:
+                key = (edge["source"], edge["predicate"], edge["target"])
+                if key not in seen_edges:
+                    seen_edges.add(key)
+                    keep_edges.append(edge)
+                if other not in keep_nodes:
+                    keep_nodes.add(other)
+                    nxt.append(other)
+        frontier = nxt
+        hops += 1
+
+    nodes = [n for n in _node_rows(store) if n["iri"] in keep_nodes]
+    return {"nodes": nodes, "edges": keep_edges, "focus": focus}
