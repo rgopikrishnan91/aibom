@@ -34,6 +34,12 @@ _FIELD_TO_PREDICATE: dict[str, str] = {
     for field, spec in {**AI_RELATIONSHIP_FIELDS, **DATA_RELATIONSHIP_FIELDS}.items()
 }
 
+_BOMTYPE_TO_KIND = {"ai": "Model", "data": "Dataset"}
+_FIELD_TO_KIND: dict[str, str] = {
+    field: _BOMTYPE_TO_KIND.get(spec[0], "Artifact")
+    for field, spec in {**AI_RELATIONSHIP_FIELDS, **DATA_RELATIONSHIP_FIELDS}.items()
+}
+
 
 def _split_targets(value: Any) -> list[str]:
     """Normalize a relationship-field value into a list of target names.
@@ -82,8 +88,12 @@ def _find_artifact_by_label(store: "BomStore", name: str) -> str | None:
     return None
 
 
-def _mint_placeholder(store: "BomStore", name: str) -> str:
-    """Create a flagged placeholder Artifact for an unresolved name; return its IRI."""
+def _mint_placeholder(store: "BomStore", name: str, kind: str = "Artifact") -> str:
+    """Create a flagged placeholder Artifact for an unresolved name; return its IRI.
+
+    If `kind` is "Model" or "Dataset", also asserts the corresponding type triple
+    so the placeholder is properly typed from the start.
+    """
     ident = canonicalize(Identifier("name-only", name))
     art = iris.artifact_iri(ident)
     if store._backend.ask(f"ASK {{ <{art}> a <{vocab.Artifact}> }}"):
@@ -102,17 +112,22 @@ def _mint_placeholder(store: "BomStore", name: str) -> str:
         (ident_node, URIRef(vocab.platform), Literal("name-only"), None),
         (ident_node, URIRef(vocab.value), Literal(ident.value), None),
     ]
+    if kind != "Artifact":
+        quads.append(
+            (URIRef(art), RDF.type, URIRef(getattr(vocab, kind)), None)
+        )
     store._backend.add_quads(quads)
     return art
 
 
-def resolve_edge_target(store: "BomStore", name: str) -> tuple[str, bool]:
+def resolve_edge_target(store: "BomStore", name: str,
+                        kind: str = "Artifact") -> tuple[str, bool]:
     """Resolve a relationship target name to an Artifact IRI.
 
     Resolution order (identity layer only — no fuzzy matching here):
       1. identifier match via `store.resolve` (the cache-hit path);
       2. exact name-label match against an existing non-placeholder artifact;
-      3. mint a flagged placeholder.
+      3. mint a flagged placeholder typed by `kind`.
 
     Returns `(artifact_iri, minted_placeholder)`.
     """
@@ -122,7 +137,7 @@ def resolve_edge_target(store: "BomStore", name: str) -> tuple[str, bool]:
     by_label = _find_artifact_by_label(store, name)
     if by_label:
         return by_label, False
-    placeholder = _mint_placeholder(store, name)
+    placeholder = _mint_placeholder(store, name, kind=kind)
     _record_potential_duplicates(store, placeholder, name)
     return placeholder, True
 
@@ -205,9 +220,9 @@ def add_relationship_edges(store: "BomStore", source_artifact_iri: str,
     """
     src = _validate_sparql_iri(source_artifact_iri)
     added: list[tuple[str, str, str]] = []
-    for predicate, target_name in extract_relationship_targets(bom_json):
+    for predicate, target_name, kind in extract_relationship_targets(bom_json):
         pred_uri = str(getattr(vocab, predicate))
-        target_iri, _minted = resolve_edge_target(store, target_name)
+        target_iri, _minted = resolve_edge_target(store, target_name, kind)
         tgt = _validate_sparql_iri(target_iri)
         if tgt == src:
             continue  # never self-loop
@@ -220,17 +235,19 @@ def add_relationship_edges(store: "BomStore", source_artifact_iri: str,
     return added
 
 
-def extract_relationship_targets(bom_json: Mapping[str, Any]) -> list[tuple[str, str]]:
-    """Return `(predicate, target_name)` pairs for every walkable edge target.
+def extract_relationship_targets(bom_json: Mapping[str, Any]) -> list[tuple[str, str, str]]:
+    """Return `(predicate, target_name, kind)` triples for every walkable edge target.
 
     `predicate` is one of "trainedOn" / "testedOn" / "dependsOn".
+    `kind` is "Model", "Dataset", or "Artifact" derived from the BOM field's
+    child bom-type so that minted placeholders are properly typed.
 
     Scans both ``direct_fields`` and ``rag_fields`` because the graph store
     may receive BOMs that store relationship fields in either section depending
     on how the extractor classified them (high-confidence direct extraction vs.
     RAG-assisted retrieval).
     """
-    out: list[tuple[str, str]] = []
+    out: list[tuple[str, str, str]] = []
     for section in ("direct_fields", "rag_fields"):
         fields = bom_json.get(section) or {}
         if not isinstance(fields, Mapping):
@@ -239,7 +256,8 @@ def extract_relationship_targets(bom_json: Mapping[str, Any]) -> list[tuple[str,
             triplet = fields.get(field_name)
             if not isinstance(triplet, Mapping):
                 continue
+            kind = _FIELD_TO_KIND[field_name]
             for target in _split_targets(triplet.get("value")):
                 if _is_walkable_target(target):
-                    out.append((predicate, target))
+                    out.append((predicate, target, kind))
     return out

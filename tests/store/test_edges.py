@@ -59,19 +59,19 @@ def _bom_with(field, value):
 
 def test_extracts_trainedon_target():
     bom = _bom_with("trainedOnDatasets", "squad")
-    assert ("trainedOn", "squad") in extract_relationship_targets(bom)
+    assert ("trainedOn", "squad", "Dataset") in extract_relationship_targets(bom)
 
 
 def test_extracts_testedon_and_dependson():
-    assert ("testedOn", "glue") in extract_relationship_targets(
+    assert ("testedOn", "glue", "Dataset") in extract_relationship_targets(
         _bom_with("testedOnDatasets", "glue"))
-    assert ("dependsOn", "bert-base") in extract_relationship_targets(
+    assert ("dependsOn", "bert-base", "Model") in extract_relationship_targets(
         _bom_with("modelLineage", "bert-base"))
 
 
 def test_splits_multi_value_strings():
     targets = extract_relationship_targets(_bom_with("trainedOnDatasets", "squad, glue; mnli"))
-    names = {t for _, t in targets}
+    names = {t for _, t, _ in targets}
     assert names == {"squad", "glue", "mnli"}
 
 
@@ -90,12 +90,12 @@ def test_reads_from_rag_fields():
     bom = {"direct_fields": {},
            "rag_fields": {"sourceInfo": {"value": "wikitext",
                           "source": "huggingface", "conflict": None}}}
-    assert ("dependsOn", "wikitext") in extract_relationship_targets(bom)
+    assert ("dependsOn", "wikitext", "Dataset") in extract_relationship_targets(bom)
 
 
 def test_splits_arrow_lineage_chains():
     targets = extract_relationship_targets(_bom_with("modelLineage", "bert-base -> distilbert"))
-    names = {t for _, t in targets}
+    names = {t for _, t, _ in targets}
     assert "bert-base" in names and "distilbert" in names
 
 
@@ -153,3 +153,12 @@ def test_confident_inexact_match_records_potential_duplicate(store, sample_run_m
     dup = list(store._backend.select(
         f"SELECT ?o WHERE {{ <{iri}> <https://aikaboom.dev/aibom#potentialDuplicateOf> ?o }}"))
     assert len(dup) == 1
+
+
+def test_mint_places_dataset_kind_on_trainedon_placeholder(store):
+    iri, minted = resolve_edge_target(store, "some-dataset", kind="Dataset")
+    assert minted is True
+    rows = list(store._backend.select(
+        f"SELECT ?c WHERE {{ <{iri}> a ?c }}"))
+    types = {str(r["c"]) for r in rows}
+    assert "https://aikaboom.dev/aibom#Dataset" in types

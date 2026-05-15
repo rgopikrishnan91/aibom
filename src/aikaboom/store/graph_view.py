@@ -152,13 +152,8 @@ def lineage_query(store, artifact_iri: str, preset: str,
     nodes = ego["nodes"]
 
     if preset == "datasets":
-        # Include explicit Dataset nodes AND placeholder Artifacts that are
-        # targets of trainedOn/testedOn edges (not yet promoted to Dataset).
-        dataset_targets = {e["target"] for e in ego["edges"]
-                           if e["predicate"] in ("trainedOn", "testedOn")}
         return [{"iri": n["iri"], "label": n["label"]}
-                for n in nodes
-                if n["kind"] == "Dataset" or n["iri"] in dataset_targets]
+                for n in nodes if n["kind"] == "Dataset"]
     if preset == "models":
         return [{"iri": n["iri"], "label": n["label"]}
                 for n in nodes if n["kind"] == "Model"]

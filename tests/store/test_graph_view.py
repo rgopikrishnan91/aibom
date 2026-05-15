@@ -115,3 +115,18 @@ def test_lineage_query_unknown_preset_raises(store, sample_run_meta):
     iri = g["nodes"][0]["iri"]
     with pytest.raises(ValueError):
         graph_view.lineage_query(store, iri, preset="nonsense", direction="up")
+
+
+def test_lineage_query_includes_placeholder_models(store, sample_run_meta):
+    from aikaboom.store.naming import Identifier
+    bom = {"repo_id": "acme/fine", "use_case": "complete",
+           "direct_fields": {"modelLineage": {"value": "gpt2",
+                             "source": "huggingface", "conflict": None}},
+           "rag_fields": {}}
+    store.save_claim(bom, sample_run_meta,
+                     identifiers=[Identifier("huggingface", "acme/fine")])
+    g = graph_view.full_graph(store)
+    fine_iri = next(n["iri"] for n in g["nodes"] if n["label"] == "acme/fine")
+    rows = graph_view.lineage_query(store, fine_iri, preset="models", direction="up")
+    labels = {r["label"] for r in rows}
+    assert "gpt2" in labels   # the placeholder model is found
