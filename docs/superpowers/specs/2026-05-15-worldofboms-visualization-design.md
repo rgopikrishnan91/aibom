@@ -122,7 +122,9 @@ each relationship field present in `bom_json`:
       link to it — no placeholder is minted.
    c. If 3a and 3b both miss, mint a placeholder Artifact (`isPlaceholder true`,
       `name-only` identifier), exactly as the recursive walker's
-      unresolved-target path already does.
+      unresolved-target path already does. Then run the confidence-triage check
+      (A.6): if it reports a confident-but-inexact match against an existing
+      artifact, add a soft `potentialDuplicateOf` edge — but do not merge.
 4. Add the triple `(source_artifact, <predicate>, target_artifact)`.
 
 Edge writes are idempotent — saving the same BOM twice does not create
@@ -154,12 +156,11 @@ already transfers all incoming edges then deletes the stale node). That logic is
 extracted from `cli_graph.py` into a `BomStore.merge_artifacts(into, from_)`
 method so both the CLI and `save_claim` call one implementation.
 
-The name-label match is **exact equality on canonicalized names — deliberately
-not fuzzy.** Auto-merging on a fuzzy match risks collapsing two genuinely
-different artifacts. A free-text name that does not canonicalize to an exact
-match stays a placeholder and is surfaced in the UI as a "possible duplicate"
-hint (C.6), reconciled manually with `aikaboom graph merge` when the user
-confirms.
+The name-label match is **exact equality on canonicalized identity names —
+deliberately not fuzzy.** Auto-merging on a fuzzy match risks collapsing two
+genuinely different artifacts. The fuzzy / confidence-based matching the
+codebase already has is still used — but only to *suggest* a merge, never to
+perform one. See A.6.
 
 `aikaboom graph rebuild` already replays every `results/*.json`; because edge
 creation lives inside `save_claim`, a rebuild reconstructs all edges
@@ -171,6 +172,42 @@ Recursive child BOMs are persisted through the same `save_claim` path, so their
 edges form automatically — no walker-specific edge code. The walker's
 parent→child relationship is exactly the `trainedOn`/`testedOn`/`dependsOn` edge
 that A.3 already writes from the parent's relationship fields.
+
+### A.6 Name matching: identity vs confidence triage
+
+The codebase already separates two name-matching layers, and worldofBOMs edge
+resolution keeps them separate rather than collapsing them into one rule:
+
+- **Identity layer** — `naming.canonicalize` / `BomStore.resolve`. Deterministic
+  and conservative: URL stripping, lowercasing, separator collapse, and only
+  *expanding* owner-alias rewrites. This decides node identity and the stable
+  IRI. A.3 step 3 and A.4's reverse promotion use **only this layer** — an exact
+  match here is the *only* thing that triggers an automatic merge, because a
+  merge permanently collapses two nodes and a wrong merge is destructive.
+
+- **Confidence-triage layer** — `SupplierAliasIndex.is_same_supplier`: a tiered
+  resolver (curated cross-reference index → normalized-exact → Jaro-Winkler
+  ≥ 0.85). `naming.py` already documents that this layer exists for "conflict
+  checks and provenance, where one Artifact can be linked to several supplier
+  handles *without losing identity*" — it is explicitly **not** an identity
+  decision.
+
+worldofBOMs reuses the confidence-triage layer but never lets it auto-merge.
+When A.3 step 3 has minted a placeholder (the exact identity match missed) and
+the triage layer reports a confident-but-inexact match against an existing
+artifact, the store records a soft **`aibom:potentialDuplicateOf`** edge between
+the two — the predicate already exists in the vocab, and the original
+worldofBOMs spec already uses it for hard multi-match "soft collisions". It does
+not merge.
+
+In the UI these soft edges render as dashed links with a "possible duplicate of
+<artifact>" hint on the placeholder node (C.6). The user confirms a genuine
+duplicate with `aikaboom graph merge`, which routes through the same
+`BomStore.merge_artifacts` as A.4. The rule, in one line:
+
+> **Exact identity match → auto-merge. Confidence-triage match → a
+> `potentialDuplicateOf` hint the user confirms. Never auto-merge on a fuzzy
+> score.**
 
 ## Part B — Backend (read side)
 
@@ -284,8 +321,9 @@ component (PR #45) for visual consistency.
   recursive tab's fit logic).
 - **Placeholder artifacts:** rendered as dashed, hollow nodes (consistent with
   the "greyed unmaterialized chips" treatment from PR #46). A placeholder shows
-  a "generate a BOM for this" affordance and, when A.4 detects a likely match,
-  a "possible duplicate of <artifact>" hint.
+  a "generate a BOM for this" affordance; any `potentialDuplicateOf` edge on it
+  (A.6) renders as a dashed link with a "possible duplicate of <artifact>" hint
+  the user can confirm.
 - **Label clashes:** when two *distinct* artifact IRIs share a `canonicalLabel`,
   each node label gets a platform badge (`hf:` / `gh:` / `arxiv:`) so they read
   as separate.
@@ -309,7 +347,9 @@ TDD-first — a failing test precedes each production change.
 - A `name-only` placeholder is merged into a later real BOM for the same
   canonicalized name: incoming `trainedOn`/`testedOn`/`dependsOn` edges are
   transferred to the real artifact and the placeholder node is removed.
-- A non-exact name does *not* auto-merge — the placeholder survives.
+- A non-exact name does *not* auto-merge — the placeholder survives, and a
+  confidence-triage match instead records a `potentialDuplicateOf` edge
+  (a Jaro-Winkler-only match must never produce a merge).
 - Edge writes are idempotent across a re-save.
 - `graph rebuild` reconstructs edges from `results/*.json`.
 - Vocab↔SCHEMA.md parity (existing `test_docs_schema_parity` covers the new
