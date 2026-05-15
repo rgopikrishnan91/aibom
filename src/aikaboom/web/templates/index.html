@@ -6678,6 +6678,102 @@
             } catch (_) { /* ignore */ }
         }
 
+        async function openWorldEgo(artifactIri) {
+            worldFocusIri = artifactIri;
+            worldView = 'ego';
+            document.getElementById('worldEgoToggle').disabled = false;
+            document.querySelectorAll('#worldViewToggle button').forEach(b =>
+                b.classList.toggle('is-active', b.dataset.worldView === 'ego'));
+            let ego;
+            try {
+                ego = await (await fetch(
+                    `/worldofboms/ego/${encodeURIComponent(artifactIri)}?direction=${worldDirection}`
+                )).json();
+            } catch (e) { ego = { nodes: [], edges: [], focus: artifactIri }; }
+            const els = _worldElements(ego);
+            els.nodes.forEach(n => { if (n.data.id === artifactIri) n.data.isFocus = 'true'; });
+            renderWorldGraph(els);
+            // dagre layout reads better for a directional ego view.
+            try {
+                worldCy.layout({ name: 'dagre', rankDir: 'LR', nodeSep: 40,
+                                 rankSep: 80, fit: true, padding: 28 }).run();
+            } catch (_) { /* dagre optional */ }
+            openWorldSidePanel(artifactIri);
+        }
+
+        function showWorldGlobal() {
+            worldView = 'global';
+            worldFocusIri = null;
+            document.querySelectorAll('#worldViewToggle button').forEach(b =>
+                b.classList.toggle('is-active', b.dataset.worldView === 'global'));
+            if (typeof closeWorldSidePanel === 'function') closeWorldSidePanel();
+            if (worldFullGraph) renderWorldGraph(_worldElements(worldFullGraph));
+        }
+
+        function setWorldDirection(dir) {
+            worldDirection = dir;
+            document.querySelectorAll('#worldDirection button').forEach(b =>
+                b.classList.toggle('is-active', b.dataset.worldDir === dir));
+            if (worldView === 'ego' && worldFocusIri) {
+                openWorldEgo(worldFocusIri);   // re-fetch with the new direction
+                loadWorldLineage();            // refresh the lineage tab (C5)
+            }
+        }
+
+        function _wireWorldControls() {
+            const once = (id, fn) => {
+                const el = document.getElementById(id);
+                if (el && !el.dataset.wired) { el.addEventListener('click', fn);
+                                               el.dataset.wired = '1'; }
+            };
+            document.querySelectorAll('#worldViewToggle button').forEach(b => {
+                if (b.dataset.wired) return;
+                b.addEventListener('click', () => {
+                    if (b.dataset.worldView === 'global') showWorldGlobal();
+                    else if (worldFocusIri) openWorldEgo(worldFocusIri);
+                });
+                b.dataset.wired = '1';
+            });
+            document.querySelectorAll('#worldDirection button').forEach(b => {
+                if (b.dataset.wired) return;
+                b.addEventListener('click', () => setWorldDirection(b.dataset.worldDir));
+                b.dataset.wired = '1';
+            });
+            once('worldZoomIn',  () => worldCy && worldCy.zoom(
+                { level: Math.min(worldCy.zoom() * 1.25, worldCy.maxZoom()),
+                  renderedPosition: { x: worldCy.width()/2, y: worldCy.height()/2 } }));
+            once('worldZoomOut', () => worldCy && worldCy.zoom(
+                { level: Math.max(worldCy.zoom() / 1.25, worldCy.minZoom()),
+                  renderedPosition: { x: worldCy.width()/2, y: worldCy.height()/2 } }));
+            once('worldFit', () => { if (worldCy) { worldCy.resize();
+                                                    worldCy.fit(undefined, 28); } });
+            once('worldReset', showWorldGlobal);
+            once('worldFull', () => {
+                const wrap = document.getElementById('worldGraphWrap');
+                const full = !wrap.classList.contains('is-fullscreen');
+                wrap.classList.toggle('is-fullscreen', full);
+                document.body.classList.toggle('has-graph-fullscreen', full);
+                setTimeout(() => { if (worldCy) { worldCy.resize();
+                                                  worldCy.fit(undefined, 28); } }, 40);
+            });
+            const search = document.getElementById('worldSearch');
+            if (search && !search.dataset.wired) {
+                search.addEventListener('input', () => {
+                    if (!worldCy) return;
+                    const q = search.value.trim().toLowerCase();
+                    if (!q) { worldCy.nodes().removeClass('dimmed'); return; }
+                    worldCy.nodes().forEach(n => {
+                        const hit = n.data('label').toLowerCase().includes(q);
+                        n.toggleClass('dimmed', !hit);
+                        if (hit) worldCy.animate({ center: { eles: n } },
+                                                 { duration: 250 });
+                    });
+                });
+                search.dataset.wired = '1';
+            }
+            if (typeof _wireWorldDownload === 'function') _wireWorldDownload();
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             wireViewToggles();
             wireSidePanel();
