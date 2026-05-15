@@ -122,6 +122,7 @@ def bom_to_rdf(
 
     artifact = _u(iris.artifact_iri(primary))
     ds.add((artifact, RDF.type, _u(_kind_for_platform(primary.platform))))
+    ds.add((artifact, RDF.type, _u(vocab.Artifact)))
     ds.add((artifact, _u(vocab.primaryIdentifier), Literal(f"{primary.platform}:{primary.value}")))
     ds.add((artifact, _u(vocab.canonRuleVersion), Literal(vocab.CANON_RULE_VERSION)))
     _add_identifier_set(ds, artifact, canon_ids)
