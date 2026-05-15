@@ -135,3 +135,72 @@ def ego_graph(store, artifact_iri: str, direction: str = "both",
 
     nodes = [all_nodes[iri] for iri in keep_nodes if iri in all_nodes]
     return {"nodes": nodes, "edges": keep_edges, "focus": focus}
+
+
+_PRESETS = ("licenses", "datasets", "models", "conflicts")
+
+
+def lineage_query(store, artifact_iri: str, preset: str,
+                  direction: str = "both") -> list[dict]:
+    """Run one preset query over the ego node set of `artifact_iri`.
+
+    presets: "licenses", "datasets", "models", "conflicts".
+    """
+    if preset not in _PRESETS:
+        raise ValueError(f"unknown preset {preset!r}; expected one of {_PRESETS}")
+    ego = ego_graph(store, artifact_iri, direction=direction, depth=None)
+    nodes = ego["nodes"]
+
+    if preset == "datasets":
+        # Include explicit Dataset nodes AND placeholder Artifacts that are
+        # targets of trainedOn/testedOn edges (not yet promoted to Dataset).
+        dataset_targets = {e["target"] for e in ego["edges"]
+                           if e["predicate"] in ("trainedOn", "testedOn")}
+        return [{"iri": n["iri"], "label": n["label"]}
+                for n in nodes
+                if n["kind"] == "Dataset" or n["iri"] in dataset_targets]
+    if preset == "models":
+        return [{"iri": n["iri"], "label": n["label"]}
+                for n in nodes if n["kind"] == "Model"]
+    if preset == "licenses":
+        out: list[dict] = []
+        for n in nodes:
+            for lic in _licenses_for(store, n["iri"]):
+                out.append({"artifact": n["label"], "license": lic})
+        return out
+    # conflicts
+    out = []
+    for n in nodes:
+        for kind in _conflicts_for(store, n["iri"]):
+            out.append({"artifact": n["label"], "conflict": kind})
+    return out
+
+
+def _licenses_for(store, artifact_iri: str) -> list[str]:
+    """License values from the artifact's canonical-claim field literals."""
+    iri = _validate_sparql_iri(artifact_iri)
+    rows = store._backend.select(
+        f"""
+        SELECT DISTINCT ?lic WHERE {{
+            <{iri}> <{vocab.hasVersion}> ?v . ?v <{vocab.hasClaim}> ?claim .
+            ?claim <{vocab.AIBOM}licenseName> ?lic .
+        }}
+        """
+    )
+    return [str(r["lic"]) for r in rows]
+
+
+def _conflicts_for(store, artifact_iri: str) -> list[str]:
+    """Conflict kinds annotated on the artifact's claims."""
+    iri = _validate_sparql_iri(artifact_iri)
+    rows = store._backend.select(
+        f"""
+        SELECT DISTINCT ?kind WHERE {{
+            <{iri}> <{vocab.hasVersion}> ?v . ?v <{vocab.hasClaim}> ?claim .
+            ?ann <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> ?claim ;
+                 <{vocab.conflictKind}> ?kind .
+            FILTER(?kind != <{vocab.noConflict}>)
+        }}
+        """
+    )
+    return [str(r["kind"]).rsplit("#", 1)[-1] for r in rows]

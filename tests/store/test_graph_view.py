@@ -91,3 +91,27 @@ def test_ego_graph_rejects_invalid_direction(store, sample_run_meta):
     iri = g["nodes"][0]["iri"]
     with pytest.raises(ValueError):
         graph_view.ego_graph(store, iri, direction="upstream", depth=None)
+
+
+def test_lineage_query_lists_datasets_in_lineage(store, sample_run_meta):
+    _save_model_with_dataset(store, sample_run_meta, model="acme/m", dataset="squad")
+    g = graph_view.full_graph(store)
+    m_iri = next(n["iri"] for n in g["nodes"] if n["label"] == "acme/m")
+    rows = graph_view.lineage_query(store, m_iri, preset="datasets", direction="up")
+    assert any(r["label"] == "squad" for r in rows)
+
+
+def test_lineage_query_lists_models_in_lineage(store, sample_run_meta):
+    _save_model_with_dataset(store, sample_run_meta, model="acme/m", dataset="squad")
+    g = graph_view.full_graph(store)
+    m_iri = next(n["iri"] for n in g["nodes"] if n["label"] == "acme/m")
+    rows = graph_view.lineage_query(store, m_iri, preset="models", direction="both")
+    assert any(r["label"] == "acme/m" for r in rows)
+
+
+def test_lineage_query_unknown_preset_raises(store, sample_run_meta):
+    _save_model_with_dataset(store, sample_run_meta)
+    g = graph_view.full_graph(store)
+    iri = g["nodes"][0]["iri"]
+    with pytest.raises(ValueError):
+        graph_view.lineage_query(store, iri, preset="nonsense", direction="up")
