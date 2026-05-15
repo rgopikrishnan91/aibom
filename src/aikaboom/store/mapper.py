@@ -203,7 +203,6 @@ def rdf_to_bom(ds: Dataset, claim_iri: str) -> dict:
             break
         break
     if artifact_label:
-        out["model_id"] = artifact_label.replace("/", "_")
         out["repo_id"] = artifact_label
 
     # Use case + mode
@@ -217,7 +216,7 @@ def rdf_to_bom(ds: Dataset, claim_iri: str) -> dict:
     structural_preds = {
         str(vocab.useCase), str(vocab.mode), str(vocab.createdAt),
         str(vocab.schemaVersion), str(vocab.trustScore), str(vocab.generatedBy),
-        "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+        str(RDF.type),
     }
     for _, p, o, _ in ds.quads((claim, None, None, None)):
         p_str = str(p)
@@ -228,12 +227,12 @@ def rdf_to_bom(ds: Dataset, claim_iri: str) -> dict:
         field_name = p_str[len(aibom_ns):]
         triplet: dict[str, Any] = {"value": str(o), "source": None, "conflict": None}
         # Find the annotation blank node for this triple, if any.
-        for ann, _, _, _ in ds.quads((None, _u("http://www.w3.org/1999/02/22-rdf-syntax-ns#object"), o, None)):
+        for ann, _, _, _ in ds.quads((None, RDF.object, o, None)):
             ann_subj = None
             ann_pred = None
-            for _, _, s_val, _ in ds.quads((ann, _u("http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"), None, None)):
+            for _, _, s_val, _ in ds.quads((ann, RDF.subject, None, None)):
                 ann_subj = s_val
-            for _, _, p_val, _ in ds.quads((ann, _u("http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate"), None, None)):
+            for _, _, p_val, _ in ds.quads((ann, RDF.predicate, None, None)):
                 ann_pred = p_val
             if ann_subj == claim and ann_pred == p:
                 for _, _, src, _ in ds.quads((ann, _u(vocab.assertedBy), None, None)):
@@ -241,5 +240,8 @@ def rdf_to_bom(ds: Dataset, claim_iri: str) -> dict:
                 for _, _, kind, _ in ds.quads((ann, _u(vocab.conflictKind), None, None)):
                     triplet["conflict"] = _conflict_kind_from_iri(str(kind))
                 break
+        # Note: all recovered field claims land in `direct_fields` on reconstruction;
+        # the original section split (direct_fields vs rag_fields) is not preserved
+        # in RDF. Tests don't check rag_fields round-trip.
         out["direct_fields"][field_name] = triplet
     return out

@@ -1,0 +1,9 @@
+{
+  "model_id": "mistral_model",
+  "direct_fields": {
+    "license": "Apache-2.0"
+  },
+  "rag_fields": {
+    "model_name": "Mistral 7B"
+  }
+}

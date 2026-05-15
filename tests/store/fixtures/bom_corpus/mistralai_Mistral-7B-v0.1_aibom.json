@@ -1,0 +1,29 @@
+{
+  "repo_id": "mistralai/Mistral-7B-v0.1",
+  "model_id": "mistralai_Mistral-7B-v0.1",
+  "use_case": "license",
+  "direct_fields": {
+    "releaseTime": {
+      "value": "2025-07-24T16:44:02+00:00",
+      "source": "huggingface",
+      "conflict": null
+    },
+    "suppliedBy": {
+      "value": "mistralai",
+      "source": "huggingface",
+      "conflict": null
+    },
+    "downloadLocation": {
+      "value": null,
+      "source": null,
+      "conflict": null
+    },
+    "packageVersion": {
+      "value": "27d67f1b",
+      "source": "huggingface",
+      "conflict": null
+    }
+  },
+  "rag_fields": {},
+  "beta_fields": []
+}
