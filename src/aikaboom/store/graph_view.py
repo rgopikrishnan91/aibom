@@ -203,6 +203,210 @@ def _conflicts_for(store, artifact_iri: str) -> list[str]:
     return [str(r["kind"]).rsplit("#", 1)[-1] for r in rows]
 
 
+def _canonical_claim_iri(store, artifact_iri: str) -> str | None:
+    """Return the IRI of the most-recent claim for an artifact, or None."""
+    iri = _validate_sparql_iri(artifact_iri)
+    rows = list(store._backend.select(
+        f"""
+        SELECT ?claim ?createdAt WHERE {{
+            <{iri}> <{vocab.hasVersion}> ?v . ?v <{vocab.hasClaim}> ?claim .
+            OPTIONAL {{ ?claim <{vocab.createdAt}> ?createdAt . }}
+        }}
+        ORDER BY DESC(?createdAt)
+        """
+    ))
+    return str(rows[0]["claim"]) if rows else None
+
+
+def _bom_type_for_kind(kind: str) -> str:
+    """Map graph node kind to recursive_bom BOM type string."""
+    if kind == "Dataset":
+        return "data"
+    # Model, Paper, CodeRepo, Artifact — treat as "ai"
+    return "ai"
+
+
+def _relationship_type_for_predicate(predicate: str, bom_type: str) -> str:
+    """Map SPDX edge predicate name to SPDX 3.0.1 relationship type."""
+    mapping = {
+        "trainedOn": "trainedOn",
+        "testedOn": "testedOn",
+        "dependsOn": "dependsOn",
+    }
+    return mapping.get(predicate, "dependsOn")
+
+
+def _seed_bom_for_kind(label: str, kind: str) -> dict:
+    """Build minimal seed BOM metadata that SPDXValidator can convert.
+
+    For artifacts that have no stored claim (e.g. placeholders), we need
+    just enough fields to produce a valid SPDX package element.
+    """
+    if kind == "Dataset":
+        safe_id = _re.sub(r"[^A-Za-z0-9_.-]+", "-", label.strip()).strip("-") or "dataset"
+        return {
+            "dataset_id": safe_id,
+            "direct_metadata": {
+                "name": label,
+                "license": "NOASSERTION",
+            },
+            "rag_metadata": {},
+        }
+    # AI / Model / other
+    safe_id = _re.sub(r"[^A-Za-z0-9_.-]+", "-", label.strip()).strip("-") or "model"
+    return {
+        "model_id": safe_id,
+        "repo_id": label,
+        "direct_fields": {"license": "NOASSERTION"},
+        "rag_fields": {"model_name": label},
+    }
+
+
+def ego_spdx_bundle(store, artifact_iri: str | None,
+                    direction: str = "both") -> dict:
+    """Assemble an SPDX 3.0.1 linked bundle for an ego view (or the whole graph).
+
+    ``artifact_iri=None`` exports every artifact in the store. Otherwise
+    exports the ego subgraph for the given direction. Each member's canonical
+    BOM is reconstructed (or a seed BOM built for placeholders) and converted
+    to SPDX, then merged by ``build_linked_spdx_bundle``.
+    """
+    from aikaboom.utils.recursive_bom import build_linked_spdx_bundle
+    from aikaboom.utils.spdx_validator import SPDXValidator
+
+    if artifact_iri is None:
+        all_nodes = _node_rows(store)
+        members = all_nodes
+        focus_node = members[0] if members else None
+        focus_iri = focus_node["iri"] if focus_node else None
+    else:
+        ego = ego_graph(store, artifact_iri, direction=direction, depth=None)
+        # Build a dict keyed by IRI so we retain kind info
+        all_nodes_map = {n["iri"]: n for n in _node_rows(store)}
+        members = [all_nodes_map[n["iri"]] for n in ego["nodes"] if n["iri"] in all_nodes_map]
+        focus_iri = artifact_iri
+        focus_node = all_nodes_map.get(focus_iri)
+
+    if not focus_iri or not focus_node:
+        return {"@context": None, "@graph": []}
+
+    # Build parent BOM metadata
+    focus_claim = _canonical_claim_iri(store, focus_iri)
+    if focus_claim:
+        parent_meta = store.reconstruct_bom(focus_claim)
+        # Ensure repo_id is present for build_linked_spdx_bundle's parent label
+        if not parent_meta.get("repo_id"):
+            parent_meta["repo_id"] = focus_node["label"]
+    else:
+        parent_meta = _seed_bom_for_kind(focus_node["label"], focus_node["kind"])
+
+    parent_label = parent_meta.get("repo_id") or parent_meta.get("model_id") or focus_node["label"]
+    parent_bom_type = _bom_type_for_kind(focus_node["kind"])
+
+    # Build ego edges to understand relationships between members
+    if artifact_iri is None:
+        ego_edges = _edge_rows(store)
+        focus_members = members
+    else:
+        ego_result = ego_graph(store, artifact_iri, direction=direction, depth=None)
+        ego_edges = ego_result["edges"]
+        focus_members = members
+
+    # For each non-focus member, find the edge connecting it to its parent in
+    # the ego graph and build a generated node with the required spdx_data.
+    generated = []
+    seen_targets: set[str] = set()
+
+    # Build a map of edges: target_iri -> list of (source_iri, predicate)
+    # and source_iri -> list of (target_iri, predicate)
+    edge_map_fwd: dict[str, list[tuple[str, str]]] = {}  # source -> [(target, pred)]
+    edge_map_bwd: dict[str, list[tuple[str, str]]] = {}  # target -> [(source, pred)]
+    for e in ego_edges:
+        edge_map_fwd.setdefault(e["source"], []).append((e["target"], e["predicate"]))
+        edge_map_bwd.setdefault(e["target"], []).append((e["source"], e["predicate"]))
+
+    # Build a node-kind lookup
+    node_kind_map = {n["iri"]: n for n in focus_members}
+
+    for node in focus_members:
+        member_iri = node["iri"]
+        if member_iri == focus_iri:
+            continue
+        member_label = node["label"]
+        target_key = member_label.lower()
+        if target_key in seen_targets:
+            continue
+        seen_targets.add(target_key)
+
+        member_bom_type = _bom_type_for_kind(node["kind"])
+
+        # Determine the edge relationship between focus and this member.
+        # Look for a direct edge from focus to member (forward) or member to focus (backward).
+        rel_type = "dependsOn"
+        edge_parent_label = parent_label
+
+        # Try forward: focus -> member
+        for tgt_iri, pred in edge_map_fwd.get(focus_iri, []):
+            if tgt_iri == member_iri:
+                rel_type = _relationship_type_for_predicate(pred, member_bom_type)
+                break
+        else:
+            # Try backward: member -> focus
+            for src_iri, pred in edge_map_bwd.get(focus_iri, []):
+                if src_iri == member_iri:
+                    rel_type = _relationship_type_for_predicate(pred, parent_bom_type)
+                    edge_parent_label = member_label
+                    break
+            else:
+                # No direct edge — find any edge involving this member in the ego graph
+                for tgt_iri, pred in edge_map_fwd.get(member_iri, []):
+                    if tgt_iri in node_kind_map:
+                        rel_type = _relationship_type_for_predicate(pred, member_bom_type)
+                        break
+
+        # Build or reconstruct child BOM metadata
+        member_claim = _canonical_claim_iri(store, member_iri)
+        if member_claim:
+            child_bom = store.reconstruct_bom(member_claim)
+            if not child_bom.get("repo_id") and not child_bom.get("dataset_id"):
+                child_bom["repo_id"] = member_label
+        else:
+            child_bom = _seed_bom_for_kind(member_label, node["kind"])
+
+        # Convert to SPDX — this is the key field build_linked_spdx_bundle reads.
+        try:
+            spdx_data = SPDXValidator(bom_type=member_bom_type).validate_and_convert(child_bom)
+        except Exception:
+            # Fallback: try seed BOM if reconstruction gave an unusable shape
+            seed = _seed_bom_for_kind(member_label, node["kind"])
+            spdx_data = SPDXValidator(bom_type=member_bom_type).validate_and_convert(seed)
+
+        # Derive the "target" name that build_linked_spdx_bundle uses for
+        # dedup and relationship description — must match the package name.
+        child_target = (
+            child_bom.get("repo_id")
+            or child_bom.get("dataset_id")
+            or child_bom.get("model_id")
+            or member_label
+        )
+
+        generated.append({
+            "bom_type": member_bom_type,
+            "target": child_target,
+            "parent": edge_parent_label,
+            "depth": 1,
+            "relationship_type": rel_type,
+            "metadata": child_bom,
+            "spdx_data": spdx_data,
+        })
+
+    recursive_result = {
+        "generated": generated,
+        "deepest_level_reached": 1 if generated else 0,
+    }
+    return build_linked_spdx_bundle(parent_meta, recursive_result, bom_type=parent_bom_type)
+
+
 _MUTATION_KEYWORDS = _re.compile(
     r"\b(INSERT|DELETE|LOAD|CLEAR|DROP|CREATE|ADD|MOVE|COPY)\b", _re.IGNORECASE
 )

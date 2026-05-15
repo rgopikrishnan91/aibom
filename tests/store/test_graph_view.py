@@ -147,3 +147,18 @@ def test_raw_query_runs_select(store, sample_run_meta):
 def test_raw_query_rejects_mutations(store, bad):
     with pytest.raises(ValueError):
         graph_view.raw_query(store, bad)
+
+
+def test_ego_spdx_bundle_has_context_and_graph(store, sample_run_meta):
+    _save_model_with_dataset(store, sample_run_meta, model="acme/m", dataset="squad")
+    g = graph_view.full_graph(store)
+    m_iri = next(n["iri"] for n in g["nodes"] if n["label"] == "acme/m")
+    bundle = graph_view.ego_spdx_bundle(store, m_iri, direction="both")
+    assert "@context" in bundle and "@graph" in bundle
+    assert isinstance(bundle["@graph"], list) and len(bundle["@graph"]) > 0
+
+
+def test_ego_spdx_bundle_full_scope(store, sample_run_meta):
+    _save_model_with_dataset(store, sample_run_meta)
+    bundle = graph_view.ego_spdx_bundle(store, artifact_iri=None, direction="both")
+    assert "@graph" in bundle
