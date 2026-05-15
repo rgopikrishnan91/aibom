@@ -411,6 +411,14 @@ def generate_recursive_boms(
 
     conflict_walked: List[Dict[str, Any]] = []
 
+    # Lazy-opened once if any child reference triggers the trust gate.
+    # Sentinel values:
+    #   * ``None`` — not yet attempted (or gate disabled).
+    #   * ``False`` — open attempt failed; skip the gate for the rest of
+    #     this walk so we don't keep retrying a broken backend.
+    #   * BomStore instance — opened successfully; reuse for every child.
+    _trust_store: Any = None
+
     while frontier:
         parent_meta, parent_label, parent_bom_type, depth = frontier.pop(0)
         if depth >= max_depth:
@@ -494,20 +502,61 @@ def generate_recursive_boms(
             # entirely (default) or fall through to the regular
             # generate-child path (``regen_on_low_trust=True``).
             if min_trust > 0.0:
-                try:
+                _child_ref = t["target"]
+                # Lazy-open the trust store once per walk (not once per
+                # child). The first child that needs the gate opens the
+                # backend; subsequent children reuse the same handle.
+                if _trust_store is None:
+                    try:
+                        from aikaboom.store.store import BomStore as _BomStore
+                        _trust_store = _BomStore.open()
+                    except (ImportError, OSError, RuntimeError) as exc:
+                        # Backend unavailable (no oxigraph + no rdflib,
+                        # perm error, etc.). Emit a breadcrumb so the
+                        # operator can see why the gate is silently off,
+                        # then disable the gate for the rest of this walk
+                        # via the ``False`` sentinel.
+                        _emit_event({
+                            "event": "recursive.trust_gate.error",
+                            "target": _child_ref,
+                            "error": str(exc),
+                            "message": "cannot open trust store; gate disabled for this walk",
+                        })
+                        _trust_store = False
+                if _trust_store is False:
+                    # We tried earlier in this walk and the open failed —
+                    # skip the gate for every remaining child. Fall through
+                    # to the normal generate-child path.
+                    pass
+                else:
                     from aikaboom.store.naming import Identifier as _Identifier
-                    from aikaboom.store.store import BomStore as _BomStore
 
-                    _child_ref = t["target"]
-                    _store = _BomStore.open()
                     _child_idents = [
                         _Identifier("huggingface", _child_ref)
                         if "/" in _child_ref
                         else _Identifier("name-only", _child_ref)
                     ]
-                    _canonical = _store.canonical_claim_for(_child_idents)
+                    try:
+                        _canonical = _trust_store.canonical_claim_for(_child_idents)
+                        _score = (
+                            _trust_store.trust_score(_canonical)
+                            if _canonical
+                            else 0.0
+                        )
+                    except (ImportError, OSError, RuntimeError) as exc:
+                        # Store reachable but the lookup itself failed —
+                        # degrade to pre-trust behavior for this child
+                        # only, but emit a breadcrumb so silent failures
+                        # are visible.
+                        _emit_event({
+                            "event": "recursive.trust_gate.error",
+                            "target": _child_ref,
+                            "error": str(exc),
+                            "message": "trust gate disabled due to store error",
+                        })
+                        _canonical = None
+                        _score = 0.0
                     if _canonical:
-                        _score = _store.trust_score(_canonical)
                         if _score < min_trust and not regen_on_low_trust:
                             safety_capped.append({
                                 "target": t["target"],
@@ -535,12 +584,6 @@ def generate_recursive_boms(
                         # else: fall through (regen_on_low_trust=True or
                         # score >= threshold) — proceed to enrichment as
                         # usual.
-                except Exception:
-                    # Trust-gate consultation is best-effort. If the store
-                    # backend is unavailable or the lookup fails, fall
-                    # through to the normal generate-child path rather than
-                    # blocking the walk.
-                    pass
 
             visited.add(key)
             # Emit the discovery event immediately so the UI's pending
