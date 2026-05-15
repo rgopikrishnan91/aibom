@@ -156,3 +156,90 @@ def bom_to_rdf(
                 _add_field_claim(ds, claim, field_name, triplet)
 
     return ds, str(claim)
+
+
+def _platform_name_from_source_iri(source_iri_str: str) -> str:
+    """Reverse `iris.source_iri('huggingface')` → 'huggingface'."""
+    prefix = "aibom:source/"
+    if source_iri_str.startswith(prefix):
+        return source_iri_str[len(prefix):]
+    return source_iri_str
+
+
+def _conflict_kind_from_iri(kind_iri: str) -> Any:
+    """Reverse the conflictKind mapping to the JSON form."""
+    if kind_iri == str(vocab.noConflict):
+        return None
+    if kind_iri == str(vocab.interSourceConflict):
+        return {"type": "inter"}
+    if kind_iri == str(vocab.intraSourceConflict):
+        return {"type": "intra"}
+    return None
+
+
+def rdf_to_bom(ds: Dataset, claim_iri: str) -> dict:
+    """Reconstruct a BOM JSON dict from a claim's subgraph.
+
+    Args:
+        ds: the dataset to read from.
+        claim_iri: the BOMClaim IRI to reconstruct.
+
+    Returns:
+        A dict with the same shape as the original BOM JSON (subset:
+        only the fields the vocab models — round-trip-asserted by
+        test_mapper_roundtrip.py).
+    """
+    claim = _u(claim_iri)
+    out: dict[str, Any] = {"direct_fields": {}, "rag_fields": {}, "beta_fields": []}
+
+    # Resolve the artifact via hasClaim back-edge.
+    artifact_label = None
+    for s, _, _, _ in ds.quads((None, _u(vocab.hasClaim), None, None)):
+        # s is an ArtifactVersion; find its Artifact.
+        for art, _, _, _ in ds.quads((None, _u(vocab.hasVersion), s, None)):
+            for _, _, lab, _ in ds.quads((art, _u(vocab.canonicalLabel), None, None)):
+                artifact_label = str(lab)
+                break
+            break
+        break
+    if artifact_label:
+        out["model_id"] = artifact_label.replace("/", "_")
+        out["repo_id"] = artifact_label
+
+    # Use case + mode
+    for _, _, lit, _ in ds.quads((claim, _u(vocab.useCase), None, None)):
+        out["use_case"] = str(lit)
+    for _, _, lit, _ in ds.quads((claim, _u(vocab.mode), None, None)):
+        out["mode"] = str(lit)
+
+    # Walk every (claim, pred, value) triple; pred → field name.
+    aibom_ns = str(vocab.AIBOM)
+    structural_preds = {
+        str(vocab.useCase), str(vocab.mode), str(vocab.createdAt),
+        str(vocab.schemaVersion), str(vocab.trustScore), str(vocab.generatedBy),
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+    }
+    for _, p, o, _ in ds.quads((claim, None, None, None)):
+        p_str = str(p)
+        if p_str in structural_preds:
+            continue
+        if not p_str.startswith(aibom_ns):
+            continue
+        field_name = p_str[len(aibom_ns):]
+        triplet: dict[str, Any] = {"value": str(o), "source": None, "conflict": None}
+        # Find the annotation blank node for this triple, if any.
+        for ann, _, _, _ in ds.quads((None, _u("http://www.w3.org/1999/02/22-rdf-syntax-ns#object"), o, None)):
+            ann_subj = None
+            ann_pred = None
+            for _, _, s_val, _ in ds.quads((ann, _u("http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"), None, None)):
+                ann_subj = s_val
+            for _, _, p_val, _ in ds.quads((ann, _u("http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate"), None, None)):
+                ann_pred = p_val
+            if ann_subj == claim and ann_pred == p:
+                for _, _, src, _ in ds.quads((ann, _u(vocab.assertedBy), None, None)):
+                    triplet["source"] = _platform_name_from_source_iri(str(src))
+                for _, _, kind, _ in ds.quads((ann, _u(vocab.conflictKind), None, None)):
+                    triplet["conflict"] = _conflict_kind_from_iri(str(kind))
+                break
+        out["direct_fields"][field_name] = triplet
+    return out
