@@ -2632,6 +2632,49 @@
             font-size: 10.5px;
             font-style: italic;
         }
+        /* Greyed (skipped) chips are right-clickable: generate on demand
+           or inspect why they were skipped. */
+        .stage2-chip[data-state="skipped"] { cursor: context-menu; }
+        .stage2-ctxmenu {
+            position: fixed;
+            z-index: 9999;
+            background: var(--paper, #fff);
+            border: 1px solid var(--paper-edge, #ccc);
+            border-radius: 6px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, .18);
+            min-width: 190px;
+            padding: 4px;
+            font-size: 13px;
+        }
+        .stage2-ctxmenu button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: 0;
+            padding: 7px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            color: var(--ink, #1a1a1a);
+            font: inherit;
+        }
+        .stage2-ctxmenu button:hover { background: var(--paper-edge, #eee); }
+        .stage2-popover {
+            position: fixed;
+            z-index: 9999;
+            max-width: 330px;
+            background: var(--paper, #fff);
+            border: 1px solid var(--paper-edge, #ccc);
+            border-radius: 6px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, .18);
+            padding: 10px 12px;
+            font-size: 12px;
+            line-height: 1.55;
+            color: var(--ink, #1a1a1a);
+        }
+        .stage2-popover h5 { margin: 0 0 5px; font-size: 12px; }
+        .stage2-popover .muted { color: var(--paper-mute, #888); }
+        .stage2-popover a { color: var(--accent, #4f46e5); }
 
         .pipeline-expand {
             display: none;
@@ -3068,17 +3111,21 @@
                                 <input type="checkbox" id="recursive_bom" onclick="confirmRecursive(this)">
                                 Generate recursive BOMs
                             </label>
-                            <label class="cb-num">
+                            <label class="cb-num" title="How many tree levels deep to walk (1 = direct children only).">
                                 Depth
                                 <input type="number" id="recursive_depth" min="1" max="5" value="1">
+                            </label>
+                            <label class="cb-num" title="Per-node fan-out: how many children each node expands. Lineage (dependsOn) is always kept first.">
+                                Breadth
+                                <input type="number" id="recursive_breadth" min="1" max="100" value="10">
                             </label>
                             <label class="cb" title="Walk the entire dependency tree until empty or the safety cap is reached.">
                                 <input type="checkbox" id="recursive_exhaust" onclick="document.getElementById('recursive_depth').disabled = this.checked;">
                                 Exhaust
                             </label>
-                            <label class="cb-num" title="Hard cap on total child BOMs generated under Exhaust mode.">
+                            <label class="cb-num" title="Absolute ceiling on total child BOMs across the whole tree — a last-resort runaway guard.">
                                 Safety cap
-                                <input type="number" id="recursive_safety_cap" min="1" max="500" value="50">
+                                <input type="number" id="recursive_safety_cap" min="1" max="1000" value="200">
                             </label>
                             <label class="cb-num" title="Cap on children-per-relationship in the standalone SPDX. Empty = unbounded. Recursive walker and linked bundle are always unbounded.">
                                 SPDX cap
@@ -3707,7 +3754,8 @@
                 recursive_depth:        document.getElementById('recursive_exhaust').checked
                                           ? 'all'
                                           : parseInt(document.getElementById('recursive_depth').value || '1', 10),
-                recursive_safety_cap:   parseInt(document.getElementById('recursive_safety_cap').value || '50', 10),
+                recursive_breadth:      parseInt(document.getElementById('recursive_breadth').value || '10', 10),
+                recursive_safety_cap:   parseInt(document.getElementById('recursive_safety_cap').value || '200', 10),
                 spdx_relationship_cap:  (() => {
                     const raw = document.getElementById('spdx_relationship_cap').value;
                     if (!raw) return null;
@@ -5078,6 +5126,7 @@
                         if (card) card.classList.remove('is-done');
                         const meta = [];
                         if (evt.max_depth) meta.push(evt.max_depth >= 9000 ? 'depth: exhaust' : `max depth: ${evt.max_depth}`);
+                        if (evt.breadth) meta.push(`breadth: ${evt.breadth}`);
                         if (evt.safety_cap) meta.push(`safety cap: ${evt.safety_cap}`);
                         document.getElementById('stage2Meta').textContent = meta.join(' · ');
                         document.getElementById('stage2Status').textContent = 'walking the dependency tree…';
@@ -5247,7 +5296,151 @@
                 if (entry.state === 'skipped' && entry.reason) {
                     const r = document.createElement('span'); r.className = 'reason'; r.textContent = `(${entry.reason})`; el.appendChild(r);
                 }
+                // Greyed (skipped) chips are right-clickable: identified but
+                // not generated → offer on-demand generation + a reason.
+                if (entry.state === 'skipped') {
+                    el.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        _showMenu(entry, e.clientX, e.clientY);
+                    });
+                }
                 return el;
+            }
+
+            // ---- right-click context menu on greyed (skipped) chips -------
+            let _menuEl = null;
+
+            function _closeMenu() {
+                if (_menuEl) { _menuEl.remove(); _menuEl = null; }
+            }
+            document.addEventListener('click', _closeMenu);
+            document.addEventListener('scroll', _closeMenu, true);
+
+            function _esc(s) {
+                return String(s == null ? '' : s).replace(/[&<>"]/g, c => (
+                    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]
+                ));
+            }
+
+            // Read the current processor settings so an on-demand node is
+            // generated with the same provider/model/mode as the main run.
+            function _processorSettings() {
+                const provEl = document.querySelector('input[name="llm_provider"]:checked');
+                const provider = provEl ? provEl.value : 'openai';
+                let model = '';
+                if (provider === 'openrouter') model = (document.getElementById('openrouter_model') || {}).value || '';
+                else if (provider === 'openai') model = (document.getElementById('openai_model') || {}).value || '';
+                else model = (document.getElementById('ollama_model_input') || {}).value || '';
+                const modeEl = document.querySelector('input[name="mode"]:checked');
+                return {
+                    mode: modeEl ? modeEl.value : 'rag',
+                    use_case: (document.getElementById('use_case') || {}).value || 'complete',
+                    llm_provider: provider,
+                    model: model,
+                };
+            }
+
+            function _popover(html, x, y) {
+                _closeMenu();
+                const pop = document.createElement('div');
+                pop.className = 'stage2-popover';
+                pop.innerHTML = html;
+                pop.style.left = Math.min(x, window.innerWidth - 346) + 'px';
+                pop.style.top = Math.min(y, window.innerHeight - 170) + 'px';
+                pop.addEventListener('click', e => e.stopPropagation());
+                document.body.appendChild(pop);
+                _menuEl = pop;
+            }
+
+            const _REASON_TEXT = {
+                'breadth-cap-reached': 'Beyond the per-node breadth budget — this node already expanded its quota of children.',
+                'safety-cap-reached': 'The absolute safety cap on total generated BOMs was reached.',
+                'enrichment-failed': 'Enrichment raised an error (network / processor failure).',
+                'unresolved': 'The target name could not be resolved to a HuggingFace model or dataset.',
+                'duplicate': 'This target was already generated elsewhere in the tree.',
+            };
+
+            function _why(entry, x, y) {
+                const reason = entry.reason || 'unknown';
+                const desc = _REASON_TEXT[reason] || 'This target was identified but not generated.';
+                _popover(
+                    `<h5>Identified — not generated</h5>` +
+                    `<div><strong>${_esc(entry.target)}</strong></div>` +
+                    `<div class="muted">${_esc(entry.relationship_type || '')}` +
+                    (entry.parent ? ` · parent: ${_esc(entry.parent)}` : '') + `</div>` +
+                    `<div style="margin-top:6px;">reason: <strong>${_esc(reason)}</strong></div>` +
+                    `<div class="muted" style="margin-top:4px;">${_esc(desc)}</div>` +
+                    (entry.error ? `<div class="muted" style="margin-top:4px;">${_esc(entry.error)}</div>` : ''),
+                    x, y
+                );
+            }
+
+            function _downloadLink(node, name) {
+                const blob = new Blob([JSON.stringify(node, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const safe = String(name || 'node').replace(/[^A-Za-z0-9._-]+/g, '_');
+                return `<a href="${url}" download="${safe}.recursive-node.json">Download JSON</a>`;
+            }
+
+            async function _generate(entry, x, y) {
+                _popover(`<h5>Generating…</h5><div class="muted">${_esc(entry.target)}</div>`, x, y);
+                try {
+                    const resp = await fetch('/recursive-node', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            target: entry.target,
+                            bom_type: entry.bom_type,
+                            relationship_type: entry.relationship_type,
+                            parent: entry.parent,
+                            depth: entry.depth,
+                            ..._processorSettings(),
+                        }),
+                    });
+                    const data = await resp.json();
+                    if (data && data.ok && data.node) {
+                        entry.state = 'done';
+                        entry.reason = '';
+                        entry.node = data.node;
+                        render();
+                        _popover(
+                            `<h5>✓ Generated</h5><div><strong>${_esc(entry.target)}</strong></div>` +
+                            `<div class="muted" style="margin-top:4px;">On-demand BOM generated.</div>` +
+                            `<div style="margin-top:6px;">${_downloadLink(data.node, entry.target)}</div>`,
+                            x, y
+                        );
+                    } else {
+                        _popover(
+                            `<h5>Could not generate</h5><div><strong>${_esc(entry.target)}</strong></div>` +
+                            `<div class="muted" style="margin-top:4px;">${_esc((data && data.error) || 'unknown error')}</div>`,
+                            x, y
+                        );
+                    }
+                } catch (err) {
+                    _popover(`<h5>Request failed</h5><div class="muted">${_esc(String(err))}</div>`, x, y);
+                }
+            }
+
+            function _showMenu(entry, x, y) {
+                _closeMenu();
+                const menu = document.createElement('div');
+                menu.className = 'stage2-ctxmenu';
+                menu.style.left = Math.min(x, window.innerWidth - 206) + 'px';
+                menu.style.top = Math.min(y, window.innerHeight - 96) + 'px';
+                menu.addEventListener('click', e => e.stopPropagation());
+
+                const gen = document.createElement('button');
+                gen.textContent = 'Generate this BOM';
+                gen.addEventListener('click', () => _generate(entry, x, y));
+                menu.appendChild(gen);
+
+                const why = document.createElement('button');
+                why.textContent = 'Why was this skipped?';
+                why.addEventListener('click', () => _why(entry, x, y));
+                menu.appendChild(why);
+
+                document.body.appendChild(menu);
+                _menuEl = menu;
             }
 
             return { reset, handle };
@@ -6977,6 +7170,8 @@
             document.getElementById('strict_spdx_validation').checked = false;
             document.getElementById('recursive_bom').checked = false;
             document.getElementById('recursive_depth').value = 1;
+            document.getElementById('recursive_breadth').value = 10;
+            document.getElementById('recursive_safety_cap').value = 200;
             // Reset to provenance tab without using event-target shortcut.
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab')[0].classList.add('active');

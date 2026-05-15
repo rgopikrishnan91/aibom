@@ -332,32 +332,46 @@ def generate_recursive_boms(
     metadata: Dict[str, Any],
     bom_type: str = "ai",
     max_depth: int = 1,
-    safety_cap: int = 50,
+    breadth: int = 10,
+    safety_cap: int = 200,
     validate_spdx: bool = True,
     strict_spdx: bool = False,
     enrich_fn: Optional[EnrichFn] = None,
 ) -> Dict[str, Any]:
     """Walk the dependency tree of an AI BOM and emit child BOMs.
 
+    The walk is bounded by three independent controls:
+
+    * ``max_depth`` — how many *levels* the tree is walked.
+    * ``breadth`` — how many children a *single node* expands (per-node
+      fan-out). Targets are discovered lineage-first, so the ``dependsOn``
+      edge always survives the breadth budget; surplus dataset edges are
+      recorded as ``breadth_capped``.
+    * ``safety_cap`` — the absolute ceiling on the *total* number of
+      generated nodes across the whole tree; a last-resort runaway guard.
+
     Args:
         metadata: Parent BOM metadata dict (with ``rag_fields``).
         bom_type: Parent BOM type. Recursion only descends through AI BOMs;
             ``data`` parents are leaves.
         max_depth: Maximum tree depth (1 = direct children only). Pass
-            :data:`EXHAUST_DEPTH` to walk until the frontier empties or the
-            ``safety_cap`` is reached. Recursion also stops naturally when
-            the unique-target set is exhausted.
-        safety_cap: Maximum number of child nodes to materialize before
-            stopping. Prevents runaway walks under :data:`EXHAUST_DEPTH`.
-            Default 50.
+            :data:`EXHAUST_DEPTH` to walk until the frontier empties or a
+            limit is hit. Recursion also stops naturally when the
+            unique-target set is exhausted.
+        breadth: Maximum children expanded per node. Default 10.
+        safety_cap: Absolute ceiling on total generated nodes. Default 200.
         validate_spdx: Validate each generated child SPDX export.
         strict_spdx: Use the SHACL strict pass (beta).
         enrich_fn: Optional callable ``(target_dict) -> metadata_dict`` that
-            fetches full metadata for a discovered target. Without it,
-            children carry only seed metadata and recursion typically stops
-            after one level.
+            fetches full metadata for a discovered target. When it returns
+            ``None`` (or raises), that child is recorded as
+            ``enrichment_failed`` — identified but not generated, greyed in
+            the UI — and the branch stops there. Without an ``enrich_fn``
+            at all, children carry seed metadata (seed-only mode) and the
+            walk typically stops after one level.
     """
     max_depth = max(0, int(max_depth or 0))
+    breadth = max(0, int(breadth or 0))
     safety_cap = max(0, int(safety_cap or 0))
     # Prefer ``repo_id`` (canonical ``owner/name`` form) over ``model_id``
     # (filename-safe slug ``owner_name``). modelLineage triplets surface in
@@ -374,10 +388,11 @@ def generate_recursive_boms(
     visited: Set[Tuple[str, str]] = {_visit_key(bom_type, parent_id)}
 
     generated: List[Dict[str, Any]] = []
-    # ``safety_capped`` is targets dropped because the cap was hit; the old
-    # name ``skipped`` lumped these in with conflict-skipped fields. With
-    # conflicts now walked-through, this list is cleanly cap-only.
-    safety_capped: List[Dict[str, Any]] = []
+    # Targets that were identified but not turned into a full node, split
+    # by cause so the UI can grey each one with the right reason.
+    safety_capped: List[Dict[str, Any]] = []       # absolute total ceiling
+    breadth_capped: List[Dict[str, Any]] = []      # per-node fan-out limit
+    enrichment_failed: List[Dict[str, Any]] = []   # enrich_fn returned None / raised
     duplicates: List[Dict[str, Any]] = []
 
     # Frontier of (parent_metadata, parent_target_label, parent_bom_type, current_depth)
@@ -396,6 +411,7 @@ def generate_recursive_boms(
         "parent": parent_id,
         "bom_type": bom_type,
         "max_depth": max_depth,
+        "breadth": breadth,
         "safety_cap": safety_cap,
     })
 
@@ -430,34 +446,8 @@ def generate_recursive_boms(
         # as each child resolves, instead of chips popping into existence
         # already-done.
         to_process: List[Dict[str, Any]] = []
+        expanded_here = 0  # per-parent breadth counter, reset for each node
         for t in targets:
-            if len(generated) + len(to_process) >= safety_cap:
-                # The cap is on the total *generated* count, but during
-                # discovery we don't know which targets will actually be
-                # enriched yet. Approximating with len(generated) + queued
-                # to-process keeps the prior semantics intact while still
-                # rejecting targets eagerly so the UI sees skipped chips
-                # immediately rather than after all earlier siblings run.
-                tree_exhausted = False
-                safety_capped.append({
-                    "target": t["target"],
-                    "bom_type": t["bom_type"],
-                    "relationship_type": t["relationship_type"],
-                    "reason": "safety-cap-reached",
-                    "parent": parent_label,
-                    "depth": depth + 1,
-                })
-                _emit_event({
-                    "event": "recursive.child.skipped",
-                    "target": t["target"],
-                    "bom_type": t["bom_type"],
-                    "relationship_type": t["relationship_type"],
-                    "parent": parent_label,
-                    "depth": depth + 1,
-                    "reason": "safety-cap-reached",
-                    "has_conflict": t.get("has_conflict", False),
-                })
-                continue
             key = _visit_key(t["bom_type"], t["target"])
             if key in visited:
                 duplicates.append({
@@ -478,7 +468,58 @@ def generate_recursive_boms(
                     "has_conflict": t.get("has_conflict", False),
                 })
                 continue
+            # safety_cap — absolute ceiling across the whole tree. The cap
+            # is on total generated count; during discovery we approximate
+            # with len(generated) + queued so the UI sees skipped chips
+            # eagerly rather than after every earlier sibling runs.
+            if len(generated) + len(to_process) >= safety_cap:
+                tree_exhausted = False
+                safety_capped.append({
+                    "target": t["target"],
+                    "bom_type": t["bom_type"],
+                    "relationship_type": t["relationship_type"],
+                    "reason": "safety-cap-reached",
+                    "parent": parent_label,
+                    "depth": depth + 1,
+                })
+                _emit_event({
+                    "event": "recursive.child.skipped",
+                    "target": t["target"],
+                    "bom_type": t["bom_type"],
+                    "relationship_type": t["relationship_type"],
+                    "parent": parent_label,
+                    "depth": depth + 1,
+                    "reason": "safety-cap-reached",
+                    "has_conflict": t.get("has_conflict", False),
+                })
+                continue
+            # breadth — per-node fan-out limit. Targets are discovered
+            # lineage-first (dependsOn before dataset edges), so the
+            # recursable edge always survives the budget; surplus dataset
+            # leaves are recorded as breadth-capped.
+            if expanded_here >= breadth:
+                tree_exhausted = False
+                breadth_capped.append({
+                    "target": t["target"],
+                    "bom_type": t["bom_type"],
+                    "relationship_type": t["relationship_type"],
+                    "reason": "breadth-cap-reached",
+                    "parent": parent_label,
+                    "depth": depth + 1,
+                })
+                _emit_event({
+                    "event": "recursive.child.skipped",
+                    "target": t["target"],
+                    "bom_type": t["bom_type"],
+                    "relationship_type": t["relationship_type"],
+                    "parent": parent_label,
+                    "depth": depth + 1,
+                    "reason": "breadth-cap-reached",
+                    "has_conflict": t.get("has_conflict", False),
+                })
+                continue
             visited.add(key)
+            expanded_here += 1
             # Emit the discovery event immediately so the UI's pending
             # chip for this target shows up before any of its siblings
             # start running.
@@ -513,21 +554,55 @@ def generate_recursive_boms(
             if enrich_fn is not None:
                 try:
                     enriched_metadata = enrich_fn(t_with_parent)
-                except Exception as exc:
+                except Exception as exc:  # noqa: BLE001 - trap all, record text
                     enriched_metadata = None
                     enrichment_error = str(exc)
                 if enriched_metadata:
                     child_metadata = enriched_metadata
                     enriched = True
                 else:
-                    child_metadata = _build_child_metadata(t_with_parent)
+                    # Enrichment failed: record the target as identified-
+                    # but-not-generated (greyed in the UI, right-clickable
+                    # to generate on demand) and stop this branch. Siblings
+                    # still walk. ``unresolved`` = enrich_fn returned None
+                    # cleanly (e.g. name not resolvable to an HF id);
+                    # ``enrichment-failed`` = it raised.
+                    reason = "enrichment-failed" if enrichment_error else "unresolved"
+                    failure = {
+                        "target": t["target"],
+                        "bom_type": t["bom_type"],
+                        "relationship_type": t["relationship_type"],
+                        "source_field": t.get("source_field", ""),
+                        "parent": parent_label,
+                        "depth": depth + 1,
+                        "reason": reason,
+                    }
+                    if enrichment_error:
+                        failure["error"] = enrichment_error
+                    enrichment_failed.append(failure)
+                    tree_exhausted = False
+                    _emit_event({
+                        "event": "recursive.child.skipped",
+                        "target": t["target"],
+                        "bom_type": t["bom_type"],
+                        "relationship_type": t["relationship_type"],
+                        "parent": parent_label,
+                        "depth": depth + 1,
+                        "reason": reason,
+                        "error": enrichment_error,
+                        "has_conflict": t.get("has_conflict", False),
+                        "duration_ms": int((time.time() - _child_t0) * 1000),
+                    })
+                    continue
             else:
+                # Seed-only mode (no enricher): children carry seed metadata
+                # and are still generated — the documented library default.
                 child_metadata = _build_child_metadata(t_with_parent)
 
             node = _build_node(
                 t_with_parent, child_metadata, depth + 1,
                 validate_spdx, strict_spdx,
-                enrichment_error=enrichment_error, enriched=enriched,
+                enrichment_error=None, enriched=enriched,
             )
             generated.append(node)
 
@@ -539,7 +614,6 @@ def generate_recursive_boms(
                 "parent": parent_label,
                 "depth": depth + 1,
                 "enriched": enriched,
-                "error": enrichment_error,
                 "has_conflict": t.get("has_conflict", False),
                 "duration_ms": int((time.time() - _child_t0) * 1000),
             })
@@ -556,6 +630,8 @@ def generate_recursive_boms(
         "generated_count": len(generated),
         "conflict_walked_count": len(conflict_walked),
         "safety_capped_count": len(safety_capped),
+        "breadth_capped_count": len(breadth_capped),
+        "enrichment_failed_count": len(enrichment_failed),
         "duplicate_count": len(duplicates),
         "deepest_level_reached": deepest,
         "tree_exhausted": tree_exhausted,
@@ -564,6 +640,8 @@ def generate_recursive_boms(
         "beta": True,
         "enabled": True,
         "max_depth": max_depth,
+        "breadth": breadth,
+        "safety_cap": safety_cap,
         "deepest_level_reached": deepest,
         "tree_exhausted": tree_exhausted,
         "strategy": "conflict-tagged dependency-tree recursion",
@@ -577,6 +655,11 @@ def generate_recursive_boms(
         "conflict_walked": conflict_walked,
         "skipped_due_to_conflict": conflict_walked,
         "safety_capped": safety_capped,
+        # Targets dropped by the per-node breadth budget.
+        "breadth_capped": breadth_capped,
+        # Targets that were discovered but could not be enriched — greyed
+        # in the UI, right-clickable to generate on demand.
+        "enrichment_failed": enrichment_failed,
         "duplicates": duplicates,
         "visited": sorted(f"{bt}:{name}" for bt, name in visited),
         "warnings": [
@@ -592,6 +675,55 @@ def generate_recursive_boms(
             "real enricher to walk the full dependency tree.",
         ],
     }
+
+
+def generate_single_node(
+    target: Dict[str, Any],
+    enrich_fn: Optional[EnrichFn] = None,
+    validate_spdx: bool = True,
+    strict_spdx: bool = False,
+) -> Dict[str, Any]:
+    """Generate one recursive child node on demand.
+
+    Backs the web UI's right-click "Generate this BOM" action on a greyed
+    (identified-but-not-generated) node. ``target`` is a target descriptor
+    — ``{target, bom_type, relationship_type, parent, source_field,
+    depth}`` — the same shape :func:`discover_recursive_targets` produces.
+
+    Returns ``{"ok": True, "node": <node>}`` on success, or
+    ``{"ok": False, "error": <reason>}`` when the target cannot be
+    enriched (``unresolved`` / ``enrichment-failed: ...``).
+    """
+    name = (target.get("target") or "").strip()
+    if not name:
+        return {"ok": False, "error": "no target name given"}
+    t = {
+        "target": name,
+        "bom_type": target.get("bom_type") or "ai",
+        "relationship_type": target.get("relationship_type") or "dependsOn",
+        "source_field": target.get("source_field") or "",
+        "parent": target.get("parent") or "",
+        "resolvable_hint": "/" in name and " " not in name,
+    }
+    enriched = False
+    if enrich_fn is not None:
+        try:
+            metadata = enrich_fn(t)
+        except Exception as exc:  # noqa: BLE001
+            return {"ok": False, "error": f"enrichment-failed: {exc}"}
+        if metadata:
+            enriched = True
+        else:
+            return {"ok": False, "error": "unresolved"}
+    else:
+        metadata = _build_child_metadata(t)
+
+    depth = max(1, int(target.get("depth") or 1))
+    node = _build_node(
+        t, metadata, depth, validate_spdx, strict_spdx,
+        enrichment_error=None, enriched=enriched,
+    )
+    return {"ok": True, "node": node}
 
 
 # ---------------------------------------------------------------------------
