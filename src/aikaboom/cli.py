@@ -191,50 +191,111 @@ def cmd_generate(args):
             f"{len(get_fixed_questions(args.type))} fields)"
         )
 
-    if args.type == "ai":
-        if not any([args.repo, args.arxiv, args.github]):
-            print("Error: provide at least --repo, --arxiv, or --github", file=sys.stderr)
-            sys.exit(1)
+    # --- worldofBOMs cache resolution ---
+    from aikaboom.store.cache_resolver import CachePolicy, decide, is_interactive
+    from aikaboom.store.naming import Identifier
+    from aikaboom.store.store import BomStore
+    from aikaboom.store.trust import VoteKind
+    import os as _os
 
-        # Be lenient: users routinely pass the full HF URL to --repo.
-        # Normalise so downstream code only ever sees the canonical
-        # ``namespace/repo`` form. Mirrors the dataset path's existing
-        # ``hf_url`` normalisation in core/processors.py.
-        repo_id = args.repo
-        if repo_id and "huggingface.co" in repo_id:
-            from aikaboom.utils.metadata_fetcher import MetadataFetcher
-            normalised = MetadataFetcher.extract_repo_id_from_hf_url(repo_id)
-            if normalised:
-                repo_id = normalised
+    _graph_disabled = _os.environ.get("AIKABOOM_GRAPH_DISABLE") == "1"
+    _store = None if _graph_disabled else BomStore.open()
+    _claim_to_use = None
+    _idents: list[Identifier] = []
 
-        processor = AIBOMProcessor(
-            model=model,
-            mode=args.mode,
-            llm_provider=provider,
-            use_case=normalized_use_case,
-            questions_config=questions_config,
-        )
-        result = processor.process_ai_model(
-            repo_id=repo_id,
-            arxiv_url=args.arxiv,
-            github_url=args.github,
-        )
+    if _store is not None:
+        if args.type == "ai" and args.repo:
+            _idents.append(Identifier("huggingface", args.repo))
+        if getattr(args, "hf_url", None):
+            _idents.append(Identifier("huggingface", args.hf_url))
+        if args.arxiv:
+            _idents.append(Identifier("arxiv", args.arxiv))
+        if args.github:
+            _idents.append(Identifier("github", args.github))
+
+        if _idents:
+            _resolve = _store.resolve(
+                identifiers=_idents,
+                use_case=normalized_use_case,
+                mode=args.mode,
+            )
+            _policy = CachePolicy(args.cache)
+            _decision = decide(
+                _resolve, _policy, interactive=is_interactive(), planned_llm=model,
+            )
+            if _decision == "use" and _resolve.matching_claims:
+                _claim_to_use = _resolve.matching_claims[0]["iri"]
+
+    if _claim_to_use is not None:
+        # Reconstruct the cached BOM from the graph.
+        result = _store.reconstruct_bom(_claim_to_use)
+        # Record implicit-use vote (silent positive signal).
+        _store.record_trust_vote(_claim_to_use, VoteKind.IMPLICIT_USE)
+        # Tag the result so downstream code knows it's a cache hit.
+        result["_cached"] = True
+        result["_claim_iri"] = _claim_to_use
+        _skip_generation = True
     else:
-        if not any([args.hf_url, args.arxiv, args.github]):
-            print("Error: provide at least --hf-url, --arxiv, or --github", file=sys.stderr)
-            sys.exit(1)
+        _skip_generation = False
 
-        processor = DATABOMProcessor(
-            model=model,
-            mode=args.mode,
-            llm_provider=provider,
-            use_case=normalized_use_case,
-            questions_config=questions_config,
-        )
-        result = processor.process_dataset(
-            arxiv_url=args.arxiv,
-            github_url=args.github,
-            hf_url=args.hf_url,
+    if not _skip_generation:
+        if args.type == "ai":
+            if not any([args.repo, args.arxiv, args.github]):
+                print("Error: provide at least --repo, --arxiv, or --github", file=sys.stderr)
+                sys.exit(1)
+
+            # Be lenient: users routinely pass the full HF URL to --repo.
+            # Normalise so downstream code only ever sees the canonical
+            # ``namespace/repo`` form. Mirrors the dataset path's existing
+            # ``hf_url`` normalisation in core/processors.py.
+            repo_id = args.repo
+            if repo_id and "huggingface.co" in repo_id:
+                from aikaboom.utils.metadata_fetcher import MetadataFetcher
+                normalised = MetadataFetcher.extract_repo_id_from_hf_url(repo_id)
+                if normalised:
+                    repo_id = normalised
+
+            processor = AIBOMProcessor(
+                model=model,
+                mode=args.mode,
+                llm_provider=provider,
+                use_case=normalized_use_case,
+                questions_config=questions_config,
+            )
+            result = processor.process_ai_model(
+                repo_id=repo_id,
+                arxiv_url=args.arxiv,
+                github_url=args.github,
+            )
+        else:
+            if not any([args.hf_url, args.arxiv, args.github]):
+                print("Error: provide at least --hf-url, --arxiv, or --github", file=sys.stderr)
+                sys.exit(1)
+
+            processor = DATABOMProcessor(
+                model=model,
+                mode=args.mode,
+                llm_provider=provider,
+                use_case=normalized_use_case,
+                questions_config=questions_config,
+            )
+            result = processor.process_dataset(
+                arxiv_url=args.arxiv,
+                github_url=args.github,
+                hf_url=args.hf_url,
+            )
+
+    # Persist the freshly generated BOM (skipped on cache hit).
+    _saved_claim_iri = None
+    if _store is not None and not _skip_generation:
+        _saved_claim_iri = _store.save_claim(
+            result,
+            run_meta={
+                "provider": provider, "llm_model": model,
+                "prompt_version": "v1", "code_version": "head",
+                "mode": args.mode, "use_case": normalized_use_case,
+            },
+            identifiers=_idents,
         )
 
     # Write JSON output
@@ -581,6 +642,30 @@ def main():
         "-y", "--yes",
         action="store_true",
         help="Skip provider confirmation prompt when multiple keys are set.",
+    )
+    gen.add_argument(
+        "--cache",
+        choices=["use", "regen", "prompt", "auto"],
+        default=os.environ.get("AIKABOOM_CACHE_POLICY_DEFAULT") or
+                ("prompt" if sys.stdin.isatty() else "use"),
+        help="Cache resolution policy when an existing BOM is found.",
+    )
+    gen.add_argument(
+        "--min-trust",
+        type=float,
+        default=0.0,
+        help="Recursive walks: skip child claims with trustScore below this.",
+    )
+    gen.add_argument(
+        "--regen-on-low-trust",
+        action="store_true",
+        help="Recursive walks: regenerate child BOMs below --min-trust instead of skipping.",
+    )
+    gen.add_argument(
+        "--primary-platform",
+        choices=["huggingface", "github", "arxiv", "doi", "url"],
+        default=None,
+        help="Override which input is treated as the primary identifier.",
     )
     # --- serve ---
     srv = subparsers.add_parser("serve", help="Start the web UI")
