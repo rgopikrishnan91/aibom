@@ -177,3 +177,9 @@ def test_ego_spdx_bundle_full_scope(store, sample_run_meta):
     _save_model_with_dataset(store, sample_run_meta)
     bundle = graph_view.ego_spdx_bundle(store, artifact_iri=None, direction="both")
     assert "@graph" in bundle
+
+
+def test_raw_query_allows_keyword_named_variables(store, sample_run_meta):
+    _save_model_with_dataset(store, sample_run_meta)
+    rows = graph_view.raw_query(store, "SELECT ?add WHERE { ?add ?p ?o } LIMIT 3")
+    assert isinstance(rows, list)

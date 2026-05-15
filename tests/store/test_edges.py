@@ -162,3 +162,21 @@ def test_mint_places_dataset_kind_on_trainedon_placeholder(store):
         f"SELECT ?c WHERE {{ <{iri}> a ?c }}"))
     types = {str(r["c"]) for r in rows}
     assert "https://aikaboom.dev/aibom#Dataset" in types
+
+
+def test_data_bom_promotes_placeholder(store, sample_run_meta):
+    # A model BOM names dataset "gluebench" -> placeholder minted.
+    model_bom = _bom_with("trainedOnDatasets", "gluebench")
+    store.save_claim(model_bom, sample_run_meta,
+                     identifiers=[_Id("huggingface", "acme/mod")])
+    # A real DATA BOM for "gluebench" arrives, keyed by dataset_id.
+    data_bom = {"dataset_id": "gluebench", "use_case": "complete",
+                "direct_fields": {}, "rag_fields": {}}
+    store.save_claim(data_bom, sample_run_meta,
+                     identifiers=[_Id("huggingface", "gluebench")])
+    placeholders = list(store._backend.select(
+        "SELECT ?a WHERE { ?a <https://aikaboom.dev/aibom#isPlaceholder> true }"))
+    assert placeholders == []   # the placeholder was promoted/merged away
+    edges = list(store._backend.select(
+        "SELECT ?s ?t WHERE { ?s <https://aikaboom.dev/aibom#trainedOn> ?t }"))
+    assert len(edges) == 1

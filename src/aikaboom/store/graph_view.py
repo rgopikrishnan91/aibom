@@ -209,7 +209,7 @@ def _conflicts_for(store, artifact_iri: str) -> list[str]:
     return [str(r["kind"]).rsplit("#", 1)[-1] for r in rows]
 
 
-def _canonical_claim_iri(store, artifact_iri: str) -> str | None:
+def canonical_claim_iri(store, artifact_iri: str) -> str | None:
     """Return the IRI of the most-recent claim for an artifact, or None."""
     iri = _validate_sparql_iri(artifact_iri)
     rows = list(store._backend.select(
@@ -297,7 +297,7 @@ def ego_spdx_bundle(store, artifact_iri: str | None,
         return {"@context": None, "@graph": []}
 
     # Build parent BOM metadata
-    focus_claim = _canonical_claim_iri(store, focus_iri)
+    focus_claim = canonical_claim_iri(store, focus_iri)
     if focus_claim:
         parent_meta = store.reconstruct_bom(focus_claim)
         # Ensure repo_id is present for build_linked_spdx_bundle's parent label
@@ -368,7 +368,7 @@ def ego_spdx_bundle(store, artifact_iri: str | None,
                         break
 
         # Build or reconstruct child BOM metadata
-        member_claim = _canonical_claim_iri(store, member_iri)
+        member_claim = canonical_claim_iri(store, member_iri)
         if member_claim:
             child_bom = store.reconstruct_bom(member_claim)
             if not child_bom.get("repo_id") and not child_bom.get("dataset_id"):
@@ -416,7 +416,7 @@ def ego_spdx_bundle(store, artifact_iri: str | None,
 
 
 _MUTATION_KEYWORDS = _re.compile(
-    r"\b(INSERT|DELETE|LOAD|CLEAR|DROP|CREATE|ADD|MOVE|COPY)\b", _re.IGNORECASE
+    r"(?<!\?)\b(INSERT|DELETE|LOAD|CLEAR|DROP|CREATE|ADD|MOVE|COPY)\b", _re.IGNORECASE
 )
 
 

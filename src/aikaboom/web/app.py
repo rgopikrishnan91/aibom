@@ -1392,7 +1392,7 @@ def worldofboms_bom(artifact):
     if store is None:
         return jsonify({'store_unavailable': True})
     try:
-        claim = graph_view._canonical_claim_iri(store, artifact)
+        claim = graph_view.canonical_claim_iri(store, artifact)
         if not claim:
             return jsonify({'error': 'no claim for artifact'}), 404
         return jsonify(store.reconstruct_bom(claim))
@@ -1434,6 +1434,8 @@ def worldofboms_export():
     scope = request.args.get('scope', 'full')
     artifact = request.args.get('artifact') if scope == 'ego' else None
     direction = request.args.get('direction', 'both')
+    if scope == 'ego' and not artifact:
+        return jsonify({'error': 'scope=ego requires an artifact parameter'}), 400
     try:
         bundle = graph_view.ego_spdx_bundle(store, artifact, direction=direction)
         resp = jsonify(bundle)
