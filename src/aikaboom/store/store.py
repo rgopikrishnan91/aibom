@@ -311,6 +311,7 @@ class BomStore:
             }}
         """)
         self._recompute_score(claim_iri)
+        self.recompute_canonical_for_claim(claim_iri)
         return vote
 
     def _recompute_score(self, claim_iri: str) -> float:

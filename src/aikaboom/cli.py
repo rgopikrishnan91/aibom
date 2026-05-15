@@ -192,14 +192,28 @@ def cmd_generate(args):
         )
 
     # --- worldofBOMs cache resolution ---
-    from aikaboom.store.cache_resolver import CachePolicy, decide, is_interactive
+    # ``Identifier`` is needed both inside and outside the store-open branch
+    # (for ``_idents`` construction and post-generation persistence), so keep
+    # it imported at the outer level. The heavier store imports stay inside
+    # the ``else:`` branch so ``AIKABOOM_GRAPH_DISABLE=1`` remains a
+    # lightweight bypass.
     from aikaboom.store.naming import Identifier
-    from aikaboom.store.store import BomStore
-    from aikaboom.store.trust import VoteKind
-    import os as _os
 
-    _graph_disabled = _os.environ.get("AIKABOOM_GRAPH_DISABLE") == "1"
-    _store = None if _graph_disabled else BomStore.open()
+    _graph_disabled = os.environ.get("AIKABOOM_GRAPH_DISABLE") == "1"
+    if _graph_disabled:
+        _store = None
+    else:
+        from aikaboom.store.cache_resolver import CachePolicy, decide, is_interactive
+        from aikaboom.store.store import BomStore
+        from aikaboom.store.trust import VoteKind
+        try:
+            _store = BomStore.open()
+        except Exception as e:
+            print(
+                f"warning: graph store unavailable, continuing without cache: {e}",
+                file=sys.stderr,
+            )
+            _store = None
     _claim_to_use = None
     _idents: list[Identifier] = []
 
@@ -286,17 +300,26 @@ def cmd_generate(args):
             )
 
     # Persist the freshly generated BOM (skipped on cache hit).
+    # Persistence is best-effort: if the store backend errors after the LLM
+    # cost has already been paid, surface a warning but never destroy the
+    # generated BOM by raising before the JSON output is written.
     _saved_claim_iri = None
     if _store is not None and not _skip_generation:
-        _saved_claim_iri = _store.save_claim(
-            result,
-            run_meta={
-                "provider": provider, "llm_model": model,
-                "prompt_version": "v1", "code_version": "head",
-                "mode": args.mode, "use_case": normalized_use_case,
-            },
-            identifiers=_idents,
-        )
+        try:
+            _saved_claim_iri = _store.save_claim(
+                result,
+                run_meta={
+                    "provider": provider, "llm_model": model,
+                    "prompt_version": "v1", "code_version": "head",
+                    "mode": args.mode, "use_case": normalized_use_case,
+                },
+                identifiers=_idents,
+            )
+        except Exception as e:
+            print(
+                f"warning: failed to persist claim to graph store: {e}",
+                file=sys.stderr,
+            )
 
     # Write JSON output
     output_json = json.dumps(result, indent=2, ensure_ascii=False)
