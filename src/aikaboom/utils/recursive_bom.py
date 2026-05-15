@@ -331,6 +331,10 @@ def generate_recursive_boms(
     validate_spdx: bool = True,
     strict_spdx: bool = False,
     enrich_fn: Optional[EnrichFn] = None,
+    *,
+    min_trust: float = 0.0,
+    regen_on_low_trust: bool = False,
+    cache_policy: str = "use",
 ) -> Dict[str, Any]:
     """Walk the dependency tree of an AI BOM and emit child BOMs.
 
@@ -351,6 +355,17 @@ def generate_recursive_boms(
             fetches full metadata for a discovered target. Without it,
             children carry only seed metadata and recursion typically stops
             after one level.
+        min_trust: Minimum canonical trust score required to reuse a cached
+            child claim. ``0.0`` (default) disables the gate. When a child's
+            canonical claim scores below this threshold, the walker either
+            skips that child (default) or — when ``regen_on_low_trust=True``
+            — falls through to the regular generate-child path.
+        regen_on_low_trust: If ``True``, low-trust children are regenerated
+            instead of skipped. Has no effect when ``min_trust`` is 0.0.
+        cache_policy: Reserved for the Task 14 cache-policy plumbing
+            (``"use"`` / ``"refresh"`` / ``"bypass"``). Currently passed
+            through unchanged so callers can thread the flag from the CLI
+            and web layers without the walker yet acting on it.
     """
     max_depth = max(0, int(max_depth or 0))
     safety_cap = max(0, int(safety_cap or 0))
