@@ -6771,7 +6771,59 @@
                 });
                 search.dataset.wired = '1';
             }
+            once('worldSidePanelClose', closeWorldSidePanel);
+            document.querySelectorAll('#worldSidePanel [data-world-pane]').forEach(b => {
+                if (b.dataset.wired) return;
+                b.addEventListener('click', () => _showWorldPane(b.dataset.worldPane));
+                b.dataset.wired = '1';
+            });
             if (typeof _wireWorldDownload === 'function') _wireWorldDownload();
+        }
+
+        async function openWorldSidePanel(artifactIri) {
+            const panel = document.getElementById('worldSidePanel');
+            const node = (worldFullGraph?.nodes || []).find(n => n.iri === artifactIri);
+            document.getElementById('worldSidePanelTitle').textContent =
+                node ? node.label : artifactIri;
+            document.getElementById('worldSidePanelMeta').textContent =
+                node ? `${node.kind} · ${node.claim_count} claim(s)` : '';
+            const flat = document.getElementById('worldSidePanelFlat');
+            flat.innerHTML = '<div class="json-placeholder">Loading BOM…</div>';
+            try {
+                const bom = await (await fetch(
+                    `/worldofboms/bom/${encodeURIComponent(artifactIri)}`)).json();
+                if (bom.error || bom.store_unavailable) {
+                    flat.innerHTML = '<div class="json-placeholder">No BOM stored for this node (placeholder).</div>';
+                } else {
+                    renderBOM(bom, flat);
+                }
+            } catch (e) {
+                flat.innerHTML = '<div class="json-placeholder">Failed to load BOM.</div>';
+            }
+            _showWorldPane('bom');
+            panel.classList.add('is-open');
+            panel.setAttribute('aria-hidden', 'false');
+            setTimeout(() => { if (worldCy) { worldCy.resize();
+                                              worldCy.fit(undefined, 28); } }, 220);
+            if (typeof loadWorldLineage === 'function') loadWorldLineage();
+        }
+
+        function closeWorldSidePanel() {
+            const panel = document.getElementById('worldSidePanel');
+            if (!panel) return;
+            panel.classList.remove('is-open');
+            panel.setAttribute('aria-hidden', 'true');
+            setTimeout(() => { if (worldCy) { worldCy.resize();
+                                              worldCy.fit(undefined, 28); } }, 220);
+        }
+
+        function _showWorldPane(name) {
+            document.querySelectorAll('#worldSidePanel [data-world-pane]').forEach(b =>
+                b.classList.toggle('is-active', b.dataset.worldPane === name));
+            document.getElementById('worldPaneBom').style.display =
+                name === 'bom' ? '' : 'none';
+            document.getElementById('worldPaneLineage').style.display =
+                name === 'lineage' ? '' : 'none';
         }
 
         document.addEventListener('DOMContentLoaded', () => {
