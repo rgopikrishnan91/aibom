@@ -20,6 +20,21 @@ class VoteKind(str, enum.Enum):
     IMPLICIT_VALIDATE = "implicit-validate"
 
 
+# Vote weights — policy for how each VoteKind contributes to a claim's
+# aggregate trust score.
+#
+#   TRUSTED  / FLAGGED   = ±1.0  → explicit user votes saturate the score
+#                                  in one vote each direction
+#   DISPUTED            = -0.5  → halfway negative; signals uncertainty,
+#                                  not an outright reject
+#   IMPLICIT_USE        = +0.25 → bootstrap signal from cache-use; ~4 of
+#   IMPLICIT_VALIDATE     +0.25   these equal one explicit TRUSTED, so a
+#                                  popular cache hit doesn't overwhelm
+#                                  considered explicit feedback
+#
+# `compute_score` clips the weighted sum to [-1.0, +1.0]. The scoring
+# function is pure; swap this dict (or the function body) without
+# re-collecting any votes.
 _WEIGHTS: dict["VoteKind", float] = {
     VoteKind.TRUSTED: +1.0,
     VoteKind.FLAGGED: -1.0,
