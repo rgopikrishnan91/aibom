@@ -31,6 +31,7 @@ def build_enrich_fn(
     mode: str = "rag",
     llm_provider: Optional[str] = None,
     model: Optional[str] = None,
+    find_links: bool = True,
 ) -> EnrichFn:
     """Return a recursive-walk enricher closure.
 
@@ -40,13 +41,22 @@ def build_enrich_fn(
         llm_provider: Optional LLM provider override (e.g. ``"openai"``,
             ``"anthropic"``); defaults to the processor's own default.
         model: Optional LLM model identifier override.
+        find_links: When True (default), each child is run through the
+            link-fallback finder to discover its GitHub repo and arXiv
+            paper before the BOM is built — the same source discovery a
+            top-level run performs. Without it a child is processed from
+            its HuggingFace card alone, which under-extracts
+            ``modelLineage`` / ``trainedOnDatasets`` / ``testedOnDatasets``
+            (those fields are mined mostly from the README and the
+            paper, not the card metadata). Degrades gracefully to
+            HuggingFace-only when no ``GEMINI_API_KEY`` is configured.
 
     Returns:
         A callable ``(target_dict) -> metadata_dict | None``. Returns
         ``None`` when the target cannot be resolved to a HuggingFace
         identifier, or when the inner processor raises (network failure,
-        missing repo, etc.) — in those cases the recursive walker falls
-        back to seed-only metadata for that child.
+        missing repo, etc.) — in those cases the recursive walker greys
+        the child as identified-but-not-generated.
     """
 
     def enrich(target: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -64,6 +74,12 @@ def build_enrich_fn(
             )
             return None
 
+        # Source discovery: give the child the same GitHub repo + arXiv
+        # paper a top-level run would gather, instead of HuggingFace alone.
+        arxiv_url, github_url = "", ""
+        if find_links:
+            arxiv_url, github_url = _discover_links(identifier, bom_type)
+
         try:
             if bom_type == "ai":
                 from aikaboom.core.processors import AIBOMProcessor
@@ -72,7 +88,9 @@ def build_enrich_fn(
                     AIBOMProcessor, use_case, mode, llm_provider, model
                 )
                 return proc.process_ai_model(
-                    repo_id=identifier, arxiv_url="", github_url=""
+                    repo_id=identifier,
+                    arxiv_url=arxiv_url,
+                    github_url=github_url,
                 )
 
             from aikaboom.core.processors import DATABOMProcessor
@@ -82,7 +100,7 @@ def build_enrich_fn(
             )
             hf_url = f"https://huggingface.co/datasets/{identifier}"
             return proc.process_dataset(
-                arxiv_url="", github_url="", hf_url=hf_url
+                arxiv_url=arxiv_url, github_url=github_url, hf_url=hf_url
             )
 
         except Exception as exc:  # noqa: BLE001 - we deliberately trap all
@@ -95,6 +113,49 @@ def build_enrich_fn(
             return None
 
     return enrich
+
+
+def _discover_links(identifier: str, bom_type: str) -> tuple:
+    """Discover a child's GitHub repo + arXiv paper via the link-fallback
+    finder, mirroring the source discovery a top-level run performs.
+
+    A recursive child enriched from its HuggingFace card alone loses the
+    GitHub README and the arXiv paper that the RAG pipeline mines for
+    ``modelLineage`` / ``trainedOnDatasets`` / ``testedOnDatasets``, so a
+    child's relationships come out under-extracted. Running the finder
+    here puts a child on equal footing with a top-level run.
+
+    Returns ``(arxiv_url, github_url)``; ``("", "")`` when discovery is
+    unavailable (no ``GEMINI_API_KEY``, missing dependency, or any
+    failure) so the walk degrades to HuggingFace-only rather than break.
+    """
+    try:
+        from aikaboom.utils.link_fallback import LinkFallbackFinder
+
+        finder = LinkFallbackFinder()
+        # No key / missing deps → the finder disables itself (client None).
+        if getattr(finder, "client", None) is None:
+            return "", ""
+        if bom_type == "data":
+            _hf, arxiv_url, github_url, _status = finder.find_missing_links(
+                hf_repo_id=identifier, arxiv_url="", github_url="",
+            )
+        else:
+            _hf, arxiv_url, github_url, _status = finder.find_missing_links(
+                repo_id=identifier, hf_repo_id=identifier,
+                arxiv_url="", github_url="",
+            )
+        log.info(
+            "recursive enrich: link discovery for %s → github=%s arxiv=%s",
+            identifier, bool(github_url), bool(arxiv_url),
+        )
+        return (arxiv_url or ""), (github_url or "")
+    except Exception as exc:  # noqa: BLE001 - discovery is best-effort
+        log.info(
+            "recursive enrich: link discovery failed for %s: %s",
+            identifier, exc,
+        )
+        return "", ""
 
 
 def _build_processor(cls, use_case, mode, llm_provider, model):
