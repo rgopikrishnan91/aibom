@@ -82,13 +82,27 @@ class BomStore:
         use_case: str | None = None,
         mode: str | None = None,
     ) -> list[dict]:
-        """Find existing claims that match the given identifiers + filters."""
+        """Find existing claims for the artifact whose primary derives from `identifiers`.
+
+        Note: this resolves the artifact via priority-pick over the supplied set,
+        not by cross-identifier lookup. For the cross-identifier flow, use
+        `BomStore.resolve()`.
+        """
         canon = canonicalize_set(identifiers)
         if not canon:
             return []
         primary = pick_primary(canon)
         artifact = iris.artifact_iri(primary)
+        return self._find_claims_for_artifact(artifact, use_case=use_case, mode=mode)
 
+    def _find_claims_for_artifact(
+        self,
+        artifact_iri: str,
+        use_case: str | None = None,
+        mode: str | None = None,
+    ) -> list[dict]:
+        """SPARQL query for claims under a specific artifact IRI."""
+        artifact = _validate_sparql_iri(artifact_iri)
         filters = []
         if use_case is not None:
             filters.append(f'?claim <{vocab.useCase}> "{_escape_sparql_literal(use_case)}" .')
@@ -98,7 +112,7 @@ class BomStore:
 
         q = f"""
         SELECT ?claim ?createdAt ?llmModel WHERE {{
-            <{_validate_sparql_iri(artifact)}> <{vocab.hasVersion}> ?version .
+            <{artifact}> <{vocab.hasVersion}> ?version .
             ?version <{vocab.hasClaim}> ?claim .
             {filter_clause}
             OPTIONAL {{ ?claim <{vocab.createdAt}> ?createdAt . }}
@@ -172,16 +186,16 @@ class BomStore:
                 existing_artifact=matches[0][0],
                 artifact_label=matches[0][1],
                 collision_artifacts=[m[0] for m in matches[1:]],
-                matching_claims=self.find_claims_for(
-                    identifiers, use_case=use_case, mode=mode
+                matching_claims=self._find_claims_for_artifact(
+                    matches[0][0], use_case=use_case, mode=mode,
                 ),
             )
 
         return ResolveResult(
             existing_artifact=matches[0][0],
             artifact_label=matches[0][1],
-            matching_claims=self.find_claims_for(
-                identifiers, use_case=use_case, mode=mode
+            matching_claims=self._find_claims_for_artifact(
+                matches[0][0], use_case=use_case, mode=mode,
             ),
         )
 
