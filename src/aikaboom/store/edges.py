@@ -11,6 +11,11 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 
+from rdflib import Literal, URIRef, XSD
+from rdflib.namespace import RDF
+
+from aikaboom.store import iris, vocab
+from aikaboom.store.naming import Identifier, canonicalize
 from aikaboom.utils.lineage import split_lineage_targets
 from aikaboom.utils.recursive_bom import (
     AI_RELATIONSHIP_FIELDS,
@@ -41,6 +46,77 @@ def _split_targets(value: Any) -> list[str]:
             out.extend(split_lineage_targets(str(v)))
         return out
     return split_lineage_targets(str(value))
+
+
+def canon_name(name: str) -> str:
+    """Canonicalize a free-text artifact name for identity comparison.
+
+    Reuses the identifier canonicalization pipeline with the `name-only`
+    platform (lowercase, separator collapse) — the conservative identity
+    layer, never the fuzzy supplier triage.
+    """
+    return canonicalize(Identifier("name-only", name)).value
+
+
+def _find_artifact_by_label(store, name: str) -> str | None:
+    """Return a non-placeholder Artifact IRI whose canonical label matches `name`."""
+    target = canon_name(name)
+    rows = store._backend.select(
+        f"""
+        SELECT ?artifact ?label WHERE {{
+            ?artifact a <{vocab.Artifact}> ;
+                      <{vocab.canonicalLabel}> ?label .
+            FILTER NOT EXISTS {{ ?artifact <{vocab.isPlaceholder}> true }}
+        }}
+        """
+    )
+    for row in rows:
+        if canon_name(str(row["label"])) == target:
+            return str(row["artifact"])
+    return None
+
+
+def _mint_placeholder(store, name: str) -> str:
+    """Create a flagged placeholder Artifact for an unresolved name; return its IRI."""
+    ident = canonicalize(Identifier("name-only", name))
+    art = iris.artifact_iri(ident)
+    if store._backend.ask(f"ASK {{ <{art}> a <{vocab.Artifact}> }}"):
+        return art  # already minted by an earlier edge
+    quads = [
+        (URIRef(art), RDF.type, URIRef(vocab.Artifact), None),
+        (URIRef(art), URIRef(vocab.isPlaceholder),
+         Literal(True, datatype=XSD.boolean), None),
+        (URIRef(art), URIRef(vocab.canonicalLabel), Literal(name), None),
+        (URIRef(art), URIRef(vocab.primaryIdentifier),
+         Literal(f"name-only:{ident.value}"), None),
+    ]
+    ident_node = URIRef(f"{art}/id")
+    quads += [
+        (URIRef(art), URIRef(vocab.identifier), ident_node, None),
+        (ident_node, URIRef(vocab.platform), Literal("name-only"), None),
+        (ident_node, URIRef(vocab.value), Literal(ident.value), None),
+    ]
+    store._backend.add_quads(quads)
+    return art
+
+
+def resolve_edge_target(store, name: str) -> tuple[str, bool]:
+    """Resolve a relationship target name to an Artifact IRI.
+
+    Resolution order (identity layer only — no fuzzy matching here):
+      1. identifier match via `store.resolve` (the cache-hit path);
+      2. exact name-label match against an existing non-placeholder artifact;
+      3. mint a flagged placeholder.
+
+    Returns `(artifact_iri, minted_placeholder)`.
+    """
+    resolved = store.resolve([Identifier("name-only", name)])
+    if resolved.existing_artifact:
+        return resolved.existing_artifact, False
+    by_label = _find_artifact_by_label(store, name)
+    if by_label:
+        return by_label, False
+    return _mint_placeholder(store, name), True
 
 
 def extract_relationship_targets(bom_json: Mapping[str, Any]) -> list[tuple[str, str]]:

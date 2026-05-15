@@ -1,6 +1,39 @@
 """Edge extraction + persistence: artifact-to-artifact relationships."""
 
-from aikaboom.store.edges import extract_relationship_targets
+import pytest
+from aikaboom.store.store import BomStore
+from aikaboom.store.naming import Identifier
+from aikaboom.store.edges import extract_relationship_targets, resolve_edge_target, canon_name
+
+
+@pytest.fixture
+def store(tmp_store_dir, monkeypatch):
+    monkeypatch.setenv("AIKABOOM_GRAPH_BACKEND", "rdflib")
+    return BomStore.open()
+
+
+def test_canon_name_lowercases_and_collapses():
+    assert canon_name("SQuAD") == "squad"
+    assert canon_name("Common_Crawl") == canon_name("common-crawl")
+
+
+def test_resolve_edge_target_mints_placeholder_when_unknown(store):
+    iri, minted = resolve_edge_target(store, "totally-unknown-dataset")
+    assert iri.startswith("bom:artifact/")
+    assert minted is True
+    # The placeholder is flagged.
+    rows = list(store._backend.select(
+        f"SELECT ?o WHERE {{ <{iri}> <https://aikaboom.dev/aibom#isPlaceholder> ?o }}"))
+    assert len(rows) == 1
+
+
+def test_resolve_edge_target_finds_existing_artifact_by_label(store, sample_bom,
+                                                              sample_run_meta):
+    # sample_bom's repo_id is "mistralai/Mistral-7B-v0.1" -> canonicalLabel.
+    store.save_claim(sample_bom, sample_run_meta,
+                     identifiers=[Identifier("huggingface", "mistralai/Mistral-7B-v0.1")])
+    iri, minted = resolve_edge_target(store, "mistralai/Mistral-7B-v0.1")
+    assert minted is False  # matched the real artifact, no placeholder
 
 
 def _bom_with(field, value):
