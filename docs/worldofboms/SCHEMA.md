@@ -159,6 +159,8 @@ Reused where SPDX/PROV-O don't already cover them.
 | Predicate | Domain → Range | Purpose |
 |---|---|---|
 | `aibom:trainedOn` | Model → Dataset | Training data dependency. |
+| `aibom:testedOn` | Model → Dataset | Evaluation/test dataset dependency. |
+| `aibom:dependsOn` | Model → Model / Dataset → Dataset | General dependency between artifacts. |
 | `aibom:describedIn` | Model → Paper | Paper that describes the model. |
 | `aibom:hostedAt` | Model → CodeRepo | Code repo hosting the model. |
 | `aibom:hasLicense` | Artifact → License (also `spdx:license`) | License attached to the artifact. |

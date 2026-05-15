@@ -66,6 +66,12 @@ class TestPredicates:
         assert str(vocab.conflictKind) == str(vocab.AIBOM) + "conflictKind"
 
 
+def test_testedon_and_dependson_predicates_exist():
+    from aikaboom.store import vocab
+    assert str(vocab.testedOn) == "https://aikaboom.dev/aibom#testedOn"
+    assert str(vocab.dependsOn) == "https://aikaboom.dev/aibom#dependsOn"
+
+
 import pytest  # noqa: E402
 from aikaboom.store import vocab as vocab_module  # noqa: E402
 

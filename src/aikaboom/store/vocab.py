@@ -74,6 +74,8 @@ conflictsWith = AIBOM.conflictsWith
 
 # Predicates: BOM-domain edges
 trainedOn = AIBOM.trainedOn
+testedOn = AIBOM.testedOn
+dependsOn = AIBOM.dependsOn
 describedIn = AIBOM.describedIn
 hostedAt = AIBOM.hostedAt
 hasLicense = AIBOM.hasLicense
