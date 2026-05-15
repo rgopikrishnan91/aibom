@@ -3,7 +3,7 @@
 import pytest
 from aikaboom.store.store import BomStore
 from aikaboom.store.naming import Identifier
-from aikaboom.store.edges import extract_relationship_targets, resolve_edge_target, canon_name
+from aikaboom.store.edges import extract_relationship_targets, resolve_edge_target, canon_name, add_relationship_edges
 
 
 @pytest.fixture
@@ -96,3 +96,22 @@ def test_splits_arrow_lineage_chains():
     targets = extract_relationship_targets(_bom_with("modelLineage", "bert-base -> distilbert"))
     names = {t for _, t in targets}
     assert "bert-base" in names and "distilbert" in names
+
+
+def test_add_relationship_edges_writes_edge(store):
+    src = "bom:artifact/source-model"
+    bom = _bom_with("trainedOnDatasets", "squad")
+    add_relationship_edges(store, src, bom)
+    rows = list(store._backend.select(
+        f"SELECT ?t WHERE {{ <{src}> <{'https://aikaboom.dev/aibom#trainedOn'}> ?t }}"))
+    assert len(rows) == 1
+
+
+def test_add_relationship_edges_is_idempotent(store):
+    src = "bom:artifact/source-model"
+    bom = _bom_with("trainedOnDatasets", "squad")
+    add_relationship_edges(store, src, bom)
+    add_relationship_edges(store, src, bom)  # second call must not duplicate
+    rows = list(store._backend.select(
+        f"SELECT ?t WHERE {{ <{src}> <{'https://aikaboom.dev/aibom#trainedOn'}> ?t }}"))
+    assert len(rows) == 1

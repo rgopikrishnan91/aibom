@@ -19,6 +19,7 @@ from rdflib.namespace import RDF
 
 from aikaboom.store import iris, vocab
 from aikaboom.store.naming import Identifier, canonicalize
+from aikaboom.store.store import _validate_sparql_iri
 from aikaboom.utils.lineage import split_lineage_targets
 from aikaboom.utils.recursive_bom import (
     AI_RELATIONSHIP_FIELDS,
@@ -122,6 +123,33 @@ def resolve_edge_target(store: "BomStore", name: str) -> tuple[str, bool]:
     if by_label:
         return by_label, False
     return _mint_placeholder(store, name), True
+
+
+def add_relationship_edges(store: "BomStore", source_artifact_iri: str,
+                           bom_json: Mapping[str, Any]) -> list[tuple[str, str, str]]:
+    """Persist `trainedOn`/`testedOn`/`dependsOn` edges from a saved BOM.
+
+    For each relationship target in `bom_json`, resolves it to an Artifact
+    IRI (Task A4) and writes one edge triple. Edge writes are idempotent —
+    an `ASK` guard skips a triple that already exists.
+
+    Returns the list of `(source, predicate, target)` edges added.
+    """
+    src = _validate_sparql_iri(source_artifact_iri)
+    added: list[tuple[str, str, str]] = []
+    for predicate, target_name in extract_relationship_targets(bom_json):
+        pred_uri = str(getattr(vocab, predicate))
+        target_iri, _minted = resolve_edge_target(store, target_name)
+        tgt = _validate_sparql_iri(target_iri)
+        if tgt == src:
+            continue  # never self-loop
+        if store._backend.ask(f"ASK {{ <{src}> <{pred_uri}> <{tgt}> }}"):
+            continue
+        store._backend.add_quads(
+            [(URIRef(src), URIRef(pred_uri), URIRef(tgt), None)]
+        )
+        added.append((src, predicate, tgt))
+    return added
 
 
 def extract_relationship_targets(bom_json: Mapping[str, Any]) -> list[tuple[str, str]]:
