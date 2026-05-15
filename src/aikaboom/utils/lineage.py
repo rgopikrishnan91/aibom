@@ -24,6 +24,34 @@ from aikaboom.utils.value_helpers import _is_nil_value
 _LINEAGE_SEPARATORS = re.compile(r'[,;\n]|\s*(?:->|→)\s*')
 
 
+# Phrases an LLM emits for "this model has no base model" — they answer
+# the modelLineage question, they are not walkable parents. Matched
+# case-insensitively as substrings; every phrase contains a space, so it
+# cannot collide with an ``org/name`` identifier slug (slugs have no
+# spaces). ``"scratch"`` alone is also caught as a whole-segment value.
+_NO_LINEAGE_PHRASES = (
+    "from scratch",
+    "no base model",
+    "no parent model",
+    "no prior model",
+    "no predecessor model",
+    "no foundation model",
+    "not derived from",
+    "not based on",
+    "no lineage",
+    "no ancestor",
+    "trained independently",
+)
+
+
+def _is_no_lineage_phrase(segment: str) -> bool:
+    """True when a segment is a "no base model" answer, not a real target."""
+    low = segment.strip().lower().rstrip(" .")
+    if low in ("scratch", "not applicable", "no base model"):
+        return True
+    return any(phrase in low for phrase in _NO_LINEAGE_PHRASES)
+
+
 def split_lineage_targets(
     value: str,
     parent_identifier: Optional[str] = None,
@@ -33,6 +61,9 @@ def split_lineage_targets(
     Returns a list of distinct target names with:
       - separators handled: comma, semicolon, newline, ``->``, ``→``
       - nil sentinels (``noAssertion``, ``Not found``, …) dropped
+      - "no base model" answers (``from scratch``, ``no base model``, …)
+        dropped — they answer the modelLineage question, they are not
+        walkable parents
       - duplicates removed (case-insensitive)
       - self-loops dropped (any segment equal to ``parent_identifier``)
 
@@ -50,7 +81,12 @@ def split_lineage_targets(
         if not candidate:
             continue
         low = candidate.lower()
-        if low in seen or low == parent_lower or _is_nil_value(low):
+        if (
+            low in seen
+            or low == parent_lower
+            or _is_nil_value(low)
+            or _is_no_lineage_phrase(candidate)
+        ):
             continue
         seen.add(low)
         out.append(candidate)

@@ -129,12 +129,22 @@ def _discover_links(identifier: str, bom_type: str) -> tuple:
     unavailable (no ``GEMINI_API_KEY``, missing dependency, or any
     failure) so the walk degrades to HuggingFace-only rather than break.
     """
+    # Discovery is silent by default, which makes it impossible to tell
+    # whether a child was sourced fully or fell back to HuggingFace-only.
+    # Every branch below prints one ``[recursive] link discovery …`` line
+    # — visible on the CLI and mirrored into the web log/SSE stream — so
+    # the outcome for each child is always observable.
     try:
         from aikaboom.utils.link_fallback import LinkFallbackFinder
 
         finder = LinkFallbackFinder()
         # No key / missing deps → the finder disables itself (client None).
         if getattr(finder, "client", None) is None:
+            print(
+                f"[recursive] link discovery DISABLED for {identifier} — "
+                f"LinkFallbackFinder unavailable (missing GEMINI_API_KEY or "
+                f"google-genai). Child built from the HuggingFace card only."
+            )
             return "", ""
         if bom_type == "data":
             _hf, arxiv_url, github_url, _status = finder.find_missing_links(
@@ -145,12 +155,22 @@ def _discover_links(identifier: str, bom_type: str) -> tuple:
                 repo_id=identifier, hf_repo_id=identifier,
                 arxiv_url="", github_url="",
             )
+        arxiv_url, github_url = (arxiv_url or ""), (github_url or "")
+        print(
+            f"[recursive] link discovery for {identifier}: "
+            f"github={'✓ ' + github_url if github_url else '✗ none'} | "
+            f"arxiv={'✓ ' + arxiv_url if arxiv_url else '✗ none'}"
+        )
         log.info(
             "recursive enrich: link discovery for %s → github=%s arxiv=%s",
             identifier, bool(github_url), bool(arxiv_url),
         )
-        return (arxiv_url or ""), (github_url or "")
+        return arxiv_url, github_url
     except Exception as exc:  # noqa: BLE001 - discovery is best-effort
+        print(
+            f"[recursive] link discovery FAILED for {identifier}: {exc} — "
+            f"child built from the HuggingFace card only."
+        )
         log.info(
             "recursive enrich: link discovery failed for %s: %s",
             identifier, exc,
