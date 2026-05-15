@@ -6826,6 +6826,92 @@
                 name === 'lineage' ? '' : 'none';
         }
 
+        const WORLD_PRESETS = [
+            { id: 'licenses', label: 'Licenses across the lineage' },
+            { id: 'datasets', label: 'All datasets in the lineage' },
+            { id: 'models',   label: 'All models in the lineage' },
+            { id: 'conflicts',label: 'Conflicts anywhere in the lineage' },
+        ];
+
+        function loadWorldLineage() {
+            const root = document.getElementById('worldLineageResults');
+            if (!worldFocusIri) { root.innerHTML =
+                '<div class="json-placeholder">Click a node to see its lineage.</div>';
+                return; }
+            const buttons = WORLD_PRESETS.map(p =>
+                `<button class="mock-button world-preset" data-preset="${p.id}"
+                  style="display:block;width:100%;text-align:left;margin:4px 0;font-size:12px;">
+                  ▸ ${p.label}</button>`).join('');
+            root.innerHTML = `
+                <div style="font-size:11.5px;color:var(--paper-mute);margin-bottom:6px;">
+                  Scope: <strong>${worldDirection}</strong> — change with the Direction control.</div>
+                ${buttons}
+                <div id="worldQueryResult" style="margin-top:8px;"></div>
+                <details style="margin-top:12px;">
+                  <summary style="font-size:12px;cursor:pointer;">Advanced: SPARQL</summary>
+                  <textarea id="worldSparql" rows="4"
+                    style="width:100%;font-family:'IBM Plex Mono',monospace;font-size:11px;margin-top:6px;"
+                    placeholder="SELECT ?s WHERE { ?s a ?c } LIMIT 20"></textarea>
+                  <button class="mock-button" id="worldSparqlRun"
+                    style="font-size:11.5px;margin-top:4px;">Run query</button>
+                </details>`;
+            root.querySelectorAll('.world-preset').forEach(b =>
+                b.addEventListener('click', () => runWorldPreset(b.dataset.preset)));
+            const runBtn = document.getElementById('worldSparqlRun');
+            runBtn.addEventListener('click', runWorldSparql);
+        }
+
+        function _renderWorldRows(rows) {
+            const out = document.getElementById('worldQueryResult');
+            if (!rows || rows.length === 0) {
+                out.innerHTML = '<div class="json-placeholder">No results.</div>';
+                return;
+            }
+            const cols = Object.keys(rows[0]);
+            const head = cols.map(c => `<th style="text-align:left;padding:3px 6px;">${c}</th>`).join('');
+            const body = rows.map(r =>
+                '<tr>' + cols.map(c =>
+                    `<td style="padding:3px 6px;border-top:1px solid #eee;">${
+                        escapeHtml(String(r[c] ?? ''))}</td>`).join('') + '</tr>').join('');
+            out.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:11.5px;">
+                <thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+        }
+
+        async function runWorldPreset(preset) {
+            const out = document.getElementById('worldQueryResult');
+            out.innerHTML = '<div class="json-placeholder">Running…</div>';
+            try {
+                const resp = await fetch('/worldofboms/query', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ preset, artifact: worldFocusIri,
+                                           direction: worldDirection }) });
+                const data = await resp.json();
+                if (data.error) { out.innerHTML =
+                    `<div class="json-placeholder">${escapeHtml(data.error)}</div>`; return; }
+                _renderWorldRows(data.rows);
+            } catch (e) {
+                out.innerHTML = '<div class="json-placeholder">Query failed.</div>';
+            }
+        }
+
+        async function runWorldSparql() {
+            const out = document.getElementById('worldQueryResult');
+            const sparql = document.getElementById('worldSparql').value.trim();
+            if (!sparql) return;
+            out.innerHTML = '<div class="json-placeholder">Running…</div>';
+            try {
+                const resp = await fetch('/worldofboms/query', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sparql }) });
+                const data = await resp.json();
+                if (data.error) { out.innerHTML =
+                    `<div class="json-placeholder">${escapeHtml(data.error)}</div>`; return; }
+                _renderWorldRows(data.rows);
+            } catch (e) {
+                out.innerHTML = '<div class="json-placeholder">Query failed.</div>';
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             wireViewToggles();
             wireSidePanel();
