@@ -598,6 +598,10 @@ def main():
     lm.add_argument("--limit", type=int, default=None, help="Max number of models to show.")
     lm.add_argument("--json", action="store_true", help="Output JSON instead of a table.")
 
+    # --- graph / bom subcommands ---
+    from aikaboom.store.cli_graph import register_subparsers as _register_graph_subparsers
+    _register_graph_subparsers(subparsers)
+
     args = parser.parse_args()
 
     if args.command == "generate":
@@ -606,6 +610,8 @@ def main():
         cmd_serve(args)
     elif args.command == "list-models":
         cmd_list_models(args)
+    elif args.command in ("graph", "bom"):
+        return args.func(args)
     else:
         parser.print_help()
         sys.exit(1)
