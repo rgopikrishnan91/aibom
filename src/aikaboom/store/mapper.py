@@ -10,6 +10,7 @@ import datetime as _dt
 from typing import Any, Iterable, Mapping
 
 from rdflib import BNode, Dataset, Literal, URIRef, XSD
+from rdflib.namespace import RDF
 
 from aikaboom.store import iris, vocab
 from aikaboom.store.naming import Identifier, canonicalize_set, pick_primary
@@ -17,6 +18,15 @@ from aikaboom.store.naming import Identifier, canonicalize_set, pick_primary
 
 def _u(s: str) -> URIRef:
     return URIRef(s)
+
+
+def _field_value(bom: Mapping[str, Any], section: str, field: str) -> Any:
+    """Safely extract a triplet's value, tolerating None at any level."""
+    section_dict = bom.get(section) or {}
+    triplet = section_dict.get(field) or {}
+    if not isinstance(triplet, dict):
+        return None
+    return triplet.get("value")
 
 
 def _kind_for_platform(platform: str) -> URIRef:
@@ -39,7 +49,7 @@ def _add_identifier_set(ds: Dataset, artifact: URIRef, idents: Iterable[Identifi
 
 def _add_generation_run(ds: Dataset, run_meta: Mapping[str, Any]) -> URIRef:
     run = _u(iris.run_iri(run_meta))
-    ds.add((run, _u("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), _u(vocab.GenerationRun)))
+    ds.add((run, RDF.type, _u(vocab.GenerationRun)))
     for field in ("provider", "llm_model", "prompt_version", "code_version", "mode", "use_case"):
         if field in run_meta and run_meta[field] is not None:
             predicate_uri = {
@@ -60,7 +70,7 @@ def _add_field_claim(
     field_name: str,
     triplet: Mapping[str, Any],
 ) -> None:
-    """Add one field claim triple + RDF-star annotation with source."""
+    """Add one field claim triple + reified annotation carrying source + conflictKind."""
     value = triplet.get("value")
     if value is None:
         return
@@ -74,9 +84,9 @@ def _add_field_claim(
         # triple keyed on a deterministic blank node. The CI test
         # test_conflict_preservation asserts both forms round-trip.
         ann = BNode()
-        ds.add((ann, _u("http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"), claim))
-        ds.add((ann, _u("http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate"), pred))
-        ds.add((ann, _u("http://www.w3.org/1999/02/22-rdf-syntax-ns#object"), obj))
+        ds.add((ann, RDF.subject, claim))
+        ds.add((ann, RDF.predicate, pred))
+        ds.add((ann, RDF.object, obj))
         ds.add((ann, _u(vocab.assertedBy), _u(iris.source_iri(source))))
         conflict = triplet.get("conflict")
         if conflict is None:
@@ -111,7 +121,7 @@ def bom_to_rdf(
     ds = Dataset()
 
     artifact = _u(iris.artifact_iri(primary))
-    ds.add((artifact, _u("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), _u(_kind_for_platform(primary.platform))))
+    ds.add((artifact, RDF.type, _u(_kind_for_platform(primary.platform))))
     ds.add((artifact, _u(vocab.primaryIdentifier), Literal(f"{primary.platform}:{primary.value}")))
     ds.add((artifact, _u(vocab.canonRuleVersion), Literal(vocab.CANON_RULE_VERSION)))
     _add_identifier_set(ds, artifact, canon_ids)
@@ -119,20 +129,16 @@ def bom_to_rdf(
     ds.add((artifact, _u(vocab.canonicalLabel), Literal(str(label))))
 
     version_str = (
-        bom_json.get("direct_fields", {})
-        .get("packageVersion", {})
-        .get("value")
-        or bom_json.get("direct_fields", {})
-        .get("contentIdentifier", {})
-        .get("value")
+        _field_value(bom_json, "direct_fields", "packageVersion")
+        or _field_value(bom_json, "direct_fields", "contentIdentifier")
         or "unknown"
     )
     version = _u(iris.version_iri(str(artifact), str(version_str)))
-    ds.add((version, _u("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), _u(vocab.ArtifactVersion)))
+    ds.add((version, RDF.type, _u(vocab.ArtifactVersion)))
     ds.add((artifact, _u(vocab.hasVersion), version))
 
     claim = _u(iris.claim_iri())
-    ds.add((claim, _u("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), _u(vocab.BOMClaim)))
+    ds.add((claim, RDF.type, _u(vocab.BOMClaim)))
     ds.add((version, _u(vocab.hasClaim), claim))
     ds.add((claim, _u(vocab.useCase), Literal(run_meta.get("use_case", "complete"))))
     ds.add((claim, _u(vocab.mode), Literal(run_meta.get("mode", "rag"))))

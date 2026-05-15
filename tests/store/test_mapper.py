@@ -1,14 +1,9 @@
 """Mapper: BOM JSON ↔ RDF quads."""
-from rdflib import Dataset, Literal, URIRef, XSD
+from rdflib import Literal, URIRef
 
 from aikaboom.store.mapper import bom_to_rdf
 from aikaboom.store import vocab
 from aikaboom.store.naming import Identifier
-
-
-def _ds_has(ds: Dataset, s, p, o=None) -> bool:
-    """Helper: is there at least one quad matching (s, p, o)?"""
-    return any(True for _ in ds.quads((URIRef(s), URIRef(p), o, None)))
 
 
 class TestBomToRdf:
@@ -55,7 +50,7 @@ class TestBomToRdf:
         ]
 
     def test_field_claim_with_source(self, sample_bom, sample_run_meta):
-        """Each direct_field becomes a triple + RDF-star annotation with source."""
+        """Each direct_field becomes a triple + reified annotation with source."""
         ds, claim_iri = bom_to_rdf(
             sample_bom,
             sample_run_meta,
@@ -65,3 +60,13 @@ class TestBomToRdf:
         quads = list(ds.quads())
         triples = [(str(s), str(p), str(o)) for s, p, o, _ in quads]
         assert any(claim_iri in t[0] and "mistralai" in t[2] for t in triples)
+
+    def test_handles_explicit_null_packageVersion(self, sample_bom, sample_run_meta):
+        """A BOM with packageVersion: None should not crash."""
+        from aikaboom.store.naming import Identifier
+        sample_bom["direct_fields"]["packageVersion"] = None
+        ds, claim_iri = bom_to_rdf(
+            sample_bom, sample_run_meta,
+            identifiers=[Identifier("huggingface", "x/y")],
+        )
+        assert claim_iri.startswith("bom:claim/")
