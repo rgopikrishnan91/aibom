@@ -130,3 +130,20 @@ def test_lineage_query_includes_placeholder_models(store, sample_run_meta):
     rows = graph_view.lineage_query(store, fine_iri, preset="models", direction="up")
     labels = {r["label"] for r in rows}
     assert "gpt2" in labels   # the placeholder model is found
+
+
+def test_raw_query_runs_select(store, sample_run_meta):
+    _save_model_with_dataset(store, sample_run_meta)
+    rows = graph_view.raw_query(store, "SELECT ?s WHERE { ?s a ?c } LIMIT 5")
+    assert isinstance(rows, list)
+
+
+@pytest.mark.parametrize("bad", [
+    "INSERT DATA { <a:x> <a:y> <a:z> }",
+    "DELETE WHERE { ?s ?p ?o }",
+    "  delete  { ?s ?p ?o } where { ?s ?p ?o }",
+    "DROP ALL",
+])
+def test_raw_query_rejects_mutations(store, bad):
+    with pytest.raises(ValueError):
+        graph_view.raw_query(store, bad)

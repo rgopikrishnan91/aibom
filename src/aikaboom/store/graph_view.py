@@ -6,6 +6,8 @@ SPARQL lives here so the Flask layer stays thin.
 
 from __future__ import annotations
 
+import re as _re
+
 from aikaboom.store import vocab
 from aikaboom.store.store import _validate_sparql_iri
 
@@ -199,3 +201,22 @@ def _conflicts_for(store, artifact_iri: str) -> list[str]:
         """
     )
     return [str(r["kind"]).rsplit("#", 1)[-1] for r in rows]
+
+
+_MUTATION_KEYWORDS = _re.compile(
+    r"\b(INSERT|DELETE|LOAD|CLEAR|DROP|CREATE|ADD|MOVE|COPY)\b", _re.IGNORECASE
+)
+
+
+def raw_query(store, sparql: str) -> list[dict]:
+    """Run a read-only SPARQL query. Rejects anything that can mutate the store."""
+    if _MUTATION_KEYWORDS.search(sparql or ""):
+        raise ValueError("only read-only SELECT/ASK queries are allowed")
+    # Strip PREFIX/comment lines, then require SELECT or ASK as the first keyword.
+    stripped = "\n".join(
+        ln for ln in (sparql or "").splitlines()
+        if ln.strip() and not ln.strip().upper().startswith(("PREFIX", "#", "BASE"))
+    ).strip()
+    if not _re.match(r"(SELECT|ASK)\b", stripped, _re.IGNORECASE):
+        raise ValueError("query must start with SELECT or ASK")
+    return [{k: str(v) for k, v in row.items()} for row in store._backend.select(sparql)]
