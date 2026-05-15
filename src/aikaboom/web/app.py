@@ -431,6 +431,61 @@ def _try_resolve_cache(
     return store, idents, None
 
 
+def _annotate_conflicts_with_spdx_ids(conflicts: list, spdx_doc: dict) -> list:
+    """Tag each conflict row with the spdxId of its matching SPDX Annotation.
+
+    Both ``_extract_conflicts`` and ``SPDXValidator._build_conflict_annotations``
+    iterate ``direct_fields`` then ``rag_fields`` in dict-insertion order and
+    emit one row per detected conflict. We index annotations by
+    ``(section, field, kind)`` and pop a candidate per matching conflict row
+    so duplicate (field, kind) pairs (e.g. two external conflict entries on
+    the same field) line up by first-come, first-served — same order the
+    SPDX writer used.
+
+    Adds two keys to each conflict dict:
+      * ``spdx_annotation_id``  — the ``urn:spdx:Annotation-…`` IRI
+      * ``spdx_annotation_subject`` — the Element that annotation targets
+
+    Conflicts with no matching annotation (e.g. annotation emission threw)
+    keep the keys absent, so the UI can degrade gracefully.
+    """
+    if not isinstance(spdx_doc, dict) or not isinstance(conflicts, list):
+        return conflicts
+
+    # Build {(section, field, kind): [annotation, …]} from the SPDX graph.
+    # Kind in the annotation statement maps 1:1 onto the conflict row's
+    # ``kind`` value (``inter``, ``intra``, ``rag-internal``,
+    # ``rag-external``).
+    buckets: dict = {}
+    for elem in spdx_doc.get('@graph') or []:
+        if not isinstance(elem, dict) or elem.get('type') != 'Annotation':
+            continue
+        statement = elem.get('statement')
+        if not isinstance(statement, str):
+            continue
+        try:
+            payload = json.loads(statement)
+        except (ValueError, TypeError):
+            continue
+        key = (payload.get('section'), payload.get('field'), payload.get('kind'))
+        buckets.setdefault(key, []).append(elem)
+
+    for conflict in conflicts:
+        section = conflict.get('section')
+        field = conflict.get('field')
+        kind = conflict.get('kind')
+        key = (section, field, kind)
+        candidates = buckets.get(key)
+        if not candidates:
+            continue
+        annotation = candidates.pop(0)
+        conflict['spdx_annotation_id'] = annotation.get('spdxId')
+        conflict['spdx_annotation_subject'] = annotation.get('subject')
+        conflict['spdx_annotation_type'] = annotation.get('annotationType')
+
+    return conflicts
+
+
 @app.route('/logs')
 def stream_logs():
     """SSE endpoint — streams server logs to the browser in real time."""
@@ -689,7 +744,10 @@ def process():
         if spdx_relationship_cap is not None and spdx_relationship_cap < 1:
             spdx_relationship_cap = None
         recursive_bom = bool(data.get('recursive_bom', False))
-        recursive_safety_cap = max(1, int(data.get('recursive_safety_cap', 50)))
+        # Three independent controls: depth (levels), breadth (per-node
+        # fan-out), safety_cap (absolute total ceiling / runaway guard).
+        recursive_safety_cap = max(1, int(data.get('recursive_safety_cap', 200)))
+        recursive_breadth = max(1, int(data.get('recursive_breadth', 10)))
         raw_depth = data.get('recursive_depth', 1)
         if isinstance(raw_depth, str) and raw_depth.strip().lower() in ('all', 'exhaust'):
             from aikaboom.utils.recursive_bom import EXHAUST_DEPTH
@@ -1114,6 +1172,13 @@ def process():
                 json.dump(spdx_output, f, indent=2, ensure_ascii=False)
             response_data['spdx_download_url'] = f'/download/{spdx_filename}'
             response_data['spdx_data'] = spdx_output
+            # Cross-reference each conflict row with the spdxId of its
+            # matching Annotation Element so the UI can deep-link from a
+            # conflict back into the SPDX viewer / downloaded artifact.
+            if isinstance(response_data.get('conflicts'), list):
+                response_data['conflicts'] = _annotate_conflicts_with_spdx_ids(
+                    response_data['conflicts'], spdx_output,
+                )
             if validate_spdx:
                 response_data['spdx_validation'] = validate_spdx_export(
                     spdx_output,
@@ -1181,11 +1246,16 @@ def process():
                     mode=mode,
                     llm_provider=llm_provider,
                     model=model,
+                    # Recursive children get the same GitHub/arXiv link
+                    # discovery the top-level run uses, unless the user
+                    # opted out of link fallback for this run.
+                    find_links=not skip_fallback,
                 )
                 recursive_output = generate_recursive_boms(
                     metadata,
                     bom_type=bom_type,
                     max_depth=recursive_depth,
+                    breadth=recursive_breadth,
                     safety_cap=recursive_safety_cap,
                     validate_spdx=validate_spdx,
                     strict_spdx=strict_spdx_validation,
@@ -1270,6 +1340,68 @@ def process():
             'message': str(e),
             'trace': error_trace
         }), 500
+
+
+@app.route('/recursive-node', methods=['POST'])
+def recursive_node():
+    """Generate one recursive child BOM on demand.
+
+    Backs the Stage 2 right-click "Generate this BOM" action on a greyed
+    (identified-but-not-generated) node. The request body carries the
+    target descriptor plus the processor settings of the original run::
+
+        {"target": "...", "bom_type": "ai"|"data",
+         "relationship_type": "...", "parent": "...", "depth": 2,
+         "mode": "rag", "use_case": "complete",
+         "llm_provider": "openai", "model": "..."}
+
+    Returns ``{"ok": true, "node": {...}}`` or ``{"ok": false,
+    "error": "..."}``.
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+        target_name = (data.get('target') or '').strip()
+        if not target_name:
+            return jsonify({'ok': False, 'error': 'no target given'}), 400
+
+        bom_type = (data.get('bom_type') or 'ai').lower()
+        if bom_type not in ('ai', 'data'):
+            bom_type = 'ai'
+        mode = data.get('mode') if data.get('mode') in ('rag', 'direct') else 'rag'
+        llm_provider = data.get('llm_provider')
+        if llm_provider not in ('openai', 'ollama', 'openrouter'):
+            llm_provider = 'openai'
+
+        from aikaboom.utils.recursive_bom import generate_single_node
+        from aikaboom.utils.recursive_enrich import build_enrich_fn
+
+        enrich_fn = build_enrich_fn(
+            use_case=data.get('use_case') or 'complete',
+            mode=mode,
+            llm_provider=llm_provider,
+            model=data.get('model') or None,
+            # On-demand generation discovers GitHub/arXiv links too, so a
+            # node generated from a right-click is sourced like any other.
+            find_links=not bool(data.get('skip_fallback', False)),
+        )
+        result = generate_single_node(
+            {
+                'target': target_name,
+                'bom_type': bom_type,
+                'relationship_type': data.get('relationship_type') or 'dependsOn',
+                'parent': data.get('parent') or '',
+                'source_field': data.get('source_field') or '',
+                'depth': data.get('depth') or 1,
+            },
+            enrich_fn=enrich_fn,
+            validate_spdx=True,
+            strict_spdx=bool(data.get('strict_spdx', False)),
+        )
+        return jsonify(result), 200
+    except Exception as exc:  # noqa: BLE001
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({'ok': False, 'error': str(exc)}), 500
 
 
 @app.route('/history', methods=['GET'])

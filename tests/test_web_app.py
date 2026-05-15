@@ -277,6 +277,119 @@ class TestFlaskApp:
         assert data["linked_bom"]["validation"]["validator"] == "jsonschema+shacl"
         assert data["linked_bom"]["validation"]["valid"] is True
 
+    def test_process_response_cross_references_conflicts_with_spdx_annotation_ids(
+        self, client, monkeypatch
+    ):
+        """The /process response must wire each conflict row up to the
+        spdxId of its matching SPDX Annotation Element so the UI can
+        deep-link from a conflict row into the downloaded SPDX 3.0.1
+        artifact. Regression guard for the
+        ``_annotate_conflicts_with_spdx_ids`` step in app.py.
+        """
+        import importlib
+        import json as _json
+
+        web_app_module = importlib.import_module("aikaboom.web.app")
+
+        class DummyProcessor:
+            use_case = "complete"
+
+            def process_ai_model(self, repo_id=None, arxiv_url=None, github_url=None):
+                # One deterministic direct conflict (license) and one
+                # RAG-external conflict (intended_use) so the response
+                # carries at least two conflict rows to cross-reference.
+                return {
+                    "model_id": "conflict_model",
+                    "repo_id": "test/conflict-model",
+                    "direct_fields": {
+                        "license": {
+                            "value": "MIT",
+                            "source": "github",
+                            "conflict": {
+                                "value": "Apache-2.0",
+                                "source": "arxiv",
+                                "type": "inter",
+                            },
+                        },
+                    },
+                    "rag_fields": {
+                        "model_name": {
+                            "value": "Conflict Model",
+                            "source": "huggingface",
+                            "conflict": {"internal": "No", "external": "No"},
+                        },
+                        "intended_use": {
+                            "value": "Chatbot",
+                            "source": "huggingface",
+                            "conflict": {"internal": "No", "external": "Yes"},
+                            "trace": {
+                                "claims": {
+                                    "huggingface": "Customer chatbot",
+                                    "arxiv": "LM evaluation",
+                                },
+                                "selected_sources": ["huggingface"],
+                                "internal_conflicts": {},
+                                "external_conflicts": [{
+                                    "sources": ["huggingface", "arxiv"],
+                                    "description": "A says X vs B says Y",
+                                    "grounding": 0.82,
+                                }],
+                            },
+                        },
+                    },
+                }
+
+        monkeypatch.setattr(
+            web_app_module, "get_processor", lambda **kwargs: DummyProcessor(),
+        )
+
+        response = client.post(
+            "/process",
+            json={
+                "bom_type": "ai", "mode": "rag", "repo_id": "test/conflict-model",
+                "skip_fallback": True,
+                "validate_spdx": True, "strict_spdx_validation": False,
+                "recursive_bom": False, "recursive_depth": 0,
+            },
+            content_type="application/json",
+        )
+        assert response.status_code == 200
+        data = response.get_json()
+
+        # Both conflicts surface; both carry the annotation cross-ref.
+        conflicts = data["conflicts"]
+        assert len(conflicts) >= 2
+        for c in conflicts:
+            assert c.get("spdx_annotation_id", "").startswith(
+                "urn:spdx:Annotation-"
+            ), f"missing/invalid spdx_annotation_id on conflict row: {c}"
+            assert c.get("spdx_annotation_subject", "").startswith("urn:spdx:")
+            assert c.get("spdx_annotation_type") == "other"
+
+        # The cross-referenced IDs must actually exist as Annotation
+        # Elements in the SPDX @graph the response also carries.
+        spdx_graph = data["spdx_data"]["@graph"]
+        annotation_ids = {
+            e["spdxId"] for e in spdx_graph
+            if e.get("type") == "Annotation" and e.get("spdxId")
+        }
+        for c in conflicts:
+            assert c["spdx_annotation_id"] in annotation_ids, (
+                "conflict row points at an annotation that isn't in the graph"
+            )
+
+        # The statement payload carries the SPDX property name so the UI
+        # consumer can identify the conflicted SPDX 3.0.1 property
+        # without speaking AIkaBoOM's internal field vocabulary.
+        license_ann = next(
+            e for e in spdx_graph
+            if e.get("type") == "Annotation"
+            and e.get("name") == "aikaboom:conflict:simplelicensing_licenseExpression"
+        )
+        payload = _json.loads(license_ann["statement"])
+        assert payload["spdx_property"] == "simplelicensing_licenseExpression"
+        assert payload["field"] == "license"
+
     def test_process_beta_fields_only_lists_what_ran(self, client, monkeypatch):
         """beta_fields must reflect only the features actually emitted in
         this run — empty when nothing beta is requested, populated when
@@ -338,3 +451,64 @@ class TestFlaskApp:
         assert "cyclonedx" in data["beta_fields"]
         assert "recursive_bom" in data["beta_fields"]
         assert "linked_spdx_bundle" in data["beta_fields"]
+
+    def test_recursive_node_missing_target(self, client):
+        """POST /recursive-node with no target → 400, ok=False."""
+        response = client.post(
+            "/recursive-node", json={"bom_type": "ai"},
+            content_type="application/json",
+        )
+        assert response.status_code == 400
+        data = response.get_json()
+        assert data["ok"] is False
+
+    def test_recursive_node_generates_on_demand(self, client, monkeypatch):
+        """A greyed node can be generated on demand via /recursive-node."""
+        import importlib
+        rb = importlib.import_module("aikaboom.utils.recursive_bom")
+        re_mod = importlib.import_module("aikaboom.utils.recursive_enrich")
+
+        monkeypatch.setattr(re_mod, "build_enrich_fn", lambda **kw: (lambda t: {}))
+        captured = {}
+
+        def fake_single(target, enrich_fn=None, validate_spdx=True, strict_spdx=False):
+            captured.update(target)
+            return {"ok": True, "node": {"target": target["target"], "depth": 2}}
+
+        monkeypatch.setattr(rb, "generate_single_node", fake_single)
+
+        response = client.post(
+            "/recursive-node",
+            json={
+                "target": "meta-llama/Llama-3", "bom_type": "ai",
+                "relationship_type": "dependsOn", "parent": "p/model", "depth": 2,
+            },
+            content_type="application/json",
+        )
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data["ok"] is True
+        assert data["node"]["target"] == "meta-llama/Llama-3"
+        assert captured["target"] == "meta-llama/Llama-3"
+
+    def test_recursive_node_unresolved_target(self, client, monkeypatch):
+        """When the target cannot be enriched the endpoint returns ok=False."""
+        import importlib
+        rb = importlib.import_module("aikaboom.utils.recursive_bom")
+        re_mod = importlib.import_module("aikaboom.utils.recursive_enrich")
+
+        monkeypatch.setattr(re_mod, "build_enrich_fn", lambda **kw: (lambda t: None))
+        monkeypatch.setattr(
+            rb, "generate_single_node",
+            lambda *a, **kw: {"ok": False, "error": "unresolved"},
+        )
+
+        response = client.post(
+            "/recursive-node",
+            json={"target": "nonsense-model", "bom_type": "ai"},
+            content_type="application/json",
+        )
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data["ok"] is False
+        assert data["error"] == "unresolved"

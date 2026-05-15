@@ -21,6 +21,26 @@ def _conflict_triplet(value, kind="internal"):
     }
 
 
+def _enriched_leaf(target):
+    """Minimal 'successfully enriched' metadata for a target.
+
+    The walker greys a child only when enrich_fn returns None, so a test
+    enricher must return a dict for every target that should generate —
+    the production enricher does the same (it fetches a full BOM for
+    datasets too, not just models)."""
+    if target.get("bom_type") == "data":
+        return {
+            "dataset_id": target["target"],
+            "direct_metadata": {"name": target["target"]},
+            "rag_metadata": {},
+        }
+    return {
+        "model_id": target["target"],
+        "repo_id": target["target"],
+        "rag_fields": {"model_name": target["target"]},
+    }
+
+
 def test_discover_recursive_targets_from_clean_relationships():
     metadata = {
         "model_id": "parent-model",
@@ -31,12 +51,15 @@ def test_discover_recursive_targets_from_clean_relationships():
         },
     }
     targets, audit = discover_recursive_targets(metadata, bom_type="ai")
+    # modelLineage is discovered first so its dependsOn edge is never
+    # starved by a large trainedOn/testedOn dataset fan-out under the cap.
     assert [t["relationship_type"] for t in targets] == [
-        "trainedOn", "trainedOn", "testedOn", "dependsOn",
+        "dependsOn", "trainedOn", "trainedOn", "testedOn",
     ]
     assert audit["skipped_due_to_conflict"] == []
-    assert targets[-1]["bom_type"] == "ai"
-    assert targets[-1]["resolvable_hint"] is True
+    assert targets[0]["relationship_type"] == "dependsOn"
+    assert targets[0]["bom_type"] == "ai"
+    assert targets[0]["resolvable_hint"] is True
 
 
 def test_internal_conflict_flags_edge_but_walks_target():
@@ -163,7 +186,7 @@ def test_true_recursion_with_enrich_callback_walks_tree():
     def enrich(target):
         if target["bom_type"] == "ai":
             return grandchildren_per_model.get(target["target"])
-        return None  # data leaves stay as seeds
+        return _enriched_leaf(target)  # data leaves enrich to leaf nodes
 
     parent = {
         "model_id": "parent",
@@ -242,7 +265,10 @@ def test_duplicate_dataset_referenced_twice_is_not_duplicated():
             "modelLineage": _clean_triplet("meta-llama/Llama-3"),
         },
     }
-    out = generate_recursive_boms(parent, bom_type="ai", max_depth=3, enrich_fn=enrich)
+    out = generate_recursive_boms(
+        parent, bom_type="ai", max_depth=3,
+        enrich_fn=lambda t: enrich(t) or _enriched_leaf(t),
+    )
     squad_nodes = [n for n in out["generated"] if n["target"].lower() == "squad"]
     assert len(squad_nodes) == 1
     assert any(d["target"].lower() == "squad" for d in out["duplicates"])
@@ -329,7 +355,7 @@ def test_diamond_dependency_visits_target_once():
     }
 
     def enrich(target):
-        return enriched.get(target["target"])
+        return enriched.get(target["target"]) or _enriched_leaf(target)
 
     parent = {
         "model_id": "parent",
@@ -488,7 +514,7 @@ def test_linked_spdx_bundle_validates_after_multi_level_walk():
     }
     rec = generate_recursive_boms(
         parent, bom_type="ai", max_depth=4,
-        enrich_fn=lambda t: grand.get(t["target"]),
+        enrich_fn=lambda t: grand.get(t["target"]) or _enriched_leaf(t),
     )
     bundle = build_linked_spdx_bundle(parent, rec, bom_type="ai")
 
@@ -566,3 +592,167 @@ def test_conflict_flagging_under_phase4_structured_shape():
     assert len(targets) == 1
     assert targets[0]["has_conflict"] is True
     assert audit["conflict_flagged"][0]["field"] == "trainedOnDatasets"
+
+
+def test_modellineage_not_starved_by_dataset_fanout_under_safety_cap():
+    """A model with a large testedOn fan-out plus one modelLineage edge.
+
+    Regression: the safety cap is global and targets were discovered in
+    trainedOn/testedOn/modelLineage order, so a big dataset fan-out
+    consumed every slot and the modelLineage dependsOn child — the only
+    recursable edge — was dropped. modelLineage must be discovered first
+    so it is never crowded out by dataset leaves.
+    """
+    datasets = ", ".join(f"DS{i}" for i in range(20))
+    metadata = {
+        "repo_id": "microsoft/Magma-8B",
+        "rag_fields": {
+            "testedOnDatasets": _clean_triplet(datasets),
+            "modelLineage": _clean_triplet("meta-llama/Llama-3-8B-Instruct"),
+        },
+    }
+    out = generate_recursive_boms(metadata, bom_type="ai", max_depth=1, safety_cap=5)
+    rels = {(n["relationship_type"], n["target"]) for n in out["generated"]}
+    assert ("dependsOn", "meta-llama/Llama-3-8B-Instruct") in rels, (
+        "modelLineage dependsOn child was starved by the dataset fan-out; "
+        f"generated: {sorted(rels)}"
+    )
+
+
+def test_linked_bundle_has_no_duplicate_ai_package_stub():
+    """modelLineage produces a recursive AI child; the parent SPDX's
+    auto-generated dependsOn stub for the same model must be suppressed
+    so the linked bundle carries exactly one ai_AIPackage per model.
+    """
+    metadata = {
+        "repo_id": "microsoft/Magma-8B",
+        "rag_fields": {"modelLineage": _clean_triplet("meta-llama/Llama-3-8B-Instruct")},
+    }
+    rec = generate_recursive_boms(metadata, bom_type="ai", max_depth=1)
+    bundle = build_linked_spdx_bundle(metadata, rec, bom_type="ai")
+    names = [
+        e.get("name") for e in bundle["@graph"]
+        if e.get("type") == "ai_AIPackage"
+    ]
+    assert names.count("meta-llama/Llama-3-8B-Instruct") == 1, (
+        f"duplicate ai_AIPackage stub in linked bundle: {names}"
+    )
+    result = validate_spdx_export(bundle, bom_type="ai")
+    assert result["valid"], (
+        f"linked bundle with deduped stub must still validate: {result['errors']}"
+    )
+
+
+def test_breadth_caps_per_node_fanout():
+    """breadth limits how many children a single node expands. Lineage is
+    discovered first so the dependsOn edge always survives the budget."""
+    datasets = ", ".join(f"DS{i}" for i in range(20))
+    metadata = {
+        "repo_id": "p/model",
+        "rag_fields": {
+            "testedOnDatasets": _clean_triplet(datasets),
+            "modelLineage": _clean_triplet("meta-llama/Llama-3"),
+        },
+    }
+    out = generate_recursive_boms(
+        metadata, bom_type="ai", max_depth=1, breadth=4, safety_cap=200
+    )
+    assert out["generated_count"] == 4
+    rels = {(n["relationship_type"], n["target"]) for n in out["generated"]}
+    assert ("dependsOn", "meta-llama/Llama-3") in rels
+    # 21 targets discovered, 4 expanded → 17 recorded as breadth-capped.
+    assert len(out["breadth_capped"]) == 17
+    assert all(e["reason"] == "breadth-cap-reached" for e in out["breadth_capped"])
+
+
+def test_breadth_and_safety_cap_are_independent():
+    """breadth is per-node; safety_cap is the absolute total. The smaller
+    effective limit wins, and each capped target is labelled by its cause."""
+    datasets = ", ".join(f"DS{i}" for i in range(20))
+    metadata = {
+        "repo_id": "p/model",
+        "rag_fields": {"testedOnDatasets": _clean_triplet(datasets)},
+    }
+    out = generate_recursive_boms(
+        metadata, bom_type="ai", max_depth=1, breadth=15, safety_cap=6
+    )
+    # safety_cap (6) is tighter than breadth (15) here.
+    assert out["generated_count"] == 6
+    assert len(out["safety_capped"]) == 14
+
+
+def test_enrichment_failure_greys_node_instead_of_generating():
+    """A child whose enrich_fn returns None is recorded as identified-
+    but-not-generated, kept out of `generated`, and not walked deeper."""
+    def failing_enrich(target):
+        return None
+
+    metadata = {
+        "repo_id": "p/model",
+        "rag_fields": {"modelLineage": _clean_triplet("some-unresolvable-base")},
+    }
+    out = generate_recursive_boms(
+        metadata, bom_type="ai", max_depth=3, enrich_fn=failing_enrich
+    )
+    assert out["generated_count"] == 0
+    assert len(out["enrichment_failed"]) == 1
+    entry = out["enrichment_failed"][0]
+    assert entry["target"] == "some-unresolvable-base"
+    assert entry["reason"] == "unresolved"
+
+
+def test_enrichment_exception_greys_node_with_error():
+    """An enrich_fn that raises greys the node and records the error text."""
+    def raising_enrich(target):
+        raise RuntimeError("network down")
+
+    metadata = {
+        "repo_id": "p/m",
+        "rag_fields": {"modelLineage": _clean_triplet("base-x")},
+    }
+    out = generate_recursive_boms(
+        metadata, bom_type="ai", max_depth=2, enrich_fn=raising_enrich
+    )
+    assert out["generated_count"] == 0
+    assert len(out["enrichment_failed"]) == 1
+    entry = out["enrichment_failed"][0]
+    assert entry["reason"] == "enrichment-failed"
+    assert "network down" in (entry.get("error") or "")
+
+
+def test_generate_single_node_on_demand():
+    """generate_single_node enriches and builds one node for a greyed target."""
+    from aikaboom.utils.recursive_bom import generate_single_node
+
+    def enrich(target):
+        return {
+            "model_id": target["target"],
+            "repo_id": target["target"],
+            "rag_fields": {"model_name": target["target"]},
+        }
+
+    result = generate_single_node(
+        {
+            "target": "meta-llama/Llama-3", "bom_type": "ai",
+            "relationship_type": "dependsOn", "parent": "p/model", "depth": 2,
+        },
+        enrich_fn=enrich,
+    )
+    assert result["ok"] is True
+    node = result["node"]
+    assert node["target"] == "meta-llama/Llama-3"
+    assert node["depth"] == 2
+    assert node["enriched"] is True
+    assert "spdx_data" in node
+
+
+def test_generate_single_node_unresolved_target():
+    """A target the enricher cannot resolve returns ok=False, not a node."""
+    from aikaboom.utils.recursive_bom import generate_single_node
+
+    result = generate_single_node(
+        {"target": "nonsense", "bom_type": "ai"},
+        enrich_fn=lambda t: None,
+    )
+    assert result["ok"] is False
+    assert result["error"] == "unresolved"
