@@ -1401,6 +1401,51 @@ def worldofboms_bom(artifact):
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/worldofboms/query', methods=['POST'])
+def worldofboms_query():
+    from aikaboom.store import graph_view
+    store = _open_graph_store()
+    if store is None:
+        return jsonify({'rows': [], 'store_unavailable': True})
+    data = request.get_json(silent=True) or {}
+    try:
+        if data.get('sparql'):
+            rows = graph_view.raw_query(store, data['sparql'])
+        else:
+            rows = graph_view.lineage_query(
+                store, data.get('artifact', ''),
+                preset=data.get('preset', 'datasets'),
+                direction=data.get('direction', 'both'),
+            )
+        return jsonify({'rows': rows})
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:  # noqa: BLE001
+        print(f"⚠️ worldofboms query failed: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/worldofboms/export', methods=['GET'])
+def worldofboms_export():
+    from aikaboom.store import graph_view
+    store = _open_graph_store()
+    if store is None:
+        return jsonify({'@context': None, '@graph': [], 'store_unavailable': True})
+    scope = request.args.get('scope', 'full')
+    artifact = request.args.get('artifact') if scope == 'ego' else None
+    direction = request.args.get('direction', 'both')
+    try:
+        bundle = graph_view.ego_spdx_bundle(store, artifact, direction=direction)
+        resp = jsonify(bundle)
+        fname = 'worldofboms-graph.spdx.json' if scope == 'full' \
+            else 'worldofboms-ego.spdx.json'
+        resp.headers['Content-Disposition'] = f'attachment; filename={fname}'
+        return resp
+    except Exception as e:  # noqa: BLE001
+        print(f"⚠️ worldofboms export failed: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
 if __name__ == '__main__':
     print("\n" + "="*70)
     print("🌐 Unified BOM Generator - WEB INTERFACE")

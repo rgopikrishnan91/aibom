@@ -192,3 +192,22 @@ class TestWorldOfBomsRoutes:
         assert resp.status_code == 200
         data = resp.get_json()
         assert data.get("store_unavailable") is True
+
+    def test_query_route_runs_preset(self, client):
+        resp = client.post("/worldofboms/query",
+                            json={"preset": "datasets", "artifact": "bom:artifact/none",
+                                  "direction": "up"},
+                            content_type="application/json")
+        assert resp.status_code == 200
+        assert "rows" in resp.get_json()
+
+    def test_query_route_rejects_mutating_sparql(self, client):
+        resp = client.post("/worldofboms/query",
+                            json={"sparql": "DELETE WHERE { ?s ?p ?o }"},
+                            content_type="application/json")
+        assert resp.status_code == 400
+
+    def test_export_route_returns_jsonld(self, client):
+        resp = client.get("/worldofboms/export?scope=full")
+        assert resp.status_code == 200
+        assert "@graph" in resp.get_json()
