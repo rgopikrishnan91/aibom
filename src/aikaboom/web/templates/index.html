@@ -6912,6 +6912,31 @@
             }
         }
 
+        function _worldExportUrl(scope) {
+            if (scope === 'ego' && worldFocusIri) {
+                return `/worldofboms/export?scope=ego&artifact=${
+                    encodeURIComponent(worldFocusIri)}&direction=${worldDirection}`;
+            }
+            return '/worldofboms/export?scope=full';
+        }
+
+        function _wireWorldDownload() {
+            const link = document.getElementById('worldDownload');
+            if (!link || link.dataset.wired) return;
+            link.addEventListener('click', (ev) => {
+                ev.preventDefault();
+                const inEgo = worldView === 'ego' && worldFocusIri;
+                const choice = inEgo
+                    ? window.confirm(
+                        'OK = download this ego view (' + worldDirection +
+                        ') as SPDX.\nCancel = download the whole graph.')
+                    : false;
+                window.location.href = _worldExportUrl(
+                    (inEgo && choice) ? 'ego' : 'full');
+            });
+            link.dataset.wired = '1';
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             wireViewToggles();
             wireSidePanel();
