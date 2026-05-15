@@ -156,6 +156,21 @@ def test_ego_spdx_bundle_has_context_and_graph(store, sample_run_meta):
     bundle = graph_view.ego_spdx_bundle(store, m_iri, direction="both")
     assert "@context" in bundle and "@graph" in bundle
     assert isinstance(bundle["@graph"], list) and len(bundle["@graph"]) > 0
+    # Children must actually appear — the "squad" dataset should be in the bundle
+    # as a Package element, and a Relationship element must exist to connect it.
+    graph_elements = bundle["@graph"]
+    package_names = {
+        e.get("name") for e in graph_elements
+        if isinstance(e, dict) and "Package" in (e.get("type") or "")
+    }
+    assert "squad" in package_names, (
+        f"Expected child 'squad' as a Package in the bundle; found names: {package_names}"
+    )
+    has_relationship = any(
+        isinstance(e, dict) and e.get("type") == "Relationship"
+        for e in graph_elements
+    )
+    assert has_relationship, "Expected at least one Relationship element in the bundle"
 
 
 def test_ego_spdx_bundle_full_scope(store, sample_run_meta):

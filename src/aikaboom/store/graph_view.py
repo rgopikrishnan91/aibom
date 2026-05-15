@@ -7,6 +7,7 @@ SPARQL lives here so the Flask layer stays thin.
 from __future__ import annotations
 
 import re as _re
+import warnings
 
 from aikaboom.store import vocab
 from aikaboom.store.store import _validate_sparql_iri
@@ -226,7 +227,7 @@ def _bom_type_for_kind(kind: str) -> str:
     return "ai"
 
 
-def _relationship_type_for_predicate(predicate: str, bom_type: str) -> str:
+def _relationship_type_for_predicate(predicate: str) -> str:
     """Map SPDX edge predicate name to SPDX 3.0.1 relationship type."""
     mapping = {
         "trainedOn": "trainedOn",
@@ -306,11 +307,8 @@ def ego_spdx_bundle(store, artifact_iri: str | None,
     # Build ego edges to understand relationships between members
     if artifact_iri is None:
         ego_edges = _edge_rows(store)
-        focus_members = members
     else:
-        ego_result = ego_graph(store, artifact_iri, direction=direction, depth=None)
-        ego_edges = ego_result["edges"]
-        focus_members = members
+        ego_edges = ego["edges"]
 
     # For each non-focus member, find the edge connecting it to its parent in
     # the ego graph and build a generated node with the required spdx_data.
@@ -326,9 +324,9 @@ def ego_spdx_bundle(store, artifact_iri: str | None,
         edge_map_bwd.setdefault(e["target"], []).append((e["source"], e["predicate"]))
 
     # Build a node-kind lookup
-    node_kind_map = {n["iri"]: n for n in focus_members}
+    node_kind_map = {n["iri"]: n for n in members}
 
-    for node in focus_members:
+    for node in members:
         member_iri = node["iri"]
         if member_iri == focus_iri:
             continue
@@ -348,20 +346,20 @@ def ego_spdx_bundle(store, artifact_iri: str | None,
         # Try forward: focus -> member
         for tgt_iri, pred in edge_map_fwd.get(focus_iri, []):
             if tgt_iri == member_iri:
-                rel_type = _relationship_type_for_predicate(pred, member_bom_type)
+                rel_type = _relationship_type_for_predicate(pred)
                 break
         else:
             # Try backward: member -> focus
             for src_iri, pred in edge_map_bwd.get(focus_iri, []):
                 if src_iri == member_iri:
-                    rel_type = _relationship_type_for_predicate(pred, parent_bom_type)
+                    rel_type = _relationship_type_for_predicate(pred)
                     edge_parent_label = member_label
                     break
             else:
                 # No direct edge — find any edge involving this member in the ego graph
                 for tgt_iri, pred in edge_map_fwd.get(member_iri, []):
                     if tgt_iri in node_kind_map:
-                        rel_type = _relationship_type_for_predicate(pred, member_bom_type)
+                        rel_type = _relationship_type_for_predicate(pred)
                         break
 
         # Build or reconstruct child BOM metadata
@@ -376,7 +374,12 @@ def ego_spdx_bundle(store, artifact_iri: str | None,
         # Convert to SPDX — this is the key field build_linked_spdx_bundle reads.
         try:
             spdx_data = SPDXValidator(bom_type=member_bom_type).validate_and_convert(child_bom)
-        except Exception:
+        except Exception as e:
+            warnings.warn(
+                f"ego_spdx_bundle: SPDX conversion failed for {member_label!r}; "
+                f"falling back to seed BOM. Error: {e}",
+                stacklevel=2,
+            )
             # Fallback: try seed BOM if reconstruction gave an unusable shape
             seed = _seed_bom_for_kind(member_label, node["kind"])
             spdx_data = SPDXValidator(bom_type=member_bom_type).validate_and_convert(seed)
