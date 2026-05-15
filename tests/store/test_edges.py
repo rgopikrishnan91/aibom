@@ -2,10 +2,9 @@
 
 import pytest
 from aikaboom.store.store import BomStore
-from aikaboom.store.naming import Identifier
+from aikaboom.store.naming import Identifier as _Id
 from aikaboom.store.edges import extract_relationship_targets, resolve_edge_target, canon_name, add_relationship_edges
 from aikaboom.store.edges import promote_placeholders_for
-from aikaboom.store.naming import Identifier as _Id
 
 
 @pytest.fixture
@@ -33,7 +32,7 @@ def test_resolve_edge_target_finds_existing_artifact_by_label(store, sample_bom,
                                                               sample_run_meta):
     # sample_bom's repo_id is "mistralai/Mistral-7B-v0.1" -> canonicalLabel.
     store.save_claim(sample_bom, sample_run_meta,
-                     identifiers=[Identifier("huggingface", "mistralai/Mistral-7B-v0.1")])
+                     identifiers=[_Id("huggingface", "mistralai/Mistral-7B-v0.1")])
     # store.resolve (step 1) misses here: the stored identifier platform is
     # "huggingface" but the probe platform is "name-only" -> forces the
     # _find_artifact_by_label (step 2) path.
@@ -124,11 +123,13 @@ def test_placeholder_is_promoted_into_a_later_real_bom(store, sample_run_meta):
     model_bom = _bom_with("trainedOnDatasets", "squad")
     store.save_claim(model_bom, sample_run_meta,
                      identifiers=[_Id("huggingface", "acme/model-z")])
+    before = store.stats()["artifacts"]   # model + placeholder
     # 2. A real BOM for "squad" arrives.
     real_bom = {"repo_id": "squad", "use_case": "complete",
                 "direct_fields": {}, "rag_fields": {}}
     store.save_claim(real_bom, sample_run_meta,
                      identifiers=[_Id("huggingface", "squad")])
+    assert store.stats()["artifacts"] == before  # real squad replaces the placeholder
     # The placeholder was merged away: the model's trainedOn edge now points
     # at the real artifact, and no placeholder artifact remains.
     placeholders = list(store._backend.select(

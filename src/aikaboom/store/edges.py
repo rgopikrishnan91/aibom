@@ -138,7 +138,8 @@ def promote_placeholders_for(store: "BomStore", real_artifact_iri: str,
     rows = list(store._backend.select(
         f"""
         SELECT ?artifact ?label WHERE {{
-            ?artifact <{vocab.isPlaceholder}> true ;
+            ?artifact a <{vocab.Artifact}> ;
+                      <{vocab.isPlaceholder}> true ;
                       <{vocab.canonicalLabel}> ?label .
         }}
         """

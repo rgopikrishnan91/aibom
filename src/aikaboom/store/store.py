@@ -93,6 +93,7 @@ class BomStore:
             artifact = iris.artifact_iri(pick_primary(canonicalize_set(identifiers)))
             add_relationship_edges(self, artifact, bom_json)
 
+            # repo_id or model_id, mirroring mapper.py's label pick
             label = bom_json.get("repo_id") or bom_json.get("model_id")
             if label:
                 promote_placeholders_for(self, artifact, str(label))
