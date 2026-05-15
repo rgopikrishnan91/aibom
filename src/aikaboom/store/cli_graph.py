@@ -150,37 +150,10 @@ def cmd_graph_show(args: argparse.Namespace) -> int:
 
 
 def cmd_graph_merge(args: argparse.Namespace) -> int:
-    """Merge artifact-b into artifact-a.
-
-    Transfers all hasVersion/identifier/incoming edges, then deletes b.
-    """
-    from aikaboom.store import vocab
-
+    """Merge artifact-b into artifact-a."""
     store = BomStore.open()
-    a = _validate_sparql_iri(args.artifact_a)
-    b = _validate_sparql_iri(args.artifact_b)
-    store._backend.update(f"""
-        INSERT {{ <{a}> <{vocab.hasVersion}> ?v . }}
-        WHERE {{ <{b}> <{vocab.hasVersion}> ?v . }}
-    """)
-    store._backend.update(f"""
-        INSERT {{ <{a}> <{vocab.identifier}> ?i . }}
-        WHERE {{ <{b}> <{vocab.identifier}> ?i . }}
-    """)
-    # Fix 2: also redirect any incoming references to b → a so they aren't dangling.
-    store._backend.update(f"""
-        INSERT {{ ?s ?p <{a}> . }}
-        WHERE {{ ?s ?p <{b}> . FILTER(?s != <{a}>) }}
-    """)
-    store._backend.update(f"""
-        DELETE {{ ?s ?p <{b}> . }}
-        WHERE {{ ?s ?p <{b}> . }}
-    """)
-    store._backend.update(f"""
-        DELETE {{ <{b}> ?p ?o . }}
-        WHERE {{ <{b}> ?p ?o . }}
-    """)
-    print(f"Merged {b} into {a}.")
+    store.merge_artifacts(into=args.artifact_a, from_=args.artifact_b)
+    print(f"Merged {args.artifact_b} into {args.artifact_a}.")
     return 0
 
 

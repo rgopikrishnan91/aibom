@@ -439,5 +439,30 @@ class BomStore:
         rows = list(self._backend.select(q))
         return str(rows[0]["canonical"]) if rows else None
 
+    def merge_artifacts(self, into: str, from_: str) -> None:
+        """Merge artifact `from_` into `into`.
+
+        Transfers `from_`'s versions, identifiers, and every incoming edge
+        onto `into`, then deletes `from_`. Used by `aikaboom graph merge`
+        and by placeholder promotion at save time.
+        """
+        a = _validate_sparql_iri(into)
+        b = _validate_sparql_iri(from_)
+        self._backend.update(
+            f"INSERT {{ <{a}> <{vocab.hasVersion}> ?v . }} "
+            f"WHERE {{ <{b}> <{vocab.hasVersion}> ?v . }}"
+        )
+        self._backend.update(
+            f"INSERT {{ <{a}> <{vocab.identifier}> ?i . }} "
+            f"WHERE {{ <{b}> <{vocab.identifier}> ?i . }}"
+        )
+        # Redirect every incoming reference to b -> a so none dangle.
+        self._backend.update(
+            f"INSERT {{ ?s ?p <{a}> . }} "
+            f"WHERE {{ ?s ?p <{b}> . FILTER(?s != <{a}>) }}"
+        )
+        self._backend.update(f"DELETE {{ ?s ?p <{b}> . }} WHERE {{ ?s ?p <{b}> . }}")
+        self._backend.update(f"DELETE {{ <{b}> ?p ?o . }} WHERE {{ <{b}> ?p ?o . }}")
+
     def close(self) -> None:
         self._backend.close()

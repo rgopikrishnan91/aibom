@@ -73,3 +73,24 @@ def test_sparql_injection_in_use_case_is_safe(store, sample_bom, sample_run_meta
         mode="rag",
     )
     assert claims == []  # no matches; the escaped string is a literal, not SPARQL
+
+
+def test_merge_artifacts_transfers_incoming_edges(store):
+    """merge_artifacts(into, from_) redirects edges that pointed at from_."""
+    from rdflib import URIRef
+    a = "bom:artifact/real"
+    b = "bom:artifact/placeholder"
+    model = "bom:artifact/model"
+    # model --dependsOn--> placeholder b
+    store._backend.add_quads([
+        (URIRef(model), URIRef("https://aikaboom.dev/aibom#dependsOn"), URIRef(b), None),
+        (URIRef(b), URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+         URIRef("https://aikaboom.dev/aibom#Artifact"), None),
+    ])
+    store.merge_artifacts(into=a, from_=b)
+    # The edge now points at a; nothing points at b; b has no outgoing triples.
+    rows = list(store._backend.select(
+        f"SELECT ?s WHERE {{ ?s <https://aikaboom.dev/aibom#dependsOn> <{a}> }}"))
+    assert len(rows) == 1
+    leftover = list(store._backend.select(f"SELECT ?p WHERE {{ <{b}> ?p ?o }}"))
+    assert leftover == []
