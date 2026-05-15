@@ -40,3 +40,22 @@ class TestOxigraphBackend:
         dump = tmp_path / "dump.nq"
         backend.export(dump, fmt="nquads")
         assert dump.exists() and dump.stat().st_size > 0
+
+        # Import the dump into a fresh store and verify the triple survived.
+        import os
+        fresh_dir = tmp_path / "fresh_store"
+        fresh_dir.mkdir()
+        prev_dir = os.environ.get("AIKABOOM_GRAPH_DIR")
+        os.environ["AIKABOOM_GRAPH_DIR"] = str(fresh_dir)
+        try:
+            from aikaboom.store.backend import open_backend
+            fresh = open_backend()
+            fresh.import_(dump, fmt="nquads")
+            assert fresh.ask(
+                "ASK { <bom:test/3> <https://aikaboom.dev/aibom#useCase> 'license' }"
+            )
+        finally:
+            if prev_dir is not None:
+                os.environ["AIKABOOM_GRAPH_DIR"] = prev_dir
+            else:
+                os.environ.pop("AIKABOOM_GRAPH_DIR", None)

@@ -26,7 +26,12 @@ class GraphBackend(Protocol):
         ...
 
     def add_quads(self, quads: Iterable[tuple]) -> None:
-        """Bulk-add quads (s, p, o, g)."""
+        """Bulk-add triples or quads.
+
+        Each element of `quads` may be a 3-tuple `(s, p, o)` — interpreted as
+        a triple in the default graph — or a 4-tuple `(s, p, o, g)` where `g`
+        is a named-graph term or `None` for the default graph.
+        """
         ...
 
     def export(self, path: Path, fmt: str = "nquads") -> None:
