@@ -65,3 +65,29 @@ def test_ego_graph_both_is_the_union(store, sample_run_meta):
     squad_iri = next(n["iri"] for n in g["nodes"] if n["label"] == "squad")
     ego = graph_view.ego_graph(store, squad_iri, direction="both", depth=None)
     assert {n["label"] for n in ego["nodes"]} == {"acme/m", "squad"}
+
+
+def test_ego_graph_depth_caps_hops(store, sample_run_meta):
+    from rdflib import URIRef
+    a, b, c = "bom:artifact/a", "bom:artifact/b", "bom:artifact/c"
+    dep = "https://aikaboom.dev/aibom#dependsOn"
+    art = "https://aikaboom.dev/aibom#Artifact"
+    rtype = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+    for x in (a, b, c):
+        store._backend.add_quads([(URIRef(x), URIRef(rtype), URIRef(art), None)])
+    store._backend.add_quads([
+        (URIRef(a), URIRef(dep), URIRef(b), None),
+        (URIRef(b), URIRef(dep), URIRef(c), None),
+    ])
+    ego = graph_view.ego_graph(store, a, direction="up", depth=1)
+    iris = {n["iri"] for n in ego["nodes"]}
+    assert a in iris and b in iris  # one hop reaches b
+    assert c not in iris            # depth=1 stops before c
+
+
+def test_ego_graph_rejects_invalid_direction(store, sample_run_meta):
+    _save_model_with_dataset(store, sample_run_meta)
+    g = graph_view.full_graph(store)
+    iri = g["nodes"][0]["iri"]
+    with pytest.raises(ValueError):
+        graph_view.ego_graph(store, iri, direction="upstream", depth=None)

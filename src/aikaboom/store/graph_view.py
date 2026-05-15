@@ -97,6 +97,11 @@ def ego_graph(store, artifact_iri: str, direction: str = "both",
     hop count; None means unlimited (full lineage).
     """
     focus = _validate_sparql_iri(artifact_iri)
+    if direction not in ("up", "down", "both"):
+        raise ValueError(
+            f"direction must be 'up', 'down', or 'both', got {direction!r}"
+        )
+    all_nodes = {n["iri"]: n for n in _node_rows(store)}
     all_edges = _edge_rows(store)
     forward: dict[str, list[dict]] = {}
     backward: dict[str, list[dict]] = {}
@@ -128,5 +133,5 @@ def ego_graph(store, artifact_iri: str, direction: str = "both",
         frontier = nxt
         hops += 1
 
-    nodes = [n for n in _node_rows(store) if n["iri"] in keep_nodes]
+    nodes = [all_nodes[iri] for iri in keep_nodes if iri in all_nodes]
     return {"nodes": nodes, "edges": keep_edges, "focus": focus}
