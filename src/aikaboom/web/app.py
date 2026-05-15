@@ -342,6 +342,18 @@ def _extract_conflicts(metadata: dict) -> list:
     return conflicts
 
 
+def _open_graph_store():
+    """Open the graph store for read routes, or None if unavailable/disabled."""
+    if os.environ.get('AIKABOOM_GRAPH_DISABLE') == '1':
+        return None
+    try:
+        from aikaboom.store.store import BomStore
+        return BomStore.open()
+    except Exception as e:  # noqa: BLE001
+        print(f"⚠️ graph store unavailable for worldofBOMs: {e}")
+        return None
+
+
 def _try_resolve_cache(
     bom_type: str,
     cache_policy_str: str,
@@ -1321,6 +1333,70 @@ def download(filename):
         return send_file(file_path, as_attachment=True, download_name=safe_name)
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 404
+
+
+@app.route('/worldofboms/graph', methods=['GET'])
+def worldofboms_graph():
+    from aikaboom.store import graph_view
+    store = _open_graph_store()
+    if store is None:
+        return jsonify({'nodes': [], 'edges': [], 'store_unavailable': True})
+    try:
+        return jsonify(graph_view.full_graph(store))
+    except Exception as e:  # noqa: BLE001
+        print(f"⚠️ worldofboms graph failed: {e}")
+        return jsonify({'nodes': [], 'edges': [], 'store_unavailable': True})
+
+
+@app.route('/worldofboms/stats', methods=['GET'])
+def worldofboms_stats():
+    from aikaboom.store import graph_view
+    store = _open_graph_store()
+    if store is None:
+        return jsonify({'artifacts': 0, 'versions': 0, 'claims': 0,
+                        'edges': 0, 'store_unavailable': True})
+    try:
+        stats = dict(store.stats())
+        stats['edges'] = len(graph_view._edge_rows(store))
+        return jsonify(stats)
+    except Exception as e:  # noqa: BLE001
+        print(f"⚠️ worldofboms stats failed: {e}")
+        return jsonify({'artifacts': 0, 'edges': 0, 'store_unavailable': True})
+
+
+@app.route('/worldofboms/ego/<path:artifact>', methods=['GET'])
+def worldofboms_ego(artifact):
+    from aikaboom.store import graph_view
+    store = _open_graph_store()
+    if store is None:
+        return jsonify({'nodes': [], 'edges': [], 'focus': artifact,
+                        'store_unavailable': True})
+    direction = request.args.get('direction', 'both')
+    depth_arg = request.args.get('depth')
+    depth = int(depth_arg) if depth_arg and depth_arg.isdigit() else None
+    try:
+        return jsonify(graph_view.ego_graph(store, artifact,
+                                            direction=direction, depth=depth))
+    except Exception as e:  # noqa: BLE001
+        print(f"⚠️ worldofboms ego failed: {e}")
+        return jsonify({'nodes': [], 'edges': [], 'focus': artifact,
+                        'store_unavailable': True})
+
+
+@app.route('/worldofboms/bom/<path:artifact>', methods=['GET'])
+def worldofboms_bom(artifact):
+    from aikaboom.store import graph_view
+    store = _open_graph_store()
+    if store is None:
+        return jsonify({'store_unavailable': True})
+    try:
+        claim = graph_view._canonical_claim_iri(store, artifact)
+        if not claim:
+            return jsonify({'error': 'no claim for artifact'}), 404
+        return jsonify(store.reconstruct_bom(claim))
+    except Exception as e:  # noqa: BLE001
+        print(f"⚠️ worldofboms bom failed: {e}")
+        return jsonify({'error': str(e)}), 500
 
 
 if __name__ == '__main__':

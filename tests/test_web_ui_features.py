@@ -157,3 +157,24 @@ class TestUITemplateContent:
         assert "Download SPDX 3.0.1" in html
         assert "Download CycloneDX 1.6 Beta" in html
         assert "Download Recursive BOM Beta" in html
+
+
+class TestWorldOfBomsRoutes:
+    def test_graph_route_returns_nodes_and_edges(self, client):
+        resp = client.get("/worldofboms/graph")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert "nodes" in data and "edges" in data
+
+    def test_stats_route_returns_counts(self, client):
+        resp = client.get("/worldofboms/stats")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert "artifacts" in data and "edges" in data
+
+    def test_graph_route_survives_unavailable_store(self, client, monkeypatch):
+        monkeypatch.setenv("AIKABOOM_GRAPH_DISABLE", "1")
+        resp = client.get("/worldofboms/graph")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["nodes"] == [] and data.get("store_unavailable") is True
