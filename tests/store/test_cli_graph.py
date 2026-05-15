@@ -97,3 +97,28 @@ def test_graph_merge_transfers_versions_and_cleans_incoming(tmp_path):
                 os.environ.pop(k, None)
             else:
                 os.environ[k] = v
+
+
+def test_rebuild_reconstructs_relationship_edges(tmp_path, monkeypatch):
+    """graph rebuild replays results/*.json through save_claim, so edges form."""
+    import json
+    from types import SimpleNamespace
+    from aikaboom.store.cli_graph import cmd_graph_rebuild
+    from aikaboom.store.store import BomStore
+
+    monkeypatch.setenv("AIKABOOM_GRAPH_BACKEND", "rdflib")
+    monkeypatch.setenv("AIKABOOM_GRAPH_DIR", str(tmp_path / "graph"))
+    results = tmp_path / "results"
+    results.mkdir()
+    (results / "acme_m.json").write_text(json.dumps({
+        "repo_id": "acme/m", "use_case": "complete",
+        "direct_fields": {"trainedOnDatasets": {"value": "squad",
+                          "source": "huggingface", "conflict": None}},
+        "rag_fields": {},
+    }))
+    monkeypatch.chdir(tmp_path)
+    cmd_graph_rebuild(SimpleNamespace())
+    store = BomStore.open()
+    edges = list(store._backend.select(
+        "SELECT ?s ?t WHERE { ?s <https://aikaboom.dev/aibom#trainedOn> ?t }"))
+    assert len(edges) == 1
