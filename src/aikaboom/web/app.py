@@ -1396,7 +1396,7 @@ def worldofboms_bom(artifact):
         return jsonify(store.reconstruct_bom(claim))
     except Exception as e:  # noqa: BLE001
         print(f"⚠️ worldofboms bom failed: {e}")
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': str(e)})
 
 
 if __name__ == '__main__':
