@@ -4513,6 +4513,10 @@
             (ev.currentTarget || ev.target).classList.add('active');
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.getElementById(tabName + 'Tab').classList.add('active');
+            if (tabName === 'worldofboms') {
+                if (typeof _wireWorldControls === 'function') _wireWorldControls();
+                loadWorldGraph();
+            }
         }
 
         // Programmatic version (no click event) used by Pipeline action buttons.
@@ -4539,6 +4543,10 @@
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             const panel = document.getElementById(tabName + 'Tab');
             if (panel) panel.classList.add('active');
+            if (tabName === 'worldofboms') {
+                if (typeof _wireWorldControls === 'function') _wireWorldControls();
+                loadWorldGraph();
+            }
         }
 
         // ===== Pipeline tab controller ==========================================
@@ -6550,6 +6558,124 @@
                 });
                 btn.dataset.wired = '1';
             });
+        }
+
+        // ===== worldofBOMs tab =====================================
+        let worldCy = null;
+        let worldView = 'global';        // 'global' | 'ego'
+        let worldDirection = 'both';     // 'both' | 'up' | 'down'
+        let worldFocusIri = null;
+        let worldFullGraph = null;       // cached {nodes, edges}
+
+        const WORLD_KIND_COLOR = {
+            Model:   { bg: '#e6ecff', border: '#3451b2', fg: '#0d1117' },
+            Dataset: { bg: '#fff1e5', border: '#f0b079', fg: '#5a2900' },
+            Paper:   { bg: '#eafaef', border: '#1a7f37', fg: '#04260f' },
+            CodeRepo:{ bg: '#f3eefc', border: '#8250df', fg: '#1f0a3d' },
+            Artifact:{ bg: '#ffffff', border: '#d0d7de', fg: '#0d1117' },
+        };
+
+        function _worldGraphStyle() {
+            return [
+                { selector: 'node', style: {
+                    'shape': 'round-rectangle', 'label': 'data(label)',
+                    'background-color': 'data(bg)', 'border-color': 'data(border)',
+                    'color': 'data(fg)', 'border-width': 1,
+                    'font-family': "'IBM Plex Sans', system-ui, sans-serif",
+                    'font-size': 12, 'text-valign': 'center', 'text-halign': 'center',
+                    'text-wrap': 'wrap', 'text-max-width': '150px', 'padding': '10px',
+                    'width': 'label', 'height': 'label',
+                    'min-width': '80px', 'min-height': '28px' } },
+                { selector: 'node[isPlaceholder = "true"]', style: {
+                    'background-opacity': 0, 'border-style': 'dashed',
+                    'border-color': '#9aa4b2', 'color': '#6e7781' } },
+                { selector: 'node[isFocus = "true"]', style: {
+                    'border-width': 4, 'border-color': '#d99a00' } },
+                { selector: 'node.dimmed', style: { 'opacity': 0.25 } },
+                { selector: 'edge', style: {
+                    'curve-style': 'bezier', 'target-arrow-shape': 'triangle',
+                    'line-color': '#3451b2', 'target-arrow-color': '#3451b2',
+                    'width': 1.5, 'label': 'data(predicate)',
+                    'font-family': "'IBM Plex Mono', monospace", 'font-size': 9,
+                    'color': '#57606a', 'text-background-color': '#fff',
+                    'text-background-opacity': 1, 'text-background-padding': '2px',
+                    'text-rotation': 'autorotate' } },
+                { selector: 'edge[predicate = "testedOn"]', style: {
+                    'line-color': '#1a7f37', 'target-arrow-color': '#1a7f37' } },
+                { selector: 'edge[predicate = "dependsOn"]', style: {
+                    'line-color': '#6e7781', 'target-arrow-color': '#6e7781',
+                    'line-style': 'dashed' } },
+                { selector: 'edge[predicate = "potentialDuplicateOf"]', style: {
+                    'line-color': '#d99a00', 'target-arrow-color': '#d99a00',
+                    'line-style': 'dotted' } },
+                { selector: 'edge.dimmed', style: { 'opacity': 0.12 } },
+            ];
+        }
+
+        function _worldElements(graph) {
+            // Disambiguate label clashes with a kind suffix.
+            const labelCounts = {};
+            graph.nodes.forEach(n => { labelCounts[n.label] = (labelCounts[n.label] || 0) + 1; });
+            const nodes = graph.nodes.map(n => {
+                const c = WORLD_KIND_COLOR[n.kind] || WORLD_KIND_COLOR.Artifact;
+                let label = n.label;
+                if (labelCounts[n.label] > 1) label = `${n.label}\n(${n.kind})`;
+                return { data: {
+                    id: n.iri, label, kind: n.kind,
+                    isPlaceholder: String(!!n.is_placeholder),
+                    isFocus: 'false',
+                    bg: c.bg, border: c.border, fg: c.fg } };
+            });
+            const edges = (graph.edges || []).map((e, i) => ({ data: {
+                id: `we${i}`, source: e.source, target: e.target,
+                predicate: e.predicate } }));
+            return { nodes, edges };
+        }
+
+        async function loadWorldGraph() {
+            const empty = document.getElementById('worldGraphEmpty');
+            try {
+                const resp = await fetch('/worldofboms/graph');
+                worldFullGraph = await resp.json();
+            } catch (e) {
+                worldFullGraph = { nodes: [], edges: [], store_unavailable: true };
+            }
+            if (!worldFullGraph.nodes || worldFullGraph.nodes.length === 0) {
+                empty.style.display = '';
+                empty.textContent = worldFullGraph.store_unavailable
+                    ? 'Graph store unavailable.'
+                    : 'No BOMs in the graph yet — generate one to start your worldofBOMs.';
+                if (worldCy) { try { worldCy.destroy(); } catch (_) {} worldCy = null; }
+                return;
+            }
+            empty.style.display = 'none';
+            worldView = 'global';
+            worldFocusIri = null;
+            renderWorldGraph(_worldElements(worldFullGraph));
+            refreshWorldStats();
+        }
+
+        function renderWorldGraph(elements) {
+            const canvas = document.getElementById('worldGraphCanvas');
+            if (worldCy) { try { worldCy.destroy(); } catch (_) {} }
+            worldCy = cytoscape({
+                container: canvas, elements, wheelSensitivity: 0.2,
+                minZoom: 0.05, maxZoom: 3.0, style: _worldGraphStyle(),
+                layout: { name: 'cose', animate: false, padding: 28,
+                          nodeOverlap: 24, idealEdgeLength: 90, fit: true },
+            });
+            worldCy.on('tap', 'node', (evt) => openWorldEgo(evt.target.id()));
+            worldCy.on('tap', (evt) => { if (evt.target === worldCy) closeWorldSidePanel(); });
+            setTimeout(() => { try { worldCy.resize(); worldCy.fit(undefined, 28); }
+                               catch (_) {} }, 80);
+        }
+
+        async function refreshWorldStats() {
+            try {
+                const s = await (await fetch('/worldofboms/stats')).json();
+                document.getElementById('worldStats').textContent =
+                    `${s.artifacts || 0} artifacts · ${s.edges || 0} edges · ${s.claims || 0} claims`;
+            } catch (_) { /* ignore */ }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
