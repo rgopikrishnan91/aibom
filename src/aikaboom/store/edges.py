@@ -9,9 +9,9 @@ disconnected stars.
 
 from __future__ import annotations
 
-import re
 from typing import Any, Mapping
 
+from aikaboom.utils.lineage import split_lineage_targets
 from aikaboom.utils.recursive_bom import (
     AI_RELATIONSHIP_FIELDS,
     DATA_RELATIONSHIP_FIELDS,
@@ -25,24 +25,33 @@ _FIELD_TO_PREDICATE: dict[str, str] = {
     for field, spec in {**AI_RELATIONSHIP_FIELDS, **DATA_RELATIONSHIP_FIELDS}.items()
 }
 
-_TARGET_SPLIT = re.compile(r"[;,\n]")
-
 
 def _split_targets(value: Any) -> list[str]:
-    """Normalize a relationship-field value into a list of target names."""
+    """Normalize a relationship-field value into a list of target names.
+
+    Delegates to ``split_lineage_targets`` so that arrow-notation chains
+    (``"bert-base -> distilbert"`` / ``"A → B"``) split correctly in
+    addition to comma/semicolon/newline separators.
+    """
     if value is None:
         return []
     if isinstance(value, (list, tuple)):
-        raw = [str(v) for v in value]
-    else:
-        raw = _TARGET_SPLIT.split(str(value))
-    return [t.strip() for t in raw if t and t.strip()]
+        out: list[str] = []
+        for v in value:
+            out.extend(split_lineage_targets(str(v)))
+        return out
+    return split_lineage_targets(str(value))
 
 
 def extract_relationship_targets(bom_json: Mapping[str, Any]) -> list[tuple[str, str]]:
     """Return `(predicate, target_name)` pairs for every walkable edge target.
 
     `predicate` is one of "trainedOn" / "testedOn" / "dependsOn".
+
+    Scans both ``direct_fields`` and ``rag_fields`` because the graph store
+    may receive BOMs that store relationship fields in either section depending
+    on how the extractor classified them (high-confidence direct extraction vs.
+    RAG-assisted retrieval).
     """
     out: list[tuple[str, str]] = []
     for section in ("direct_fields", "rag_fields"):

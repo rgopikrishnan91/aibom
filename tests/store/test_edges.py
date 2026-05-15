@@ -35,3 +35,16 @@ def test_drops_non_walkable_targets():
 def test_ignores_unknown_and_empty_fields():
     assert extract_relationship_targets({"direct_fields": {}, "rag_fields": {}}) == []
     assert extract_relationship_targets(_bom_with("trainedOnDatasets", None)) == []
+
+
+def test_reads_from_rag_fields():
+    bom = {"direct_fields": {},
+           "rag_fields": {"sourceInfo": {"value": "wikitext",
+                          "source": "huggingface", "conflict": None}}}
+    assert ("dependsOn", "wikitext") in extract_relationship_targets(bom)
+
+
+def test_splits_arrow_lineage_chains():
+    targets = extract_relationship_targets(_bom_with("modelLineage", "bert-base -> distilbert"))
+    names = {t for _, t in targets}
+    assert "bert-base" in names and "distilbert" in names
