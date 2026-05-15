@@ -342,6 +342,83 @@ def _extract_conflicts(metadata: dict) -> list:
     return conflicts
 
 
+def _try_resolve_cache(
+    bom_type: str,
+    cache_policy_str: str,
+    mode: str,
+    use_case: str,
+    planned_llm: str,
+    identifiers_kwargs: dict,
+):
+    """worldofBOMs cache-resolution wrap for the /process route.
+
+    Mirrors ``cli.cmd_generate``'s wrap but with ``interactive=False``:
+    headless POSTs have no TTY, so the ``prompt`` policy degrades to
+    ``use`` per ``cache_resolver.decide``'s contract.
+
+    Returns a ``(store_or_none, identifiers, claim_iri_or_none)`` tuple.
+    The route uses ``claim_iri`` to short-circuit to a cached BOM and
+    ``store + identifiers`` to persist a freshly generated claim. When
+    ``AIKABOOM_GRAPH_DISABLE=1`` is set or the backend fails to open,
+    all three are returned in a "no cache, no persist" shape so the
+    caller falls through cleanly.
+    """
+    if os.environ.get('AIKABOOM_GRAPH_DISABLE') == '1':
+        return None, [], None
+
+    try:
+        from aikaboom.store.cache_resolver import CachePolicy, decide
+        from aikaboom.store.naming import Identifier
+        from aikaboom.store.store import BomStore
+    except Exception as e:
+        print(f"⚠️ graph store imports unavailable, skipping cache: {e}")
+        return None, [], None
+
+    try:
+        store = BomStore.open()
+    except Exception as e:
+        print(f"⚠️ graph store unavailable, skipping cache: {e}")
+        return None, [], None
+
+    idents: list = []
+    repo_id = identifiers_kwargs.get('repo_id')
+    arxiv_url = identifiers_kwargs.get('arxiv_url')
+    github_url = identifiers_kwargs.get('github_url')
+    if repo_id:
+        idents.append(Identifier('huggingface', repo_id))
+    if arxiv_url:
+        idents.append(Identifier('arxiv', arxiv_url))
+    if github_url:
+        idents.append(Identifier('github', github_url))
+
+    if not idents:
+        return store, [], None
+
+    try:
+        resolved = store.resolve(
+            identifiers=idents,
+            use_case=use_case,
+            mode=mode,
+        )
+    except Exception as e:
+        print(f"⚠️ cache resolve failed, generating: {e}")
+        return store, idents, None
+
+    try:
+        policy = CachePolicy(cache_policy_str)
+    except ValueError:
+        policy = CachePolicy.USE
+
+    # Server-side requests have no TTY for the prompt path to fire on;
+    # ``decide`` degrades PROMPT to USE under ``interactive=False``.
+    decision = decide(
+        resolved, policy, interactive=False, planned_llm=planned_llm,
+    )
+    if decision == 'use' and resolved.matching_claims:
+        return store, idents, resolved.matching_claims[0]['iri']
+    return store, idents, None
+
+
 @app.route('/logs')
 def stream_logs():
     """SSE endpoint — streams server logs to the browser in real time."""
@@ -611,7 +688,16 @@ def process():
                 recursive_depth = max(0, min(int(raw_depth), 5))
             except (TypeError, ValueError):
                 recursive_depth = 1
-        
+
+        # worldofBOMs cache policy. Default is ``use`` because headless POSTs
+        # have no TTY for the prompt path to fire on; ``force_refresh: true``
+        # remains supported as a shorthand for ``cache_policy=regen``.
+        cache_policy_raw = (
+            data.get('cache_policy')
+            or ('regen' if data.get('force_refresh') else 'use')
+        )
+        cache_policy_str = str(cache_policy_raw).strip().lower() or 'use'
+
         # Validate mode and provider
         if mode not in ['rag', 'direct']:
             mode = 'rag'
@@ -695,23 +781,83 @@ def process():
                             'error': str(e),
                         }
             
-            proc = get_processor(
+            # worldofBOMs cache resolution (Task 16). Build identifiers from
+            # the request and ask the BOM store whether we already have a
+            # matching claim; on a "use" decision, reconstruct the cached
+            # BOM and skip the processor call. ``AIKABOOM_GRAPH_DISABLE=1``
+            # bypasses the entire wrap to keep headless deployments
+            # lightweight, matching the CLI's bypass semantics.
+            _store, _idents, _cache_claim_iri = _try_resolve_cache(
                 bom_type='ai',
+                cache_policy_str=cache_policy_str,
                 mode=mode,
-                llm_provider=llm_provider,
-                model=model,
-                ollama_model=ollama_model,
-                openrouter_model=openrouter_model,
-                ollama_url=ollama_url,
-                use_case=use_case
+                use_case=use_case,
+                planned_llm=model,
+                identifiers_kwargs={
+                    'repo_id': repo_id,
+                    'arxiv_url': arxiv_url,
+                    'github_url': github_url,
+                },
             )
-            
-            metadata = proc.process_ai_model(
-                repo_id=repo_id,
-                arxiv_url=arxiv_url,
-                github_url=github_url
-            )
-            
+
+            if _cache_claim_iri is not None:
+                # Reconstruct the cached BOM from the graph and record an
+                # implicit-use vote. Mirrors cli.cmd_generate's cache-hit
+                # path. ``rdf_to_bom`` only populates ``repo_id`` from the
+                # graph; the AI branch also needs a ``model_id`` for the
+                # output filename, so derive one if it's missing (same
+                # rule as ``AIBOMProcessor.generate_model_id``).
+                try:
+                    from aikaboom.store.trust import VoteKind
+                    metadata = _store.reconstruct_bom(_cache_claim_iri)
+                    if not metadata.get('model_id'):
+                        rid = metadata.get('repo_id') or repo_id or ''
+                        metadata['model_id'] = (
+                            rid.replace('/', '_').replace(' ', '_') or 'ai_model_cached'
+                        )
+                    metadata['_cached'] = True
+                    metadata['_claim_iri'] = _cache_claim_iri
+                    _store.record_trust_vote(_cache_claim_iri, VoteKind.IMPLICIT_USE)
+                except Exception as e:
+                    print(f"⚠️ cache reconstruct failed, regenerating: {e}")
+                    _cache_claim_iri = None  # fall through to generation
+
+            if _cache_claim_iri is None:
+                proc = get_processor(
+                    bom_type='ai',
+                    mode=mode,
+                    llm_provider=llm_provider,
+                    model=model,
+                    ollama_model=ollama_model,
+                    openrouter_model=openrouter_model,
+                    ollama_url=ollama_url,
+                    use_case=use_case
+                )
+
+                metadata = proc.process_ai_model(
+                    repo_id=repo_id,
+                    arxiv_url=arxiv_url,
+                    github_url=github_url
+                )
+
+                # Best-effort persistence to the graph store. The LLM cost
+                # has already been paid; never let a backend write failure
+                # destroy the generated BOM before the JSON output is
+                # written.
+                if _store is not None and _idents:
+                    try:
+                        _store.save_claim(
+                            metadata,
+                            run_meta={
+                                'provider': llm_provider, 'llm_model': model,
+                                'prompt_version': 'v1', 'code_version': 'head',
+                                'mode': mode, 'use_case': use_case,
+                            },
+                            identifiers=_idents,
+                        )
+                    except Exception as e:
+                        print(f"⚠️ failed to persist claim to graph store: {e}")
+
             # Save to file (download folder + persistent repo copy)
             filename = f"{metadata['model_id']}_aibom.json"
             output_file = os.path.join(app.config['UPLOAD_FOLDER'], filename)
@@ -725,13 +871,20 @@ def process():
             direct_count = count_fields(metadata.get('direct_fields', {}))
             rag_count = count_fields(metadata.get('rag_fields', {}))
             
+            # Fall back to the normalized request use_case when the
+            # processor was bypassed by a cache hit.
+            effective_use_case = (
+                getattr(proc, 'use_case', None)
+                if _cache_claim_iri is None else (metadata.get('use_case') or use_case)
+            ) or use_case
+
             response_data = {
                 'status': 'success',
                 'message': 'AI model processed successfully!',
                 'metadata': metadata,
                 'bom_type': 'ai',
-                'use_case': proc.use_case,
-                'use_case_label': get_use_case_label(proc.use_case, 'ai'),
+                'use_case': effective_use_case,
+                'use_case_label': get_use_case_label(effective_use_case, 'ai'),
                 'download_url': f'/download/{os.path.basename(output_file)}',
                 # beta-feature labels populated below as features run
                 'beta_fields': [],
@@ -819,23 +972,74 @@ def process():
                             'error': str(e),
                         }
             
-            proc = get_processor(
+            # worldofBOMs cache resolution (Task 16). See the AI branch
+            # above for rationale; the data path uses ``hf_repo_id`` as the
+            # huggingface identifier.
+            _store, _idents, _cache_claim_iri = _try_resolve_cache(
                 bom_type='data',
+                cache_policy_str=cache_policy_str,
                 mode=mode,
-                llm_provider=llm_provider,
-                model=model,
-                ollama_model=ollama_model,
-                openrouter_model=openrouter_model,
-                ollama_url=ollama_url,
-                use_case=use_case
+                use_case=use_case,
+                planned_llm=model,
+                identifiers_kwargs={
+                    'repo_id': hf_repo_id,
+                    'arxiv_url': arxiv_url,
+                    'github_url': github_url,
+                },
             )
-            
-            metadata = proc.process_dataset(
-                arxiv_url=arxiv_url,
-                github_url=github_url,
-                hf_url=hf_url
-            )
-            
+
+            if _cache_claim_iri is not None:
+                # See the AI branch above. The data branch uses
+                # ``dataset_id`` instead of ``model_id`` for the output
+                # filename.
+                try:
+                    from aikaboom.store.trust import VoteKind
+                    metadata = _store.reconstruct_bom(_cache_claim_iri)
+                    if not metadata.get('dataset_id'):
+                        rid = metadata.get('repo_id') or hf_repo_id or ''
+                        metadata['dataset_id'] = (
+                            rid.replace('/', '_').replace(' ', '_') or 'dataset_cached'
+                        )
+                    metadata['_cached'] = True
+                    metadata['_claim_iri'] = _cache_claim_iri
+                    _store.record_trust_vote(_cache_claim_iri, VoteKind.IMPLICIT_USE)
+                except Exception as e:
+                    print(f"⚠️ cache reconstruct failed, regenerating: {e}")
+                    _cache_claim_iri = None  # fall through to generation
+
+            if _cache_claim_iri is None:
+                proc = get_processor(
+                    bom_type='data',
+                    mode=mode,
+                    llm_provider=llm_provider,
+                    model=model,
+                    ollama_model=ollama_model,
+                    openrouter_model=openrouter_model,
+                    ollama_url=ollama_url,
+                    use_case=use_case
+                )
+
+                metadata = proc.process_dataset(
+                    arxiv_url=arxiv_url,
+                    github_url=github_url,
+                    hf_url=hf_url
+                )
+
+                # Best-effort persistence to the graph store.
+                if _store is not None and _idents:
+                    try:
+                        _store.save_claim(
+                            metadata,
+                            run_meta={
+                                'provider': llm_provider, 'llm_model': model,
+                                'prompt_version': 'v1', 'code_version': 'head',
+                                'mode': mode, 'use_case': use_case,
+                            },
+                            identifiers=_idents,
+                        )
+                    except Exception as e:
+                        print(f"⚠️ failed to persist claim to graph store: {e}")
+
             # Save to file (download folder + persistent repo copy)
             filename = f"{metadata['dataset_id']}_databom.json"
             output_file = os.path.join(app.config['UPLOAD_FOLDER'], filename)
@@ -854,8 +1058,17 @@ def process():
                 'message': 'Dataset processed successfully!',
                 'metadata': metadata,
                 'bom_type': 'data',
-                'use_case': proc.use_case,
-                'use_case_label': get_use_case_label(proc.use_case, 'data'),
+                'use_case': (
+                    getattr(proc, 'use_case', None)
+                    if _cache_claim_iri is None else (metadata.get('use_case') or use_case)
+                ) or use_case,
+                'use_case_label': get_use_case_label(
+                    (
+                        getattr(proc, 'use_case', None)
+                        if _cache_claim_iri is None else (metadata.get('use_case') or use_case)
+                    ) or use_case,
+                    'data',
+                ),
                 'download_url': f'/download/{os.path.basename(output_file)}',
                 # beta-feature labels populated below as features run
                 'beta_fields': [],
