@@ -756,3 +756,29 @@ def test_generate_single_node_unresolved_target():
     )
     assert result["ok"] is False
     assert result["error"] == "unresolved"
+
+
+def test_from_scratch_is_not_a_lineage_target():
+    """'from scratch' (and kin) is the modelLineage answer for a model
+    with no base model — it must never become a dependsOn child."""
+    from aikaboom.utils.lineage import split_lineage_targets
+    for phrase in (
+        "from scratch", "trained from scratch", "From Scratch.",
+        "no base model", "Not based on any prior model.",
+        "pretrained from scratch", "scratch",
+    ):
+        assert split_lineage_targets(phrase) == [], phrase
+    # A real parent alongside a no-lineage clause keeps only the parent.
+    assert split_lineage_targets(
+        "meta-llama/Llama-3, from scratch"
+    ) == ["meta-llama/Llama-3"]
+
+
+def test_modellineage_from_scratch_yields_no_recursive_target():
+    """A model whose modelLineage is 'from scratch' has no dependsOn edge."""
+    metadata = {
+        "repo_id": "mistralai/Mistral-7B-v0.1",
+        "rag_fields": {"modelLineage": _clean_triplet("from scratch")},
+    }
+    targets, audit = discover_recursive_targets(metadata, bom_type="ai")
+    assert targets == []
