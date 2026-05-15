@@ -75,6 +75,44 @@ def test_sparql_injection_in_use_case_is_safe(store, sample_bom, sample_run_meta
     assert claims == []  # no matches; the escaped string is a literal, not SPARQL
 
 
+def test_save_claim_creates_relationship_edge(store, sample_run_meta):
+    """Saving a model BOM with trainedOnDatasets creates a trainedOn edge."""
+    from aikaboom.store.naming import Identifier
+    bom = {
+        "repo_id": "acme/model-x",
+        "use_case": "complete",
+        "direct_fields": {
+            "trainedOnDatasets": {"value": "squad", "source": "huggingface",
+                                  "conflict": None},
+        },
+        "rag_fields": {},
+    }
+    store.save_claim(bom, sample_run_meta,
+                     identifiers=[Identifier("huggingface", "acme/model-x")])
+    rows = list(store._backend.select(
+        "SELECT ?s ?t WHERE { ?s <https://aikaboom.dev/aibom#trainedOn> ?t }"))
+    assert len(rows) == 1
+
+
+def test_save_claim_connects_to_existing_dataset_node(store, sample_run_meta):
+    """A model BOM naming an already-stored dataset links to it — no new node."""
+    from aikaboom.store.naming import Identifier
+    dataset_bom = {"repo_id": "rajpurkar/squad", "use_case": "complete",
+                   "direct_fields": {}, "rag_fields": {}}
+    store.save_claim(dataset_bom, sample_run_meta,
+                     identifiers=[Identifier("huggingface", "rajpurkar/squad")])
+    before = store.stats()["artifacts"]
+    model_bom = {"repo_id": "acme/model-y", "use_case": "complete",
+                 "direct_fields": {"trainedOnDatasets": {
+                     "value": "rajpurkar/squad", "source": "huggingface",
+                     "conflict": None}}, "rag_fields": {}}
+    store.save_claim(model_bom, sample_run_meta,
+                     identifiers=[Identifier("huggingface", "acme/model-y")])
+    after = store.stats()["artifacts"]
+    # +1 for the model only — the dataset edge reused the existing node.
+    assert after == before + 1
+
+
 def test_merge_artifacts_transfers_incoming_edges(store):
     """merge_artifacts(into, from_) redirects edges that pointed at from_."""
     from rdflib import URIRef

@@ -76,10 +76,26 @@ class BomStore:
         run_meta: Mapping[str, Any],
         identifiers: list[Identifier],
     ) -> str:
-        """Convert and persist a BOM. Returns the new claim IRI."""
+        """Convert and persist a BOM. Returns the new claim IRI.
+
+        After the artifact subgraph is written, relationship fields are
+        resolved into `trainedOn`/`testedOn`/`dependsOn` edges so the graph
+        stays connected. Edge creation is best-effort — a failure there
+        never loses the saved claim.
+        """
         ds, claim_iri = bom_to_rdf(bom_json, run_meta, identifiers=identifiers)
         quads = [(s, p, o, None) for s, p, o, _ in ds.quads()]
         self._backend.add_quads(quads)
+
+        try:
+            from aikaboom.store.edges import add_relationship_edges
+
+            artifact = iris.artifact_iri(pick_primary(canonicalize_set(identifiers)))
+            add_relationship_edges(self, artifact, bom_json)
+        except Exception as e:  # noqa: BLE001 — never let edges break a save
+            import logging
+
+            logging.getLogger(__name__).warning("edge creation failed: %s", e)
         return claim_iri
 
     def find_claims_for(
