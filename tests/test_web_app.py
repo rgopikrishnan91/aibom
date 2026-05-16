@@ -512,3 +512,44 @@ class TestFlaskApp:
         data = response.get_json()
         assert data["ok"] is False
         assert data["error"] == "unresolved"
+
+    def test_recursive_children_get_link_discovery_despite_skip_fallback(self, client, monkeypatch):
+        """skip_fallback means the user already supplied the *top-level*
+        model's links — recursive children are different models with no
+        user-provided links, so they must still get link discovery
+        (find_links=True), independent of skip_fallback."""
+        import importlib
+        re_mod = importlib.import_module("aikaboom.utils.recursive_enrich")
+        rb_mod = importlib.import_module("aikaboom.utils.recursive_bom")
+
+        captured = {}
+        monkeypatch.setattr(
+            re_mod, "build_enrich_fn",
+            lambda **kw: captured.update(kw) or (lambda t: None),
+        )
+        monkeypatch.setattr(
+            rb_mod, "generate_recursive_boms",
+            lambda *a, **k: {
+                "beta": True, "enabled": True, "generated": [],
+                "generated_count": 0, "max_depth": 1,
+            },
+        )
+        monkeypatch.setattr(
+            rb_mod, "build_linked_spdx_bundle",
+            lambda *a, **k: {"@context": "x", "@graph": []},
+        )
+        monkeypatch.setattr(
+            rb_mod, "linked_bundle_summary", lambda *a, **k: {"beta": True},
+        )
+
+        response = client.post(
+            "/process",
+            json={
+                "bom_type": "ai", "mode": "rag", "repo_id": "test/model",
+                "skip_fallback": True,
+                "recursive_bom": True, "recursive_depth": 1,
+            },
+            content_type="application/json",
+        )
+        assert response.status_code == 200
+        assert captured.get("find_links") is True

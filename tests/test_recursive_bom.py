@@ -782,3 +782,44 @@ def test_modellineage_from_scratch_yields_no_recursive_target():
     }
     targets, audit = discover_recursive_targets(metadata, bom_type="ai")
     assert targets == []
+
+
+def test_multilevel_walk_emits_and_attaches_children_at_every_depth(monkeypatch):
+    """End-to-end mechanics check: a 4-level walk must (a) generate a node
+    at every depth, (b) emit discovered/start/done events at every depth,
+    and (c) attach each child to the correct parent."""
+    import aikaboom.utils.recursive_bom as rb
+
+    events = []
+    monkeypatch.setattr(rb, "_emit_event", lambda e: events.append(dict(e)))
+
+    chain = {
+        "a/m1": {"repo_id": "a/m1", "rag_fields": {"modelLineage": _clean_triplet("a/m2")}},
+        "a/m2": {"repo_id": "a/m2", "rag_fields": {"modelLineage": _clean_triplet("a/m3")}},
+        "a/m3": {"repo_id": "a/m3", "rag_fields": {"trainedOnDatasets": _clean_triplet("ds-x")}},
+    }
+
+    def enrich(target):
+        return chain.get(target["target"]) or _enriched_leaf(target)
+
+    parent = {"repo_id": "a/root", "rag_fields": {"modelLineage": _clean_triplet("a/m1")}}
+    out = generate_recursive_boms(parent, bom_type="ai", max_depth=4, enrich_fn=enrich)
+
+    # (a) walk reached every depth — 3 AI lineage hops then a data leaf
+    assert sorted({n["depth"] for n in out["generated"]}) == [1, 2, 3, 4]
+    assert out["deepest_level_reached"] == 4
+
+    # (b) events emitted at every depth
+    for kind in ("recursive.target.discovered", "recursive.child.start", "recursive.child.done"):
+        depths = sorted({e["depth"] for e in events if e["event"] == kind})
+        assert depths == [1, 2, 3, 4], f"{kind} missing a depth: {depths}"
+    assert any(e["event"] == "recursive.start" for e in events)
+    assert any(e["event"] == "recursive.done" for e in events)
+
+    # (c) each child attaches to the correct parent
+    by_target = {n["target"]: n for n in out["generated"]}
+    assert by_target["a/m1"]["parent"] == "a/root"
+    assert by_target["a/m2"]["parent"] == "a/m1"
+    assert by_target["a/m3"]["parent"] == "a/m2"
+    assert by_target["ds-x"]["parent"] == "a/m3"
+    assert by_target["ds-x"]["parent"] == "a/m3"
