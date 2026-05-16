@@ -1246,10 +1246,12 @@ def process():
                     mode=mode,
                     llm_provider=llm_provider,
                     model=model,
-                    # Recursive children get the same GitHub/arXiv link
-                    # discovery the top-level run uses, unless the user
-                    # opted out of link fallback for this run.
-                    find_links=not skip_fallback,
+                    # Always discover links for recursive children.
+                    # ``skip_fallback`` only means the user already supplied
+                    # the *top-level* model's links — recursive children are
+                    # different models with no user-provided links, so link
+                    # discovery is the only way they get GitHub/arXiv.
+                    find_links=True,
                 )
                 recursive_output = generate_recursive_boms(
                     metadata,
@@ -1380,9 +1382,9 @@ def recursive_node():
             mode=mode,
             llm_provider=llm_provider,
             model=data.get('model') or None,
-            # On-demand generation discovers GitHub/arXiv links too, so a
-            # node generated from a right-click is sourced like any other.
-            find_links=not bool(data.get('skip_fallback', False)),
+            # On-demand generation always discovers GitHub/arXiv links —
+            # the target is a child model with no user-provided links.
+            find_links=True,
         )
         result = generate_single_node(
             {
