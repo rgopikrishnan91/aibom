@@ -1,0 +1,30 @@
+@prefix aibom: <https://aikaboom.dev/aibom#> .
+@prefix ex: <https://example.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:ModelA aibom:hasVersion ex:ModelA_v1 ; aibom:canonicalLabel "ModelA" .
+ex:ModelA_v1 aibom:hasClaim ex:ClaimMA1 .
+ex:ClaimMA1 aibom:hasLicense "apache-2.0" ;
+            aibom:trustScore "0.9"^^xsd:double ;
+            aibom:createdAt "2026-01-01T00:00:00Z" ;
+            aibom:trainedOn ex:DatasetB .
+
+ex:DatasetB aibom:hasVersion ex:DatasetB_v1 ; aibom:canonicalLabel "DatasetB" .
+ex:DatasetB_v1 aibom:hasClaim ex:ClaimDB1 .
+ex:ClaimDB1 aibom:hasLicense "apache-2.0" ;
+            aibom:trustScore "0.8"^^xsd:double ;
+            aibom:createdAt "2026-01-02T00:00:00Z" ;
+            aibom:dependsOn ex:PaperC .
+
+ex:PaperC aibom:hasVersion ex:PaperC_v1 ; aibom:canonicalLabel "PaperC" .
+ex:PaperC_v1 aibom:hasClaim ex:ClaimPC1 .
+ex:ClaimPC1 aibom:hasLicense "cc-by-nc-4.0" ;
+            aibom:trustScore "0.5"^^xsd:double ;
+            aibom:createdAt "2026-01-03T00:00:00Z" .
+
+# Second, conflicting claim for ModelA with lower trustScore.
+ex:ModelA_v1 aibom:hasClaim ex:ClaimMA2 .
+ex:ClaimMA2 aibom:hasLicense "gpl-3.0" ;
+            aibom:trustScore "0.2"^^xsd:double ;
+            aibom:createdAt "2026-01-04T00:00:00Z" ;
+            aibom:trainedOn ex:DatasetB .
