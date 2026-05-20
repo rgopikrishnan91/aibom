@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Optional, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, Literal, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
     import argparse
@@ -12,8 +12,8 @@ if TYPE_CHECKING:
 @dataclass(frozen=True)
 class Scope:
     """Analysis scope for a plugin run."""
-    kind: str  # "single" | "graph_wide"
-    artifact_iri: Optional[str] = None
+    kind: Literal["single", "graph_wide"]
+    artifact_iri: str | None = None
     depth: int = 5
 
     @classmethod
@@ -37,7 +37,7 @@ class TabSpec:
 class ConflictRecord:
     """Entry the plugin contributes to the existing Conflicts tab."""
     category: str
-    severity: str  # "high" | "medium" | "low" | "info"
+    severity: Literal["high", "medium", "low", "info"]
     subject_iri: str
     title: str
     detail: str
@@ -53,9 +53,13 @@ class GraphOverlay:
 
 
 class Findings(Protocol):
-    """Result type of plugin.analyze(). Implementations supply iteration helpers."""
+    """Result type of plugin.analyze(). Implementations supply iteration helpers.
 
-    def to_dict(self) -> dict: ...
+    Element type of `violations()` is plugin-specific (typically a Finding
+    dataclass). `to_dict()` returns a JSON-serializable mapping.
+    """
+
+    def to_dict(self) -> dict[str, Any]: ...
     def violations(self) -> list: ...
 
 
@@ -71,9 +75,9 @@ class Plugin(Protocol):
 
     def register_cli(self, parent_subparsers: "argparse._SubParsersAction") -> None: ...
 
-    def web_blueprint(self) -> Optional["Blueprint"]: ...
+    def web_blueprint(self) -> "Blueprint | None": ...
 
-    def bom_viewer_tab(self) -> Optional[TabSpec]: ...
+    def bom_viewer_tab(self) -> "TabSpec | None": ...
 
     def spdx_annotations(self, claim_iri: str, findings: Findings) -> list[dict]: ...
 

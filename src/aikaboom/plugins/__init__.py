@@ -11,26 +11,28 @@ from aikaboom.plugins.base import (
 )
 
 
-class _registry:
-    """Mutable container so monkeypatching in tests is straightforward."""
+class _Registry:
+    """Class wrapper (not a module-level dict) so tests can monkeypatch
+    ._plugins to isolate the registry per-test.
+    """
     _plugins: dict = {}
 
 
 def register(plugin: Plugin) -> None:
     """Register a plugin instance. Raises ValueError if name collides."""
-    if plugin.name in _registry._plugins:
+    if plugin.name in _Registry._plugins:
         raise ValueError(f"Plugin {plugin.name!r} already registered")
-    _registry._plugins[plugin.name] = plugin
+    _Registry._plugins[plugin.name] = plugin
 
 
 def all_plugins() -> list[Plugin]:
     """Return every registered plugin in insertion order."""
-    return list(_registry._plugins.values())
+    return list(_Registry._plugins.values())
 
 
 def get(name: str) -> Plugin | None:
     """Look up a plugin by name."""
-    return _registry._plugins.get(name)
+    return _Registry._plugins.get(name)
 
 
 __all__ = [

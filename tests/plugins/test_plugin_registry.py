@@ -38,8 +38,8 @@ class _DummyPlugin:
 @pytest.fixture(autouse=True)
 def _isolate_registry(monkeypatch):
     """Each test gets a fresh registry."""
-    from aikaboom.plugins import _registry
-    monkeypatch.setattr(_registry, "_plugins", {})
+    from aikaboom.plugins import _Registry
+    monkeypatch.setattr(_Registry, "_plugins", {})
 
 
 def test_register_and_retrieve():
@@ -69,8 +69,20 @@ def test_get_unknown_plugin_returns_none():
 
 
 def test_protocol_recognises_dummy():
-    # _DummyPlugin doesn't implement every hook, but it satisfies the
-    # minimum (name + enabled). Confirm the Protocol is structural, not
-    # nominal — runtime_checkable + isinstance.
+    # _DummyPlugin implements all eight hooks; this asserts that
+    # @runtime_checkable Protocol accepts a duck-typed class with the full
+    # surface (the canonical case for our real plugins).
     p = _DummyPlugin()
     assert isinstance(p, Plugin)
+
+
+def test_all_plugins_preserves_insertion_order():
+    first = _DummyPlugin()
+    second = _DummyPlugin()
+    second.name = "second"
+    third = _DummyPlugin()
+    third.name = "third"
+    register(first)
+    register(second)
+    register(third)
+    assert [p.name for p in all_plugins()] == ["dummy-test", "second", "third"]
