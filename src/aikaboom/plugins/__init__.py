@@ -46,3 +46,7 @@ __all__ = [
     "all_plugins",
     "get",
 ]
+
+# Eager-import in-tree plugins so they self-register. When entry_points
+# discovery lands, this block is replaced with a single call.
+from aikaboom.plugins import license_compat as _license_compat  # noqa: E402, F401

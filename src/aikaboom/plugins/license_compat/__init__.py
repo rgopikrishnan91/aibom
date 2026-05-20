@@ -1,4 +1,6 @@
-"""License-compatibility analysis plugin.
+"""License-compatibility analysis plugin."""
+from aikaboom.plugins import register
+from aikaboom.plugins.license_compat.plugin import LicenseCompatPlugin
 
-Phase 1 stub — full registration wiring lands in Task 4.
-"""
+# Self-register on import.
+register(LicenseCompatPlugin())
