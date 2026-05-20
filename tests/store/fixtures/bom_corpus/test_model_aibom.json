@@ -1,0 +1,10 @@
+{
+  "model_id": "test_model",
+  "direct_fields": {
+    "license": "MIT"
+  },
+  "rag_fields": {
+    "model_name": "Test Model",
+    "trainedOnDatasets": "squad"
+  }
+}

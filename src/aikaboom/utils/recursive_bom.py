@@ -337,6 +337,10 @@ def generate_recursive_boms(
     validate_spdx: bool = True,
     strict_spdx: bool = False,
     enrich_fn: Optional[EnrichFn] = None,
+    *,
+    min_trust: float = 0.0,
+    regen_on_low_trust: bool = False,
+    cache_policy: str = "use",
 ) -> Dict[str, Any]:
     """Walk the dependency tree of an AI BOM and emit child BOMs.
 
@@ -369,6 +373,17 @@ def generate_recursive_boms(
             the UI — and the branch stops there. Without an ``enrich_fn``
             at all, children carry seed metadata (seed-only mode) and the
             walk typically stops after one level.
+        min_trust: Minimum canonical trust score required to reuse a cached
+            child claim. ``0.0`` (default) disables the gate. When a child's
+            canonical claim scores below this threshold, the walker either
+            skips that child (default) or — when ``regen_on_low_trust=True``
+            — falls through to the regular generate-child path.
+        regen_on_low_trust: If ``True``, low-trust children are regenerated
+            instead of skipped. Has no effect when ``min_trust`` is 0.0.
+        cache_policy: Reserved for the Task 14 cache-policy plumbing
+            (``"use"`` / ``"refresh"`` / ``"bypass"``). Currently passed
+            through unchanged so callers can thread the flag from the CLI
+            and web layers without the walker yet acting on it.
     """
     max_depth = max(0, int(max_depth or 0))
     breadth = max(0, int(breadth or 0))
@@ -416,6 +431,14 @@ def generate_recursive_boms(
     })
 
     conflict_walked: List[Dict[str, Any]] = []
+
+    # Lazy-opened once if any child reference triggers the trust gate.
+    # Sentinel values:
+    #   * ``None`` — not yet attempted (or gate disabled).
+    #   * ``False`` — open attempt failed; skip the gate for the rest of
+    #     this walk so we don't keep retrying a broken backend.
+    #   * BomStore instance — opened successfully; reuse for every child.
+    _trust_store: Any = None
 
     while frontier:
         parent_meta, parent_label, parent_bom_type, depth = frontier.pop(0)
@@ -468,6 +491,95 @@ def generate_recursive_boms(
                     "has_conflict": t.get("has_conflict", False),
                 })
                 continue
+            # Trust-gated reuse: when ``min_trust`` is positive, consult the
+            # BomStore canonical trust score for the child's identifiers.
+            # If the score is below the threshold, either skip the child
+            # entirely (default) or fall through to the regular
+            # generate-child path (``regen_on_low_trust=True``).
+            if min_trust > 0.0:
+                _child_ref = t["target"]
+                # Lazy-open the trust store once per walk (not once per
+                # child). The first child that needs the gate opens the
+                # backend; subsequent children reuse the same handle.
+                if _trust_store is None:
+                    try:
+                        from aikaboom.store.store import BomStore as _BomStore
+                        _trust_store = _BomStore.open()
+                    except (ImportError, OSError, RuntimeError) as exc:
+                        # Backend unavailable (no oxigraph + no rdflib,
+                        # perm error, etc.). Emit a breadcrumb so the
+                        # operator can see why the gate is silently off,
+                        # then disable the gate for the rest of this walk
+                        # via the ``False`` sentinel.
+                        _emit_event({
+                            "event": "recursive.trust_gate.error",
+                            "target": _child_ref,
+                            "error": str(exc),
+                            "message": "cannot open trust store; gate disabled for this walk",
+                        })
+                        _trust_store = False
+                if _trust_store is False:
+                    # We tried earlier in this walk and the open failed —
+                    # skip the gate for every remaining child. Fall through
+                    # to the normal generate-child path.
+                    pass
+                else:
+                    from aikaboom.store.naming import Identifier as _Identifier
+
+                    _child_idents = [
+                        _Identifier("huggingface", _child_ref)
+                        if "/" in _child_ref
+                        else _Identifier("name-only", _child_ref)
+                    ]
+                    try:
+                        _canonical = _trust_store.canonical_claim_for(_child_idents)
+                        _score = (
+                            _trust_store.trust_score(_canonical)
+                            if _canonical
+                            else 0.0
+                        )
+                    except (ImportError, OSError, RuntimeError) as exc:
+                        # Store reachable but the lookup itself failed —
+                        # degrade to pre-trust behavior for this child
+                        # only, but emit a breadcrumb so silent failures
+                        # are visible.
+                        _emit_event({
+                            "event": "recursive.trust_gate.error",
+                            "target": _child_ref,
+                            "error": str(exc),
+                            "message": "trust gate disabled due to store error",
+                        })
+                        _canonical = None
+                        _score = 0.0
+                    if _canonical:
+                        if _score < min_trust and not regen_on_low_trust:
+                            safety_capped.append({
+                                "target": t["target"],
+                                "bom_type": t["bom_type"],
+                                "relationship_type": t["relationship_type"],
+                                "reason": "low-trust",
+                                "parent": parent_label,
+                                "depth": depth + 1,
+                                "trust_score": _score,
+                                "min_trust": min_trust,
+                            })
+                            _emit_event({
+                                "event": "recursive.child.skipped",
+                                "target": t["target"],
+                                "bom_type": t["bom_type"],
+                                "relationship_type": t["relationship_type"],
+                                "parent": parent_label,
+                                "depth": depth + 1,
+                                "reason": "low-trust",
+                                "trust_score": _score,
+                                "min_trust": min_trust,
+                                "has_conflict": t.get("has_conflict", False),
+                            })
+                            continue
+                        # else: fall through (regen_on_low_trust=True or
+                        # score >= threshold) — proceed to enrichment as
+                        # usual.
+
             # safety_cap — absolute ceiling across the whole tree. The cap
             # is on total generated count; during discovery we approximate
             # with len(generated) + queued so the UI sees skipped chips

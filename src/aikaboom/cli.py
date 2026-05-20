@@ -191,51 +191,135 @@ def cmd_generate(args):
             f"{len(get_fixed_questions(args.type))} fields)"
         )
 
-    if args.type == "ai":
-        if not any([args.repo, args.arxiv, args.github]):
-            print("Error: provide at least --repo, --arxiv, or --github", file=sys.stderr)
-            sys.exit(1)
+    # --- worldofBOMs cache resolution ---
+    # ``Identifier`` is needed both inside and outside the store-open branch
+    # (for ``_idents`` construction and post-generation persistence), so keep
+    # it imported at the outer level. The heavier store imports stay inside
+    # the ``else:`` branch so ``AIKABOOM_GRAPH_DISABLE=1`` remains a
+    # lightweight bypass.
+    from aikaboom.store.naming import Identifier
 
-        # Be lenient: users routinely pass the full HF URL to --repo.
-        # Normalise so downstream code only ever sees the canonical
-        # ``namespace/repo`` form. Mirrors the dataset path's existing
-        # ``hf_url`` normalisation in core/processors.py.
-        repo_id = args.repo
-        if repo_id and "huggingface.co" in repo_id:
-            from aikaboom.utils.metadata_fetcher import MetadataFetcher
-            normalised = MetadataFetcher.extract_repo_id_from_hf_url(repo_id)
-            if normalised:
-                repo_id = normalised
-
-        processor = AIBOMProcessor(
-            model=model,
-            mode=args.mode,
-            llm_provider=provider,
-            use_case=normalized_use_case,
-            questions_config=questions_config,
-        )
-        result = processor.process_ai_model(
-            repo_id=repo_id,
-            arxiv_url=args.arxiv,
-            github_url=args.github,
-        )
+    _graph_disabled = os.environ.get("AIKABOOM_GRAPH_DISABLE") == "1"
+    if _graph_disabled:
+        _store = None
     else:
-        if not any([args.hf_url, args.arxiv, args.github]):
-            print("Error: provide at least --hf-url, --arxiv, or --github", file=sys.stderr)
-            sys.exit(1)
+        from aikaboom.store.cache_resolver import CachePolicy, decide, is_interactive
+        from aikaboom.store.store import BomStore
+        from aikaboom.store.trust import VoteKind
+        try:
+            _store = BomStore.open()
+        except Exception as e:
+            print(
+                f"warning: graph store unavailable, continuing without cache: {e}",
+                file=sys.stderr,
+            )
+            _store = None
+    _claim_to_use = None
+    _idents: list[Identifier] = []
 
-        processor = DATABOMProcessor(
-            model=model,
-            mode=args.mode,
-            llm_provider=provider,
-            use_case=normalized_use_case,
-            questions_config=questions_config,
-        )
-        result = processor.process_dataset(
-            arxiv_url=args.arxiv,
-            github_url=args.github,
-            hf_url=args.hf_url,
-        )
+    if _store is not None:
+        if args.type == "ai" and args.repo:
+            _idents.append(Identifier("huggingface", args.repo))
+        if getattr(args, "hf_url", None):
+            _idents.append(Identifier("huggingface", args.hf_url))
+        if args.arxiv:
+            _idents.append(Identifier("arxiv", args.arxiv))
+        if args.github:
+            _idents.append(Identifier("github", args.github))
+
+        if _idents:
+            _resolve = _store.resolve(
+                identifiers=_idents,
+                use_case=normalized_use_case,
+                mode=args.mode,
+            )
+            _policy = CachePolicy(args.cache)
+            _decision = decide(
+                _resolve, _policy, interactive=is_interactive(), planned_llm=model,
+            )
+            if _decision == "use" and _resolve.matching_claims:
+                _claim_to_use = _resolve.matching_claims[0]["iri"]
+
+    if _claim_to_use is not None:
+        # Reconstruct the cached BOM from the graph.
+        result = _store.reconstruct_bom(_claim_to_use)
+        # Record implicit-use vote (silent positive signal).
+        _store.record_trust_vote(_claim_to_use, VoteKind.IMPLICIT_USE)
+        # Tag the result so downstream code knows it's a cache hit.
+        result["_cached"] = True
+        result["_claim_iri"] = _claim_to_use
+        _skip_generation = True
+    else:
+        _skip_generation = False
+
+    if not _skip_generation:
+        if args.type == "ai":
+            if not any([args.repo, args.arxiv, args.github]):
+                print("Error: provide at least --repo, --arxiv, or --github", file=sys.stderr)
+                sys.exit(1)
+
+            # Be lenient: users routinely pass the full HF URL to --repo.
+            # Normalise so downstream code only ever sees the canonical
+            # ``namespace/repo`` form. Mirrors the dataset path's existing
+            # ``hf_url`` normalisation in core/processors.py.
+            repo_id = args.repo
+            if repo_id and "huggingface.co" in repo_id:
+                from aikaboom.utils.metadata_fetcher import MetadataFetcher
+                normalised = MetadataFetcher.extract_repo_id_from_hf_url(repo_id)
+                if normalised:
+                    repo_id = normalised
+
+            processor = AIBOMProcessor(
+                model=model,
+                mode=args.mode,
+                llm_provider=provider,
+                use_case=normalized_use_case,
+                questions_config=questions_config,
+            )
+            result = processor.process_ai_model(
+                repo_id=repo_id,
+                arxiv_url=args.arxiv,
+                github_url=args.github,
+            )
+        else:
+            if not any([args.hf_url, args.arxiv, args.github]):
+                print("Error: provide at least --hf-url, --arxiv, or --github", file=sys.stderr)
+                sys.exit(1)
+
+            processor = DATABOMProcessor(
+                model=model,
+                mode=args.mode,
+                llm_provider=provider,
+                use_case=normalized_use_case,
+                questions_config=questions_config,
+            )
+            result = processor.process_dataset(
+                arxiv_url=args.arxiv,
+                github_url=args.github,
+                hf_url=args.hf_url,
+            )
+
+    # Persist the freshly generated BOM (skipped on cache hit).
+    # Persistence is best-effort: if the store backend errors after the LLM
+    # cost has already been paid, surface a warning but never destroy the
+    # generated BOM by raising before the JSON output is written.
+    _saved_claim_iri = None
+    if _store is not None and not _skip_generation:
+        try:
+            _saved_claim_iri = _store.save_claim(
+                result,
+                run_meta={
+                    "provider": provider, "llm_model": model,
+                    "prompt_version": "v1", "code_version": "head",
+                    "mode": args.mode, "use_case": normalized_use_case,
+                },
+                identifiers=_idents,
+            )
+        except Exception as e:
+            print(
+                f"warning: failed to persist claim to graph store: {e}",
+                file=sys.stderr,
+            )
 
     # Write JSON output
     output_json = json.dumps(result, indent=2, ensure_ascii=False)
@@ -307,6 +391,20 @@ def cmd_generate(args):
             if validation["valid"]:
                 beta = " beta" if validation.get("beta") else ""
                 print(f"SPDX validation passed ({validation['validator']}{beta})")
+                # Implicit-validate: silent positive signal when a freshly
+                # generated claim's SPDX export validates. Best-effort: a
+                # trust-write failure must never block generation output.
+                if (
+                    _store is not None
+                    and not _skip_generation
+                    and _saved_claim_iri is not None
+                ):
+                    try:
+                        _store.record_trust_vote(
+                            _saved_claim_iri, VoteKind.IMPLICIT_VALIDATE,
+                        )
+                    except Exception:
+                        pass
             else:
                 beta = " beta" if validation.get("beta") else ""
                 print(
@@ -596,6 +694,30 @@ def main():
         action="store_true",
         help="Skip provider confirmation prompt when multiple keys are set.",
     )
+    gen.add_argument(
+        "--cache",
+        choices=["use", "regen", "prompt", "auto"],
+        default=os.environ.get("AIKABOOM_CACHE_POLICY_DEFAULT") or
+                ("prompt" if sys.stdin.isatty() else "use"),
+        help="Cache resolution policy when an existing BOM is found.",
+    )
+    gen.add_argument(
+        "--min-trust",
+        type=float,
+        default=0.0,
+        help="Recursive walks: skip child claims with trustScore below this.",
+    )
+    gen.add_argument(
+        "--regen-on-low-trust",
+        action="store_true",
+        help="Recursive walks: regenerate child BOMs below --min-trust instead of skipping.",
+    )
+    gen.add_argument(
+        "--primary-platform",
+        choices=["huggingface", "github", "arxiv", "doi", "url"],
+        default=None,
+        help="Override which input is treated as the primary identifier.",
+    )
     # --- serve ---
     srv = subparsers.add_parser("serve", help="Start the web UI")
     srv.add_argument("--host", help="Bind address (default: 127.0.0.1)")
@@ -612,6 +734,10 @@ def main():
     lm.add_argument("--limit", type=int, default=None, help="Max number of models to show.")
     lm.add_argument("--json", action="store_true", help="Output JSON instead of a table.")
 
+    # --- graph / bom subcommands ---
+    from aikaboom.store.cli_graph import register_subparsers as _register_graph_subparsers
+    _register_graph_subparsers(subparsers)
+
     args = parser.parse_args()
 
     if args.command == "generate":
@@ -620,6 +746,8 @@ def main():
         cmd_serve(args)
     elif args.command == "list-models":
         cmd_list_models(args)
+    elif args.command in ("graph", "bom"):
+        return args.func(args)
     else:
         parser.print_help()
         sys.exit(1)

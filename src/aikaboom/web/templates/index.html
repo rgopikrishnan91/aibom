@@ -796,6 +796,12 @@
         .result-pane.is-empty .tabs,
         .result-pane.is-empty .download-strip,
         .result-pane.is-empty .tab-content { display: none !important; }
+        /* When History is opened from the splash, show the history panel in
+           place of the splash card without fully leaving the empty state. */
+        .result-pane.is-history-open .result-empty { display: none !important; }
+        .result-pane.is-history-open #historyTab.tab-content.active {
+            display: flex !important;
+        }
         .splash-brand {
             display: flex;
             flex-direction: column;
@@ -928,6 +934,28 @@
             color: var(--primary);
             font-style: normal;
             font-weight: 600;
+        }
+        .splash-history-hint {
+            font-family: var(--sans);
+            font-size: 12.5px;
+            color: var(--paper-mute);
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+        .splash-history-hint[hidden] { display: none; }
+        .splash-history-hint strong { color: var(--ink); font-weight: 600; }
+        .splash-history-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            margin-left: 4px;
+            padding: 0 4px;
+            border-radius: 3px;
+        }
+        .splash-history-link:hover { background: var(--primary-soft); }
+        .splash-history-link:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
         }
 
         .tab-content {
@@ -3253,6 +3281,12 @@
                 <div class="splash-hint">
                     Watch fields fill in live in the <em>Pipeline</em> tab while it runs.
                 </div>
+                <div class="splash-history-hint" id="splashHistoryHint" hidden>
+                    …or open one of your <strong><span id="splashHistoryCount">0</span> past BOMs</strong>
+                    <a href="#" class="splash-history-link"
+                       onclick="event.preventDefault(); switchTabByName('history');"
+                       aria-label="Open History tab"><span aria-hidden="true">→</span></a>
+                </div>
             </div>
 
             <div class="tabs">
@@ -3262,6 +3296,7 @@
                 <button class="tab is-standard" onclick="switchTab(event, 'spdx')" title="Standards-compliant SPDX 3.0.1 export">SPDX 3.0.1 <span class="prod-tag">Standard</span></button>
                 <button class="tab" onclick="switchTab(event, 'cyclonedx')" title="CycloneDX 1.6 Beta — ML-BOM export">CycloneDX 1.6 <span class="beta-tag">Beta</span></button>
                 <button class="tab" onclick="switchTab(event, 'recursive')" title="Recursive Beta — child BOM seed exports">Recursive <span class="beta-tag">Beta</span></button>
+                <button class="tab" onclick="switchTab(event, 'worldofboms')" title="worldofBOMs — the connected knowledge graph of every BOM generated">worldofBOMs <span class="beta-tag">Beta</span></button>
                 <button class="tab" onclick="switchTab(event, 'logs')" title="Live server processing log">Logs</button>
                 <button class="tab" onclick="switchTab(event, 'history')" title="Previously generated BOMs — click a row to reload it">History</button>
             </div>
@@ -3498,6 +3533,67 @@
                     </div>
                     <div class="bom-shell-body is-raw" data-view-pane="raw" style="display:none;">
                         <div id="jsonViewerRecursive" class="json-viewer"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="worldofbomsTab" class="tab-content">
+                <div class="bom-shell" data-bom-shell="worldofboms">
+                    <div class="bom-shell-toolbar" id="worldToolbar">
+                        <div class="view-toggle" role="tablist" id="worldViewToggle">
+                            <button type="button" class="is-active" data-world-view="global">Global</button>
+                            <button type="button" data-world-view="ego" disabled id="worldEgoToggle">Ego</button>
+                        </div>
+                        <div class="view-toggle" id="worldDirection" style="margin-left:8px;">
+                            <button type="button" class="is-active" data-world-dir="both">Both</button>
+                            <button type="button" data-world-dir="up">Upstream</button>
+                            <button type="button" data-world-dir="down">Downstream</button>
+                        </div>
+                        <input type="search" id="worldSearch" placeholder="Find a node…"
+                               style="margin-left:8px;font-size:12px;padding:3px 8px;">
+                        <div style="flex:1"></div>
+                        <span id="worldStats" style="font-size:11.5px;color:var(--paper-mute);"></span>
+                        <a id="worldDownload" class="mock-button"
+                           style="margin-left:10px;font-size:11.5px;" href="#">⬇ Download ▾</a>
+                    </div>
+                    <div class="recursive-body">
+                        <div class="graph-wrap" id="worldGraphWrap">
+                            <div id="worldGraphCanvas" class="graph-canvas"></div>
+                            <div class="graph-legend">
+                                <span><i></i> trainedOn</span>
+                                <span><i class="is-tested"></i> testedOn</span>
+                                <span><i class="is-depends"></i> dependsOn</span>
+                            </div>
+                            <div class="graph-controls" id="worldGraphControls" aria-label="Graph controls">
+                                <button type="button" id="worldZoomIn"  title="Zoom in" aria-label="Zoom in">+</button>
+                                <button type="button" id="worldZoomOut" title="Zoom out" aria-label="Zoom out">−</button>
+                                <button type="button" id="worldFit"     title="Fit" aria-label="Fit">⤢</button>
+                                <button type="button" id="worldReset"   title="Reset" aria-label="Reset">⟲</button>
+                                <button type="button" id="worldFull"    title="Fullscreen" aria-label="Fullscreen">⛶</button>
+                            </div>
+                            <div id="worldGraphEmpty" class="graph-empty">No BOMs in the graph yet — generate one to start your worldofBOMs.</div>
+                        </div>
+                        <aside id="worldSidePanel" class="side-panel" aria-hidden="true">
+                            <div class="side-panel-header">
+                                <div style="min-width:0;flex:1;">
+                                    <div id="worldSidePanelTitle" class="side-panel-title">—</div>
+                                    <div id="worldSidePanelMeta" class="side-panel-meta"></div>
+                                </div>
+                                <button type="button" class="side-panel-close" id="worldSidePanelClose" aria-label="Close">×</button>
+                            </div>
+                            <div class="side-panel-toolbar">
+                                <div class="view-toggle">
+                                    <button type="button" class="is-active" data-world-pane="bom">BOM</button>
+                                    <button type="button" data-world-pane="lineage">Lineage &amp; queries</button>
+                                </div>
+                            </div>
+                            <div class="side-panel-body" id="worldPaneBom" data-world-pane-body="bom">
+                                <div id="worldSidePanelFlat" class="flat-bom"></div>
+                            </div>
+                            <div class="side-panel-body" id="worldPaneLineage" data-world-pane-body="lineage" style="display:none;">
+                                <div id="worldLineageResults"></div>
+                            </div>
+                        </aside>
                     </div>
                 </div>
             </div>
@@ -4042,6 +4138,14 @@
                     if (result.history) History.upsert(result.history);
 
                     refocusAfterGeneration();
+                    // Keep the worldofBOMs graph fresh — a new BOM just grew it.
+                    if (typeof worldFullGraph !== 'undefined') {
+                        worldFullGraph = null;
+                        if (document.getElementById('worldofbomsTab')
+                              ?.classList.contains('active')) {
+                            loadWorldGraph();
+                        }
+                    }
                 } else {
                     showStatus('error', `Error: ${escapeHtml(result.message || 'unknown')}`);
                 }
@@ -4575,6 +4679,10 @@
             (ev.currentTarget || ev.target).classList.add('active');
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.getElementById(tabName + 'Tab').classList.add('active');
+            if (tabName === 'worldofboms') {
+                if (typeof _wireWorldControls === 'function') _wireWorldControls();
+                loadWorldGraph();
+            }
         }
 
         // Programmatic version (no click event) used by Pipeline action buttons.
@@ -4601,6 +4709,19 @@
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             const panel = document.getElementById(tabName + 'Tab');
             if (panel) panel.classList.add('active');
+            // When History is opened from the splash (is-empty state), add
+            // is-history-open so the history panel renders in place of the
+            // splash card without fully removing is-empty.
+            const resultPane = document.getElementById('resultPane');
+            if (tabName === 'history' && resultPane && resultPane.classList.contains('is-empty')) {
+                resultPane.classList.add('is-history-open');
+            } else if (tabName !== 'history' && resultPane) {
+                resultPane.classList.remove('is-history-open');
+            }
+            if (tabName === 'worldofboms') {
+                if (typeof _wireWorldControls === 'function') _wireWorldControls();
+                loadWorldGraph();
+            }
         }
 
         // ===== Pipeline tab controller ==========================================
@@ -5450,6 +5571,21 @@
         // Lists previously generated BOMs from /history. Clicking a row hydrates
         // the BOM/SPDX/CycloneDX/Conflicts viewers from the saved artifact files
         // and switches to the BOM tab — same UX as a fresh run finishing.
+        function _refreshSplashHistoryHint() {
+            const hint = document.getElementById('splashHistoryHint');
+            const count = document.getElementById('splashHistoryCount');
+            if (!hint || !count) return;
+            // History.rows is exposed via the getter on the History IIFE return.
+            // window.History is also set after the IIFE for external access.
+            const n = (typeof History !== 'undefined' && History.rows) ? History.rows.length : 0;
+            if (n > 0) {
+                count.textContent = String(n);
+                hint.hidden = false;
+            } else {
+                hint.hidden = true;
+            }
+        }
+
         const History = (function () {
             let rows = [];
             let activeHash = null;
@@ -5464,6 +5600,7 @@
                     const data = await resp.json();
                     rows = Array.isArray(data.rows) ? data.rows : [];
                     render();
+                    _refreshSplashHistoryHint();
                 } catch (e) {
                     console.warn('history load failed', e);
                 }
@@ -5474,6 +5611,7 @@
                 rows = rows.filter(r => r.hash !== row.hash);
                 rows.unshift(row);
                 render();
+                _refreshSplashHistoryHint();
             }
 
             function render() {
@@ -5684,8 +5822,15 @@
                 // the last-rehydrated row + BOM without re-fetching.
                 get _lastLoadedRow() { return _lastLoadedRow; },
                 get _lastLoadedBom() { return _lastLoadedBom; },
+                // Expose rows so external code (e.g. _refreshSplashHistoryHint,
+                // Playwright smoke) can read the current count without
+                // triggering a re-fetch.
+                get rows() { return rows; },
             };
         })();
+        // Expose History on window so Playwright smoke tests and external
+        // scripts can reach it via window.History (const is not auto-exposed).
+        window.History = History;
 
         // Refresh history on first page load.
         window.addEventListener('DOMContentLoaded', () => { History.load(); });
@@ -6810,6 +6955,562 @@
             });
         }
 
+        // ===== worldofBOMs tab =====================================
+        let worldCy = null;
+        let worldView = 'global';        // 'global' | 'ego'
+        let worldDirection = 'both';     // 'both' | 'up' | 'down'
+        let worldFocusIri = null;
+        let worldFullGraph = null;       // cached {nodes, edges}
+
+        const WORLD_KIND_COLOR = {
+            Model:   { bg: '#e6ecff', border: '#3451b2', fg: '#0d1117' },
+            Dataset: { bg: '#fff1e5', border: '#f0b079', fg: '#5a2900' },
+            Paper:   { bg: '#eafaef', border: '#1a7f37', fg: '#04260f' },
+            CodeRepo:{ bg: '#f3eefc', border: '#8250df', fg: '#1f0a3d' },
+            Artifact:{ bg: '#ffffff', border: '#d0d7de', fg: '#0d1117' },
+        };
+
+        function _worldGraphStyle() {
+            return [
+                { selector: 'node', style: {
+                    'shape': 'round-rectangle', 'label': 'data(label)',
+                    'background-color': 'data(bg)', 'border-color': 'data(border)',
+                    'color': 'data(fg)', 'border-width': 1,
+                    'font-family': "'IBM Plex Sans', system-ui, sans-serif",
+                    'font-size': 12, 'text-valign': 'center', 'text-halign': 'center',
+                    'text-wrap': 'wrap', 'text-max-width': '150px', 'padding': '10px',
+                    'width': 'label', 'height': 'label',
+                    'min-width': '80px', 'min-height': '28px' } },
+                { selector: 'node[isPlaceholder = "true"]', style: {
+                    'background-opacity': 0, 'border-style': 'dashed',
+                    'border-color': '#9aa4b2', 'color': '#6e7781' } },
+                { selector: 'node[isFocus = "true"]', style: {
+                    'border-width': 4, 'border-color': '#d99a00' } },
+                { selector: 'node.dimmed', style: { 'opacity': 0.25 } },
+                { selector: 'edge', style: {
+                    'curve-style': 'bezier', 'target-arrow-shape': 'triangle',
+                    'line-color': '#3451b2', 'target-arrow-color': '#3451b2',
+                    'width': 1.5, 'label': 'data(predicate)',
+                    'font-family': "'IBM Plex Mono', monospace", 'font-size': 9,
+                    'color': '#57606a', 'text-background-color': '#fff',
+                    'text-background-opacity': 1, 'text-background-padding': '2px',
+                    'text-rotation': 'autorotate' } },
+                { selector: 'edge[predicate = "testedOn"]', style: {
+                    'line-color': '#1a7f37', 'target-arrow-color': '#1a7f37' } },
+                { selector: 'edge[predicate = "dependsOn"]', style: {
+                    'line-color': '#6e7781', 'target-arrow-color': '#6e7781',
+                    'line-style': 'dashed' } },
+                { selector: 'edge[predicate = "potentialDuplicateOf"]', style: {
+                    'line-color': '#d99a00', 'target-arrow-color': '#d99a00',
+                    'line-style': 'dotted' } },
+                { selector: 'edge.dimmed', style: { 'opacity': 0.12 } },
+            ];
+        }
+
+        function _worldElements(graph) {
+            // Disambiguate label clashes with a kind suffix.
+            const labelCounts = {};
+            graph.nodes.forEach(n => { labelCounts[n.label] = (labelCounts[n.label] || 0) + 1; });
+            const nodes = graph.nodes.map(n => {
+                const c = WORLD_KIND_COLOR[n.kind] || WORLD_KIND_COLOR.Artifact;
+                let label = n.label;
+                if (labelCounts[n.label] > 1) label = `${n.label}\n(${n.kind})`;
+                return { data: {
+                    id: n.iri, label, kind: n.kind,
+                    isPlaceholder: String(!!n.is_placeholder),
+                    isFocus: 'false',
+                    bg: c.bg, border: c.border, fg: c.fg } };
+            });
+            const edges = (graph.edges || []).map((e, i) => ({ data: {
+                id: `we${i}`, source: e.source, target: e.target,
+                predicate: e.predicate } }));
+            return { nodes, edges };
+        }
+
+        async function loadWorldGraph() {
+            const empty = document.getElementById('worldGraphEmpty');
+            try {
+                const resp = await fetch('/worldofboms/graph');
+                worldFullGraph = await resp.json();
+            } catch (e) {
+                worldFullGraph = { nodes: [], edges: [], store_unavailable: true };
+            }
+            if (!worldFullGraph.nodes || worldFullGraph.nodes.length === 0) {
+                empty.style.display = '';
+                empty.textContent = worldFullGraph.store_unavailable
+                    ? 'Graph store unavailable.'
+                    : 'No BOMs in the graph yet — generate one to start your worldofBOMs.';
+                if (worldCy) { try { worldCy.destroy(); } catch (_) {} worldCy = null; }
+                return;
+            }
+            empty.style.display = 'none';
+            worldView = 'global';
+            worldFocusIri = null;
+            renderWorldGraph(_worldElements(worldFullGraph));
+            refreshWorldStats();
+        }
+
+        function renderWorldGraph(elements) {
+            const canvas = document.getElementById('worldGraphCanvas');
+            if (worldCy) { try { worldCy.destroy(); } catch (_) {} }
+            worldCy = cytoscape({
+                container: canvas, elements, wheelSensitivity: 0.2,
+                minZoom: 0.05, maxZoom: 3.0, style: _worldGraphStyle(),
+                layout: { name: 'cose', animate: false, padding: 28,
+                          nodeOverlap: 24, idealEdgeLength: 90, fit: true },
+            });
+            worldCy.on('tap', 'node', (evt) => openWorldEgo(evt.target.id()));
+            worldCy.on('tap', (evt) => { if (evt.target === worldCy) closeWorldSidePanel(); });
+            setTimeout(() => { try { worldCy.resize(); worldCy.fit(undefined, 28); }
+                               catch (_) {} }, 80);
+        }
+
+        async function refreshWorldStats() {
+            try {
+                const s = await (await fetch('/worldofboms/stats')).json();
+                document.getElementById('worldStats').textContent =
+                    `${s.artifacts || 0} artifacts · ${s.edges || 0} edges · ${s.claims || 0} claims`;
+            } catch (_) { /* ignore */ }
+        }
+
+        async function openWorldEgo(artifactIri) {
+            worldFocusIri = artifactIri;
+            worldView = 'ego';
+            document.getElementById('worldEgoToggle').disabled = false;
+            document.querySelectorAll('#worldViewToggle button').forEach(b =>
+                b.classList.toggle('is-active', b.dataset.worldView === 'ego'));
+            let ego;
+            try {
+                ego = await (await fetch(
+                    `/worldofboms/ego/${encodeURIComponent(artifactIri)}?direction=${worldDirection}`
+                )).json();
+            } catch (e) { ego = { nodes: [], edges: [], focus: artifactIri }; }
+            const els = _worldElements(ego);
+            els.nodes.forEach(n => { if (n.data.id === artifactIri) n.data.isFocus = 'true'; });
+            renderWorldGraph(els);
+            // dagre layout reads better for a directional ego view.
+            try {
+                worldCy.layout({ name: 'dagre', rankDir: 'LR', nodeSep: 40,
+                                 rankSep: 80, fit: true, padding: 28 }).run();
+            } catch (_) { /* dagre optional */ }
+            openWorldSidePanel(artifactIri);
+        }
+
+        function showWorldGlobal() {
+            worldView = 'global';
+            worldFocusIri = null;
+            document.querySelectorAll('#worldViewToggle button').forEach(b =>
+                b.classList.toggle('is-active', b.dataset.worldView === 'global'));
+            if (typeof closeWorldSidePanel === 'function') closeWorldSidePanel();
+            if (worldFullGraph) renderWorldGraph(_worldElements(worldFullGraph));
+        }
+
+        function setWorldDirection(dir) {
+            worldDirection = dir;
+            document.querySelectorAll('#worldDirection button').forEach(b =>
+                b.classList.toggle('is-active', b.dataset.worldDir === dir));
+            if (worldView === 'ego' && worldFocusIri) {
+                openWorldEgo(worldFocusIri);   // re-fetch with the new direction
+                loadWorldLineage();            // refresh the lineage tab (C5)
+            }
+        }
+
+        function _wireWorldControls() {
+            const once = (id, fn) => {
+                const el = document.getElementById(id);
+                if (el && !el.dataset.wired) { el.addEventListener('click', fn);
+                                               el.dataset.wired = '1'; }
+            };
+            document.querySelectorAll('#worldViewToggle button').forEach(b => {
+                if (b.dataset.wired) return;
+                b.addEventListener('click', () => {
+                    if (b.dataset.worldView === 'global') showWorldGlobal();
+                    else if (worldFocusIri) openWorldEgo(worldFocusIri);
+                });
+                b.dataset.wired = '1';
+            });
+            document.querySelectorAll('#worldDirection button').forEach(b => {
+                if (b.dataset.wired) return;
+                b.addEventListener('click', () => setWorldDirection(b.dataset.worldDir));
+                b.dataset.wired = '1';
+            });
+            once('worldZoomIn',  () => worldCy && worldCy.zoom(
+                { level: Math.min(worldCy.zoom() * 1.25, worldCy.maxZoom()),
+                  renderedPosition: { x: worldCy.width()/2, y: worldCy.height()/2 } }));
+            once('worldZoomOut', () => worldCy && worldCy.zoom(
+                { level: Math.max(worldCy.zoom() / 1.25, worldCy.minZoom()),
+                  renderedPosition: { x: worldCy.width()/2, y: worldCy.height()/2 } }));
+            once('worldFit', () => { if (worldCy) { worldCy.resize();
+                                                    worldCy.fit(undefined, 28); } });
+            once('worldReset', showWorldGlobal);
+            once('worldFull', () => {
+                const wrap = document.getElementById('worldGraphWrap');
+                const full = !wrap.classList.contains('is-fullscreen');
+                wrap.classList.toggle('is-fullscreen', full);
+                document.body.classList.toggle('has-graph-fullscreen', full);
+                setTimeout(() => { if (worldCy) { worldCy.resize();
+                                                  worldCy.fit(undefined, 28); } }, 40);
+            });
+            const search = document.getElementById('worldSearch');
+            if (search && !search.dataset.wired) {
+                search.addEventListener('input', () => {
+                    if (!worldCy) return;
+                    const q = search.value.trim().toLowerCase();
+                    if (!q) { worldCy.nodes().removeClass('dimmed'); return; }
+                    worldCy.nodes().forEach(n => {
+                        const hit = n.data('label').toLowerCase().includes(q);
+                        n.toggleClass('dimmed', !hit);
+                        if (hit) worldCy.animate({ center: { eles: n } },
+                                                 { duration: 250 });
+                    });
+                });
+                search.dataset.wired = '1';
+            }
+            once('worldSidePanelClose', closeWorldSidePanel);
+            document.querySelectorAll('#worldSidePanel [data-world-pane]').forEach(b => {
+                if (b.dataset.wired) return;
+                b.addEventListener('click', () => _showWorldPane(b.dataset.worldPane));
+                b.dataset.wired = '1';
+            });
+            if (typeof _wireWorldDownload === 'function') _wireWorldDownload();
+        }
+
+        async function openWorldSidePanel(artifactIri) {
+            const panel = document.getElementById('worldSidePanel');
+            const node = (worldFullGraph?.nodes || []).find(n => n.iri === artifactIri);
+            document.getElementById('worldSidePanelTitle').textContent =
+                node ? node.label : artifactIri;
+            document.getElementById('worldSidePanelMeta').textContent =
+                node ? `${node.kind} · ${node.claim_count} claim(s)` : '';
+            const flat = document.getElementById('worldSidePanelFlat');
+            flat.innerHTML = '<div class="json-placeholder">Loading BOM…</div>';
+            try {
+                const bom = await (await fetch(
+                    `/worldofboms/bom/${encodeURIComponent(artifactIri)}`)).json();
+                if (bom.error || bom.store_unavailable) {
+                    flat.innerHTML = '<div class="json-placeholder">No BOM stored for this node (placeholder).</div>';
+                } else {
+                    renderBOM(bom, flat);
+                }
+            } catch (e) {
+                flat.innerHTML = '<div class="json-placeholder">Failed to load BOM.</div>';
+            }
+            _showWorldPane('bom');
+            panel.classList.add('is-open');
+            panel.setAttribute('aria-hidden', 'false');
+            setTimeout(() => { if (worldCy) { worldCy.resize();
+                                              worldCy.fit(undefined, 28); } }, 220);
+            if (typeof loadWorldLineage === 'function') loadWorldLineage();
+        }
+
+        function closeWorldSidePanel() {
+            const panel = document.getElementById('worldSidePanel');
+            if (!panel) return;
+            panel.classList.remove('is-open');
+            panel.setAttribute('aria-hidden', 'true');
+            setTimeout(() => { if (worldCy) { worldCy.resize();
+                                              worldCy.fit(undefined, 28); } }, 220);
+        }
+
+        function _showWorldPane(name) {
+            document.querySelectorAll('#worldSidePanel [data-world-pane]').forEach(b =>
+                b.classList.toggle('is-active', b.dataset.worldPane === name));
+            document.getElementById('worldPaneBom').style.display =
+                name === 'bom' ? '' : 'none';
+            document.getElementById('worldPaneLineage').style.display =
+                name === 'lineage' ? '' : 'none';
+        }
+
+        const WORLD_PRESETS = [
+            { id: 'licenses', label: 'Licenses across the lineage' },
+            { id: 'datasets', label: 'All datasets in the lineage' },
+            { id: 'models',   label: 'All models in the lineage' },
+            { id: 'conflicts',label: 'Conflicts anywhere in the lineage' },
+        ];
+
+        function loadWorldLineage() {
+            const root = document.getElementById('worldLineageResults');
+            if (!worldFocusIri) {
+                root.innerHTML =
+                    '<div class="json-placeholder">Click a node to see its lineage.</div>';
+                return;
+            }
+            // Resolve the focused node so we can gate the placeholder /
+            // open-bom buttons by claim_count + kind.
+            const node = (worldFullGraph?.nodes || []).find(n => n.iri === worldFocusIri);
+            const hasClaims = !!(node && (node.claim_count || 0) > 0);
+            const isPlaceholder = !!(node && (node.kind === 'placeholder' || !hasClaims));
+
+            // ----- Query presets (unchanged) -----
+            const presetButtons = WORLD_PRESETS.map(p =>
+                `<button class="mock-button world-preset" data-preset="${p.id}"
+                  style="display:block;width:100%;text-align:left;margin:4px 0;font-size:12px;">
+                  ▸ ${p.label}</button>`).join('');
+
+            // ----- Action buttons -----
+            // Each carries a data-world-action so the Playwright smoke
+            // can assert them deterministically.
+            const downloadBtn = `
+                <button class="mock-button world-action"
+                        data-world-action="download-spdx-bundle"
+                        style="display:block;width:100%;text-align:left;margin:4px 0;font-size:12px;">
+                  ⬇ Download SPDX bundle for this lineage</button>`;
+
+            // Scope chooser for the generate-BOM action — Upstream / Both
+            // are gated until the recursive walker grows that direction.
+            const generateBtn = `
+                <div class="world-action-group"
+                     style="border:1px solid var(--paper-edge);border-radius:4px;
+                            padding:6px 8px;margin:6px 0;${isPlaceholder ? '' : 'opacity:0.5;'}">
+                  <div style="font-size:11.5px;margin-bottom:4px;color:var(--paper-mute);">
+                    Generate BOM for this node${isPlaceholder ? '' : ' (already has a BOM)'}
+                  </div>
+                  <label style="display:block;font-size:12px;margin:2px 0;">
+                    <input type="radio" name="genScope" value="node"
+                           ${isPlaceholder ? 'checked' : 'disabled'}> Just this node
+                  </label>
+                  <label style="display:block;font-size:12px;margin:2px 0;">
+                    <input type="radio" name="genScope" value="downstream"
+                           ${isPlaceholder ? '' : 'disabled'}> Downstream walk
+                  </label>
+                  <label style="display:block;font-size:12px;margin:2px 0;color:var(--paper-faint);">
+                    <input type="radio" name="genScope" value="upstream" disabled>
+                    Upstream walk
+                    <em style="font-style:normal;font-size:10.5px;">
+                      (downstream-only today — upstream lands in a followup)</em>
+                  </label>
+                  <label style="display:block;font-size:12px;margin:2px 0;color:var(--paper-faint);">
+                    <input type="radio" name="genScope" value="both" disabled>
+                    Both
+                    <em style="font-style:normal;font-size:10.5px;">
+                      (gated on upstream support)</em>
+                  </label>
+                  <button class="mock-button world-action"
+                          data-world-action="generate-bom"
+                          ${isPlaceholder ? '' : 'disabled'}
+                          style="margin-top:6px;font-size:12px;">
+                    ▶ Generate BOM
+                  </button>
+                </div>`;
+
+            const openBtn = `
+                <button class="mock-button world-action"
+                        data-world-action="open-bom"
+                        ${hasClaims ? '' : 'disabled'}
+                        style="display:block;width:100%;text-align:left;margin:4px 0;font-size:12px;
+                               ${hasClaims ? '' : 'opacity:0.5;'}">
+                  ↗ Open this BOM in the main viewer</button>`;
+
+            const rebuildBtn = `
+                <button class="mock-button world-action"
+                        data-world-action="rebuild-graph"
+                        style="display:block;width:100%;text-align:left;margin:4px 0;font-size:12px;">
+                  ⟳ Refresh / rebuild graph from history</button>`;
+
+            root.innerHTML = `
+                <div style="font-size:11.5px;color:var(--paper-mute);margin-bottom:6px;">
+                  Scope: <strong>${worldDirection}</strong> — change with the Direction control.
+                </div>
+
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;
+                            color:var(--paper-faint);margin:6px 0 2px;">Queries</div>
+                ${presetButtons}
+
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;
+                            color:var(--paper-faint);margin:10px 0 2px;">Actions</div>
+                ${downloadBtn}
+                ${generateBtn}
+                ${openBtn}
+                ${rebuildBtn}
+
+                <div id="worldQueryResult" style="margin-top:8px;"></div>`;
+
+            // Wire presets.
+            root.querySelectorAll('.world-preset').forEach(b =>
+                b.addEventListener('click', () => runWorldPreset(b.dataset.preset)));
+
+            // Wire actions.
+            root.querySelector('[data-world-action="download-spdx-bundle"]')
+                ?.addEventListener('click', runWorldDownloadBundle);
+            root.querySelector('[data-world-action="generate-bom"]')
+                ?.addEventListener('click', () => runWorldGenerateBom(node));
+            root.querySelector('[data-world-action="open-bom"]')
+                ?.addEventListener('click', () => runWorldOpenBom(node));
+            root.querySelector('[data-world-action="rebuild-graph"]')
+                ?.addEventListener('click', runWorldRebuild);
+        }
+
+        function _renderWorldRows(rows) {
+            const out = document.getElementById('worldQueryResult');
+            if (!rows || rows.length === 0) {
+                out.innerHTML = '<div class="json-placeholder">No results.</div>';
+                return;
+            }
+            const cols = Object.keys(rows[0]);
+            const head = cols.map(c => `<th style="text-align:left;padding:3px 6px;">${escapeHtml(c)}</th>`).join('');
+            const body = rows.map(r =>
+                '<tr>' + cols.map(c =>
+                    `<td style="padding:3px 6px;border-top:1px solid #eee;">${
+                        escapeHtml(String(r[c] ?? ''))}</td>`).join('') + '</tr>').join('');
+            out.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:11.5px;">
+                <thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+        }
+
+        async function runWorldPreset(preset) {
+            const out = document.getElementById('worldQueryResult');
+            out.innerHTML = '<div class="json-placeholder">Running…</div>';
+            try {
+                const resp = await fetch('/worldofboms/query', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ preset, artifact: worldFocusIri,
+                                           direction: worldDirection }) });
+                const data = await resp.json();
+                if (data.error) { out.innerHTML =
+                    `<div class="json-placeholder">${escapeHtml(data.error)}</div>`; return; }
+                _renderWorldRows(data.rows);
+            } catch (e) {
+                out.innerHTML = '<div class="json-placeholder">Query failed.</div>';
+            }
+        }
+
+        // -- worldofBOMs action button handlers ----------------------------
+
+        function runWorldDownloadBundle() {
+            if (!worldFocusIri) return;
+            const url = `/worldofboms/export?scope=ego`
+                + `&artifact=${encodeURIComponent(worldFocusIri)}`
+                + `&direction=${encodeURIComponent(worldDirection)}`;
+            // Navigate so the browser saves the attachment.
+            window.open(url, '_blank');
+        }
+
+        function runWorldGenerateBom(node) {
+            if (!node) return;
+            // Read scope from the radio group; default to 'node'.
+            const scopeEl = document.querySelector(
+                'input[name="genScope"]:checked');
+            const scope = scopeEl ? scopeEl.value : 'node';
+
+            // Map node kind → bom_type. Anything other than Dataset goes
+            // to 'ai' (a console warning if the kind is unexpected).
+            let bomType = 'ai';
+            if (node.kind === 'Dataset') bomType = 'data';
+            else if (node.kind && node.kind !== 'Model' && node.kind !== 'placeholder') {
+                console.warn(`worldofBOMs generate: unknown kind ${node.kind}, defaulting bom_type=ai`);
+            }
+
+            // Pre-fill the form.
+            const radio = document.getElementById('bom_type_' + bomType);
+            if (radio) {
+                radio.checked = true;
+                radio.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            const subjectField = bomType === 'data'
+                ? document.getElementById('hf_repo_id')
+                : document.getElementById('repo_id');
+            if (subjectField && node.label) subjectField.value = node.label;
+
+            // Recursive toggle: only enabled for 'downstream' scope.
+            // (Upstream/both are disabled in the chooser today.)
+            const recursiveCb = document.getElementById('recursive_bom');
+            if (recursiveCb) recursiveCb.checked = (scope === 'downstream');
+
+            // Persist + switch to the form pane.
+            try { _saveFormStorage(); } catch (_) { /* helper may not be in scope */ }
+            const formPane = document.querySelector('.form-pane') || form;
+            try { formPane.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (_) {}
+            showStatus('success',
+                `Form pre-filled from <strong>${escapeHtml(node.label || worldFocusIri)}</strong>.
+                 Tweak inputs and click Generate.`);
+        }
+
+        async function runWorldOpenBom(node) {
+            if (!node || !worldFocusIri) return;
+            try {
+                const resp = await fetch(
+                    `/worldofboms/bom/${encodeURIComponent(worldFocusIri)}`);
+                if (!resp.ok) {
+                    showStatus('error', `Failed to open BOM (HTTP ${resp.status}).`);
+                    return;
+                }
+                const bom = await resp.json();
+                if (bom.error || bom.store_unavailable) {
+                    showStatus('error',
+                        'No BOM stored for this node (placeholder).');
+                    return;
+                }
+                // Rehydrate the main BOM viewer via the existing helper
+                // used by History row clicks.
+                rehydrateFreshGen({ metadata: bom });
+                switchTabByName('complete');
+                showStatus('success',
+                    `Opened <strong>${escapeHtml(node.label || worldFocusIri)}</strong> from worldofBOMs.`);
+            } catch (e) {
+                showStatus('error', `Failed to open BOM: ${escapeHtml(String(e))}`);
+            }
+        }
+
+        async function runWorldRebuild() {
+            const btn = document.querySelector('[data-world-action="rebuild-graph"]');
+            const out = document.getElementById('worldQueryResult');
+            if (btn) btn.disabled = true;
+            if (out) out.innerHTML =
+                '<div class="json-placeholder">Rebuilding graph from history…</div>';
+            try {
+                const resp = await fetch('/worldofboms/rebuild', { method: 'POST' });
+                if (!resp.ok) {
+                    if (out) out.innerHTML =
+                        `<div class="json-placeholder">Rebuild failed (HTTP ${resp.status}).</div>`;
+                    return;
+                }
+                const body = await resp.json();
+                if (body.store_unavailable) {
+                    if (out) out.innerHTML =
+                        '<div class="json-placeholder">Graph store unavailable.</div>';
+                    return;
+                }
+                const failedNote = body.failed ? ` (${body.failed} failed)` : '';
+                if (out) out.innerHTML =
+                    `<div class="json-placeholder">
+                       Rebuilt — processed ${body.processed} rows${failedNote};
+                       graph now has ${body.artifacts} artifacts,
+                       ${body.claims} claims.
+                     </div>`;
+                // Refresh the rendered graph so new nodes appear.
+                if (typeof loadWorldGraph === 'function') loadWorldGraph();
+            } catch (e) {
+                if (out) out.innerHTML =
+                    `<div class="json-placeholder">Rebuild failed: ${escapeHtml(String(e))}</div>`;
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        function _worldExportUrl(scope) {
+            if (scope === 'ego' && worldFocusIri) {
+                return `/worldofboms/export?scope=ego&artifact=${
+                    encodeURIComponent(worldFocusIri)}&direction=${worldDirection}`;
+            }
+            return '/worldofboms/export?scope=full';
+        }
+
+        function _wireWorldDownload() {
+            const link = document.getElementById('worldDownload');
+            if (!link || link.dataset.wired) return;
+            link.addEventListener('click', (ev) => {
+                ev.preventDefault();
+                const inEgo = worldView === 'ego' && worldFocusIri;
+                const choice = inEgo
+                    ? window.confirm(
+                        'OK = download this ego view (' + worldDirection +
+                        ') as SPDX.\nCancel = download the whole graph.')
+                    : false;
+                window.location.href = _worldExportUrl(
+                    (inEgo && choice) ? 'ego' : 'full');
+            });
+            link.dataset.wired = '1';
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             wireViewToggles();
             wireSidePanel();
@@ -7135,6 +7836,7 @@
             // Restore the first-run splash; clear all viewers so a re-run
             // doesn't briefly show stale data.
             document.getElementById('resultPane').classList.add('is-empty');
+            document.getElementById('resultPane').classList.remove('is-history-open');
             jsonViewerComplete.innerHTML  = '';
             jsonViewerSPDX.innerHTML      = '';
             jsonViewerCDX.innerHTML       = '';
