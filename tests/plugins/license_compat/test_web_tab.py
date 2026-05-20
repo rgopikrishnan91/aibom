@@ -67,6 +67,18 @@ def test_license_compat_json_endpoint_returns_findings(app):
     assert "breaking_nodes" in data
 
 
+def test_license_compat_overlay_json_endpoint(app):
+    client = app.test_client()
+    iri = quote("https://example.org/ModelA", safe="")
+    r = client.get(f"/license-compat/{iri}/overlay.json")
+    assert r.status_code == 200
+    data = r.get_json()
+    assert "plugin" in data
+    assert "edges" in data
+    assert "nodes" in data
+    assert data["plugin"] == "license-compat"
+
+
 def test_license_compat_tab_appears_in_bom_viewer_tab_strip(app):
     """The BOM viewer should be reachable; if it renders, the tab label
     should appear. Lenient: the index page may not yet iterate

@@ -44,7 +44,20 @@ def build_blueprint(plugin) -> Blueprint:
         breaking = find_breaking_nodes(findings, matrix, freqs)
         return findings, subchains, breaking, matrix
 
-    # JSON route is registered FIRST so Flask's path-converter doesn't
+    # Overlay route is registered FIRST so its more-specific
+    # ``/overlay.json`` suffix is matched before the generic
+    # ``<path:artifact_id>.json`` path-converter swallows it.
+    @bp.get("/<path:artifact_id>/overlay.json")
+    def overlay_json(artifact_id):
+        findings, _, _, _ = _analyse(artifact_id)
+        overlay = plugin.graph_overlay(findings)
+        return jsonify({
+            "plugin": overlay.plugin_name,
+            "edges": overlay.edge_attrs,
+            "nodes": overlay.node_attrs,
+        })
+
+    # JSON route is registered next so Flask's path-converter doesn't
     # greedily swallow ``.json`` into the HTML route's ``artifact_id``.
     @bp.get("/<path:artifact_id>.json")
     def view_json(artifact_id):
