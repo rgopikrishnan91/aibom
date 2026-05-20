@@ -131,6 +131,27 @@ def test_identical_model_reuses_artifact(client, fake_ai_processor):
     assert stats["artifacts"] == 1, f"expected 1 artifact, got {stats}"
     assert stats["claims"] == 2, f"expected 2 claims, got {stats}"
 
+    # Topology: both claims must hang off the same artifact via the
+    # hasVersion → hasClaim chain. Two separate versions each carrying
+    # one claim would still pass the stats check above, so we verify the
+    # graph shape directly. (Spec section B, scenario 1.)
+    from aikaboom.store import vocab
+    store = _open_store()
+    rows = list(store._backend.select(f"""
+        SELECT DISTINCT ?artifact WHERE {{
+            ?artifact <{vocab.hasVersion}> ?version .
+            ?version <{vocab.hasClaim}> ?claim .
+        }}
+    """))
+    assert len(rows) == 1, f"expected 1 artifact-with-claims, got {rows}"
+    claim_rows = list(store._backend.select(f"""
+        SELECT ?claim WHERE {{
+            <{rows[0]["artifact"]}> <{vocab.hasVersion}> ?v .
+            ?v <{vocab.hasClaim}> ?claim .
+        }}
+    """))
+    assert len(claim_rows) == 2, f"expected 2 claims under that artifact, got {claim_rows}"
+
 
 def test_cross_identifier_reuses_artifact(client, fake_ai_processor):
     """BOM 1 saved with (hf=X, arxiv=Y); BOM 2 with only arxiv=Y → 1 artifact, 2 claims."""
