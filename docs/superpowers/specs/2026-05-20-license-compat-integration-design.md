@@ -19,7 +19,7 @@ We want this capability inside aibom, where the worldofBOMs graph already provid
 - Surfaces structural insights derived from the per-edge verdicts: **maximal compatible subchains** and **breaking nodes** (upstream artifacts that cause the most violations).
 - Available on two scopes: per-artifact (one BOM and its lineage) and graph-wide audit.
 - Surfaces across four UIs: a new "License compatibility" tab in the BOM viewer, edge tinting on the WorldOfBOM graph view, SPDX Annotation Elements in exports, and category entries in the existing Conflicts tab.
-- Ships as **plugin #1** under a new in-tree plugin architecture that future analytics (security advisories, attribution checks) will also use, without touching core call sites.
+- Ships as **plugin #1** under a new in-tree plugin architecture that future analytics — AVID-style security/vuln advisories (plugin #2), attribution-requirements check, etc. — will also use, without touching core call sites.
 
 ## Non-goals
 
@@ -251,7 +251,7 @@ Front-end: one new toggle in the existing graph view's legend, route `/license-c
 
 ### Cross-surface guarantees
 
-- Caching: `analyze(store, Scope.single(iri))` results cached per `(artifact_version_iri, matrix_version)` in the BomStore, TTL ~1h or invalidated when a new BOMClaim lands on any artifact in the lineage.
+- Caching: `analyze(store, Scope.single(iri))` results cached per `(artifact_version_iri, matrix_version, graph_revision)` in the BomStore. `graph_revision` is a monotonic counter bumped by `BomStore` whenever a write commits (new BOMClaim, new identifier, new trust vote). A cache hit requires the revision to still match — coarse but correct: any graph mutation invalidates every entry, which is fine because lookups are cheap to recompute on a small lineage and the user-facing latency cost is paid only after a write. TTL ~1h as a safety floor in case the revision counter regresses across process restarts.
 - Graceful disable: `enabled() -> False` removes the tab, overlay toggle, annotation emission, and conflict entries. Core paths stay live.
 - Deletion: removing `src/aikaboom/plugins/license_compat/` removes the feature with no other code changes.
 
@@ -351,4 +351,4 @@ Each step is independently mergeable in principle; in practice they ship as one 
 - Multi-matrix support (running the same lineage against `matrix.json` and `final_matrix.json` for diff).
 - License-compat results as RDF triples in the graph itself (currently they're computed on demand, not persisted).
 - Per-jurisdiction policy variants (US vs EU interpretations of attribution requirements).
-- Attribution-requirements check, security-advisory check — those are plugin #2+.
+- AVID-style security/vuln advisory check (plugin #2), attribution-requirements check — separate PRs under the same plugin contract.
