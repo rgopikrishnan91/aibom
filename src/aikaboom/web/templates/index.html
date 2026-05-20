@@ -7230,30 +7230,114 @@
 
         function loadWorldLineage() {
             const root = document.getElementById('worldLineageResults');
-            if (!worldFocusIri) { root.innerHTML =
-                '<div class="json-placeholder">Click a node to see its lineage.</div>';
-                return; }
-            const buttons = WORLD_PRESETS.map(p =>
+            if (!worldFocusIri) {
+                root.innerHTML =
+                    '<div class="json-placeholder">Click a node to see its lineage.</div>';
+                return;
+            }
+            // Resolve the focused node so we can gate the placeholder /
+            // open-bom buttons by claim_count + kind.
+            const node = (worldFullGraph?.nodes || []).find(n => n.iri === worldFocusIri);
+            const hasClaims = !!(node && (node.claim_count || 0) > 0);
+            const isPlaceholder = !!(node && (node.kind === 'placeholder' || !hasClaims));
+
+            // ----- Query presets (unchanged) -----
+            const presetButtons = WORLD_PRESETS.map(p =>
                 `<button class="mock-button world-preset" data-preset="${p.id}"
                   style="display:block;width:100%;text-align:left;margin:4px 0;font-size:12px;">
                   ▸ ${p.label}</button>`).join('');
+
+            // ----- Action buttons -----
+            // Each carries a data-world-action so the Playwright smoke
+            // can assert them deterministically.
+            const downloadBtn = `
+                <button class="mock-button world-action"
+                        data-world-action="download-spdx-bundle"
+                        style="display:block;width:100%;text-align:left;margin:4px 0;font-size:12px;">
+                  ⬇ Download SPDX bundle for this lineage</button>`;
+
+            // Scope chooser for the generate-BOM action — Upstream / Both
+            // are gated until the recursive walker grows that direction.
+            const generateBtn = `
+                <div class="world-action-group"
+                     style="border:1px solid var(--paper-edge);border-radius:4px;
+                            padding:6px 8px;margin:6px 0;${isPlaceholder ? '' : 'opacity:0.5;'}">
+                  <div style="font-size:11.5px;margin-bottom:4px;color:var(--paper-mute);">
+                    Generate BOM for this node${isPlaceholder ? '' : ' (already has a BOM)'}
+                  </div>
+                  <label style="display:block;font-size:12px;margin:2px 0;">
+                    <input type="radio" name="genScope" value="node" checked
+                           ${isPlaceholder ? '' : 'disabled'}> Just this node
+                  </label>
+                  <label style="display:block;font-size:12px;margin:2px 0;">
+                    <input type="radio" name="genScope" value="downstream"
+                           ${isPlaceholder ? '' : 'disabled'}> Downstream walk
+                  </label>
+                  <label style="display:block;font-size:12px;margin:2px 0;color:var(--paper-faint);">
+                    <input type="radio" name="genScope" value="upstream" disabled>
+                    Upstream walk
+                    <em style="font-style:normal;font-size:10.5px;">
+                      (downstream-only today — upstream lands in a followup)</em>
+                  </label>
+                  <label style="display:block;font-size:12px;margin:2px 0;color:var(--paper-faint);">
+                    <input type="radio" name="genScope" value="both" disabled>
+                    Both
+                    <em style="font-style:normal;font-size:10.5px;">
+                      (gated on upstream support)</em>
+                  </label>
+                  <button class="mock-button world-action"
+                          data-world-action="generate-bom"
+                          ${isPlaceholder ? '' : 'disabled'}
+                          style="margin-top:6px;font-size:12px;">
+                    ▶ Generate BOM
+                  </button>
+                </div>`;
+
+            const openBtn = `
+                <button class="mock-button world-action"
+                        data-world-action="open-bom"
+                        ${hasClaims ? '' : 'disabled'}
+                        style="display:block;width:100%;text-align:left;margin:4px 0;font-size:12px;
+                               ${hasClaims ? '' : 'opacity:0.5;'}">
+                  ↗ Open this BOM in the main viewer</button>`;
+
+            const rebuildBtn = `
+                <button class="mock-button world-action"
+                        data-world-action="rebuild-graph"
+                        style="display:block;width:100%;text-align:left;margin:4px 0;font-size:12px;">
+                  ⟳ Refresh / rebuild graph from history</button>`;
+
             root.innerHTML = `
                 <div style="font-size:11.5px;color:var(--paper-mute);margin-bottom:6px;">
-                  Scope: <strong>${worldDirection}</strong> — change with the Direction control.</div>
-                ${buttons}
-                <div id="worldQueryResult" style="margin-top:8px;"></div>
-                <details style="margin-top:12px;">
-                  <summary style="font-size:12px;cursor:pointer;">Advanced: SPARQL</summary>
-                  <textarea id="worldSparql" rows="4"
-                    style="width:100%;font-family:'IBM Plex Mono',monospace;font-size:11px;margin-top:6px;"
-                    placeholder="SELECT ?s WHERE { ?s a ?c } LIMIT 20"></textarea>
-                  <button class="mock-button" id="worldSparqlRun"
-                    style="font-size:11.5px;margin-top:4px;">Run query</button>
-                </details>`;
+                  Scope: <strong>${worldDirection}</strong> — change with the Direction control.
+                </div>
+
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;
+                            color:var(--paper-faint);margin:6px 0 2px;">Queries</div>
+                ${presetButtons}
+
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;
+                            color:var(--paper-faint);margin:10px 0 2px;">Actions</div>
+                ${downloadBtn}
+                ${generateBtn}
+                ${openBtn}
+                ${rebuildBtn}
+
+                <div id="worldQueryResult" style="margin-top:8px;"></div>`;
+
+            // Wire presets.
             root.querySelectorAll('.world-preset').forEach(b =>
                 b.addEventListener('click', () => runWorldPreset(b.dataset.preset)));
-            const runBtn = document.getElementById('worldSparqlRun');
-            runBtn.addEventListener('click', runWorldSparql);
+
+            // Wire actions.
+            root.querySelector('[data-world-action="download-spdx-bundle"]')
+                ?.addEventListener('click', runWorldDownloadBundle);
+            root.querySelector('[data-world-action="generate-bom"]')
+                ?.addEventListener('click', () => runWorldGenerateBom(node));
+            root.querySelector('[data-world-action="open-bom"]')
+                ?.addEventListener('click', () => runWorldOpenBom(node));
+            root.querySelector('[data-world-action="rebuild-graph"]')
+                ?.addEventListener('click', runWorldRebuild);
         }
 
         function _renderWorldRows(rows) {
@@ -7289,21 +7373,103 @@
             }
         }
 
-        async function runWorldSparql() {
-            const out = document.getElementById('worldQueryResult');
-            const sparql = document.getElementById('worldSparql').value.trim();
-            if (!sparql) return;
-            out.innerHTML = '<div class="json-placeholder">Running…</div>';
+        // -- worldofBOMs action button handlers ----------------------------
+
+        function runWorldDownloadBundle() {
+            if (!worldFocusIri) return;
+            const url = `/worldofboms/export?scope=ego`
+                + `&artifact=${encodeURIComponent(worldFocusIri)}`
+                + `&direction=${encodeURIComponent(worldDirection)}`;
+            // Navigate so the browser saves the attachment.
+            window.open(url, '_blank');
+        }
+
+        function runWorldGenerateBom(node) {
+            if (!node) return;
+            // Read scope from the radio group; default to 'node'.
+            const scopeEl = document.querySelector(
+                'input[name="genScope"]:checked');
+            const scope = scopeEl ? scopeEl.value : 'node';
+
+            // Map node kind → bom_type. Anything other than Dataset goes
+            // to 'ai' (a console warning if the kind is unexpected).
+            let bomType = 'ai';
+            if (node.kind === 'Dataset') bomType = 'data';
+            else if (node.kind && node.kind !== 'Model' && node.kind !== 'placeholder') {
+                console.warn(`worldofBOMs generate: unknown kind ${node.kind}, defaulting bom_type=ai`);
+            }
+
+            // Pre-fill the form.
+            const radio = document.getElementById('bom_type_' + bomType);
+            if (radio) {
+                radio.checked = true;
+                radio.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            const subjectField = bomType === 'data'
+                ? document.getElementById('hf_repo_id')
+                : document.getElementById('repo_id');
+            if (subjectField && node.label) subjectField.value = node.label;
+
+            // Recursive toggle: only enabled for 'downstream' scope.
+            // (Upstream/both are disabled in the chooser today.)
+            const recursiveCb = document.getElementById('recursive_bom');
+            if (recursiveCb) recursiveCb.checked = (scope === 'downstream');
+
+            // Persist + switch to the form pane.
+            try { _saveFormStorage(); } catch (_) { /* helper may not be in scope */ }
+            const formPane = document.querySelector('.form-pane') || form;
+            try { formPane.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (_) {}
+            showStatus('success',
+                `Form pre-filled from <strong>${escapeHtml(node.label || worldFocusIri)}</strong>.
+                 Tweak inputs and click Generate.`);
+        }
+
+        async function runWorldOpenBom(node) {
+            if (!node || !worldFocusIri) return;
             try {
-                const resp = await fetch('/worldofboms/query', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sparql }) });
-                const data = await resp.json();
-                if (data.error) { out.innerHTML =
-                    `<div class="json-placeholder">${escapeHtml(data.error)}</div>`; return; }
-                _renderWorldRows(data.rows);
+                const resp = await fetch(
+                    `/worldofboms/bom/${encodeURIComponent(worldFocusIri)}`);
+                const bom = await resp.json();
+                if (bom.error || bom.store_unavailable) {
+                    showStatus('error',
+                        'No BOM stored for this node (placeholder).');
+                    return;
+                }
+                // Rehydrate the main BOM viewer via the existing helper
+                // used by History row clicks.
+                rehydrateFreshGen({ metadata: bom });
+                switchTabByName('complete');
+                showStatus('success',
+                    `Opened <strong>${escapeHtml(node.label)}</strong> from worldofBOMs.`);
             } catch (e) {
-                out.innerHTML = '<div class="json-placeholder">Query failed.</div>';
+                showStatus('error', `Failed to open BOM: ${escapeHtml(String(e))}`);
+            }
+        }
+
+        async function runWorldRebuild() {
+            const out = document.getElementById('worldQueryResult');
+            if (out) out.innerHTML =
+                '<div class="json-placeholder">Rebuilding graph from history…</div>';
+            try {
+                const resp = await fetch('/worldofboms/rebuild', { method: 'POST' });
+                const body = await resp.json();
+                if (body.store_unavailable) {
+                    if (out) out.innerHTML =
+                        '<div class="json-placeholder">Graph store unavailable.</div>';
+                    return;
+                }
+                const failedNote = body.failed ? ` (${body.failed} failed)` : '';
+                if (out) out.innerHTML =
+                    `<div class="json-placeholder">
+                       Rebuilt — processed ${body.processed} rows${failedNote};
+                       graph now has ${body.artifacts} artifacts,
+                       ${body.claims} claims.
+                     </div>`;
+                // Refresh the rendered graph so new nodes appear.
+                if (typeof loadWorldGraph === 'function') loadWorldGraph();
+            } catch (e) {
+                if (out) out.innerHTML =
+                    `<div class="json-placeholder">Rebuild failed: ${escapeHtml(String(e))}</div>`;
             }
         }
 
