@@ -1545,15 +1545,21 @@ def worldofboms_query():
     if store is None:
         return jsonify({'rows': [], 'store_unavailable': True})
     data = request.get_json(silent=True) or {}
+    if 'sparql' in data:
+        # Raw SPARQL was a UI surface that invited graph-literacy the
+        # target user does not have. Removed per the worldofBOMs
+        # followups spec section C. graph_view.raw_query is still
+        # available for CLI and tests.
+        return jsonify({
+            'error': "raw 'sparql' field is no longer accepted by /worldofboms/query; "
+                     "use 'preset' (one of: licenses, datasets, models, conflicts)"
+        }), 400
     try:
-        if data.get('sparql'):
-            rows = graph_view.raw_query(store, data['sparql'])
-        else:
-            rows = graph_view.lineage_query(
-                store, data.get('artifact', ''),
-                preset=data.get('preset', 'datasets'),
-                direction=data.get('direction', 'both'),
-            )
+        rows = graph_view.lineage_query(
+            store, data.get('artifact', ''),
+            preset=data.get('preset', 'datasets'),
+            direction=data.get('direction', 'both'),
+        )
         return jsonify({'rows': rows})
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
@@ -1583,6 +1589,81 @@ def worldofboms_export():
     except Exception as e:  # noqa: BLE001
         print(f"⚠️ worldofboms export failed: {e}")
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/worldofboms/rebuild', methods=['POST'])
+def worldofboms_rebuild():
+    """Re-ingest every BOM under bom-history/ into the worldofBOMs graph.
+
+    Idempotent — relies on store dedup (artifact IRI from canonical
+    identifier set + BomStore.resolve cross-identifier lookup), so calling
+    this twice does not create duplicate artifact nodes. New claim_iris
+    are produced on each call (each rebuild is a fresh save_claim), so
+    the ``claims`` count grows by N rows per rebuild.
+
+    Returns ``{processed, artifacts, claims}`` so the UI can show a toast.
+    """
+    store = _open_graph_store()
+    if store is None:
+        return jsonify({'processed': 0, 'artifacts': 0, 'claims': 0,
+                        'store_unavailable': True})
+
+    from aikaboom.store.naming import Identifier
+
+    rows = _history_load()
+    processed = 0
+    for row in rows:
+        bom_filename = (row.get('artifacts') or {}).get('bom')
+        if not bom_filename:
+            continue
+        bom_path = os.path.join(app.config['HISTORY_FOLDER'], bom_filename)
+        if not os.path.exists(bom_path):
+            continue
+        try:
+            with open(bom_path, 'r', encoding='utf-8') as f:
+                bom_json = json.load(f)
+        except Exception as e:  # noqa: BLE001
+            print(f"⚠️ rebuild: failed to read {bom_filename}: {e}")
+            continue
+
+        # Reconstruct identifiers from the BOM body. Mirrors
+        # _try_resolve_cache's identifier assembly (web/app.py:395-404),
+        # but reads from the BOM dict itself since the row metadata only
+        # carries the subject string, not the typed identifiers.
+        idents = []
+        repo_id = bom_json.get('repo_id') or bom_json.get('model_id')
+        if repo_id:
+            idents.append(Identifier('huggingface', str(repo_id)))
+        arxiv = bom_json.get('arxiv_paper') or bom_json.get('arxiv_url')
+        if arxiv:
+            idents.append(Identifier('arxiv', str(arxiv)))
+        gh = bom_json.get('github_link') or bom_json.get('github_url')
+        if gh:
+            idents.append(Identifier('github', str(gh)))
+        if not idents:
+            continue
+
+        try:
+            store.save_claim(
+                bom_json,
+                run_meta={
+                    'provider': 'rebuild', 'llm_model': 'rebuild',
+                    'prompt_version': 'rebuild', 'code_version': 'head',
+                    'mode': 'rebuild',
+                    'use_case': bom_json.get('use_case', 'complete'),
+                },
+                identifiers=idents,
+            )
+            processed += 1
+        except Exception as e:  # noqa: BLE001
+            print(f"⚠️ rebuild: save_claim failed for {bom_filename}: {e}")
+
+    stats = store.stats()
+    return jsonify({
+        'processed': processed,
+        'artifacts': stats.get('artifacts', 0),
+        'claims': stats.get('claims', 0),
+    })
 
 
 if __name__ == '__main__':
