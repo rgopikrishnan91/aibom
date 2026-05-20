@@ -54,3 +54,24 @@ def test_emit_includes_breaking_node_annotation(tiny_matrix):
 def test_emit_empty_findings_returns_empty_list(tiny_matrix):
     out = emit_annotations("https://example.org/Claim", Findings([]), matrix=tiny_matrix)
     assert out == []
+
+
+def test_emit_includes_recommendation_in_annotation_body(tiny_matrix):
+    """When the finding carries a Recommendation, the SPDX annotation body
+    must surface it under the ``recommendation`` key (spdx.py:41)."""
+    from aikaboom.plugins.license_compat.engine import Recommendation
+    f = _violation_finding()
+    # Replace the recommendation since Finding is frozen.
+    from dataclasses import replace
+    f_with_rec = replace(
+        f,
+        recommendation=Recommendation(
+            by_category={"PERMISSIVE": ["mit", "apache-2.0"]},
+            is_solvable=True,
+        ),
+    )
+    out = emit_annotations("https://example.org/Claim", Findings([f_with_rec]), matrix=tiny_matrix)
+    body = json.loads(out[0]["comment"])
+    assert "recommendation" in body
+    assert body["recommendation"]["is_solvable"] is True
+    assert body["recommendation"]["by_category"]["PERMISSIVE"] == ["mit", "apache-2.0"]
