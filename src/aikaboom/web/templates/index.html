@@ -953,6 +953,10 @@
             border-radius: 3px;
         }
         .splash-history-link:hover { background: var(--primary-soft); }
+        .splash-history-link:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
 
         .tab-content {
             display: none;
@@ -3281,7 +3285,7 @@
                     …or open one of your <strong><span id="splashHistoryCount">0</span> past BOMs</strong>
                     <a href="#" class="splash-history-link"
                        onclick="event.preventDefault(); switchTabByName('history');"
-                       aria-label="Open History">→</a>
+                       aria-label="Open History tab"><span aria-hidden="true">→</span></a>
                 </div>
             </div>
 
@@ -7653,6 +7657,7 @@
             // Restore the first-run splash; clear all viewers so a re-run
             // doesn't briefly show stale data.
             document.getElementById('resultPane').classList.add('is-empty');
+            document.getElementById('resultPane').classList.remove('is-history-open');
             jsonViewerComplete.innerHTML  = '';
             jsonViewerSPDX.innerHTML      = '';
             jsonViewerCDX.innerHTML       = '';

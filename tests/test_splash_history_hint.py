@@ -84,6 +84,52 @@ def flask_with_history(tmp_path_factory):
     proc.wait(timeout=5)
 
 
+@pytest.fixture(scope="module")
+def flask_with_empty_history(tmp_path_factory):
+    """Boot Flask with an empty bom-history (just an empty index.json)."""
+    import os
+    work = tmp_path_factory.mktemp("aibom_splash_hint_empty")
+    history = work / "bom-history"
+    history.mkdir()
+    (history / "index.json").write_text("[]")
+
+    port = _free_port()
+    env = {
+        **os.environ,
+        "BOM_HOST": "127.0.0.1", "BOM_PORT": str(port),
+        "AIKABOOM_GRAPH_DISABLE": "1",
+        "PYTHONPATH": str(PROJECT_ROOT / "src"),
+        "AIKABOOM_HISTORY_DIR": str(history),
+    }
+    proc = subprocess.Popen(
+        [sys.executable, "-m", "aikaboom.web.app"],
+        env=env, cwd=PROJECT_ROOT,
+    )
+    if not _wait_for_http(f"http://127.0.0.1:{port}/"):
+        proc.kill()
+        pytest.fail("flask server didn't start")
+    yield f"http://127.0.0.1:{port}"
+    proc.terminate()
+    proc.wait(timeout=5)
+
+
+def test_splash_hint_hidden_when_history_is_empty(flask_with_empty_history):
+    """No past BOMs -> the hint must NOT appear on the splash."""
+    from playwright.sync_api import sync_playwright
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch()
+        page = browser.new_page()
+        page.goto(flask_with_empty_history)
+        # Wait for History.load() to settle (it sets rows = [] in this case).
+        page.wait_for_function(
+            "window.History && Array.isArray(window.History.rows)")
+        hint = page.locator("#resultEmpty #splashHistoryHint")
+        # Element exists in the DOM (hidden attr set) but should not be visible.
+        assert hint.count() == 1
+        assert hint.is_hidden(), "splash history hint should stay hidden when N=0"
+        browser.close()
+
+
 def test_splash_hint_visible_with_one_history_row(flask_with_history):
     from playwright.sync_api import sync_playwright
     with sync_playwright() as pw:
