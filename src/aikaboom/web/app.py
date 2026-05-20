@@ -156,7 +156,12 @@ def _history_save(rows: list) -> None:
     os.replace(tmp, path)
 
 
-def _history_record(bom_type: str, metadata: dict, artifacts: dict) -> dict:
+def _history_record(
+    bom_type: str,
+    metadata: dict,
+    artifacts: dict,
+    identifiers: list | None = None,
+) -> dict:
     """Persist a run's artifacts and append a row to the ledger.
 
     ``artifacts`` is a {label: source_filename_in_UPLOAD_FOLDER} mapping. The
@@ -164,6 +169,12 @@ def _history_record(bom_type: str, metadata: dict, artifacts: dict) -> dict:
     linked exports are optional. Files are copied into bom-history/ keyed by
     the stable BOM hash so the index can later serve them independently of
     UPLOAD_FOLDER (which gets overwritten on every re-run of the same subject).
+
+    ``identifiers`` is the list of {platform, value} dicts used at generation
+    time. Persisting them here lets the rebuild route re-ingest multi-identifier
+    saves losslessly — without this, arxiv_url / github_url are never embedded
+    in the BOM JSON body, so a rebuild would silently degrade multi-identifier
+    saves to single-identifier ingests.
     """
     import shutil
     hash_id = _bom_hash(metadata)
@@ -175,6 +186,15 @@ def _history_record(bom_type: str, metadata: dict, artifacts: dict) -> dict:
         'created_at': datetime.now(timezone.utc).isoformat(timespec='seconds'),
         'artifacts': {},
     }
+    if identifiers:
+        # Captured at generation time so the rebuild route can re-ingest
+        # multi-identifier saves losslessly. Each entry is a {platform,
+        # value} dict; canonicalization happens later in the store layer.
+        row['identifiers'] = [
+            {'platform': i['platform'], 'value': i['value']}
+            for i in identifiers
+            if isinstance(i, dict) and i.get('platform') and i.get('value')
+        ]
     hist_dir = app.config['HISTORY_FOLDER']
     for label, src_filename in (artifacts or {}).items():
         if not src_filename:
@@ -1316,9 +1336,23 @@ def process():
             }
 
         # Snapshot this run into the on-disk history so it survives the next
-        # /process call (which would otherwise overwrite UPLOAD_FOLDER files
-        # of the same subject). Failure here must never break the response.
+        # /process call. Failure here must never break the response.
         try:
+            # Capture the identifiers used at generation time so a later
+            # rebuild can re-ingest the same artifact graph. Both BOM
+            # branches funnel through here; the variables are set in
+            # whichever branch ran above.
+            hist_identifiers = []
+            _hf_value = locals().get('repo_id') or locals().get('hf_repo_id')
+            if _hf_value:
+                hist_identifiers.append({'platform': 'huggingface', 'value': _hf_value})
+            _arxiv_value = locals().get('arxiv_url')
+            if _arxiv_value:
+                hist_identifiers.append({'platform': 'arxiv', 'value': _arxiv_value})
+            _gh_value = locals().get('github_url')
+            if _gh_value:
+                hist_identifiers.append({'platform': 'github', 'value': _gh_value})
+
             history_row = _history_record(
                 bom_type=bom_type,
                 metadata=metadata,
@@ -1329,6 +1363,7 @@ def process():
                     'recursive':  locals().get('recursive_filename'),
                     'linked':     locals().get('linked_filename'),
                 },
+                identifiers=hist_identifiers,
             )
             response_data['history'] = history_row
         except Exception as hist_exc:
@@ -1605,13 +1640,14 @@ def worldofboms_rebuild():
     """
     store = _open_graph_store()
     if store is None:
-        return jsonify({'processed': 0, 'artifacts': 0, 'claims': 0,
+        return jsonify({'processed': 0, 'failed': 0, 'artifacts': 0, 'claims': 0,
                         'store_unavailable': True})
 
     from aikaboom.store.naming import Identifier
 
     rows = _history_load()
     processed = 0
+    failed = 0
     for row in rows:
         bom_filename = (row.get('artifacts') or {}).get('bom')
         if not bom_filename:
@@ -1624,22 +1660,25 @@ def worldofboms_rebuild():
                 bom_json = json.load(f)
         except Exception as e:  # noqa: BLE001
             print(f"⚠️ rebuild: failed to read {bom_filename}: {e}")
+            failed += 1
             continue
 
-        # Reconstruct identifiers from the BOM body. Mirrors
-        # _try_resolve_cache's identifier assembly (web/app.py:395-404),
-        # but reads from the BOM dict itself since the row metadata only
-        # carries the subject string, not the typed identifiers.
+        # Prefer the identifiers captured at generation time (recorded by
+        # _history_record), so a multi-identifier save is re-ingested
+        # losslessly. Fall back to whatever we can recover from the BOM
+        # JSON for rows written before this field was added — that path
+        # only sees `repo_id` since arxiv/github URLs are never embedded
+        # in the BOM body itself.
         idents = []
-        repo_id = bom_json.get('repo_id') or bom_json.get('model_id')
-        if repo_id:
-            idents.append(Identifier('huggingface', str(repo_id)))
-        arxiv = bom_json.get('arxiv_paper') or bom_json.get('arxiv_url')
-        if arxiv:
-            idents.append(Identifier('arxiv', str(arxiv)))
-        gh = bom_json.get('github_link') or bom_json.get('github_url')
-        if gh:
-            idents.append(Identifier('github', str(gh)))
+        for ident in (row.get('identifiers') or []):
+            plat = ident.get('platform')
+            val = ident.get('value')
+            if plat and val:
+                idents.append(Identifier(str(plat), str(val)))
+        if not idents:
+            repo_id = bom_json.get('repo_id')
+            if repo_id:
+                idents.append(Identifier('huggingface', str(repo_id)))
         if not idents:
             continue
 
@@ -1656,11 +1695,15 @@ def worldofboms_rebuild():
             )
             processed += 1
         except Exception as e:  # noqa: BLE001
+            import traceback
             print(f"⚠️ rebuild: save_claim failed for {bom_filename}: {e}")
+            print(traceback.format_exc())
+            failed += 1
 
     stats = store.stats()
     return jsonify({
         'processed': processed,
+        'failed': failed,
         'artifacts': stats.get('artifacts', 0),
         'claims': stats.get('claims', 0),
     })

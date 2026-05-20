@@ -73,3 +73,54 @@ def test_rebuild_is_idempotent(client):
     # claim_iri; the store dedup keeps artifacts flat). If save_claim's
     # contract changes to dedup on (artifact, run_meta), this drops to 2.
     assert body["claims"] == 4
+
+
+def test_rebuild_skips_row_with_no_bom_artifact(client, tmp_path):
+    """A row whose artifacts dict has no `bom` key is skipped silently."""
+    # Overwrite the seeded index with one row missing the bom key.
+    import json
+    history = tmp_path / "bom-history"
+    (history / "index.json").write_text(json.dumps([
+        {"hash": "ccc33333", "subject": "no-bom/row", "bom_type": "ai",
+         "created_at": "2026-05-20T00:00:00+00:00",
+         "artifacts": {}},  # ← no 'bom' key
+    ]))
+    r = client.post("/worldofboms/rebuild")
+    assert r.status_code == 200
+    body = r.get_json()
+    assert body["processed"] == 0
+    assert body["failed"] == 0
+    assert body["artifacts"] == 0
+
+
+def test_rebuild_skips_row_with_missing_file(client, tmp_path):
+    """A row whose bom file doesn't exist on disk is skipped silently."""
+    import json
+    history = tmp_path / "bom-history"
+    (history / "index.json").write_text(json.dumps([
+        {"hash": "ddd44444", "subject": "ghost/row", "bom_type": "ai",
+         "created_at": "2026-05-20T00:00:00+00:00",
+         "artifacts": {"bom": "ddd44444_doesnt_exist.json"}},
+    ]))
+    r = client.post("/worldofboms/rebuild")
+    assert r.status_code == 200
+    body = r.get_json()
+    assert body["processed"] == 0
+    assert body["failed"] == 0
+
+
+def test_rebuild_skips_bom_with_no_identifiers(client, tmp_path):
+    """A BOM JSON with no repo_id and no row-level identifiers is skipped."""
+    import json
+    history = tmp_path / "bom-history"
+    bom = {"use_case": "license", "direct_fields": {}, "rag_fields": {}, "beta_fields": []}
+    (history / "eee55555_model_aibom.json").write_text(json.dumps(bom))
+    (history / "index.json").write_text(json.dumps([
+        {"hash": "eee55555", "subject": "no/ids", "bom_type": "ai",
+         "created_at": "2026-05-20T00:00:00+00:00",
+         "artifacts": {"bom": "eee55555_model_aibom.json"}},
+    ]))
+    r = client.post("/worldofboms/rebuild")
+    assert r.status_code == 200
+    body = r.get_json()
+    assert body["processed"] == 0

@@ -32,7 +32,14 @@ def test_query_with_sparql_field_is_rejected(client):
 
 
 def test_query_with_preset_still_works(client):
-    """The preset branch is unchanged."""
+    """The preset branch is unchanged.
+
+    Specifically: posting {preset: 'datasets'} against an empty graph
+    returns 200 with `rows` populated to `[]` (not 4xx/5xx). This pins
+    the contract that `artifact=''` on an empty graph is a valid call —
+    if `lineage_query` later requires a non-empty artifact, this test
+    must be updated rather than silently testing the wrong invariant.
+    """
     r = client.post("/worldofboms/query", json={
         "preset": "datasets", "direction": "both",
     })
