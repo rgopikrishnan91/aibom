@@ -796,6 +796,12 @@
         .result-pane.is-empty .tabs,
         .result-pane.is-empty .download-strip,
         .result-pane.is-empty .tab-content { display: none !important; }
+        /* When History is opened from the splash, show the history panel in
+           place of the splash card without fully leaving the empty state. */
+        .result-pane.is-history-open .result-empty { display: none !important; }
+        .result-pane.is-history-open #historyTab.tab-content.active {
+            display: flex !important;
+        }
         .splash-brand {
             display: flex;
             flex-direction: column;
@@ -929,6 +935,24 @@
             font-style: normal;
             font-weight: 600;
         }
+        .splash-history-hint {
+            font-family: var(--sans);
+            font-size: 12.5px;
+            color: var(--paper-mute);
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+        .splash-history-hint[hidden] { display: none; }
+        .splash-history-hint strong { color: var(--ink); font-weight: 600; }
+        .splash-history-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            margin-left: 4px;
+            padding: 0 4px;
+            border-radius: 3px;
+        }
+        .splash-history-link:hover { background: var(--primary-soft); }
 
         .tab-content {
             display: none;
@@ -3253,6 +3277,12 @@
                 <div class="splash-hint">
                     Watch fields fill in live in the <em>Pipeline</em> tab while it runs.
                 </div>
+                <div class="splash-history-hint" id="splashHistoryHint" hidden>
+                    …or open one of your <strong><span id="splashHistoryCount">0</span> past BOMs</strong>
+                    <a href="#" class="splash-history-link"
+                       onclick="event.preventDefault(); switchTabByName('history');"
+                       aria-label="Open History">→</a>
+                </div>
             </div>
 
             <div class="tabs">
@@ -4675,6 +4705,15 @@
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             const panel = document.getElementById(tabName + 'Tab');
             if (panel) panel.classList.add('active');
+            // When History is opened from the splash (is-empty state), add
+            // is-history-open so the history panel renders in place of the
+            // splash card without fully removing is-empty.
+            const resultPane = document.getElementById('resultPane');
+            if (tabName === 'history' && resultPane && resultPane.classList.contains('is-empty')) {
+                resultPane.classList.add('is-history-open');
+            } else if (tabName !== 'history' && resultPane) {
+                resultPane.classList.remove('is-history-open');
+            }
             if (tabName === 'worldofboms') {
                 if (typeof _wireWorldControls === 'function') _wireWorldControls();
                 loadWorldGraph();
@@ -5528,6 +5567,21 @@
         // Lists previously generated BOMs from /history. Clicking a row hydrates
         // the BOM/SPDX/CycloneDX/Conflicts viewers from the saved artifact files
         // and switches to the BOM tab — same UX as a fresh run finishing.
+        function _refreshSplashHistoryHint() {
+            const hint = document.getElementById('splashHistoryHint');
+            const count = document.getElementById('splashHistoryCount');
+            if (!hint || !count) return;
+            // History.rows is exposed via the getter on the History IIFE return.
+            // window.History is also set after the IIFE for external access.
+            const n = (typeof History !== 'undefined' && History.rows) ? History.rows.length : 0;
+            if (n > 0) {
+                count.textContent = String(n);
+                hint.hidden = false;
+            } else {
+                hint.hidden = true;
+            }
+        }
+
         const History = (function () {
             let rows = [];
             let activeHash = null;
@@ -5542,6 +5596,7 @@
                     const data = await resp.json();
                     rows = Array.isArray(data.rows) ? data.rows : [];
                     render();
+                    _refreshSplashHistoryHint();
                 } catch (e) {
                     console.warn('history load failed', e);
                 }
@@ -5552,6 +5607,7 @@
                 rows = rows.filter(r => r.hash !== row.hash);
                 rows.unshift(row);
                 render();
+                _refreshSplashHistoryHint();
             }
 
             function render() {
@@ -5762,8 +5818,15 @@
                 // the last-rehydrated row + BOM without re-fetching.
                 get _lastLoadedRow() { return _lastLoadedRow; },
                 get _lastLoadedBom() { return _lastLoadedBom; },
+                // Expose rows so external code (e.g. _refreshSplashHistoryHint,
+                // Playwright smoke) can read the current count without
+                // triggering a re-fetch.
+                get rows() { return rows; },
             };
         })();
+        // Expose History on window so Playwright smoke tests and external
+        // scripts can reach it via window.History (const is not auto-exposed).
+        window.History = History;
 
         // Refresh history on first page load.
         window.addEventListener('DOMContentLoaded', () => { History.load(); });

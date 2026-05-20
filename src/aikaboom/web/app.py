@@ -54,7 +54,10 @@ app = Flask(__name__)
 _PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 app.config['UPLOAD_FOLDER'] = os.path.join(_PROJECT_ROOT, 'results')
 app.config['REPO_RESULTS_FOLDER'] = os.path.join(_PROJECT_ROOT, 'data', 'results')
-app.config['HISTORY_FOLDER'] = os.path.join(_PROJECT_ROOT, 'bom-history')
+app.config['HISTORY_FOLDER'] = os.environ.get(
+    'AIKABOOM_HISTORY_DIR',
+    os.path.join(_PROJECT_ROOT, 'bom-history'),
+)
 app.config['HISTORY_INDEX'] = os.path.join(app.config['HISTORY_FOLDER'], 'index.json')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
 
