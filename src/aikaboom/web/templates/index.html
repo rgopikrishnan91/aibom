@@ -7266,8 +7266,8 @@
                     Generate BOM for this node${isPlaceholder ? '' : ' (already has a BOM)'}
                   </div>
                   <label style="display:block;font-size:12px;margin:2px 0;">
-                    <input type="radio" name="genScope" value="node" checked
-                           ${isPlaceholder ? '' : 'disabled'}> Just this node
+                    <input type="radio" name="genScope" value="node"
+                           ${isPlaceholder ? 'checked' : 'disabled'}> Just this node
                   </label>
                   <label style="display:block;font-size:12px;margin:2px 0;">
                     <input type="radio" name="genScope" value="downstream"
@@ -7429,6 +7429,10 @@
             try {
                 const resp = await fetch(
                     `/worldofboms/bom/${encodeURIComponent(worldFocusIri)}`);
+                if (!resp.ok) {
+                    showStatus('error', `Failed to open BOM (HTTP ${resp.status}).`);
+                    return;
+                }
                 const bom = await resp.json();
                 if (bom.error || bom.store_unavailable) {
                     showStatus('error',
@@ -7440,18 +7444,25 @@
                 rehydrateFreshGen({ metadata: bom });
                 switchTabByName('complete');
                 showStatus('success',
-                    `Opened <strong>${escapeHtml(node.label)}</strong> from worldofBOMs.`);
+                    `Opened <strong>${escapeHtml(node.label || worldFocusIri)}</strong> from worldofBOMs.`);
             } catch (e) {
                 showStatus('error', `Failed to open BOM: ${escapeHtml(String(e))}`);
             }
         }
 
         async function runWorldRebuild() {
+            const btn = document.querySelector('[data-world-action="rebuild-graph"]');
             const out = document.getElementById('worldQueryResult');
+            if (btn) btn.disabled = true;
             if (out) out.innerHTML =
                 '<div class="json-placeholder">Rebuilding graph from history…</div>';
             try {
                 const resp = await fetch('/worldofboms/rebuild', { method: 'POST' });
+                if (!resp.ok) {
+                    if (out) out.innerHTML =
+                        `<div class="json-placeholder">Rebuild failed (HTTP ${resp.status}).</div>`;
+                    return;
+                }
                 const body = await resp.json();
                 if (body.store_unavailable) {
                     if (out) out.innerHTML =
@@ -7470,6 +7481,8 @@
             } catch (e) {
                 if (out) out.innerHTML =
                     `<div class="json-placeholder">Rebuild failed: ${escapeHtml(String(e))}</div>`;
+            } finally {
+                if (btn) btn.disabled = false;
             }
         }
 
