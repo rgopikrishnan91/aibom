@@ -112,7 +112,15 @@ def _post_process(client, repo_id: str):
 
 
 def _open_store():
-    """Open the live BomStore against the env-configured backend."""
+    """Open the live BomStore against the env-configured backend.
+
+    The Flask app under test opens its own BomStore inside each /process
+    handler; this helper opens a separate handle for the assertions. The
+    two share state ONLY via the on-disk rdflib backend at
+    ``AIKABOOM_GRAPH_DIR``. Switching to a pure in-memory backend would
+    silently break this test by giving the assertions a separate graph
+    from the one the app wrote to.
+    """
     from aikaboom.store.store import BomStore
     return BomStore.open()
 
@@ -192,6 +200,27 @@ def test_cross_identifier_reuses_artifact(client, fake_ai_processor):
     stats = _open_store().stats()
     assert stats["artifacts"] == 1, f"expected 1 artifact, got {stats}"
     assert stats["claims"] == 2, f"expected 2 claims, got {stats}"
+
+    # Topology: both claims must hang off the same artifact via the
+    # hasVersion → hasClaim chain. A regression that creates two artifact
+    # nodes joined by potentialDuplicateOf would still pass the stats check
+    # above if stats["artifacts"] counts both. (Spec section B, scenario 2.)
+    from aikaboom.store import vocab
+    store = _open_store()
+    rows = list(store._backend.select(f"""
+        SELECT DISTINCT ?artifact WHERE {{
+            ?artifact <{vocab.hasVersion}> ?version .
+            ?version <{vocab.hasClaim}> ?claim .
+        }}
+    """))
+    assert len(rows) == 1, f"expected 1 artifact-with-claims, got {rows}"
+    claim_rows = list(store._backend.select(f"""
+        SELECT ?claim WHERE {{
+            <{rows[0]["artifact"]}> <{vocab.hasVersion}> ?v .
+            ?v <{vocab.hasClaim}> ?claim .
+        }}
+    """))
+    assert len(claim_rows) == 2, f"expected 2 claims under that artifact, got {claim_rows}"
 
 
 def test_dependency_edge_reuses_existing_artifact(client, fake_ai_processor, monkeypatch):

@@ -104,3 +104,22 @@ def test_save_with_subset_of_identifiers_reuses_artifact(
     stats = store.stats()
     assert stats["artifacts"] == 1, f"expected 1 artifact, got {stats}"
     assert stats["claims"] == 2, f"expected 2 claims, got {stats}"
+
+    # Topology — both claims must hang off the same artifact via the
+    # hasVersion → hasClaim chain. Mirrors the equivalent assertion in
+    # tests/store/test_e2e_reuse_via_process.py::test_identical_model_reuses_artifact.
+    from aikaboom.store import vocab
+    rows = list(store._backend.select(f"""
+        SELECT DISTINCT ?artifact WHERE {{
+            ?artifact <{vocab.hasVersion}> ?version .
+            ?version <{vocab.hasClaim}> ?claim .
+        }}
+    """))
+    assert len(rows) == 1, f"expected 1 artifact-with-claims, got {rows}"
+    claim_rows = list(store._backend.select(f"""
+        SELECT ?claim WHERE {{
+            <{rows[0]["artifact"]}> <{vocab.hasVersion}> ?v .
+            ?v <{vocab.hasClaim}> ?claim .
+        }}
+    """))
+    assert len(claim_rows) == 2, f"expected 2 claims under that artifact, got {claim_rows}"

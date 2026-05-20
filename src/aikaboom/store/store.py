@@ -89,6 +89,12 @@ class BomStore:
         mapper. That keeps `pick_primary` stable across calls so a follow-up
         save with a strict subset of the prior identifiers lands on the same
         artifact IRI rather than minting a duplicate.
+
+        Cross-identifier collision (the resolved artifact's `collision_artifacts`
+        list is non-empty) is not handled on the write path today: the new claim
+        lands on `resolved.existing_artifact` (the first hit) and the collision is
+        silently dropped. A future enhancement can emit a `potentialDuplicateOf`
+        edge between the colliding artifacts; the vocabulary already supports it.
         """
         if identifiers:
             try:
@@ -97,7 +103,7 @@ class BomStore:
                 resolved = None
             if resolved is not None and resolved.existing_artifact:
                 existing_pairs = self._identifiers_for(resolved.existing_artifact)
-                seen = {(i.platform, i.value) for i in identifiers}
+                seen = {(i.platform, i.value) for i in canonicalize_set(identifiers)}
                 for plat, val in existing_pairs:
                     if (plat, val) not in seen:
                         identifiers = list(identifiers) + [Identifier(plat, val)]
