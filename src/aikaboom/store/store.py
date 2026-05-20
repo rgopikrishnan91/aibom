@@ -82,7 +82,27 @@ class BomStore:
         resolved into `trainedOn`/`testedOn`/`dependsOn` edges so the graph
         stays connected. Edge creation is best-effort — a failure there
         never loses the saved claim.
+
+        Cross-identifier reuse: if an artifact already exists under any of
+        the supplied identifiers, this method unions the call's identifiers
+        with the existing artifact's identifier set before delegating to the
+        mapper. That keeps `pick_primary` stable across calls so a follow-up
+        save with a strict subset of the prior identifiers lands on the same
+        artifact IRI rather than minting a duplicate.
         """
+        if identifiers:
+            try:
+                resolved = self.resolve(identifiers)
+            except Exception:  # noqa: BLE001
+                resolved = None
+            if resolved is not None and resolved.existing_artifact:
+                existing_pairs = self._identifiers_for(resolved.existing_artifact)
+                seen = {(i.platform, i.value) for i in identifiers}
+                for plat, val in existing_pairs:
+                    if (plat, val) not in seen:
+                        identifiers = list(identifiers) + [Identifier(plat, val)]
+                        seen.add((plat, val))
+
         ds, claim_iri = bom_to_rdf(bom_json, run_meta, identifiers=identifiers)
         quads = [(s, p, o, None) for s, p, o, _ in ds.quads()]
         self._backend.add_quads(quads)
@@ -121,6 +141,17 @@ class BomStore:
         primary = pick_primary(canon)
         artifact = iris.artifact_iri(primary)
         return self._find_claims_for_artifact(artifact, use_case=use_case, mode=mode)
+
+    def _identifiers_for(self, artifact_iri: str) -> list[tuple[str, str]]:
+        """Return every (platform, value) identifier pair attached to `artifact_iri`."""
+        artifact = _validate_sparql_iri(artifact_iri)
+        q = f"""
+        SELECT ?p ?v WHERE {{
+            <{artifact}> <{vocab.identifier}> ?id .
+            ?id <{vocab.platform}> ?p ; <{vocab.value}> ?v .
+        }}
+        """
+        return [(str(row["p"]), str(row["v"])) for row in self._backend.select(q)]
 
     def _find_claims_for_artifact(
         self,
