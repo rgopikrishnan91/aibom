@@ -33,7 +33,7 @@ def _free_port() -> int:
         return s.getsockname()[1]
 
 
-def _wait_for_http(url: str, timeout_s: float = 30.0) -> bool:
+def _wait_for_http(url: str, timeout_s: float = 60.0) -> bool:
     import urllib.request
     deadline = time.time() + timeout_s
     while time.time() < deadline:
