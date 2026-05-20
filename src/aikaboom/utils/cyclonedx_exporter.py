@@ -194,6 +194,62 @@ def _collect_conflict_properties(
     return out
 
 
+class _EmptyFindings:
+    """Placeholder ``Findings``-Protocol implementation for the CDX path.
+
+    Mirrors ``aikaboom.utils.spdx_validator._EmptyFindings`` — the bom_data
+    -> CDX conversion has no ``BomStore`` in scope, so the plugin loop runs
+    with empty findings and emits nothing until Task 13 wires the
+    store-aware path.
+    """
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {"findings": []}
+
+    def violations(self) -> List[Any]:
+        return []
+
+    def __iter__(self):
+        return iter(())
+
+    def __len__(self) -> int:
+        return 0
+
+
+def _collect_plugin_properties(claim_iri: str) -> List[Dict[str, str]]:
+    """Loop registered plugins; pack their SPDX-shaped annotations into
+    CycloneDX 1.6 ``properties`` under the ``aikaboom:license-compat:*``
+    namespace. CycloneDX 1.6 has no Annotation primitive, so we use the
+    ``properties`` extension that downstream consumers can parse.
+    """
+    out: List[Dict[str, str]] = []
+    try:
+        from aikaboom.plugins import all_plugins
+    except Exception:
+        return out
+    findings = _EmptyFindings()
+    for plugin in all_plugins():
+        try:
+            if not plugin.enabled():
+                continue
+        except Exception:
+            continue
+        try:
+            anns = plugin.spdx_annotations(claim_iri=claim_iri, findings=findings)
+        except Exception:
+            # Plugin emission is best-effort; never break the CDX export.
+            continue
+        for ann in anns or []:
+            comment = ann.get("comment")
+            if not comment:
+                continue
+            out.append({
+                "name": f"aikaboom:{getattr(plugin, 'name', 'plugin')}:annotation",
+                "value": comment,
+            })
+    return out
+
+
 class CycloneDXExporter:
     """Converts AIkaBoOM provenance BOMs to CycloneDX 1.6 JSON."""
 
@@ -374,6 +430,11 @@ class CycloneDXExporter:
         # band) as a JSON value.
         properties.extend(_collect_conflict_properties(bom_data, bom_type="ai"))
 
+        # Plugin-contributed annotations (parity with the SPDX hook).
+        # See ``_collect_plugin_properties`` — empty findings until the
+        # Task 13 store-aware path lands.
+        properties.extend(_collect_plugin_properties(f"ai-model:{model_id}"))
+
         # Model lineage / pedigree
         pedigree = None
         lineage = self._extract_value(rag.get("modelLineage"))
@@ -445,6 +506,9 @@ class CycloneDXExporter:
         # Annotation emitter. Keyed on SPDX 3.0.1 property names so
         # CycloneDX ↔ SPDX cross-walks line up on both sides.
         properties.extend(_collect_conflict_properties(bom_data, bom_type="data"))
+
+        # Plugin-contributed annotations (parity with the SPDX hook).
+        properties.extend(_collect_plugin_properties(f"dataset:{dataset_id}"))
 
         if properties:
             component["properties"] = properties
