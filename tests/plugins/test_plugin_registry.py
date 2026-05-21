@@ -28,6 +28,9 @@ class _DummyPlugin:
     def spdx_annotations(self, claim_iri, findings):
         return []
 
+    def spdx_elements(self, claim_iri, findings):
+        return []
+
     def graph_overlay(self, findings):
         return None
 

@@ -89,6 +89,10 @@ class LicenseCompatPlugin:
         from aikaboom.plugins.license_compat.spdx import emit_annotations
         return emit_annotations(claim_iri, findings, matrix=self._matrix())
 
+    def spdx_elements(self, claim_iri: str, findings: Findings) -> list[dict]:
+        # license_compat emits only Annotations; no arbitrary SPDX elements.
+        return []
+
     def graph_overlay(self, findings: Findings) -> GraphOverlay:
         from aikaboom.plugins.license_compat.overlay import build_overlay
         return build_overlay(findings, plugin_name=self.name)
