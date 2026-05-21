@@ -1,6 +1,7 @@
 from __future__ import annotations
 import json
-from typing import Literal
+from dataclasses import dataclass
+from typing import Any, Iterable, Literal
 
 VexStatus = Literal["affects", "underInvestigationFor"]
 
@@ -44,3 +45,59 @@ def build_status_notes(*, tier: int, base_model: str | None,
             f"manual review needed to confirm applicability."
         )
     return ""
+
+
+@dataclass(frozen=True)
+class AvidFinding:
+    """One AVID match against a BOM component."""
+    component_iri: str
+    component_label: str
+    avid_report_id: str
+    tier: int            # 1, 2, or 3
+    confidence: str      # high / medium / low
+    matched_via: str
+    match: Any           # the matcher.Match object, carried for SPDX emission
+
+    @property
+    def is_affected(self) -> bool:
+        return self.tier == 1
+
+
+class AvidFindings:
+    """Findings wrapper conforming to the plugin Findings protocol
+    (to_dict + violations), plus helpers for SPDX emission."""
+
+    def __init__(self, items: Iterable[AvidFinding], snapshot_sha: str = "unknown"):
+        self._items: list[AvidFinding] = list(items)
+        self.snapshot_sha = snapshot_sha
+
+    def __iter__(self):
+        return iter(self._items)
+
+    def __len__(self):
+        return len(self._items)
+
+    def violations(self) -> list[AvidFinding]:
+        # Tier-1 (Affected) findings are the actionable ones surfaced in the
+        # Conflicts tab; tier 2/3 are advisory (UnderInvestigation).
+        return [f for f in self._items if f.is_affected]
+
+    def matches(self) -> list:
+        """The underlying matcher.Match objects, for the SPDX emitter."""
+        return [f.match for f in self._items]
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "snapshot_sha": self.snapshot_sha,
+            "findings": [
+                {
+                    "component_iri": f.component_iri,
+                    "component": f.component_label,
+                    "avid_report_id": f.avid_report_id,
+                    "tier": f.tier,
+                    "confidence": f.confidence,
+                    "matched_via": f.matched_via,
+                }
+                for f in self._items
+            ],
+        }

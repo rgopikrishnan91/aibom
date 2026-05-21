@@ -1,0 +1,46 @@
+@prefix aibom: <https://aikaboom.dev/aibom#> .
+@prefix ex: <https://example.org/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# ── bert-base-uncased: a standalone Model with a supplier ──────────────────
+ex:BertBase rdf:type aibom:Model ;
+            rdf:type aibom:Artifact ;
+            aibom:canonicalLabel "bert-base-uncased" ;
+            aibom:hasVersion ex:BertBase_v1 .
+
+ex:BertBase_v1 rdf:type aibom:ArtifactVersion ;
+               aibom:hasClaim ex:ClaimBert1 .
+
+ex:ClaimBert1 rdf:type aibom:BOMClaim ;
+              aibom:suppliedBy "Hugging Face" ;
+              aibom:trustScore "0.9"^^xsd:double ;
+              aibom:createdAt "2026-01-01T00:00:00Z" .
+
+# ── bert-fine-tuned: a Model that was trained on bert-base-uncased ─────────
+ex:BertFineTuned rdf:type aibom:Model ;
+                 rdf:type aibom:Artifact ;
+                 aibom:canonicalLabel "dslim/bert-base-NER" ;
+                 aibom:hasVersion ex:BertFineTuned_v1 .
+
+ex:BertFineTuned_v1 rdf:type aibom:ArtifactVersion ;
+                    aibom:hasClaim ex:ClaimFineTune1 .
+
+ex:ClaimFineTune1 rdf:type aibom:BOMClaim ;
+                  aibom:suppliedBy "dslim" ;
+                  aibom:trainedOn ex:BertBase ;
+                  aibom:trustScore "0.8"^^xsd:double ;
+                  aibom:createdAt "2026-01-02T00:00:00Z" .
+
+# ── squad-v2: a Dataset (no supplier) ────────────────────────────────────
+ex:SquadV2 rdf:type aibom:Dataset ;
+           rdf:type aibom:Artifact ;
+           aibom:canonicalLabel "squad_v2" ;
+           aibom:hasVersion ex:SquadV2_v1 .
+
+ex:SquadV2_v1 rdf:type aibom:ArtifactVersion ;
+              aibom:hasClaim ex:ClaimSquad1 .
+
+ex:ClaimSquad1 rdf:type aibom:BOMClaim ;
+               aibom:trustScore "0.7"^^xsd:double ;
+               aibom:createdAt "2026-01-03T00:00:00Z" .
