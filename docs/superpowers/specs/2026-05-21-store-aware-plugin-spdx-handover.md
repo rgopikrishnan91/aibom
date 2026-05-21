@@ -3,7 +3,9 @@
 Status: Ready to pick up in a fresh session
 Author: Claude (handover from the avid-security PR #55 work)
 Date: 2026-05-21
-Cross-cutting: affects **both** `license_compat` (PR #54, merged) and `avid_security` (PR #55, open)
+Cross-cutting: affects **both** `license_compat` (PR #54, merged) and `avid_security` (PR #55).
+
+> **Prerequisite / sequencing:** Do this work on a fresh branch off `main` **after PR #55 has merged**. Once #55 is in, `main` carries both plugins, the `spdx_elements` hook, and the avid emitter — so this task can wire and test *both* plugins' export paths against one unified base, and avoids conflicting with #55 in the shared files (`spdx_validator.py`, `cli.py`, `cyclonedx_exporter.py`). This handover doc rides on the #55 branch and lands on `main` with that merge.
 
 ---
 
@@ -58,17 +60,19 @@ Run `analyze()` where the store naturally lives (`cmd_generate`), then thread th
 from aikaboom.plugins import all_plugins, Scope
 
 plugin_findings: dict[str, object] = {}
-if _store is not None and _saved_claim_iri is not None and not args.no_security:  # honor opt-outs
+if _store is not None and _saved_claim_iri is not None:
     artifact_iri = _artifact_iri_for_claim(_store, _saved_claim_iri)   # see 6c
     scope = Scope.single(artifact_iri) if artifact_iri else Scope.graph_wide()
     for p in all_plugins():
-        if not p.enabled():
+        if not p.enabled():        # honors AIKABOOM_AVID_DISABLED / AIKABOOM_LICENSE_COMPAT_DISABLED
             continue
         try:
             plugin_findings[p.name] = p.analyze(_store, scope)
         except Exception as e:
             log.warning("plugin %s analyze failed: %s", p.name, e)
 ```
+
+> Opt-out is via each plugin's `enabled()` (env flags), which the loop already respects — there is no `--no-security` CLI flag on the current branch. If a per-run CLI opt-out is wanted, add it separately and have it skip the relevant `p.name` here.
 
 Pass `plugin_findings` into `validate_bom_to_spdx(...)` and the CDX exporter.
 
@@ -112,7 +116,7 @@ Option 2 is likely the cleanest. Whatever is chosen, add a test asserting **ever
 
 - `aikaboom generate --type ai --repo bert-base-uncased --spdx out.json` (with the AVID snapshot present) produces an `out.json` whose `@graph` contains `security_Vulnerability` + a VEX relationship for the matched component, and whose VEX `to`/`assessedElement` resolve to the model's Package element (no dangling IRIs).
 - The same run, with license_compat applicable, includes its Annotation(s) attached to the right element.
-- `--no-security` (avid) and `AIKABOOM_*_DISABLED` env flags still suppress the respective plugin.
+- `AIKABOOM_AVID_DISABLED` / `AIKABOOM_LICENSE_COMPAT_DISABLED` env flags still suppress the respective plugin's contributions (via `enabled()`).
 - No-store / library callers of `validate_bom_to_spdx` without `plugin_findings` behave exactly as today (empty-findings fallback).
 - SHACL validation passes on the enriched document.
 - CycloneDX export carries the analogous plugin properties.
