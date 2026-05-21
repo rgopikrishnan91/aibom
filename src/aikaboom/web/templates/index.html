@@ -1736,6 +1736,112 @@
             border-color: var(--primary);
             color: var(--primary);
         }
+
+        /* ---- SPDX Security / Vulnerability section ---- */
+        .spdx-vuln-section {
+            margin: 8px 0;
+            border: 1px solid #f0c0b0;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .spdx-vuln-section-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: #fdf3ef;
+            font-family: var(--mono);
+            font-size: 12px;
+            font-weight: 700;
+            color: #7f2a10;
+            cursor: pointer;
+            user-select: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+        }
+        .spdx-vuln-section-header:hover { background: #fce8e0; }
+        .spdx-vuln-section-caret { font-size: 10px; transition: transform 0.15s; }
+        .spdx-vuln-section.is-open .spdx-vuln-section-caret { transform: rotate(90deg); }
+        .spdx-vuln-section-body { display: none; padding: 0 0 4px; }
+        .spdx-vuln-section.is-open .spdx-vuln-section-body { display: block; }
+        .spdx-vuln-card {
+            margin: 8px 12px;
+            padding: 10px 12px;
+            border: 1px solid #e8c4b8;
+            border-left: 3px solid #c84b20;
+            border-radius: 4px;
+            background: #fff8f6;
+        }
+        .spdx-vuln-id {
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 700;
+            color: #7f2a10;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 4px;
+        }
+        .spdx-vuln-summary {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--ink);
+            margin-bottom: 4px;
+        }
+        .spdx-vuln-description {
+            font-size: 12px;
+            color: var(--ink);
+            margin-bottom: 8px;
+            line-height: 1.55;
+        }
+        .spdx-vuln-ext-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 3px;
+            background: #fdf3ef;
+            border: 1px solid #e8c4b8;
+            color: #c84b20;
+            text-decoration: none;
+            margin-bottom: 8px;
+        }
+        .spdx-vuln-ext-link:hover { background: #fce8e0; border-color: #c84b20; }
+        .spdx-vex-list { margin-top: 6px; }
+        .spdx-vex-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 3px;
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            margin-bottom: 4px;
+        }
+        .spdx-vex-badge.vex-affected {
+            background: #fbe7e3;
+            color: #7f1d1d;
+            border: 1px solid #f5c6bd;
+        }
+        .spdx-vex-badge.vex-under-investigation {
+            background: #fef9ec;
+            color: #78350f;
+            border: 1px solid #fde68a;
+        }
+        .spdx-vex-action {
+            font-size: 11px;
+            color: var(--ink);
+            margin: 2px 0 6px 2px;
+            font-style: italic;
+            line-height: 1.45;
+        }
+
         .kind-tag {
             font-family: var(--mono);
             font-size: 10px;
@@ -6315,6 +6421,13 @@
             // because annotations are commentary on the structural graph,
             // not part of it.
             'Annotation',
+            // AVID/security plugin nodes. Rendered last so the structural
+            // BOM graph reads first; the dedicated security section below
+            // also renders them inline so this bucket is a fallback for
+            // types not handled by the custom section.
+            'security_Vulnerability',
+            'security_VexAffectedVulnAssessmentRelationship',
+            'security_VexUnderInvestigationVulnAssessmentRelationship',
         ];
 
         function spdxIdTail(id) {
@@ -6347,6 +6460,22 @@
                 return `${item.relationshipType || 'relationship'}: ` +
                        `${spdxIdTail(item.from)} → ${spdxIdTails(item.to)}`;
             }
+            if (item.type === 'security_Vulnerability') {
+                // Prefer the first external identifier (AVID-…) as the
+                // label; fall back to summary then spdxId tail.
+                const extIds = Array.isArray(item.externalIdentifier)
+                    ? item.externalIdentifier : [];
+                const primary = extIds.length > 0
+                    ? (extIds[0].identifier || spdxIdTail(item.spdxId))
+                    : spdxIdTail(item.spdxId);
+                return item.summary ? `${primary} — ${item.summary}` : primary;
+            }
+            if (item.type === 'security_VexAffectedVulnAssessmentRelationship') {
+                return `VEX Affected: ${spdxIdTail(item.from)} → ${spdxIdTails(item.to)}`;
+            }
+            if (item.type === 'security_VexUnderInvestigationVulnAssessmentRelationship') {
+                return `VEX Under Investigation: ${spdxIdTail(item.from)} → ${spdxIdTails(item.to)}`;
+            }
             if (item.type === 'Annotation') {
                 // The annotation ``name`` is ``aikaboom:conflict:<spdx_property>``
                 // by convention; ``statement.spdx_property`` is the same value.
@@ -6366,6 +6495,128 @@
             if (item.name) return String(item.name);
             if (item.spdxId) return spdxIdTail(item.spdxId);
             return item.type || '(unnamed)';
+        }
+
+        // ===== SPDX 3.0.1 Security — Vulnerabilities + VEX ====================
+        //
+        // Renders a dedicated "Vulnerabilities" accordion section at the top
+        // of the SPDX viewer when the graph contains ``security_Vulnerability``
+        // nodes. Each card shows the AVID identifier (linked), summary,
+        // description, and any VEX relationships that reference it.
+        //
+        // VEX relationships are bucketed by the vulnerability spdxId they
+        // point FROM so we can render them inline under the right card
+        // without a second graph walk.
+
+        function _firstExtId(vuln) {
+            const ids = Array.isArray(vuln.externalIdentifier) ? vuln.externalIdentifier : [];
+            return ids.length > 0 ? ids[0] : null;
+        }
+
+        function _vexBadgeClass(type) {
+            if (type === 'security_VexAffectedVulnAssessmentRelationship')
+                return 'vex-affected';
+            if (type === 'security_VexUnderInvestigationVulnAssessmentRelationship')
+                return 'vex-under-investigation';
+            return 'vex-affected';
+        }
+
+        function _vexBadgeLabel(type) {
+            if (type === 'security_VexAffectedVulnAssessmentRelationship') return 'Affected';
+            if (type === 'security_VexUnderInvestigationVulnAssessmentRelationship') return 'Under Investigation';
+            return type.replace('security_', '');
+        }
+
+        function renderSecuritySection(vulnerabilities, vexByVulnId, target) {
+            if (!vulnerabilities.length) return;
+
+            const section = document.createElement('div');
+            section.className = 'spdx-vuln-section is-open';
+
+            const hdr = document.createElement('button');
+            hdr.type = 'button';
+            hdr.className = 'spdx-vuln-section-header';
+            hdr.innerHTML =
+                `<span class="spdx-vuln-section-caret">▸</span>` +
+                `<span>Vulnerabilities</span>` +
+                `<span class="bom-group-meta">${vulnerabilities.length} finding${vulnerabilities.length === 1 ? '' : 's'}</span>`;
+            hdr.addEventListener('click', () => section.classList.toggle('is-open'));
+            section.appendChild(hdr);
+
+            const body = document.createElement('div');
+            body.className = 'spdx-vuln-section-body';
+
+            vulnerabilities.forEach(vuln => {
+                const card = document.createElement('div');
+                card.className = 'spdx-vuln-card';
+                if (vuln.spdxId) card.id = escapeHtml(vuln.spdxId);
+
+                // Identifier line
+                const ext = _firstExtId(vuln);
+                const idDiv = document.createElement('div');
+                idDiv.className = 'spdx-vuln-id';
+                idDiv.textContent = (ext && ext.identifier) || spdxIdTail(vuln.spdxId) || '(no id)';
+                card.appendChild(idDiv);
+
+                // Summary
+                if (vuln.summary) {
+                    const sumDiv = document.createElement('div');
+                    sumDiv.className = 'spdx-vuln-summary';
+                    sumDiv.textContent = vuln.summary;
+                    card.appendChild(sumDiv);
+                }
+
+                // Description
+                if (vuln.description) {
+                    const descDiv = document.createElement('div');
+                    descDiv.className = 'spdx-vuln-description';
+                    descDiv.textContent = vuln.description;
+                    card.appendChild(descDiv);
+                }
+
+                // AVID / external link
+                if (ext) {
+                    const locators = Array.isArray(ext.identifierLocator)
+                        ? ext.identifierLocator : (ext.identifierLocator ? [ext.identifierLocator] : []);
+                    if (locators.length > 0) {
+                        const link = document.createElement('a');
+                        link.className = 'spdx-vuln-ext-link';
+                        link.href = locators[0];
+                        link.target = '_blank';
+                        link.rel = 'noopener noreferrer';
+                        link.textContent = ext.identifier || locators[0];
+                        card.appendChild(link);
+                    }
+                }
+
+                // VEX relationships for this vulnerability
+                const vexItems = vexByVulnId.get(vuln.spdxId) || [];
+                if (vexItems.length > 0) {
+                    const vexList = document.createElement('div');
+                    vexList.className = 'spdx-vex-list';
+                    vexItems.forEach(vex => {
+                        const badge = document.createElement('div');
+                        badge.className = `spdx-vex-badge ${_vexBadgeClass(vex.type)}`;
+                        const affects = spdxIdTails(vex.to);
+                        badge.textContent = `${_vexBadgeLabel(vex.type)}${affects ? ': ' + affects : ''}`;
+                        vexList.appendChild(badge);
+
+                        const note = vex.security_actionStatement || vex.security_statusNotes;
+                        if (note) {
+                            const noteEl = document.createElement('div');
+                            noteEl.className = 'spdx-vex-action';
+                            noteEl.textContent = note;
+                            vexList.appendChild(noteEl);
+                        }
+                    });
+                    card.appendChild(vexList);
+                }
+
+                body.appendChild(card);
+            });
+
+            section.appendChild(body);
+            target.appendChild(section);
         }
 
         // Replace each Annotation's ``statement`` (JSON string) with the
@@ -6408,6 +6659,31 @@
                 target.appendChild(empty);
                 return;
             }
+
+            // --- Security pre-pass: collect Vulnerability + VEX nodes
+            // before the generic walk so we can render a dedicated section
+            // at the top of the viewer (auto-open, with VEX inline) rather
+            // than burying them in a collapsed generic bucket.
+            const vulnNodes = [];
+            const vexByVulnId = new Map(); // vulnSpdxId → [vexItem, …]
+            const VEX_TYPES = new Set([
+                'security_VexAffectedVulnAssessmentRelationship',
+                'security_VexUnderInvestigationVulnAssessmentRelationship',
+            ]);
+            graph.forEach(item => {
+                if (!item || typeof item !== 'object') return;
+                if (item.type === 'security_Vulnerability') {
+                    vulnNodes.push(item);
+                } else if (VEX_TYPES.has(item.type)) {
+                    // VEX ``from`` points at the Vulnerability spdxId.
+                    const vid = item.from;
+                    if (!vexByVulnId.has(vid)) vexByVulnId.set(vid, []);
+                    vexByVulnId.get(vid).push(item);
+                }
+            });
+            // Render the dedicated security section immediately after the
+            // @context header row — before the generic type buckets.
+            renderSecuritySection(vulnNodes, vexByVulnId, target);
 
             // Bucket by type, sort buckets so the principal package types
             // (the actual BOM subject) come first, then the supporting

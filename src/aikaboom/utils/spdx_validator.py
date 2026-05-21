@@ -271,6 +271,21 @@ def _emit_plugin_annotations(claim_iri: str) -> List[Dict[str, Any]]:
             continue
         if anns:
             out.extend(anns)
+        # Collect arbitrary SPDX elements (Vulnerability/VEX/etc.) from plugins
+        # that implement the spdx_elements hook. getattr-guarded so plugins
+        # without it are simply skipped.
+        elem_hook = getattr(plugin, "spdx_elements", None)
+        if elem_hook is not None:
+            try:
+                els = elem_hook(claim_iri=claim_iri, findings=findings)
+            except Exception as e:
+                logging.getLogger("aikaboom.plugins").warning(
+                    "Plugin %r SPDX element emission failed: %s",
+                    getattr(plugin, "name", "?"), e,
+                )
+                els = None
+            if els:
+                out.extend(els)
     return out
 
 

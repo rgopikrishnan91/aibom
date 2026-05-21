@@ -1,0 +1,11 @@
+case_id,avid_report_id,component_kind,component_hf_path,component_developer,component_base_models,component_scope,expected_tier,expected_vex_status,expected_confidence,expected_statement_contains,rationale
+T1-bert-ethics,AVID-2022-R0001,Model,bert-base-uncased,Hugging Face,,principal,1,affects,high,E0101,Exact bare-name Model match; Ethics domain canonical Tier-1.
+T1-gemma-security,AVID-2026-R0459,Model,google/gemma-3n-E4B-it,Google,,principal,1,affects,high,S0403,Exact match; Security domain adversarial example.
+T1-gemma-performance,AVID-2026-R0462,Model,google/gemma-3n-E4B-it,Google,,principal,1,affects,high,P0403,Exact match; Performance domain.
+T1-xlmr-ethics,AVID-2022-R0002,Model,xlm-roberta-base,Hugging Face,,principal,1,affects,high,E0101,Exact match; second model + Ethics domain.
+T2-bert-ner,AVID-2022-R0001,Model,dslim/bert-base-NER,dslim,bert-base-uncased,principal,2,underInvestigationFor,medium,Inherited from base model,Real HF fine-tune of bert-base-uncased; base-model lineage.
+T2-xlmr-sentiment,AVID-2022-R0002,Model,cardiffnlp/twitter-xlm-roberta-base-sentiment,cardiffnlp,xlm-roberta-base,principal,2,underInvestigationFor,medium,Inherited from base model,Real HF fine-tune of xlm-roberta-base.
+T3-gemma-e2b,AVID-2026-R0459,Model,google/gemma-3n-E2B-it,Google,,principal,3,underInvestigationFor,low,Same family,Real same-family sibling gemma-3n + Google developer.
+T3-gemma-e4b,AVID-2026-R0462,Model,google/gemma-3n-E4B,Google,,principal,3,underInvestigationFor,low,Same family,Same-family gemma-3n variant + Google developer.
+neg-gemma-dev-mismatch,AVID-2026-R0459,Model,someone-else/gemma-3n-E2B-it,IndependentResearcher,,principal,no_match,none,none,,Same family but developer mismatch gates false positive.
+neg-kind-mismatch,AVID-2022-R0001,Dataset,bert-base-uncased,,,principal,no_match,none,none,,Same bare-name but Dataset kind vs Model-indexed report.
