@@ -564,7 +564,7 @@
     },
     "security_assessedElement": {
       "@id": "https://spdx.org/rdf/3.0.1/terms/Security/assessedElement",
-      "@type": "@vocab"
+      "@type": "@id"
     },
     "security_catalogType": {
       "@context": {
