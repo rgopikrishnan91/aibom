@@ -1630,6 +1630,7 @@ def worldofboms_export():
 def worldofboms_rebuild():
     """Re-ingest every BOM under bom-history/ into the worldofBOMs graph.
 
+
     Idempotent — relies on store dedup (artifact IRI from canonical
     identifier set + BomStore.resolve cross-identifier lookup), so calling
     this twice does not create duplicate artifact nodes. New claim_iris
@@ -1709,6 +1710,27 @@ def worldofboms_rebuild():
     })
 
 
+# ---------- Plugin-contributed routes and tabs ----------
+# Iterates the in-tree plugin registry once at import time so every enabled
+# plugin gets its Flask blueprint mounted and its BOM-viewer tab spec
+# parked on ``app.config['BOM_VIEWER_TABS']``. The tab list is plumbing for
+# the viewer template — the index page can iterate it to render a tab strip
+# without hardcoding plugin names. License-compat is plugin #1 (Task 11);
+# future plugins (AVID/security, etc.) drop in here automatically.
+from aikaboom.plugins import all_plugins  # noqa: E402
+
+app.config.setdefault('BOM_VIEWER_TABS', [])
+for _plugin in all_plugins():
+    if not _plugin.enabled():
+        continue
+    _bp = _plugin.web_blueprint()
+    if _bp is not None:
+        app.register_blueprint(_bp)
+    _tab = _plugin.bom_viewer_tab()
+    if _tab is not None:
+        app.config['BOM_VIEWER_TABS'].append(_tab)
+
+
 if __name__ == '__main__':
     print("\n" + "="*70)
     print("🌐 Unified BOM Generator - WEB INTERFACE")
@@ -1718,7 +1740,7 @@ if __name__ == '__main__':
     print("Or from another machine: http://<server-ip>:5000")
     print("\n⚠️  To stop the server, press Ctrl+C")
     print("="*70 + "\n")
-    
+
     # Run Flask app
     host = os.getenv('BOM_HOST', '127.0.0.1')
     port = int(os.getenv('BOM_PORT', '5000'))

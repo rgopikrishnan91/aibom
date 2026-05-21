@@ -83,7 +83,7 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "aikaboom.web" = ["templates/*.html", "static/*"]
-"aikaboom" = ["schemas/*.json", "schemas/*.ttl", "schemas/*.jsonld", "schemas/*.md", "config/*.json", "question_bank/ai/*.json", "question_bank/data/*.json"]
+"aikaboom" = ["schemas/*.json", "schemas/*.ttl", "schemas/*.jsonld", "schemas/*.md", "config/*.json", "question_bank/ai/*.json", "question_bank/data/*.json", "plugins/license_compat/data/*.json", "plugins/license_compat/templates/license_compat/*.html"]
 
 [tool.black]
 line-length = 100

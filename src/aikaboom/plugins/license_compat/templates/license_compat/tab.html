@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>License compatibility — {{ artifact_iri }}</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+           margin: 1.5rem; color: #1f2937; }
+    h2, h3 { color: #0f172a; }
+    .text-muted { color: #64748b; font-size: 0.9em; }
+    code { background: #f1f5f9; padding: 0 0.25em; border-radius: 3px; }
+    ul.lineage { list-style: none; padding-left: 0; }
+    ul.lineage li { padding: 0.4em 0.6em; margin-bottom: 0.25em; border-radius: 4px; }
+    li.status-compatible { background: #ecfdf5; }
+    li.status-violation { background: #fef2f2; }
+    li.status-unknown_upstream,
+    li.status-unknown_downstream,
+    li.status-missing_data { background: #f8fafc; }
+    .arrow { color: #64748b; margin: 0 0.5em; }
+    .badge { display: inline-block; padding: 0.1em 0.5em; border-radius: 10px;
+             font-size: 0.75em; font-weight: 600; margin-left: 0.5em; }
+    .badge-compatible { background: #22c55e; color: white; }
+    .badge-violation { background: #ef4444; color: white; }
+    .badge-unknown_upstream,
+    .badge-unknown_downstream,
+    .badge-missing_data { background: #94a3b8; color: white; }
+    table { border-collapse: collapse; margin-top: 0.5em; }
+    th, td { border: 1px solid #e2e8f0; padding: 0.35em 0.75em; text-align: left; }
+    th { background: #f8fafc; }
+  </style>
+</head>
+<body>
+  <h2>License compatibility</h2>
+  <p class="text-muted">
+    Artifact: <code>{{ artifact_iri }}</code> &middot;
+    Matrix dated {{ matrix_timestamp or "unknown" }}
+  </p>
+
+  <section>
+    <h3>Lineage</h3>
+    {% if findings %}
+      <ul class="lineage">
+        {% for f in findings %}
+          <li class="status-{{ f.verdict.status }}">
+            <code>{{ f.downstream_label }}</code> ({{ f.downstream_license or "—" }})
+            <span class="arrow">&rarr;[{{ f.predicate.rsplit('#', 1)[-1] }}]&rarr;</span>
+            <code>{{ f.upstream_label }}</code> ({{ f.upstream_licenses | join(", ") or "—" }})
+            <span class="badge badge-{{ f.verdict.status }}">{{ f.verdict.status }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No edges to analyse.</p>
+    {% endif %}
+  </section>
+
+  <section>
+    <h3>Compatible subchains ({{ subchains | length }})</h3>
+    {% if subchains %}
+      <ol>
+        {% for c in subchains %}
+          <li>size={{ c.size }} root=<code>{{ c.root }}</code></li>
+        {% endfor %}
+      </ol>
+    {% else %}
+      <p>None.</p>
+    {% endif %}
+  </section>
+
+  <section>
+    <h3>Breaking nodes ({{ breaking | length }})</h3>
+    {% if breaking %}
+      <table>
+        <thead>
+          <tr><th>Artifact</th><th>License</th><th>Blamed in</th><th>Affected</th></tr>
+        </thead>
+        <tbody>
+          {% for n in breaking %}
+            <tr>
+              <td><code>{{ n.label }}</code></td>
+              <td>{{ n.license or "—" }}</td>
+              <td>{{ n.blamed_in }}</td>
+              <td>{{ n.affected_downstream | length }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>None.</p>
+    {% endif %}
+  </section>
+</body>
+</html>

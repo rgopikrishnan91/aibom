@@ -8,6 +8,7 @@ checks when those deps or schema files are missing.
 """
 
 import json
+import logging
 import os
 import re
 import tempfile
@@ -217,6 +218,60 @@ def _energy_consumption_element(value: Any) -> Optional[Dict[str, Any]]:
             "ai_energyUnit": unit,
         }],
     }
+
+
+class _EmptyFindings:
+    """Placeholder ``Findings``-Protocol implementation.
+
+    The standalone ``validate_bom_to_spdx`` path converts a ``bom_data``
+    dict without access to a ``BomStore``, so a plugin's ``analyze()``
+    cannot run. We hand each plugin an empty findings object so the loop
+    is in place; emitters return ``[]`` for empty input. Task 13 wires
+    the store-aware path that produces real findings.
+    """
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {"findings": []}
+
+    def violations(self) -> List[Any]:
+        return []
+
+    def __iter__(self):
+        return iter(())
+
+    def __len__(self) -> int:
+        return 0
+
+
+def _emit_plugin_annotations(claim_iri: str) -> List[Dict[str, Any]]:
+    """Loop registered plugins and collect SPDX Annotation Elements.
+
+    Plugin emission is best-effort: a failure in one plugin must not
+    block the SPDX document. Each plugin's ``spdx_annotations`` is
+    expected to handle empty findings gracefully (return ``[]``).
+    """
+    out: List[Dict[str, Any]] = []
+    try:
+        from aikaboom.plugins import all_plugins
+    except Exception:
+        return out
+    findings = _EmptyFindings()
+    for plugin in all_plugins():
+        try:
+            if not plugin.enabled():
+                continue
+        except Exception:
+            continue
+        try:
+            anns = plugin.spdx_annotations(claim_iri=claim_iri, findings=findings)
+        except Exception as e:
+            logging.getLogger("aikaboom.plugins").warning(
+                "Plugin %r SPDX emission failed: %s", getattr(plugin, "name", "?"), e
+            )
+            continue
+        if anns:
+            out.extend(anns)
+    return out
 
 
 class SPDXValidator:
@@ -1000,6 +1055,15 @@ class SPDXValidator:
             )
         )
 
+        # Plugin-contributed Annotation Elements (e.g. license-compat).
+        # Findings are sourced lazily from a BomStore by the plugin loop
+        # helper; when no store is available in scope (the standalone
+        # ``validate_bom_to_spdx`` path), the helper passes empty findings
+        # and the plugin emits nothing. Task 13 wires the store-aware path.
+        spdx_doc['@graph'].extend(
+            _emit_plugin_annotations(claim_iri=ai_subject_id)
+        )
+
         return spdx_doc
 
     def _build_dataset_relationships(self, value: str, rel_type: str,
@@ -1475,6 +1539,13 @@ class SPDXValidator:
                 creation_ref="_:creationinfo",
                 bom_type="data",
             )
+        )
+
+        # Plugin-contributed Annotation Elements (e.g. license-compat).
+        # See note in ``_convert_ai_bom`` — Task 13 wires the store-aware
+        # path; this placeholder is no-op until findings are produced.
+        spdx_doc['@graph'].extend(
+            _emit_plugin_annotations(claim_iri=dataset_subject_id)
         )
 
         return spdx_doc

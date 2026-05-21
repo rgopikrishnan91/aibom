@@ -1,0 +1,62 @@
+{
+  "timestamp": "2026-01-01T00:00:00+0000",
+  "licenses": [
+    {
+      "name": "apache-2.0",
+      "aliases": ["apache 2", "apache 2.0", "apache-2"],
+      "category": "PERMISSIVE",
+      "compatibilities": [
+        {"name": "apache-2.0", "compatibility": "Same"},
+        {"name": "mit", "compatibility": "Yes"},
+        {"name": "gpl-3.0", "compatibility": "No"},
+        {"name": "cc-by-nc-4.0", "compatibility": "No"},
+        {"name": "lgpl-3.0", "compatibility": "Yes"}
+      ]
+    },
+    {
+      "name": "mit",
+      "aliases": ["the mit license"],
+      "category": "PERMISSIVE",
+      "compatibilities": [
+        {"name": "mit", "compatibility": "Same"},
+        {"name": "apache-2.0", "compatibility": "Yes"},
+        {"name": "gpl-3.0", "compatibility": "Yes"},
+        {"name": "cc-by-nc-4.0", "compatibility": "No"},
+        {"name": "lgpl-3.0", "compatibility": "Yes"}
+      ]
+    },
+    {
+      "name": "gpl-3.0",
+      "aliases": ["gpl3", "gpl 3"],
+      "category": "COPYLEFT",
+      "compatibilities": [
+        {"name": "gpl-3.0", "compatibility": "Same"},
+        {"name": "mit", "compatibility": "No"},
+        {"name": "apache-2.0", "compatibility": "No"},
+        {"name": "cc-by-nc-4.0", "compatibility": "No"},
+        {"name": "lgpl-3.0", "compatibility": "No"}
+      ]
+    },
+    {
+      "name": "cc-by-nc-4.0",
+      "aliases": ["cc by-nc 4.0"],
+      "category": "NON_COMMERCIAL",
+      "compatibilities": [
+        {"name": "cc-by-nc-4.0", "compatibility": "Same"},
+        {"name": "mit", "compatibility": "No"},
+        {"name": "apache-2.0", "compatibility": "No"},
+        {"name": "gpl-3.0", "compatibility": "No"}
+      ]
+    },
+    {
+      "name": "lgpl-3.0",
+      "aliases": [],
+      "category": "COPYLEFT",
+      "compatibilities": [
+        {"name": "lgpl-3.0", "compatibility": "Same"},
+        {"name": "apache-2.0", "compatibility": "Yes"},
+        {"name": "mit", "compatibility": "Yes"}
+      ]
+    }
+  ]
+}

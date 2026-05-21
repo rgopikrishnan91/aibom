@@ -738,7 +738,21 @@ def main():
     from aikaboom.store.cli_graph import register_subparsers as _register_graph_subparsers
     _register_graph_subparsers(subparsers)
 
+    # Plugin subparsers — every registered plugin can mount its own commands.
+    from aikaboom.plugins import all_plugins
+    for _plugin in all_plugins():
+        try:
+            _plugin.register_cli(subparsers)
+        except Exception as e:
+            import logging
+            logging.getLogger("aikaboom.plugins").warning(
+                "Plugin %r failed to register CLI: %s", _plugin.name, e
+            )
+
     args = parser.parse_args()
+
+    if hasattr(args, "func") and callable(args.func) and args.command not in ("graph", "bom"):
+        return args.func(args)
 
     if args.command == "generate":
         cmd_generate(args)
