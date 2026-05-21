@@ -129,6 +129,44 @@ The CLI auto-detects which LLM provider to use from the keys in your `.env`.
 With multiple keys set, it asks. Pass `--provider` to override or `--yes` to
 skip the prompt in scripts.
 
+### Security analysis (AVID + SPDX 3.0 Security Profile)
+
+AIkaBoOM enriches a BOM with AI-vulnerability data from the
+[AI Vulnerability Database (AVID)](https://avidml.org). Components in the BOM
+graph are matched against a locally-cached AVID snapshot using a tiered
+matcher, and matches are emitted as **SPDX 3.0.1 Security Profile** elements —
+`Vulnerability` plus VEX assessment relationships
+(`affects` / `underInvestigationFor`). It ships as a self-contained plugin
+under `src/aikaboom/plugins/avid_security/`, conforming to the same plugin
+contract as the license-compatibility analytic.
+
+| Tier | Trigger | Confidence | VEX status |
+|------|---------|-----------|------------|
+| 1 | Exact model/dataset name match | high | `affects` |
+| 2 | Base-model lineage (a base model matches AVID) | medium | `underInvestigationFor` |
+| 3 | Same model family + same developer | low | `underInvestigationFor` |
+
+```bash
+# Scan every BOM component in the graph store against AVID
+aikaboom avid-scan                       # text table; --format json|jsonl, --out FILE
+
+# Show the local AVID snapshot SHA / fetch time / TTL
+aikaboom avid-status
+
+# Force-refresh the AVID snapshot (otherwise auto-refreshes every 10 days)
+aikaboom avid-refresh
+```
+
+The AVID snapshot is cloned to `~/.cache/aikaboom/avid/` (override with
+`AIKABOOM_AVID_CACHE`). Disable the plugin entirely with
+`AIKABOOM_AVID_DISABLED=1`. An **AVID Security** tab and a Vulnerabilities
+section in the SPDX viewer surface matches in the web UI.
+
+> Note: automatic injection of AVID security elements into `aikaboom generate`
+> SPDX output rides on the shared store-aware plugin path (the same deferred
+> integration that gates license-compatibility findings in generated SPDX);
+> `aikaboom avid-scan` runs the full analysis against the live store today.
+
 ### Python API
 
 ```python
