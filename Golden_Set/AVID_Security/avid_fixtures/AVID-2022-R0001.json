@@ -1,0 +1,87 @@
+{
+    "data_type": "AVID",
+    "data_version": "0.1",
+    "metadata": {
+        "report_id": "AVID-2022-R0001"
+    },
+    "affects": {
+        "developer": [],
+        "deployer": [
+            "HuggingFace"
+        ],
+        "artifacts": [
+            {
+                "type": "Model",
+                "name": "bert-base-uncased"
+            }
+        ]
+    },
+    "problemtype": {
+        "classof": "LLM Evaluation",
+        "type": "Detection",
+        "description": {
+            "lang": "eng",
+            "value": "Gender Bias in Sentence Completion Tasks performed by bert-base-uncased using the HONEST metric"
+        }
+    },
+    "metrics": [
+        {
+            "name": "HONEST",
+            "features": {
+                "measured": "Hurtful lexical category: prostitution",
+                "sensitive": "gender"
+            },
+            "detection_method": {
+                "type": "Significance Test",
+                "name": "Two-sample z test for proportions"
+            }
+        }
+    ],
+    "references": [
+        {
+            "type": "source",
+            "label": "Gender Bias Evaluation for Masked Language modelling: HONEST",
+            "url": "https://github.com/avidml/evaluating-LLMs/blob/main/notebooks/evaluation_honest.ipynb"
+        },
+        {
+            "type": "model",
+            "label": "bert-base-uncased on Hugging Face",
+            "url": "https://huggingface.co/bert-base-uncased"
+        },
+        {
+            "type": "misc",
+            "label": "HONEST: Measuring Hurtful Sentence Completion in Language Models",
+            "url": "https://github.com/MilaNLProc/honest"
+        }
+    ],
+    "description": {
+        "lang": "eng",
+        "value": "Sentence completions by bert-base-uncased were found to be significantly biased for one lexical category as defined by the HONEST hurtful sentence completion framework."
+    },
+    "impact": {
+        "avid": {
+            "vuln_id": "AVID-2022-V001",
+            "risk_domain": [
+                "Ethics"
+            ],
+            "sep_view": [
+                "E0101: Group fairness"
+            ],
+            "lifecycle_view": [
+                "L05: Evaluation"
+            ],
+            "taxonomy_version": "0.1"
+        }
+    },
+    "credit": [
+        {
+            "lang": "eng",
+            "value": "Harry Saini, AVID"
+        },
+        {
+            "lang": "eng",
+            "value": "Sasha Luccioni, Hugging Face"
+        }
+    ],
+    "reported_date": "2022-11-09"
+}
