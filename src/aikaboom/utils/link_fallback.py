@@ -211,7 +211,7 @@ For any link that was not provided, use null instead of the object."""
         try:
             print(f"  🔎 Validating retrieved links via Gemini for: {model_name}")
             response = self.client.models.generate_content(
-                model="gemini-2.0-flash-lite",
+                model="gemini-2.5-flash-lite",
                 contents=prompt,
                 config=self.config,
             )
@@ -405,7 +405,7 @@ Respond with ONLY the URL, nothing else."""
             # Try with grounding tool first (web search enabled)
             try:
                 response = self.client.models.generate_content(
-                    model="gemini-2.0-flash-lite",
+                    model="gemini-2.5-flash-lite",
                     contents=prompt,
                     config=self.config,
                 )
@@ -418,7 +418,7 @@ Respond with ONLY the URL, nothing else."""
                 try:
                     # Try without the grounding tool config - simpler request
                     response = self.client.models.generate_content(
-                        model="gemini-2.0-flash-lite",
+                        model="gemini-2.5-flash-lite",
                         contents=prompt,
                     )
                 except Exception as retry_error:
