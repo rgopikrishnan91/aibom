@@ -1518,7 +1518,7 @@ class AgenticRAG:
         # calls (HyDE, conflict-detect, answer-generate). 5 in parallel ≈ 15
         # calls/minute → guaranteed 429s. Drop to 2 to stay inside the cap;
         # the retry helper still backs off on the occasional 429.
-        MAX_PARALLEL_QUESTIONS = 2
+        MAX_PARALLEL_QUESTIONS = 5
 
         def _run_question(question_type, config):
             question = config['question']
